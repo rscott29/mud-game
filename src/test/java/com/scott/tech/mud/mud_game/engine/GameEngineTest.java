@@ -78,3 +78,4 @@ class GameEngineTest {
         verify(session, never()).transition(SessionState.DISCONNECTED);
     }
 }
+

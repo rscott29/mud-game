@@ -189,3 +189,4 @@ class NaturalLanguageInputTest {
         return result.getResponses().get(0);
     }
 }
+

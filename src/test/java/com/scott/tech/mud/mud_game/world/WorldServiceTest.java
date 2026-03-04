@@ -129,3 +129,4 @@ class WorldServiceTest {
         return new Room(id, id, "desc", new EnumMap<>(Direction.class), List.of(), npcs);
     }
 }
+

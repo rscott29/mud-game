@@ -229,3 +229,4 @@ class TalkCommandTest {
                 true, List.of(), personality);
     }
 }
+

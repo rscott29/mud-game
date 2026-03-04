@@ -55,3 +55,4 @@ class DatabaseUrlPostProcessorTest {
                 .hasMessageContaining("Failed to parse DATABASE_URL");
     }
 }
+
