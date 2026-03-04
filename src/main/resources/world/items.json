@@ -1,0 +1,104 @@
+[
+  {
+    "id": "item_signpost",
+    "name": "Signpost",
+    "description": "A weathered wooden signpost, its paint cracked and faded by years of sun and rain. Four arms point in cardinal directions: 'Tavern' to the north, 'Market' to the south, 'East Road' to the east, and 'Blacksmith' to the west.",
+    "keywords": ["signpost", "sign", "post", "directions", "signs"]
+  },
+  {
+    "id": "item_fountain",
+    "name": "Fountain",
+    "description": "A stone fountain carved with leaping fish and swirling wave motifs. Cool, clear water bubbles up from a central spout and spills into the basin below. A few copper coins glint at the bottom — someone's wishes.",
+    "keywords": ["fountain", "water", "basin", "coins"]
+  },
+  {
+    "id": "item_ale_mug",
+    "name": "Ale Mug",
+    "description": "A thick clay mug, still half-full of dark, frothy ale. It smells of hops and something faintly smoky. The rim is chipped from countless table-slams.",
+    "keywords": ["ale", "mug", "ale mug", "drink", "beer"]
+  },
+  {
+    "id": "item_wanted_poster",
+    "name": "Wanted Poster",
+    "description": "A rough parchment poster nailed to the tavern wall. A crude sketch of a hooded figure stares back at you. 'WANTED – DEAD OR ALIVE. 500 gold. Inquire at the Guard Post.' The subject has no distinguishing features listed.",
+    "keywords": ["wanted", "poster", "notice", "parchment", "reward"]
+  },
+  {
+    "id": "item_straw_mattress",
+    "name": "Straw Mattress",
+    "description": "A thin mattress stuffed with dry straw, pushed against the loft wall. It looks like it would offer only modest comfort, but it beats sleeping on the floor. Something small rustles inside it.",
+    "keywords": ["mattress", "straw", "bed", "straw mattress", "cot"]
+  },
+  {
+    "id": "item_cracked_window",
+    "name": "Cracked Window",
+    "description": "A small glass pane, cracked diagonally from corner to corner. Through it you can see the town square below — the fountain, the signpost, and anyone milling about. The crack is stuffed with a rag to keep the wind out.",
+    "keywords": ["window", "cracked window", "glass", "pane"]
+  },
+  {
+    "id": "item_bread_loaf",
+    "name": "Bread Loaf",
+    "description": "A round loaf of dark bread, still faintly warm. Its crust is hard and dusted with flour. It smells wonderfully of a wood-fired oven. The price tag reads '2 copper'.",
+    "keywords": ["bread", "loaf", "bread loaf", "food"]
+  },
+  {
+    "id": "item_strange_trinket",
+    "name": "Strange Trinket",
+    "description": "A small brass object of indeterminate purpose — covered in tiny symbols that might be runes or might just be decorative scratches. It feels oddly warm to the touch despite the cool air. The vendor claims it brings luck.",
+    "keywords": ["trinket", "strange trinket", "brass", "rune", "charm", "object"]
+  },
+  {
+    "id": "item_health_potion",
+    "name": "Health Potion",
+    "description": "A small glass vial stopped with a cork, filled with a vivid crimson liquid. It glows faintly in dim light. The label, written in a cramped hand, reads: 'Restores vitality. Do not mix with moonwort extract.'",
+    "keywords": ["potion", "health potion", "vial", "red", "healing", "tonic"]
+  },
+  {
+    "id": "item_mysterious_powder",
+    "name": "Mysterious Powder",
+    "description": "A twist of paper filled with a fine, iridescent powder that shifts between silver and green depending on the angle of light. It smells faintly of pine and ozone. The alchemist watches you closely when you touch it.",
+    "keywords": ["powder", "mysterious powder", "dust", "iridescent"]
+  },
+  {
+    "id": "item_broken_arrow",
+    "name": "Broken Arrow",
+    "description": "A snapped arrow shaft with the fletchings still attached — goose feathers, dyed red. The head is missing. The wood is old and weathered, as though it has been lying here for some time.",
+    "keywords": ["arrow", "broken arrow", "shaft", "fletching"]
+  },
+  {
+    "id": "item_odd_mushroom",
+    "name": "Odd Mushroom",
+    "description": "A pale, knobby mushroom with dark spots ringed in faint violet. It doesn't match any species you recognise. It smells earthy and faintly sweet. Eating it seems unwise.",
+    "keywords": ["mushroom", "odd mushroom", "fungus", "toadstool", "spotted"]
+  },
+  {
+    "id": "item_glowing_mushroom",
+    "name": "Glowing Mushroom",
+    "description": "A cluster of large mushrooms that emit a steady, cool blue-white bioluminescence. Running your finger along the cap leaves a faint glowing smear. They are beautiful and slightly unsettling in equal measure.",
+    "keywords": ["glowing mushroom", "mushroom", "fungus", "bioluminescent", "glowing", "blue"]
+  },
+  {
+    "id": "item_animal_tracks",
+    "name": "Animal Tracks",
+    "description": "A series of large paw prints pressed deep into the soft earth. Four toes, no claw marks — something big, heavy, and surprisingly quiet. The tracks lead deeper into the forest and do not return.",
+    "keywords": ["tracks", "animal tracks", "prints", "paw prints", "footprints"]
+  },
+  {
+    "id": "item_iron_sword",
+    "name": "Iron Sword",
+    "description": "A single-edged iron sword hanging from a wall hook. The blade is solid and well-balanced, though not particularly decorative. A strip of worn leather wraps the hilt. The price chalked on a slate below reads '15 silver'.",
+    "keywords": ["sword", "iron sword", "blade", "weapon"]
+  },
+  {
+    "id": "item_leather_shield",
+    "name": "Leather Shield",
+    "description": "A round shield faced with thick boiled leather over a wooden frame. A central iron boss is riveted in place. Scuff marks at the edges hint at real use. Sturdy and light — a traveller's shield.",
+    "keywords": ["shield", "leather shield", "buckler", "armor", "armour"]
+  },
+  {
+    "id": "item_anvil",
+    "name": "Anvil",
+    "description": "A massive iron anvil bolted to a thick hardwood stump. Its top face is polished mirror-smooth from years of use, while the edges are scored with hammer nicks. It bears a maker's mark: a hammer inside a circle.",
+    "keywords": ["anvil", "iron anvil", "forge"]
+  }
+]

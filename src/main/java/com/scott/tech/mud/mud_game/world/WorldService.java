@@ -1,0 +1,114 @@
+package com.scott.tech.mud.mud_game.world;
+
+import com.scott.tech.mud.mud_game.exception.WorldLoadException;
+import com.scott.tech.mud.mud_game.model.Item;
+import com.scott.tech.mud.mud_game.model.Npc;
+import com.scott.tech.mud.mud_game.model.Room;
+import com.scott.tech.mud.mud_game.persistence.entity.NpcPositionEntity;
+import com.scott.tech.mud.mud_game.persistence.repository.NpcPositionRepository;
+import jakarta.annotation.PostConstruct;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Service;
+
+import java.util.Map;
+import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
+
+@Service
+public class WorldService {
+
+    private static final Logger log = LoggerFactory.getLogger(WorldService.class);
+
+    private final WorldLoader worldLoader;
+    private final NpcPositionRepository npcPositionRepository;
+
+    private Map<String, Room> rooms = Map.of();
+    private Map<String, Npc> npcRegistry = Map.of();
+    private Map<String, Item> itemRegistry = Map.of();
+    private final Map<String, String> npcRoomIndex = new ConcurrentHashMap<>();
+    private String startRoomId;
+
+    public WorldService(WorldLoader worldLoader, NpcPositionRepository npcPositionRepository) {
+        this.worldLoader           = worldLoader;
+        this.npcPositionRepository = npcPositionRepository;
+    }
+
+    @PostConstruct
+    public void loadWorld() {
+        try {
+            WorldLoadResult loaded = worldLoader.load();
+            this.rooms = loaded.rooms();
+            this.npcRegistry = loaded.npcRegistry();
+            this.itemRegistry = loaded.itemRegistry();
+            this.startRoomId = loaded.startRoomId();
+
+            npcRoomIndex.clear();
+            npcRoomIndex.putAll(loaded.npcRoomIndex());
+
+            // Overlay with persisted NPC positions from the database
+            int[] overlaid = {0};
+            npcPositionRepository.findAll().forEach(pos -> {
+                String savedRoom = pos.getRoomId();
+                String currentRoom = npcRoomIndex.get(pos.getNpcId());
+                if (currentRoom != null && !currentRoom.equals(savedRoom) && rooms.containsKey(savedRoom)) {
+                    Npc npc = npcRegistry.get(pos.getNpcId());
+                    if (npc != null) {
+                        Room from = rooms.get(currentRoom);
+                        Room to   = rooms.get(savedRoom);
+                        if (from != null) from.removeNpc(npc);
+                        if (to   != null) to.addNpc(npc);
+                        npcRoomIndex.put(pos.getNpcId(), savedRoom);
+                        overlaid[0]++;
+                    }
+                }
+            });
+            if (overlaid[0] > 0) {
+                log.info("Restored {} NPC position(s) from database", overlaid[0]);
+            }
+        } catch (WorldLoadException e) {
+            throw e;  // already the right type — let it fail startup cleanly
+        } catch (Exception e) {
+            throw new WorldLoadException("Failed to load world data", e);
+        }
+    }
+
+    public Room getRoom(String id) {
+        return rooms.get(id);
+    }
+
+    public Optional<Room> findRoom(String id) {
+        return Optional.ofNullable(rooms.get(id));
+    }
+
+    public String getStartRoomId() {
+        return startRoomId;
+    }
+
+    public Npc getNpcById(String npcId) {
+        return npcRegistry.get(npcId);
+    }
+
+    public String getNpcRoomId(String npcId) {
+        return npcRoomIndex.get(npcId);
+    }
+
+    public java.util.Collection<Npc> getWanderingNpcs() {
+        return npcRegistry.values().stream()
+                .filter(Npc::doesWander)
+                .toList();
+    }
+
+    public synchronized void moveNpc(String npcId, String fromRoomId, String toRoomId) {
+        Npc npc = npcRegistry.get(npcId);
+        Room fromRoom = rooms.get(fromRoomId);
+        Room toRoom = rooms.get(toRoomId);
+        if (npc == null || fromRoom == null || toRoom == null) {
+            return;
+        }
+        fromRoom.removeNpc(npc);
+        toRoom.addNpc(npc);
+        npcRoomIndex.put(npcId, toRoomId);
+        npcPositionRepository.save(new NpcPositionEntity(npcId, toRoomId));
+    }
+}

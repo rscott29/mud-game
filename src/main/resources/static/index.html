@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>MUD Game Client</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: #1a1a2e; color: #e0e0e0; font-family: 'Courier New', monospace; display: flex; flex-direction: column; height: 100vh; }
+
+    #log {
+      flex: 1;
+      overflow-y: auto;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .msg { padding: 8px 12px; border-radius: 4px; max-width: 900px; line-height: 1.5; }
+    .msg.WELCOME     { background: #16213e; border-left: 3px solid #0f3460; }
+    .msg.ROOM_UPDATE { background: #0f2027; border-left: 3px solid #2980b9; }
+    .msg.MESSAGE     { background: #1a1a2e; border-left: 3px solid #8e44ad; }
+    .msg.ERROR       { background: #2c0e0e; border-left: 3px solid #c0392b; color: #e74c3c; }
+    .msg.SENT        { background: #0d2b0d; border-left: 3px solid #27ae60; color: #aaa; font-size: 0.85em; }
+    .msg.SYSTEM      { color: #7f8c8d; font-size: 0.85em; }
+    .msg.AUTH_PROMPT { background: #1a1a2e; border-left: 3px solid #f39c12; color: #f0c060; white-space: pre-wrap; }
+    .msg.CHAT_ROOM  { background: #0a1f1a; border-left: 3px solid #16a085; }
+    .msg.CHAT_WORLD { background: #1a0f2e; border-left: 3px solid #8e44ad; }
+    .msg.CHAT_DM    { background: #1a0d0d; border-left: 3px solid #e74c3c; }
+    .msg.WHO_LIST   { background: #0f1a2e; border-left: 3px solid #f39c12; color: #f0c060; white-space: pre-wrap; }
+    .chat-badge { font-size: 0.75em; font-weight: bold; text-transform: uppercase; margin-right: 6px; padding: 1px 5px; border-radius: 3px; }
+    .chat-badge.room  { background: #16a085; color: #fff; }
+    .chat-badge.world { background: #8e44ad; color: #fff; }
+    .chat-badge.dm    { background: #e74c3c; color: #fff; }
+    .chat-from { font-weight: bold; margin-right: 4px; }
+
+    .room-name    { font-size: 1.1em; font-weight: bold; color: #3498db; margin-bottom: 4px; }
+    .room-desc    { color: #bdc3c7; }
+    .room-meta    { margin-top: 6px; font-size: 0.85em; color: #7f8c8d; }
+    .room-meta span { color: #95a5a6; }
+
+    #input-bar {
+      display: flex;
+      padding: 12px;
+      background: #16213e;
+      border-top: 1px solid #0f3460;
+      gap: 8px;
+    }
+
+    #cmd {
+      flex: 1;
+      background: #0f2027;
+      border: 1px solid #2980b9;
+      color: #e0e0e0;
+      padding: 10px 14px;
+      font-family: inherit;
+      font-size: 1em;
+      border-radius: 4px;
+      outline: none;
+    }
+    #cmd:focus { border-color: #3498db; }
+
+    button {
+      background: #2980b9;
+      color: #fff;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 4px;
+      font-family: inherit;
+      cursor: pointer;
+    }
+    button:hover { background: #3498db; }
+
+    #status {
+      padding: 4px 12px;
+      font-size: 0.8em;
+      background: #16213e;
+      color: #7f8c8d;
+      text-align: right;
+    }
+    #status.connected    { color: #27ae60; }
+    #status.disconnected { color: #c0392b; }
+  </style>
+</head>
+<body>
+
+<div id="status" class="disconnected">● Disconnected</div>
+<div id="log"></div>
+
+<div id="input-bar">
+  <input id="cmd" type="text" placeholder="Enter your username…" autofocus />
+  <button onclick="send()">Send</button>
+</div>
+
+<script>
+  const log  = document.getElementById('log');
+  const cmd  = document.getElementById('cmd');
+  const statusEl = document.getElementById('status');
+  let ws;
+  let passwordMode = false;  // true when the server expects masked input (password)
+
+  function setPasswordMode(on) {
+    passwordMode = on;
+    cmd.type        = on ? 'password' : 'text';
+    cmd.placeholder = on ? 'Enter password…' : 'Type a command or speak naturally…';
+  }
+
+  function connect() {
+    ws = new WebSocket('ws://localhost:8080/game');
+
+    ws.onopen = () => {
+      statusEl.textContent = '● Connected';
+      statusEl.className = 'connected';
+      appendSystem('Connected to ws://localhost:8080/game');
+      // Attempt silent reconnect if we have a stored token
+      const token = localStorage.getItem('mudReconnectToken');
+      if (token) {
+        localStorage.removeItem('mudReconnectToken');  // Will be re-issued on success
+        ws.send(JSON.stringify({ reconnectToken: token }));
+      }
+    };
+
+    ws.onmessage = ({ data }) => {
+      try {
+        const msg = JSON.parse(data);
+        renderResponse(msg);
+      } catch {
+        appendSystem('Non-JSON message: ' + data);
+      }
+    };
+
+    ws.onclose = () => {
+      statusEl.textContent = '● Disconnected';
+      statusEl.className = 'disconnected';
+      appendSystem('Connection closed. Refresh to reconnect.');
+    };
+
+    ws.onerror = (e) => appendSystem('WebSocket error – is the server running?');
+  }
+
+  // Commands that should always be sent structured (never through the AI resolver).
+  // Keeps single-letter shorthands reliable and avoids unnecessary AI calls.
+  const DIRECT_COMMANDS = new Set([
+    'n','s','e','w','u','d',
+    'north','south','east','west','up','down',
+    'look','l','examine','x',
+    'help','?',
+    'logout','logoff','quit','exit',
+    'who'
+  ]);
+
+  function send() {
+    const raw = cmd.value.trim();
+    if (!raw) return;
+    cmd.value = '';
+
+    // During login/auth, always send as plain input — never route through AI resolver
+    if (passwordMode || document.getElementById('cmd').type === 'password') {
+      // Send raw without echoing to screen (don't reveal password)
+      ws.send(JSON.stringify({ input: raw }));
+      appendSent('••••••••');
+      return;
+    }
+
+    let payload;
+    if (raw.startsWith('{')) {
+      // already fully-formed JSON – send as-is
+      payload = raw;
+    } else if (raw.startsWith('/')) {
+      // Slash commands (/speak, /world, /dm, /who, etc.) — always direct, never through AI
+      const parts = raw.split(/\s+/);
+      const command = parts[0].toLowerCase();
+      const args = parts.slice(1);
+      payload = JSON.stringify(args.length ? { command, args } : { command });
+    } else {
+      const parts = raw.split(/\s+/);
+      const first = parts[0].toLowerCase();
+      if (DIRECT_COMMANDS.has(first)) {
+        // Known command – send structured so it bypasses the AI resolver
+        const args = parts.slice(1);
+        payload = JSON.stringify(args.length ? { command: first, args } : { command: first });
+      } else {
+        // Free-form input – route through AI intent resolver on the server
+        payload = JSON.stringify({ input: raw });
+      }
+    }
+
+    appendSent(raw);
+    ws.send(payload);
+  }
+
+  cmd.addEventListener('keydown', e => { if (e.key === 'Enter') send(); });
+
+  function renderResponse(msg) {
+    const el = document.createElement('div');
+    el.className = 'msg ' + (msg.type || 'MESSAGE');
+
+    if (msg.type === 'SESSION_TOKEN') {
+      localStorage.setItem('mudReconnectToken', msg.token);
+      return;  // Invisible to the player
+    }
+
+    if (msg.type === 'CHAT_ROOM' || msg.type === 'CHAT_WORLD' || msg.type === 'CHAT_DM') {
+      const badgeClass = msg.type === 'CHAT_ROOM' ? 'room' : msg.type === 'CHAT_WORLD' ? 'world' : 'dm';
+      const label      = msg.type === 'CHAT_ROOM' ? 'Room'  : msg.type === 'CHAT_WORLD' ? 'World' : 'DM';
+      el.innerHTML = `<span class="chat-badge ${badgeClass}">${label}</span><span class="chat-from">${esc(msg.from || '')}:</span>${esc(msg.message || '')}`;
+      log.appendChild(el);
+      log.scrollTop = log.scrollHeight;
+      return;
+    }
+
+    if (msg.type === 'WHO_LIST') {
+      el.textContent = msg.message || '';
+      log.appendChild(el);
+      log.scrollTop = log.scrollHeight;
+      return;
+    }
+
+    if (msg.type === 'AUTH_PROMPT') {
+      // Show the prompt text; server controls whether input is masked on the NEXT keypress
+      el.textContent = msg.message || '';
+      log.appendChild(el);
+      log.scrollTop = log.scrollHeight;
+      setPasswordMode(msg.mask === true);
+      return;
+    }
+
+    if (msg.type === 'WELCOME') {
+      // Auth succeeded (fresh login or silent reconnect) — clear any login prompts and restore input
+      log.innerHTML = '';
+      setPasswordMode(false);
+    }
+
+    if ((msg.type === 'ROOM_UPDATE' || msg.type === 'WELCOME') && msg.room) {
+      const r = msg.room;
+      const exits    = (r.exits || []).join(', ') || 'none';
+      const items    = (r.items || []).join(', ') || 'none';
+      const npcNames    = (r.npcs    || []).map(n => n.name).join(', ') || 'none';
+      const playerNames = (r.players || []).join(', ') || 'none';
+      el.innerHTML = `
+        ${msg.message ? `<div style="margin-bottom:8px;color:#ecf0f1">${esc(msg.message)}</div>` : ''}
+        <div class="room-name">${esc(r.name)}</div>
+        <div class="room-desc">${esc(r.description)}</div>
+        <div class="room-meta">Exits: <span>${esc(exits)}</span> &nbsp;|&nbsp; Items: <span>${esc(items)}</span> &nbsp;|&nbsp; NPCs: <span>${esc(npcNames)}</span> &nbsp;|&nbsp; Players: <span>${esc(playerNames)}</span></div>
+      `;
+    } else {
+      el.textContent = msg.message || JSON.stringify(msg);
+    }
+
+    log.appendChild(el);
+    log.scrollTop = log.scrollHeight;
+  }
+
+  function appendSent(text) {
+    const el = document.createElement('div');
+    el.className = 'msg SENT';
+    el.textContent = '> ' + text;
+    log.appendChild(el);
+    log.scrollTop = log.scrollHeight;
+  }
+
+  function appendSystem(text) {
+    const el = document.createElement('div');
+    el.className = 'msg SYSTEM';
+    el.textContent = text;
+    log.appendChild(el);
+    log.scrollTop = log.scrollHeight;
+  }
+
+  function esc(str) {
+    return String(str)
+      .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+
+  connect();
+</script>
+  <!-- DevTools LiveReload: auto-refreshes the page after a server restart -->
+  <script src="http://localhost:35729/livereload.js"></script>
+</body>
+</html>

@@ -1,0 +1,94 @@
+{
+  "startRoomId": "town_square",
+  "rooms": [
+    {
+      "id": "town_square",
+      "name": "Town Square",
+      "description": "A weathered cobblestone plaza at the heart of a small town. A handsome young Labrador with mischief in his eyes notices you and wags his tail. A fountain burbles in the center, and a wooden signpost points in all directions.",
+      "exits": {
+        "NORTH": "tavern",
+        "SOUTH": "market",
+        "EAST":  "east_road",
+        "WEST":  "blacksmith"
+      },
+      "itemIds": ["item_signpost", "item_fountain"],
+      "npcIds": ["npc_dog_Obi"]
+    },
+    {
+      "id": "tavern",
+      "name": "The Rusty Flagon Tavern",
+      "description": "A dimly lit tavern that smells of ale and woodsmoke. Gruff adventurers murmur at scarred oak tables. A red-faced bartender polishes mugs behind the bar.",
+      "exits": {
+        "SOUTH": "town_square",
+        "UP":    "tavern_loft"
+      },
+      "itemIds": ["item_ale_mug", "item_wanted_poster"]
+    },
+    {
+      "id": "tavern_loft",
+      "name": "Tavern Loft",
+      "description": "A dusty loft above the tavern. Straw mattresses are pushed against the walls. A cracked window overlooks the town square below.",
+      "exits": {
+        "DOWN": "tavern"
+      },
+      "itemIds": ["item_straw_mattress", "item_cracked_window"]
+    },
+    {
+      "id": "market",
+      "name": "Town Market",
+      "description": "Colourful stalls line the road – vendors hawk everything from fresh bread to peculiar trinkets. The noise and bustle is almost overwhelming.",
+      "exits": {
+        "NORTH": "town_square",
+        "EAST":  "alchemist"
+      },
+      "itemIds": ["item_bread_loaf", "item_strange_trinket"]
+    },
+    {
+      "id": "alchemist",
+      "name": "Alchemist's Shop",
+      "description": "Shelves packed with bubbling vials and drying herbs crowd every surface. The air reeks of sulphur and something floral. An old alchemist peers at you over thick spectacles.",
+      "exits": {
+        "WEST": "market"
+      },
+      "itemIds": ["item_health_potion", "item_mysterious_powder"]
+    },
+    {
+      "id": "east_road",
+      "name": "East Road",
+      "description": "A rutted dirt track leading away from town toward a distant dark forest. The trees loom large on the horizon. The road continues east.",
+      "exits": {
+        "WEST": "town_square",
+        "EAST": "forest_edge"
+      },
+      "itemIds": []
+    },
+    {
+      "id": "forest_edge",
+      "name": "Forest Edge",
+      "description": "The road dissolves into a tangle of roots and undergrowth at the edge of a dense forest. Strange sounds drift from the shadowed canopy. A narrow path leads north.",
+      "exits": {
+        "WEST":  "east_road",
+        "NORTH": "deep_forest"
+      },
+      "itemIds": ["item_broken_arrow", "item_odd_mushroom"]
+    },
+    {
+      "id": "deep_forest",
+      "name": "Deep Forest",
+      "description": "Huge ancient trees block out the sky. Bioluminescent fungi cast an eerie blue glow across the undergrowth. You feel watched. The path home leads south.",
+      "exits": {
+        "SOUTH": "forest_edge"
+      },
+      "itemIds": ["item_glowing_mushroom", "item_animal_tracks"]
+    },
+    {
+      "id": "blacksmith",
+      "name": "Blacksmith's Forge",
+      "description": "The heat from the forge is intense. Weapons and armour hang from every hook. A massive blacksmith hammers a glowing sword blade on a thick anvil.",
+      "exits": {
+        "EAST": "town_square"
+      },
+      "itemIds": ["item_iron_sword", "item_leather_shield", "item_anvil"]
+    }
+  ]
+}

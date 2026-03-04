@@ -1,0 +1,62 @@
+{
+  "auth.banner"                         : "┌─────────────────────────────────────┐\n│        Welcome to the MUD!          │\n└─────────────────────────────────────┘",
+  "auth.prompt.enter_username"          : "Enter your username:",
+  "auth.error.username_blank"           : "Username cannot be blank.\nEnter your username:",
+  "auth.error.username_invalid"         : "Invalid username. Use 3-20 characters (letters, digits, underscores).\nEnter your username:",
+  "auth.error.account_locked"           : "Account '{username}' is temporarily locked. Try again in {time}.\nEnter your username:",
+  "auth.error.account_locked_recheck"   : "Account locked. Try again in {time}.\nEnter your username:",
+  "auth.error.account_locked_now"       : "Too many failed attempts. Account locked for 5 minutes.\nEnter your username:",
+  "auth.prompt.password"                : "Password:",
+  "auth.error.password_wrong"           : "Incorrect password. {remaining} attempt{s} remaining.\nPassword:",
+  "auth.prompt.create_or_exit"          : "Username '{username}' is not registered.\n[1] Create a new character\n[2] Exit",
+  "auth.prompt.creation_password"       : "Choose a password (minimum 4 characters):",
+  "auth.error.creation_password_short"  : "Password must be at least 4 characters.\nChoose a password:",
+  "auth.error.creation_confirm_invalid" : "Please enter [1] to create a character or [2] to exit.",
+  "auth.message.character_created"      : "Character created! Entering the world...",
+  "auth.message.farewell"               : "Farewell, adventurer. Until next time.",
+
+  "event.player.entered_world"          : "{player} has entered the world.",
+  "event.player.left_world"             : "{player} has left the world.",
+
+  "command.move.cannot_go"              : "You can't go {direction} from here.",
+  "command.move.missing_room"           : "That path leads nowhere (room '{roomId}' is missing).",
+  "command.move.departure"              : "{player} heads {direction}.",
+  "command.move.arrival"                : "{player} arrives from the {direction}.",
+  "command.move.success"                : "You move {direction}.",
+
+  "command.look.around"                 : "You look around.",
+  "command.look.no_exits"               : "There are no obvious exits.",
+  "command.look.exits"                  : "Exits: {exits}",
+  "command.look.player_here"            : "{player} is a player standing here.",
+  "command.look.not_found"              : "You don't see any '{target}' here.",
+
+  "command.talk.no_target"              : "Talk to whom?",
+  "command.talk.npc_not_found"          : "You don't see anyone called '{target}' here.",
+  "command.talk.npc_no_speech"          : "{npc} doesn't seem to understand you.",
+  "command.talk.npc_speech_failed"      : "{npc} opens their mouth, but the words seem to get lost in the air.",
+  "command.talk.sentient_user_message"  : "A player named {player} greets you.",
+
+  "command.speak.usage"                 : "Usage: /speak <message>",
+  "command.world.usage"                 : "Usage: /world <message>",
+  "command.dm.usage"                    : "Usage: /dm <playerName> <message>",
+  "command.dm.self"                     : "You can't send a DM to yourself.",
+  "command.dm.offline"                  : "Player '{player}' is not online.",
+  "command.dm.echo_prefix"              : "→ ",
+
+  "command.who.empty"                   : "No players are currently online.",
+  "command.who.list"                    : "Online ({count}): {names}",
+
+  "command.logout.confirm"              : "Are you sure you want to log out? Type yes to confirm or no to stay.",
+  "command.logout.goodbye"              : "Goodbye, {player}! See you next time.",
+  "command.logout.cancelled"            : "Logout cancelled. Welcome back!",
+  "command.logout.reconfirm"            : "Please type yes to log out or no to stay.",
+  "command.unknown"                     : "Unknown command: '{input}'. Type 'help' for a list of commands.",
+
+  "error.session_not_active"            : "Session is not currently active.",
+  "error.session_not_found"             : "Session not found.",
+  "error.unexpected_auth_state"         : "Unexpected auth state: {state}",
+  "error.invalid_message_format"        : "Invalid message format. Expected JSON: {\"command\":\"look\",\"args\":[]} or {\"input\":\"look around\"}",
+  "error.session_state"                 : "Your session is in an unexpected state. Please reconnect.",
+  "error.game_error"                    : "An error occurred while processing your command.",
+  "error.internal"                      : "An unexpected error occurred. Please try again."
+}

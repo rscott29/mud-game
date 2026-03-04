@@ -1,0 +1,6 @@
+Current room : {room}
+Exits        : {exits}
+Items        : {items}
+NPCs         : {npcs}
+
+Player input : {input}

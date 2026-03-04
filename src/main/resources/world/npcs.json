@@ -1,0 +1,61 @@
+[
+  {
+    "id": "npc_dog_Obi",
+    "name": "Obi",
+    "description": "A boisterous young Labrador with a golden coat and boundless energy. He fixes you with intelligent amber eyes, tail wagging furiously. His collar tag reads 'Obi'. He seems to be waiting for something — or someone.",
+    "keywords": ["obi", "dog", "labrador", "lab", "puppy", "hound"],
+    "pronoun": "he",
+    "possessive": "his",
+    "talkTemplates": [
+      "Obi stares at you with his head tilted to one side, clearly delighted by the attention.",
+      "Obi responds to your words with a single, very decisive bark.",
+      "Obi wags his tail so hard his whole back end swings. He has no idea what you said, but he's thrilled you said it.",
+      "Obi licks your hand enthusiastically. Probably not the response you were looking for.",
+      "Obi sits very straight and fixes you with an attentive gaze, as though he understands every single word. He does not.",
+      "Obi's ears flatten and he lets out a soft whine, gazing up at you with enormous amber eyes.",
+      "Obi nudges your hand with his cold nose and looks up expectantly. The conversation is going well, from his perspective."
+    ],
+    "interactTemplates": [
+      "Obi's head snaps up the moment {player} enters. His tail becomes a golden blur.",
+      "Obi spots {player} and immediately trots over, sniffing their boots with great enthusiasm.",
+      "Obi lets out a short, happy bark as {player} walks in, then circles them twice.",
+      "Obi lifts his head from his paws and watches {player} with bright, hopeful eyes.",
+      "Obi scrambles to his feet and presses his cold nose into {player}'s hand.",
+      "At the sight of {player}, Obi's entire back end wiggles furiously.",
+      "Obi yawns an enormous yawn, stretches, then pads over to greet {player} as if they've been gone for years."
+    ],
+    "wander": {
+      "minSeconds": 30,
+      "maxSeconds": 90,
+      "path": [
+        "tavern",
+        "town_square",
+        "blacksmith",
+        "town_square",
+        "market",
+        "town_square",
+        "east_road",
+        "town_square"
+      ],
+      "departureTemplates": [
+        "Obi's ears prick up — he sniffs the air and trots off to the {dir}.",
+        "Obi spots something interesting and bolts {dir} before you can blink.",
+        "Obi gives you an apologetic tail-wag, then pads off to the {dir}.",
+        "Obi suddenly barks at nothing in particular and disappears to the {dir}.",
+        "With a wag of his tail, Obi trots {dir} and is gone.",
+        "Obi gets distracted by something you can't see and scampers off to the {dir}.",
+        "Obi sneezes, looks embarrassed, then trots off to the {dir} with great purpose.",
+        "Something catches Obi's eye to the {dir} and he's off like a shot."
+      ],
+      "arrivalTemplates": [
+        "Obi bounds in from the {from}, tongue lolling, tail spinning furiously.",
+        "A familiar golden blur skids in from the {from} — it's Obi, looking very pleased with himself.",
+        "Obi trots in from the {from} and immediately sniffs everything in sight.",
+        "Obi pads in from the {from}, ears perked, eyes bright.",
+        "Obi charges in from the {from} and nearly knocks you over in excitement.",
+        "Obi saunters in from the {from}, tail held high, acting as though he owns the place.",
+        "There's a clatter from the {from} and then Obi appears, utterly unrepentant."
+      ]
+    }
+  }
+]
