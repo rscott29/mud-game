@@ -19,8 +19,10 @@ public class DatabaseUrlPostProcessor implements EnvironmentPostProcessor {
     public void postProcessEnvironment(ConfigurableEnvironment environment, SpringApplication application) {
         String databaseUrl = environment.getProperty("DATABASE_URL");
         if (databaseUrl == null || databaseUrl.isBlank()) {
+            System.out.println("[DatabaseUrlPostProcessor] DATABASE_URL not set, skipping");
             return;
         }
+        System.out.println("[DatabaseUrlPostProcessor] Parsing DATABASE_URL");
 
         try {
             URI uri = URI.create(databaseUrl.replace("postgres://", "postgresql://"));

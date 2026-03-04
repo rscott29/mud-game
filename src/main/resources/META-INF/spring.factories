@@ -1,0 +1,2 @@
+org.springframework.boot.env.EnvironmentPostProcessor=\
+  com.scott.tech.mud.mud_game.config.DatabaseUrlPostProcessor
