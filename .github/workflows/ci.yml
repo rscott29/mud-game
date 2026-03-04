@@ -1,5 +1,6 @@
 name: CI
 
+# Test PR: verifying branch protection gates work correctly
 on:
   push:
     branches: [main]
