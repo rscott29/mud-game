@@ -34,6 +34,3 @@ build/
 
 ### Local secrets ###
 .env
-
-### Runtime data ###
-data/accounts.json

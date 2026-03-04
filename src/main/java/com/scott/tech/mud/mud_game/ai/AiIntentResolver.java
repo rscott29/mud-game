@@ -7,6 +7,7 @@ import com.scott.tech.mud.mud_game.model.Room;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.ai.chat.client.ChatClient;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -34,6 +35,7 @@ public class AiIntentResolver {
         this.chatClient = builder.build();
     }
 
+    @Cacheable(value = "aiIntent", key = "#rawInput.trim().toLowerCase()")
     public CommandRequest resolve(String rawInput, Room room) {
         String userMessage = buildContextMessage(rawInput, room);
         try {
