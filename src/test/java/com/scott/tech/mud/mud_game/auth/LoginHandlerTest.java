@@ -6,6 +6,7 @@ import com.scott.tech.mud.mud_game.model.Direction;
 import com.scott.tech.mud.mud_game.model.Player;
 import com.scott.tech.mud.mud_game.model.Room;
 import com.scott.tech.mud.mud_game.model.SessionState;
+import com.scott.tech.mud.mud_game.persistence.service.InventoryService;
 import com.scott.tech.mud.mud_game.persistence.service.PlayerProfileService;
 import com.scott.tech.mud.mud_game.session.GameSession;
 import com.scott.tech.mud.mud_game.session.GameSessionManager;
@@ -19,6 +20,7 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.argThat;
@@ -33,6 +35,7 @@ class LoginHandlerTest {
     private WorldBroadcaster worldBroadcaster;
     private ReconnectTokenStore reconnectTokenStore;
     private PlayerProfileService playerProfileService;
+    private InventoryService inventoryService;
     private LoginHandler loginHandler;
     private WorldService worldService;
     private Room startRoom;
@@ -45,7 +48,9 @@ class LoginHandlerTest {
         worldBroadcaster = mock(WorldBroadcaster.class);
         reconnectTokenStore = mock(ReconnectTokenStore.class);
         playerProfileService = mock(PlayerProfileService.class);
+        inventoryService = mock(InventoryService.class);
         worldService = mock(WorldService.class);
+        when(inventoryService.loadInventory(anyString(), any())).thenReturn(List.of());
 
         startRoom = new Room("start", "Start", "The start room",
                 new EnumMap<>(Direction.class), List.of(), List.of());
@@ -57,7 +62,7 @@ class LoginHandlerTest {
         when(sessionManager.getSessionsInRoom(anyString())).thenReturn(List.of());
 
         loginHandler = new LoginHandler(
-                accountStore, sessionManager, worldBroadcaster, reconnectTokenStore, playerProfileService);
+                accountStore, sessionManager, worldBroadcaster, reconnectTokenStore, playerProfileService, inventoryService);
     }
 
     @Test

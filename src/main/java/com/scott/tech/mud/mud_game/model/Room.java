@@ -21,7 +21,7 @@ public class Room {
         this.name        = name;
         this.description = description;
         this.exits       = exits != null ? exits : new EnumMap<>(Direction.class);
-        this.items       = items != null ? items : List.of();
+        this.items       = new CopyOnWriteArrayList<>(items != null ? items : List.of());
         this.npcs        = new CopyOnWriteArrayList<>(npcs != null ? npcs : List.of());
     }
 
@@ -35,6 +35,9 @@ public class Room {
     public void addNpc(Npc npc)    { npcs.add(npc); }
     public void removeNpc(Npc npc)  { npcs.remove(npc); }
     public boolean hasNpc(Npc npc)  { return npcs.contains(npc); }
+
+    public void addItem(Item item)    { items.add(item); }
+    public void removeItem(Item item) { items.remove(item); }
 
     /** Find an NPC in this room whose keywords match the given input. */
     public Optional<Npc> findNpcByKeyword(String input) {

@@ -12,14 +12,17 @@ public class ItemData {
     private String name;
     private String description;
     private List<String> keywords;
+    private boolean takeable;
 
     public String getId()               { return id; }
     public String getName()             { return name; }
     public String getDescription()      { return description; }
     public List<String> getKeywords()   { return keywords; }
+    public boolean isTakeable()         { return takeable; }
 
     public void setId(String id)                { this.id = id; }
     public void setName(String name)            { this.name = name; }
     public void setDescription(String d)        { this.description = d; }
     public void setKeywords(List<String> kw)    { this.keywords = kw; }
+    public void setTakeable(boolean takeable)   { this.takeable = takeable; }
 }

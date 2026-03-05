@@ -160,7 +160,7 @@ public class WorldLoader {
 
         Map<String, Item> map = new HashMap<>();
         for (ItemData i : itemDataArray) {
-            if (map.put(i.getId(), new Item(i.getId(), i.getName(), i.getDescription(), i.getKeywords())) != null) {
+            if (map.put(i.getId(), new Item(i.getId(), i.getName(), i.getDescription(), i.getKeywords(), i.isTakeable())) != null) {
                 throw new WorldLoadException("Duplicate item id: " + i.getId());
             }
         }

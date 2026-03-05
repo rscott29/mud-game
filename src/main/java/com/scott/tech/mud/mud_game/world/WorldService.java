@@ -93,6 +93,10 @@ public class WorldService {
         return npcRoomIndex.get(npcId);
     }
 
+    public Item getItemById(String itemId) {
+        return itemRegistry.get(itemId);
+    }
+
     public java.util.Collection<Npc> getWanderingNpcs() {
         return npcRegistry.values().stream()
                 .filter(Npc::doesWander)

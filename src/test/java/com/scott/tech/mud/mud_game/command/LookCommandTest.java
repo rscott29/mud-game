@@ -144,6 +144,6 @@ class LookCommandTest {
     }
 
     private static Item item(String id, String name, String desc, List<String> keywords) {
-        return new Item(id, name, desc, keywords);
+        return new Item(id, name, desc, keywords, false);
     }
 }
