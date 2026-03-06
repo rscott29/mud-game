@@ -19,6 +19,9 @@ public final class CommandCatalog {
     public static final String WORLD = "/world";
     public static final String DM = "/dm";
     public static final String WHO = "who";
+    public static final String PICKUP = "take";
+    public static final String DROP = "drop";
+    public static final String INVENTORY = "inventory";
 
     private static final Map<String, String> ALIASES = buildAliases();
 
@@ -45,6 +48,9 @@ public final class CommandCatalog {
                   go <direction>       - Move in a direction (north/south/east/west/up/down)
                   n / s / e / w        - Shorthand movement commands
                   u / d                - Shorthand for up / down
+                  take / get <item>    - Pick up an item from the room
+                  drop <item>          - Drop an item from your inventory
+                  inventory / inv / i  - List what you are carrying
                   talk <npc>           - Talk to an NPC in the room
                   /speak <message>     - Chat to players in your room
                   /world <message>     - Chat to all online players
@@ -62,6 +68,9 @@ public final class CommandCatalog {
                   look <target>         - Examine a specific NPC, item, or type "exits"
                   go <direction>        - Move: north, south, east, west, up, down
                   talk <npc>            - Talk to or interact with an NPC
+                  take <item>           - Pick up an item from the room (also: get, grab, snatch, lift, collect)
+                  drop <item>           - Drop an item from your inventory (also: discard, toss, put down)
+                  inventory             - List what you are carrying (also: inv, i)
                   logout                - Log out of the game
                   help                  - Show available commands
                 """;
@@ -79,6 +88,9 @@ public final class CommandCatalog {
         register(aliases, WORLD, List.of("/world"));
         register(aliases, DM, List.of("/dm"));
         register(aliases, WHO, List.of("who", "/who"));
+        register(aliases, PICKUP, List.of("take", "get", "pickup", "pick", "grab", "snatch", "lift", "collect", "steal"));
+        register(aliases, DROP, List.of("drop", "discard", "toss", "leave"));
+        register(aliases, INVENTORY, List.of("inventory", "inv", "i"));
 
         return Map.copyOf(aliases);
     }

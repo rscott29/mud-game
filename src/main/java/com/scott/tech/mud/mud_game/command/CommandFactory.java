@@ -2,6 +2,7 @@ package com.scott.tech.mud.mud_game.command;
 
 import com.scott.tech.mud.mud_game.dto.CommandRequest;
 import com.scott.tech.mud.mud_game.model.Direction;
+import com.scott.tech.mud.mud_game.persistence.service.InventoryService;
 import com.scott.tech.mud.mud_game.session.GameSessionManager;
 import com.scott.tech.mud.mud_game.websocket.WorldBroadcaster;
 import org.springframework.ai.chat.client.ChatClient;
@@ -25,13 +26,16 @@ public class CommandFactory {
     private final WorldBroadcaster worldBroadcaster;
     private final ChatClient chatClient;
     private final GameSessionManager sessionManager;
+    private final InventoryService inventoryService;
 
     public CommandFactory(TaskScheduler taskScheduler, WorldBroadcaster worldBroadcaster,
-                          ChatClient.Builder chatClientBuilder, GameSessionManager sessionManager) {
+                          ChatClient.Builder chatClientBuilder, GameSessionManager sessionManager,
+                          InventoryService inventoryService) {
         this.taskScheduler    = taskScheduler;
         this.worldBroadcaster = worldBroadcaster;
         this.chatClient       = chatClientBuilder.build();
         this.sessionManager   = sessionManager;
+        this.inventoryService = inventoryService;
     }
 
     public GameCommand create(CommandRequest request) {
@@ -57,6 +61,9 @@ public class CommandFactory {
                                         args.size() < 2 ? null : String.join(" ", args.subList(1, args.size())),
                                         worldBroadcaster, sessionManager);
             case CommandCatalog.WHO -> new WhoCommand(sessionManager);
+            case CommandCatalog.PICKUP -> new PickupCommand(args.isEmpty() ? null : String.join(" ", args), inventoryService);
+            case CommandCatalog.DROP -> new DropCommand(args.isEmpty() ? null : String.join(" ", args), inventoryService);
+            case CommandCatalog.INVENTORY -> new InventoryCommand();
             default -> {
                 // Handles n/s/e/w/u/d and full direction names directly
                 Direction dir = Direction.fromString(raw);

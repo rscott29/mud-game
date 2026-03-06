@@ -9,6 +9,7 @@ import com.scott.tech.mud.mud_game.dto.GameResponse;
 import com.scott.tech.mud.mud_game.engine.GameEngine;
 import com.scott.tech.mud.mud_game.model.Player;
 import com.scott.tech.mud.mud_game.model.SessionState;
+import com.scott.tech.mud.mud_game.persistence.service.InventoryService;
 import com.scott.tech.mud.mud_game.persistence.service.PlayerProfileService;
 import com.scott.tech.mud.mud_game.session.GameSession;
 import com.scott.tech.mud.mud_game.session.GameSessionManager;
@@ -39,6 +40,7 @@ public class GameWebSocketHandler extends TextWebSocketHandler {
     private final WsMessageSender messageSender;
     private final WsExceptionHandler wsExceptionHandler;
     private final PlayerProfileService playerProfileService;
+    private final InventoryService inventoryService;
 
     public GameWebSocketHandler(GameEngine gameEngine,
                                 GameSessionManager sessionManager,
@@ -49,7 +51,8 @@ public class GameWebSocketHandler extends TextWebSocketHandler {
                                 SessionRequestDispatcher requestDispatcher,
                                 WsMessageSender messageSender,
                                 WsExceptionHandler wsExceptionHandler,
-                                PlayerProfileService playerProfileService) {
+                                PlayerProfileService playerProfileService,
+                                InventoryService inventoryService) {
         this.gameEngine = gameEngine;
         this.sessionManager = sessionManager;
         this.worldService = worldService;
@@ -60,6 +63,7 @@ public class GameWebSocketHandler extends TextWebSocketHandler {
         this.messageSender = messageSender;
         this.wsExceptionHandler = wsExceptionHandler;
         this.playerProfileService = playerProfileService;
+        this.inventoryService = inventoryService;
     }
 
     @Override
@@ -112,6 +116,9 @@ public class GameWebSocketHandler extends TextWebSocketHandler {
                 playerProfileService.saveProfile(
                         gameSession.getPlayer().getName().toLowerCase(),
                         gameSession.getPlayer().getCurrentRoomId());
+                inventoryService.saveInventory(
+                        gameSession.getPlayer().getName().toLowerCase(),
+                        gameSession.getPlayer().getInventory());
                 broadcaster.broadcastToRoom(
                         gameSession.getPlayer().getCurrentRoomId(),
                         GameResponse.message(gameSession.getPlayer().getName() + " has left the world."),

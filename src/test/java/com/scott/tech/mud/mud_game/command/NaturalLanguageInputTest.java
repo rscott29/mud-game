@@ -56,10 +56,10 @@ class NaturalLanguageInputTest {
 
         Item signpost = new Item("item_signpost", "Signpost",
                 "A wooden signpost pointing in all directions.",
-                List.of("signpost", "sign", "post", "directions"));
+                List.of("signpost", "sign", "post", "directions"), false);
 
         Item fountain = new Item("item_fountain", "Fountain",
-                "A burbling stone fountain.", List.of("fountain", "water"));
+                "A burbling stone fountain.", List.of("fountain", "water"), false);
 
         Room room = new Room("town_square", "Town Square", "A cobblestone plaza.",
                 exits, List.of(signpost, fountain), List.of(obi));

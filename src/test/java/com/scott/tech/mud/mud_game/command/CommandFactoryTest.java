@@ -3,6 +3,7 @@ package com.scott.tech.mud.mud_game.command;
 import com.scott.tech.mud.mud_game.dto.CommandRequest;
 import com.scott.tech.mud.mud_game.dto.GameResponse;
 import com.scott.tech.mud.mud_game.model.Player;
+import com.scott.tech.mud.mud_game.persistence.service.InventoryService;
 import com.scott.tech.mud.mud_game.session.GameSession;
 import com.scott.tech.mud.mud_game.session.GameSessionManager;
 import com.scott.tech.mud.mud_game.websocket.WorldBroadcaster;
@@ -24,6 +25,7 @@ class CommandFactoryTest {
     private WorldBroadcaster worldBroadcaster;
     private ChatClient.Builder chatClientBuilder;
     private GameSessionManager sessionManager;
+    private InventoryService inventoryService;
     private CommandFactory factory;
 
     @BeforeEach
@@ -32,11 +34,12 @@ class CommandFactoryTest {
         worldBroadcaster = mock(WorldBroadcaster.class);
         chatClientBuilder = mock(ChatClient.Builder.class);
         sessionManager = mock(GameSessionManager.class);
+        inventoryService = mock(InventoryService.class);
 
         ChatClient chatClient = mock(ChatClient.class);
         when(chatClientBuilder.build()).thenReturn(chatClient);
 
-        factory = new CommandFactory(taskScheduler, worldBroadcaster, chatClientBuilder, sessionManager);
+        factory = new CommandFactory(taskScheduler, worldBroadcaster, chatClientBuilder, sessionManager, inventoryService);
     }
 
     @Test

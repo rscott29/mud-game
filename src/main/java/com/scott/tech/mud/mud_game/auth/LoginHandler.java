@@ -4,6 +4,7 @@ import com.scott.tech.mud.mud_game.command.CommandResult;
 import com.scott.tech.mud.mud_game.config.Messages;
 import com.scott.tech.mud.mud_game.dto.GameResponse;
 import com.scott.tech.mud.mud_game.model.SessionState;
+import com.scott.tech.mud.mud_game.persistence.service.InventoryService;
 import com.scott.tech.mud.mud_game.persistence.service.PlayerProfileService;
 import com.scott.tech.mud.mud_game.session.GameSession;
 import com.scott.tech.mud.mud_game.websocket.WorldBroadcaster;
@@ -39,17 +40,20 @@ public class LoginHandler {
     private final WorldBroadcaster worldBroadcaster;
     private final ReconnectTokenStore reconnectTokenStore;
     private final PlayerProfileService playerProfileService;
+    private final InventoryService inventoryService;
 
     public LoginHandler(AccountStore accountStore,
                         com.scott.tech.mud.mud_game.session.GameSessionManager sessionManager,
                         WorldBroadcaster worldBroadcaster,
                         ReconnectTokenStore reconnectTokenStore,
-                        PlayerProfileService playerProfileService) {
+                        PlayerProfileService playerProfileService,
+                        InventoryService inventoryService) {
         this.accountStore         = accountStore;
         this.sessionManager       = sessionManager;
         this.worldBroadcaster     = worldBroadcaster;
         this.reconnectTokenStore  = reconnectTokenStore;
         this.playerProfileService = playerProfileService;
+        this.inventoryService     = inventoryService;
     }
 
     // ── Entry point ───────────────────────────────────────────────────────────
@@ -117,6 +121,8 @@ public class LoginHandler {
             session.getPlayer().setName(capitalize(username));
             playerProfileService.getSavedRoomId(username)
                     .ifPresent(session.getPlayer()::setCurrentRoomId);
+            session.getPlayer().setInventory(
+                    inventoryService.loadInventory(username, session.getWorldService()));
             session.transition(SessionState.PLAYING);
             broadcastLogin(session);
             java.util.List<String> others = othersInRoom(session);
@@ -163,6 +169,7 @@ public class LoginHandler {
         String username = session.getPendingUsername();
         accountStore.createAccount(username, rawPassword);
         session.getPlayer().setName(capitalize(username));
+        // New characters start with an empty inventory — nothing to load
         session.transition(SessionState.PLAYING);
         broadcastLogin(session);
         java.util.List<String> others = othersInRoom(session);
@@ -194,6 +201,8 @@ public class LoginHandler {
                 session.getPlayer().setName(capitalize(username));
                 playerProfileService.getSavedRoomId(username)
                         .ifPresent(session.getPlayer()::setCurrentRoomId);
+                session.getPlayer().setInventory(
+                        inventoryService.loadInventory(username, session.getWorldService()));
                 session.transition(SessionState.PLAYING);
                 broadcastLogin(session);
                 java.util.List<String> others = othersInRoom(session);

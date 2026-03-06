@@ -46,6 +46,17 @@
   "command.who.empty"                   : "No players are currently online.",
   "command.who.list"                    : "Online ({count}): {names}",
 
+  "command.pickup.no_target"            : "Pick up what?",
+  "command.pickup.not_takeable"         : "You can't pick up the {item}.",
+  "command.pickup.success"              : "You pick up the {item}.",
+
+  "command.drop.no_target"              : "Drop what?",
+  "command.drop.not_in_inventory"       : "You aren't carrying any '{item}'.",
+  "command.drop.success"                : "You drop the {item}.",
+
+  "command.inventory.empty"             : "You aren't carrying anything.",
+  "command.inventory.header"            : "You are carrying:",
+
   "command.logout.confirm"              : "Are you sure you want to log out? Type yes to confirm or no to stay.",
   "command.logout.goodbye"              : "Goodbye, {player}! See you next time.",
   "command.logout.cancelled"            : "Logout cancelled. Welcome back!",
