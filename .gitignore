@@ -34,3 +34,9 @@ build/
 
 ### Local secrets ###
 .env
+
+### Frontend ###
+front-end/node_modules/
+front-end/.angular/
+front-end/node/
+front-end/dist/
