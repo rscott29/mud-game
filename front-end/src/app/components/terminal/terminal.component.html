@@ -1,0 +1,25 @@
+<div class="status-bar" [ngClass]="statusClass()">
+  ●&nbsp;{{ statusLabel() }}
+</div>
+
+<div #logEl class="log">
+  @for (msg of messages(); track msg.id) {
+    <div class="msg" [class]="msg.cssClass" [innerHTML]="msg.html | safeHtml"></div>
+  }
+</div>
+
+<div class="input-bar">
+  <input
+    class="cmd-input"
+    [type]="inputType()"
+    [placeholder]="placeholder()"
+    [ngModel]="inputValue()"
+    (ngModelChange)="inputValue.set($event)"
+    (keydown.enter)="onEnter()"
+    autocomplete="off"
+    autocapitalize="off"
+    spellcheck="false"
+    autofocus
+  />
+  <button type="button" (click)="send()">Send</button>
+</div>
