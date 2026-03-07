@@ -5,6 +5,7 @@ import com.scott.tech.mud.mud_game.model.Direction;
 import com.scott.tech.mud.mud_game.model.Item;
 import com.scott.tech.mud.mud_game.model.Npc;
 import com.scott.tech.mud.mud_game.model.Player;
+import com.scott.tech.mud.mud_game.model.Rarity;
 import com.scott.tech.mud.mud_game.model.Room;
 import com.scott.tech.mud.mud_game.session.GameSession;
 import com.scott.tech.mud.mud_game.session.GameSessionManager;
@@ -56,10 +57,10 @@ class NaturalLanguageInputTest {
 
         Item signpost = new Item("item_signpost", "Signpost",
                 "A wooden signpost pointing in all directions.",
-                List.of("signpost", "sign", "post", "directions"), false);
+                List.of("signpost", "sign", "post", "directions"), false, Rarity.COMMON);
 
         Item fountain = new Item("item_fountain", "Fountain",
-                "A burbling stone fountain.", List.of("fountain", "water"), false);
+                "A burbling stone fountain.", List.of("fountain", "water"), false, Rarity.COMMON);
 
         Room room = new Room("town_square", "Town Square", "A cobblestone plaza.",
                 exits, List.of(signpost, fountain), List.of(obi));
