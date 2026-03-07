@@ -64,6 +64,8 @@ public class WorldLoader {
                 );
 
                 Room room = new Room(def.getId(), def.getName(), def.getDescription(), exits, roomItems, roomNpcs);
+                room.setHiddenExits(parseExitMap(def.getHiddenExits(), def.getId(), errors));
+                room.setHiddenExitHints(parseDirectionStringMap(def.getHiddenExitHints(), def.getId()));
                 if (builtRooms.put(def.getId(), room) != null) {
                     errors.add("Duplicate room id: " + def.getId());
                 }
@@ -75,6 +77,13 @@ public class WorldLoader {
                 if (!builtRooms.containsKey(exit.getValue())) {
                     errors.add(String.format(
                             "Room '%s' exit %s points to unknown room '%s'",
+                            room.getId(), exit.getKey(), exit.getValue()));
+                }
+            }
+            for (Map.Entry<Direction, String> exit : room.getHiddenExits().entrySet()) {
+                if (!builtRooms.containsKey(exit.getValue())) {
+                    errors.add(String.format(
+                            "Room '%s' hiddenExit %s points to unknown room '%s'",
                             room.getId(), exit.getKey(), exit.getValue()));
                 }
             }
@@ -160,7 +169,7 @@ public class WorldLoader {
 
         Map<String, Item> map = new HashMap<>();
         for (ItemData i : itemDataArray) {
-            if (map.put(i.getId(), new Item(i.getId(), i.getName(), i.getDescription(), i.getKeywords(), i.isTakeable())) != null) {
+            if (map.put(i.getId(), new Item(i.getId(), i.getName(), i.getDescription(), i.getKeywords(), i.isTakeable(), i.getRarity())) != null) {
                 throw new WorldLoadException("Duplicate item id: " + i.getId());
             }
         }
@@ -179,20 +188,34 @@ public class WorldLoader {
     }
 
     private static Map<Direction, String> parseExits(WorldData.RoomDefinition def, List<String> errors) {
+        return parseExitMap(def.getExits(), def.getId(), errors);
+    }
+
+    private static Map<Direction, String> parseExitMap(Map<String, String> raw, String roomId, List<String> errors) {
         Map<Direction, String> exits = new EnumMap<>(Direction.class);
-        if (def.getExits() == null) {
+        if (raw == null) {
             return exits;
         }
 
-        def.getExits().forEach((dirName, targetId) -> {
+        raw.forEach((dirName, targetId) -> {
             Direction dir = Direction.fromString(dirName);
             if (dir == null) {
-                errors.add(String.format("Room '%s' has invalid direction '%s'", def.getId(), dirName));
+                errors.add(String.format("Room '%s' has invalid direction '%s'", roomId, dirName));
             } else {
                 exits.put(dir, targetId);
             }
         });
         return exits;
+    }
+
+    private static Map<Direction, String> parseDirectionStringMap(Map<String, String> raw, String roomId) {
+        Map<Direction, String> result = new EnumMap<>(Direction.class);
+        if (raw == null) return result;
+        raw.forEach((dirName, value) -> {
+            Direction dir = Direction.fromString(dirName);
+            if (dir != null) result.put(dir, value);
+        });
+        return result;
     }
 
     private static <T> List<T> resolveIds(

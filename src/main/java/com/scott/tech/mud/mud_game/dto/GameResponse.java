@@ -1,11 +1,14 @@
 package com.scott.tech.mud.mud_game.dto;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.scott.tech.mud.mud_game.model.Direction;
 import com.scott.tech.mud.mud_game.model.Item;
 import com.scott.tech.mud.mud_game.model.Npc;
 import com.scott.tech.mud.mud_game.model.Room;
 
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Stream;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public record GameResponse(
@@ -14,7 +17,9 @@ public record GameResponse(
         RoomView room,
         boolean mask,
         String from,
-        String token
+        String token,
+        List<ItemView> inventory,
+        List<WhoPlayerView> whoPlayers
 ) {
     public enum Type {
         WELCOME,
@@ -26,20 +31,27 @@ public record GameResponse(
         CHAT_WORLD,
         CHAT_DM,
         WHO_LIST,
-        SESSION_TOKEN
+        SESSION_TOKEN,
+        INVENTORY_UPDATE,
+        HELP
     }
 
     // --- compact constructors for convenience defaults ---
     private GameResponse(Type type, String message, RoomView room) {
-        this(type, message, room, false, null, null);
+        this(type, message, room, false, null, null, null, null);
     }
 
     private GameResponse(Type type, String message, RoomView room, boolean mask) {
-        this(type, message, room, mask, null, null);
+        this(type, message, room, mask, null, null, null, null);
     }
 
     private GameResponse(Type type, String message, RoomView room, boolean mask, String from) {
-        this(type, message, room, mask, from, null);
+        this(type, message, room, mask, from, null, null, null);
+    }
+
+    // --- factory: returns a new instance with inventory attached ---
+    public GameResponse withInventory(List<ItemView> items) {
+        return new GameResponse(type, message, room, mask, from, token, items, whoPlayers);
     }
 
     // ----- factory methods -----
@@ -48,27 +60,39 @@ public record GameResponse(
         return new GameResponse(Type.MESSAGE, msg, null);
     }
 
+    public static GameResponse help() {
+        return new GameResponse(Type.HELP, null, null);
+    }
+
     public static GameResponse error(String msg) {
         return new GameResponse(Type.ERROR, msg, null);
     }
 
     public static GameResponse roomUpdate(Room room, String message) {
-        return roomUpdate(room, message, List.of());
+        return roomUpdate(room, message, List.of(), Set.of());
     }
 
     public static GameResponse roomUpdate(Room room, String message, List<String> players) {
-        return new GameResponse(Type.ROOM_UPDATE, message, RoomView.from(room, players));
+        return roomUpdate(room, message, players, Set.of());
+    }
+
+    public static GameResponse roomUpdate(Room room, String message, List<String> players, Set<Direction> discoveredHiddenExits) {
+        return new GameResponse(Type.ROOM_UPDATE, message, RoomView.from(room, players, discoveredHiddenExits));
     }
 
     public static GameResponse welcome(String playerName, Room room) {
-        return welcome(playerName, room, List.of());
+        return welcome(playerName, room, List.of(), Set.of());
     }
 
     public static GameResponse welcome(String playerName, Room room, List<String> otherPlayers) {
+        return welcome(playerName, room, otherPlayers, Set.of());
+    }
+
+    public static GameResponse welcome(String playerName, Room room, List<String> otherPlayers, Set<Direction> discoveredHiddenExits) {
         return new GameResponse(
                 Type.WELCOME,
                 "Welcome to the MUD, " + playerName + "! Type 'help' for a list of commands.",
-                RoomView.from(room, otherPlayers)
+                RoomView.from(room, otherPlayers, discoveredHiddenExits)
         );
     }
 
@@ -90,12 +114,16 @@ public record GameResponse(
         return new GameResponse(Type.CHAT_DM, message, null, false, from);
     }
 
-    public static GameResponse whoList(String message) {
-        return new GameResponse(Type.WHO_LIST, message, null);
+    public static GameResponse sessionToken(String token) {
+        return new GameResponse(Type.SESSION_TOKEN, null, null, false, null, token, null, null);
     }
 
-    public static GameResponse sessionToken(String token) {
-        return new GameResponse(Type.SESSION_TOKEN, null, null, false, null, token);
+    public static GameResponse inventoryUpdate(List<ItemView> items) {
+        return new GameResponse(Type.INVENTORY_UPDATE, null, null, false, null, null, items, null);
+    }
+
+    public static GameResponse whoList(List<WhoPlayerView> players) {
+        return new GameResponse(Type.WHO_LIST, null, null, false, null, null, null, players);
     }
 
     // ----- nested views -----
@@ -110,14 +138,19 @@ public record GameResponse(
             List<String> players
     ) {
         public static RoomView from(Room room) {
-            return from(room, List.of());
+            return from(room, List.of(), Set.of());
         }
 
         public static RoomView from(Room room, List<String> playerNames) {
-            var exits = room.getExits().keySet().stream()
-                    .sorted() 
-                    .map(d -> d.name().toLowerCase())
-                    .toList();
+            return from(room, playerNames, Set.of());
+        }
+
+        public static RoomView from(Room room, List<String> playerNames, Set<Direction> discoveredHiddenExits) {
+            var exits = Stream.concat(
+                    room.getExits().keySet().stream(),
+                    room.getHiddenExits().keySet().stream()
+                            .filter(discoveredHiddenExits::contains)
+            ).sorted().map(d -> d.name().toLowerCase()).toList();
 
             var items = room.getItems().stream()
                     .map(Item::getName)
@@ -146,4 +179,13 @@ public record GameResponse(
             return new NpcView(npc.getId(), npc.getName());
         }
     }
+
+    public record ItemView(String id, String name, String description, String rarity) {
+        public static ItemView from(Item item) {
+            return new ItemView(item.getId(), item.getName(), item.getDescription(),
+                    item.getRarity().name().toLowerCase());
+        }
+    }
+
+    public record WhoPlayerView(String name, int level, String title, String location) {}
 }

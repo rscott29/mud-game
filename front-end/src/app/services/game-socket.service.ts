@@ -1,6 +1,6 @@
 import { Injectable, NgZone, signal } from '@angular/core';
 import { Subject } from 'rxjs';
-import { GameMessage, ConnectionStatus } from '../models/game-message';
+import { GameMessage, ConnectionStatus, ItemDto, WhoPlayerDto } from '../models/game-message';
 
 const TOKEN_KEY            = 'mudReconnectToken';
 const RECONNECT_BASE_MS    = 1_000;
@@ -18,6 +18,11 @@ export class GameSocketService {
   readonly messages$       = new Subject<GameMessage>();
   readonly systemMessages$ = new Subject<string>();
   readonly status          = signal<ConnectionStatus>('disconnected');
+  readonly inventory       = signal<ItemDto[]>([]);
+  readonly inventoryOpen   = signal(false);
+  readonly whoPlayers      = signal<WhoPlayerDto[]>([]);
+  readonly whoOpen         = signal(false);
+  readonly helpOpen        = signal(false);
 
   constructor(private zone: NgZone) {}
 
@@ -53,6 +58,21 @@ export class GameSocketService {
           if (msg.type === 'SESSION_TOKEN' && msg.token) {
             localStorage.setItem(TOKEN_KEY, msg.token);
             return;
+          }
+          if (msg.inventory != null) {
+            this.inventory.set(msg.inventory);
+          }
+          if (msg.type === 'INVENTORY_UPDATE') {
+            this.inventoryOpen.set(true);
+          }
+          if (msg.whoPlayers != null) {
+            this.whoPlayers.set(msg.whoPlayers);
+          }
+          if (msg.type === 'WHO_LIST') {
+            this.whoOpen.set(true);
+          }
+          if (msg.type === 'HELP') {
+            this.helpOpen.set(true);
           }
           this.messages$.next(msg);
         } catch {

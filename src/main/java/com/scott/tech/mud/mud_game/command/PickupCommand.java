@@ -7,6 +7,7 @@ import com.scott.tech.mud.mud_game.model.Room;
 import com.scott.tech.mud.mud_game.persistence.service.InventoryService;
 import com.scott.tech.mud.mud_game.session.GameSession;
 
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -70,7 +71,12 @@ public class PickupCommand implements GameCommand {
             session.getPlayer().getName().toLowerCase(),
             session.getPlayer().getInventory());
 
-        return CommandResult.of(GameResponse.message(
-            Messages.fmt("command.pickup.success", "item", item.getName())));
+        List<GameResponse.ItemView> views = session.getPlayer().getInventory().stream()
+                .map(GameResponse.ItemView::from)
+                .toList();
+
+        return CommandResult.of(
+            GameResponse.message(Messages.fmt("command.pickup.success", "item", item.getName()))
+                .withInventory(views));
     }
 }

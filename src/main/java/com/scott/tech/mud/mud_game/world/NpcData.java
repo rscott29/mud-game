@@ -1,15 +1,28 @@
 package com.scott.tech.mud.mud_game.world;
 
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.core.JsonToken;
+import com.fasterxml.jackson.databind.DeserializationContext;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
+
+import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
  * Jackson deserialization target for {@code world/npcs.json}.
  * Each entry is the canonical definition of an NPC; rooms reference them by ID.
+ * <p>
+ * The {@code description} field accepts either a plain JSON string or an array
+ * of strings (joined with a single space), so long descriptions can be split
+ * across multiple lines in the JSON file without losing validity.
  */
 public class NpcData {
 
     private String id;
     private String name;
+    @JsonDeserialize(using = DescriptionDeserializer.class)
     private String description;
     private List<String> keywords;
     /** Subject pronoun used in wander message templates, e.g. "he", "she", "they". Defaults to "they". */
@@ -62,6 +75,23 @@ public class NpcData {
     public void setSentient(boolean s)                     { this.sentient = s; }
     public void setTalkTemplates(List<String> t)           { this.talkTemplates = t != null ? t : List.of(); }
     public void setPersonality(String p)                   { this.personality = p; }
+
+    /** Accepts a plain JSON string or a JSON array of strings (joined with a space). */
+    static class DescriptionDeserializer extends StdDeserializer<String> {
+        DescriptionDeserializer() { super(String.class); }
+
+        @Override
+        public String deserialize(JsonParser p, DeserializationContext ctx) throws IOException {
+            if (p.currentToken() == JsonToken.START_ARRAY) {
+                List<String> parts = new ArrayList<>();
+                while (p.nextToken() != JsonToken.END_ARRAY) {
+                    parts.add(p.getText());
+                }
+                return String.join(" ", parts);
+            }
+            return p.getText();
+        }
+    }
 
     public static class WanderConfig {
         private long minSeconds = 30;

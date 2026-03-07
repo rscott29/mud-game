@@ -2,6 +2,7 @@ package com.scott.tech.mud.mud_game.command;
 
 import com.scott.tech.mud.mud_game.config.Messages;
 import com.scott.tech.mud.mud_game.dto.GameResponse;
+import com.scott.tech.mud.mud_game.model.Direction;
 import com.scott.tech.mud.mud_game.model.Item;
 import com.scott.tech.mud.mud_game.model.Npc;
 import com.scott.tech.mud.mud_game.model.Room;
@@ -10,7 +11,9 @@ import com.scott.tech.mud.mud_game.session.GameSessionManager;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * Describes the player's current room, or examines a specific target.
@@ -57,14 +60,17 @@ public class LookCommand implements GameCommand {
         // No target – describe the whole room
         if (target == null) {
             List<String> others = othersInRoom(session);
-            return CommandResult.of(GameResponse.roomUpdate(room, Messages.get("command.look.around"), others));
+            Set<Direction> discovered = session.getDiscoveredHiddenExits(room.getId());
+            return CommandResult.of(GameResponse.roomUpdate(room, Messages.get("command.look.around"), others, discovered));
         }
 
-        // "exits" – list directions
+        // "exits" – list directions (include discovered hidden exits)
         if (target.equals("exits") || target.equals("exit")) {
-            String exitList = room.getExits().keySet().stream()
-                .map(d -> d.name().toLowerCase())
-                .collect(Collectors.joining(", "));
+            Set<Direction> discovered = session.getDiscoveredHiddenExits(room.getId());
+            String exitList = Stream.concat(
+                    room.getExits().keySet().stream(),
+                    room.getHiddenExits().keySet().stream().filter(discovered::contains)
+            ).map(d -> d.name().toLowerCase()).collect(Collectors.joining(", "));
             return CommandResult.of(GameResponse.message(
                 exitList.isEmpty() ? Messages.get("command.look.no_exits") : Messages.fmt("command.look.exits", "exits", exitList)
             ));

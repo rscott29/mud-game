@@ -64,6 +64,7 @@ public class CommandFactory {
             case CommandCatalog.PICKUP -> new PickupCommand(args.isEmpty() ? null : String.join(" ", args), inventoryService);
             case CommandCatalog.DROP -> new DropCommand(args.isEmpty() ? null : String.join(" ", args), inventoryService);
             case CommandCatalog.INVENTORY -> new InventoryCommand();
+            case CommandCatalog.INVESTIGATE -> new InvestigateCommand();
             default -> {
                 // Handles n/s/e/w/u/d and full direction names directly
                 Direction dir = Direction.fromString(raw);

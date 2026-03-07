@@ -121,14 +121,20 @@ public class LoginHandler {
             session.getPlayer().setName(capitalize(username));
             playerProfileService.getSavedRoomId(username)
                     .ifPresent(session.getPlayer()::setCurrentRoomId);
+            playerProfileService.restorePlayerStats(username, session.getPlayer());
             session.getPlayer().setInventory(
                     inventoryService.loadInventory(username, session.getWorldService()));
             session.transition(SessionState.PLAYING);
             broadcastLogin(session);
             java.util.List<String> others = othersInRoom(session);
             String token = reconnectTokenStore.issue(username);
+            java.util.List<com.scott.tech.mud.mud_game.dto.GameResponse.ItemView> invViews =
+                session.getPlayer().getInventory().stream()
+                    .map(com.scott.tech.mud.mud_game.dto.GameResponse.ItemView::from)
+                    .toList();
             return CommandResult.of(
-                GameResponse.welcome(session.getPlayer().getName(), session.getCurrentRoom(), others),
+                GameResponse.welcome(session.getPlayer().getName(), session.getCurrentRoom(), others)
+                    .withInventory(invViews),
                 GameResponse.sessionToken(token));
         }
 
@@ -176,7 +182,8 @@ public class LoginHandler {
         String token = reconnectTokenStore.issue(username);
         return CommandResult.of(
             GameResponse.authPrompt(Messages.get("auth.message.character_created"), false),
-            GameResponse.welcome(session.getPlayer().getName(), session.getCurrentRoom(), others),
+            GameResponse.welcome(session.getPlayer().getName(), session.getCurrentRoom(), others)
+                .withInventory(java.util.List.of()),
             GameResponse.sessionToken(token));
     }
 
@@ -201,14 +208,20 @@ public class LoginHandler {
                 session.getPlayer().setName(capitalize(username));
                 playerProfileService.getSavedRoomId(username)
                         .ifPresent(session.getPlayer()::setCurrentRoomId);
+                playerProfileService.restorePlayerStats(username, session.getPlayer());
                 session.getPlayer().setInventory(
                         inventoryService.loadInventory(username, session.getWorldService()));
                 session.transition(SessionState.PLAYING);
                 broadcastLogin(session);
                 java.util.List<String> others = othersInRoom(session);
                 String newToken = reconnectTokenStore.issue(username);
+                java.util.List<com.scott.tech.mud.mud_game.dto.GameResponse.ItemView> invViews =
+                    session.getPlayer().getInventory().stream()
+                        .map(com.scott.tech.mud.mud_game.dto.GameResponse.ItemView::from)
+                        .toList();
                 return CommandResult.of(
-                    GameResponse.welcome(session.getPlayer().getName(), session.getCurrentRoom(), others),
+                    GameResponse.welcome(session.getPlayer().getName(), session.getCurrentRoom(), others)
+                        .withInventory(invViews),
                     GameResponse.sessionToken(newToken));
             })
             .orElseGet(() -> {

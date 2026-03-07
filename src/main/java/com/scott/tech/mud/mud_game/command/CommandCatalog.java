@@ -22,6 +22,7 @@ public final class CommandCatalog {
     public static final String PICKUP = "take";
     public static final String DROP = "drop";
     public static final String INVENTORY = "inventory";
+    public static final String INVESTIGATE = "investigate";
 
     private static final Map<String, String> ALIASES = buildAliases();
 
@@ -56,6 +57,7 @@ public final class CommandCatalog {
                   /world <message>     - Chat to all online players
                   /dm <player> <msg>   - Send a private message
                   who / /who           - List online players
+                  investigate / search  - Search the room for hidden exits or secrets
                   logout               - Request logout (with confirmation)
                   help                 - Show this message
                 """;
@@ -91,6 +93,7 @@ public final class CommandCatalog {
         register(aliases, PICKUP, List.of("take", "get", "pickup", "pick", "grab", "snatch", "lift", "collect", "steal"));
         register(aliases, DROP, List.of("drop", "discard", "toss", "leave"));
         register(aliases, INVENTORY, List.of("inventory", "inv", "i"));
+        register(aliases, INVESTIGATE, List.of("investigate", "search", "examine here", "inspect"));
 
         return Map.copyOf(aliases);
     }

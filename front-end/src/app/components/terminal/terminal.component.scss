@@ -44,10 +44,12 @@
   &.CHAT_ROOM   { background: var(--bg-chat-room);  border-left: 3px solid var(--accent-teal); }
   &.CHAT_WORLD  { background: var(--bg-chat-world); border-left: 3px solid var(--accent-purple); }
   &.CHAT_DM     { background: var(--bg-chat-dm);    border-left: 3px solid var(--accent-red-lt); }
-  &.WHO_LIST    { background: var(--bg-who);        border-left: 3px solid var(--accent-orange); color: var(--text-yellow); white-space: pre-wrap; }
 }
 
 :host ::ng-deep {
+  ul {
+  margin-left: 20px
+}
   .room-msg {
     margin-bottom: 8px;
     color: #ecf0f1;
@@ -131,3 +133,4 @@ button {
     background: var(--accent-blue-lt);
   }
 }
+

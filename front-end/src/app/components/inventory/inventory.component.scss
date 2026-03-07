@@ -1,0 +1,263 @@
+@keyframes legendary-pulse {
+  0%, 100% { box-shadow: 0 0 6px var(--rarity-legendary-glow), 0 0 14px var(--rarity-legendary-glow); }
+  50%       { box-shadow: 0 0 18px var(--rarity-legendary-glow), 0 0 36px rgba(243, 156, 18, 0.18); }
+}
+
+@keyframes legendary-pulse-modal {
+  0%, 100% { box-shadow: 0 0 20px var(--rarity-legendary-glow), 0 0 40px rgba(243, 156, 18, 0.15); }
+  50%       { box-shadow: 0 0 36px var(--rarity-legendary-glow), 0 0 60px rgba(243, 156, 18, 0.25); }
+}
+
+:host {
+  /* Positioned as a fixed overlay — does not occupy flex space */
+  position: fixed;
+  inset: 0;
+  pointer-events: none;  /* backdrop handled per-element */
+  z-index: 200;
+}
+
+.inv-panel {
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: 260px;
+  height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-surface);
+  border-left: 1px solid var(--border-surface);
+  pointer-events: all;
+}
+
+/* ── Header ───────────────────────────────────────────────── */
+
+.inv-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--border-surface);
+  flex-shrink: 0;
+}
+
+.inv-title {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--accent-blue-lt);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  flex: 1;
+}
+
+.inv-close {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 0.9rem;
+  line-height: 1;
+  padding: 2px 4px;
+  border-radius: var(--radius);
+  transition: color 0.15s, background 0.15s;
+
+  &:hover {
+    color: var(--text-primary);
+    background: var(--bg-deep);
+  }
+}
+
+.inv-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 5px;
+  border-radius: 10px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  background: var(--accent-blue);
+  color: var(--text-white);
+  transition: background 0.2s;
+
+  &.empty {
+    background: var(--bg-deep);
+    color: var(--text-muted);
+  }
+}
+
+/* ── Empty state ──────────────────────────────────────────── */
+
+.inv-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  gap: 10px;
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  padding: 24px;
+  text-align: center;
+}
+
+.inv-empty-icon {
+  font-size: 2rem;
+  opacity: 0.4;
+}
+
+/* ── Item list ────────────────────────────────────────────── */
+
+.inv-list {
+  list-style: none;
+  overflow-y: auto;
+  flex: 1;
+  min-height: 0;
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.inv-item {
+  display: grid;
+  grid-template-columns: 18px 1fr auto;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 10px;
+  border-radius: var(--radius);
+  background: var(--bg-deep);
+  border: 1px solid var(--border-surface);
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s, box-shadow 0.15s;
+
+  &:hover {
+    background: #0c1a2e;
+  }
+  &.rarity-fine:hover      { border-color: var(--rarity-fine); }
+  &.rarity-rare:hover      { border-color: var(--rarity-rare); }
+  &.rarity-legendary       { border-color: var(--rarity-legendary); animation: legendary-pulse 2.4s ease-in-out infinite; }
+  &.rarity-legendary:hover { animation-duration: 1.4s; }
+}
+
+.inv-rarity-pip {
+  font-size: 0.65rem;
+  line-height: 1;
+}
+.rarity-common    .inv-rarity-pip { color: var(--rarity-common);    }
+.rarity-fine      .inv-rarity-pip { color: var(--rarity-fine);      }
+.rarity-rare      .inv-rarity-pip { color: var(--rarity-rare);      }
+.rarity-legendary .inv-rarity-pip { color: var(--rarity-legendary); }
+
+.inv-item-name {
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.inv-rarity-label {
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  flex-shrink: 0;
+}
+.rarity-common    .inv-rarity-label { color: var(--rarity-common);    }
+.rarity-fine      .inv-rarity-label { color: var(--rarity-fine);      }
+.rarity-rare      .inv-rarity-label { color: var(--rarity-rare);      }
+.rarity-legendary .inv-rarity-label { color: var(--rarity-legendary); }
+
+/* ── Detail modal ─────────────────────────────────────────── */
+
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.65);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 300;
+  pointer-events: all;
+}
+
+.modal-card {
+  width: min(480px, 90vw);
+  background: var(--bg-surface);
+  border: 1px solid var(--border-surface);
+  border-radius: 6px;
+  overflow: hidden;
+
+  &.rarity-fine      { border-color: var(--rarity-fine); }
+  &.rarity-rare      { border-color: var(--rarity-rare); }
+  &.rarity-legendary {
+    border-color: var(--rarity-legendary);
+    animation: legendary-pulse-modal 3s ease-in-out infinite;
+  }
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  background: var(--bg-deep);
+  border-bottom: 1px solid var(--border-surface);
+}
+
+.modal-rarity-badge {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  padding: 2px 8px;
+  border-radius: 12px;
+  background: rgba(255,255,255,0.06);
+
+  &.rarity-common    { color: var(--rarity-common);    }
+  &.rarity-fine      { color: var(--rarity-fine);      }
+  &.rarity-rare      { color: var(--rarity-rare);      }
+  &.rarity-legendary { color: var(--rarity-legendary); }
+}
+
+.modal-close {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 0.9rem;
+  line-height: 1;
+  padding: 2px 4px;
+  border-radius: var(--radius);
+  transition: color 0.15s, background 0.15s;
+
+  &:hover {
+    color: var(--text-primary);
+    background: var(--bg-surface);
+  }
+}
+
+.modal-body {
+  padding: 20px;
+}
+
+.modal-name {
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin-bottom: 12px;
+  font-family: var(--font-mono);
+
+  &.rarity-text-common    { color: var(--rarity-common);    }
+  &.rarity-text-fine      { color: var(--rarity-fine);      }
+  &.rarity-text-rare      { color: var(--rarity-rare);      }
+  &.rarity-text-legendary { color: var(--rarity-legendary); }
+}
+
+.modal-desc {
+  font-size: 0.88rem;
+  color: var(--text-desc);
+  line-height: 1.65;
+  font-style: italic;
+}

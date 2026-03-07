@@ -24,6 +24,12 @@ public class PlayerProfileEntity {
     @Column(name = "current_room_id", nullable = false, length = 100)
     private String currentRoomId;
 
+    @Column(name = "level", nullable = false)
+    private int level = 1;
+
+    @Column(name = "title", nullable = false, length = 100)
+    private String title = "Adventurer";
+
     @Column(name = "last_seen_at", nullable = false)
     private Instant lastSeenAt;
 
@@ -37,8 +43,12 @@ public class PlayerProfileEntity {
 
     public String  getUsername()     { return username; }
     public String  getCurrentRoomId(){ return currentRoomId; }
+    public int     getLevel()        { return level; }
+    public String  getTitle()        { return title; }
     public Instant getLastSeenAt()   { return lastSeenAt; }
 
     public void setCurrentRoomId(String currentRoomId) { this.currentRoomId = currentRoomId; }
+    public void setLevel(int level)                    { this.level = level; }
+    public void setTitle(String title)                 { this.title = title; }
     public void setLastSeenAt(Instant lastSeenAt)      { this.lastSeenAt = lastSeenAt; }
 }

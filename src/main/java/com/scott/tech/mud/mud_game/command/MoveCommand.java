@@ -47,7 +47,11 @@ public class MoveCommand implements GameCommand {
     public CommandResult execute(GameSession session) {
         Room current = session.getCurrentRoom();
 
-        if (!current.hasExit(direction)) {
+        // Allow movement through normal exits OR hidden exits the player has discovered
+        boolean canMove = current.getExits().containsKey(direction)
+                || session.hasDiscoveredExit(current.getId(), direction);
+
+        if (!canMove) {
             return CommandResult.of(
                 GameResponse.error(Messages.fmt("command.move.cannot_go", "direction", direction.name().toLowerCase()))
             );
@@ -97,7 +101,8 @@ public class MoveCommand implements GameCommand {
                 .collect(Collectors.toList());
 
         return CommandResult.of(
-            GameResponse.roomUpdate(next, Messages.fmt("command.move.success", "direction", dirName), others)
+            GameResponse.roomUpdate(next, Messages.fmt("command.move.success", "direction", dirName), others,
+                    session.getDiscoveredHiddenExits(next.getId()))
         );
     }
 }

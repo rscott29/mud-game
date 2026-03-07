@@ -1,0 +1,40 @@
+<div class="inv-panel">
+  <div class="inv-header">
+    <span class="inv-title">Inventory</span>
+    <span class="inv-count" [ngClass]="{ empty: isEmpty() }">{{ itemCount() }}</span>
+    <button class="inv-close" (click)="close()" title="Close">✕</button>
+  </div>
+
+  @if (isEmpty()) {
+    <div class="inv-empty">
+      <span class="inv-empty-icon">🎒</span>
+      <span>Your pack is empty</span>
+    </div>
+  } @else {
+    <ul class="inv-list">
+      @for (item of items(); track item.id) {
+        <li class="inv-item rarity-{{ item.rarity }}" (click)="openModal(item)">
+          <span class="inv-rarity-pip">{{ rarityIcon(item.rarity) }}</span>
+          <span class="inv-item-name">{{ item.name }}</span>
+          <span class="inv-rarity-label">{{ rarityLabel(item.rarity) }}</span>
+        </li>
+      }
+    </ul>
+  }
+</div>
+
+<!-- Item detail modal -->
+@if (selectedItem()) {
+  <div class="modal-backdrop" (click)="closeModal()">
+    <div class="modal-card rarity-{{ selectedItem()!.rarity }}" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <span class="modal-rarity-badge rarity-{{ selectedItem()!.rarity }}">{{ rarityLabel(selectedItem()!.rarity) }}</span>
+        <button class="modal-close" (click)="closeModal()">✕</button>
+      </div>
+      <div class="modal-body">
+        <h2 class="modal-name rarity-text-{{ selectedItem()!.rarity }}">{{ selectedItem()!.name }}</h2>
+        <p class="modal-desc" [innerHTML]="selectedItem()!.description | safeHtml"></p>
+      </div>
+    </div>
+  </div>
+}

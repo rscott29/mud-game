@@ -1,11 +1,11 @@
 package com.scott.tech.mud.mud_game.command;
 
-import com.scott.tech.mud.mud_game.config.Messages;
 import com.scott.tech.mud.mud_game.dto.GameResponse;
 import com.scott.tech.mud.mud_game.session.GameSession;
 import com.scott.tech.mud.mud_game.session.GameSessionManager;
 
-import java.util.stream.Collectors;
+import java.util.Comparator;
+import java.util.List;
 
 /**
  * /who — lists every player currently logged in to the game.
@@ -20,16 +20,15 @@ public class WhoCommand implements GameCommand {
 
     @Override
     public CommandResult execute(GameSession session) {
-        String names = sessionManager.getPlayingSessions().stream()
-                .map(s -> s.getPlayer().getName())
-                .sorted(String.CASE_INSENSITIVE_ORDER)
-                .collect(Collectors.joining(", "));
+        List<GameResponse.WhoPlayerView> players = sessionManager.getPlayingSessions().stream()
+                .map(s -> new GameResponse.WhoPlayerView(
+                        s.getPlayer().getName(),
+                        s.getPlayer().getLevel(),
+                        s.getPlayer().getTitle(),
+                        s.getCurrentRoom().getName()))
+                .sorted(Comparator.comparing(GameResponse.WhoPlayerView::name, String.CASE_INSENSITIVE_ORDER))
+                .toList();
 
-        int count = sessionManager.getPlayingSessions().size();
-        String msg = count == 0
-                ? Messages.get("command.who.empty")
-                : Messages.fmt("command.who.list", "count", String.valueOf(count), "names", names);
-
-        return CommandResult.of(GameResponse.whoList(msg));
+        return CommandResult.of(GameResponse.whoList(players));
     }
 }

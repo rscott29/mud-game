@@ -31,6 +31,7 @@ const DIRECT_COMMANDS = new Set([
   'take', 'get', 'pickup', 'pick',
   'drop',
   'inventory', 'inv', 'i',
+  'investigate', 'search',
   'help', '?',
   'logout', 'logoff', 'quit', 'exit',
   'who',
@@ -41,6 +42,17 @@ function esc(str: string): string {
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;');
+}
+
+/**
+ * Escapes the string for safe HTML insertion, then re-opens a curated
+ * allowlist of presentational tags so game content can use light markup.
+ * Only <em>, <i>, <b>, <strong>, and <br> (including self-closing) are
+ * permitted; everything else stays escaped.
+ */
+const MARKUP_RE = /&lt;(\/?(?:em|i|b|strong|br|ul|ol|li)\s*\/?)&gt;/g;
+function renderMarkup(str: string): string {
+  return esc(str).replace(MARKUP_RE, '<$1>');
 }
 
 @Component({
@@ -202,11 +214,13 @@ export class TerminalComponent {
         return;
 
       case 'WHO_LIST':
-        this.addMsg('WHO_LIST', esc(msg.message ?? ''));
+      case 'INVENTORY_UPDATE':
+      case 'HELP':
+        // Handled visually by their respective panels — no terminal output needed.
         return;
 
       default:
-        this.addMsg(type, esc(msg.message ?? JSON.stringify(msg)));
+        this.addMsg(type, renderMarkup(msg.message ?? JSON.stringify(msg)));
     }
   }
 

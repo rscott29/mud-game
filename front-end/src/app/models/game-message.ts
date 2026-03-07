@@ -11,6 +11,20 @@ export interface RoomDto {
   players: string[];
 }
 
+export interface ItemDto {
+  id: string;
+  name: string;
+  description: string;
+  rarity: string;
+}
+
+export interface WhoPlayerDto {
+  name: string;
+  level: number;
+  title: string;
+  location: string;
+}
+
 export interface GameMessage {
   type: string;
   message?: string;
@@ -18,6 +32,8 @@ export interface GameMessage {
   token?: string;
   mask?: boolean;
   room?: RoomDto;
+  inventory?: ItemDto[];
+  whoPlayers?: WhoPlayerDto[];
 }
 
 export type ConnectionStatus = 'connected' | 'disconnected' | 'reconnecting';

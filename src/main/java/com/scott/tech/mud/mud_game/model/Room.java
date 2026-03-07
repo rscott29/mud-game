@@ -12,6 +12,8 @@ public class Room {
     private final String name;
     private final String description;
     private final Map<Direction, String> exits;
+    private Map<Direction, String> hiddenExits     = new EnumMap<>(Direction.class);
+    private Map<Direction, String> hiddenExitHints = new EnumMap<>(Direction.class);
     private final List<Item> items;
     private final List<Npc> npcs;
 
@@ -29,6 +31,17 @@ public class Room {
     public String getName()        { return name; }
     public String getDescription() { return description; }
     public Map<Direction, String> getExits() { return exits; }
+
+    // ----- hidden exits -----
+    public Map<Direction, String> getHiddenExits()          { return hiddenExits; }
+    public boolean hasHiddenExit(Direction dir)             { return hiddenExits.containsKey(dir); }
+    public String getHiddenExit(Direction dir)              { return hiddenExits.get(dir); }
+    public String getHiddenExitHint(Direction dir)          { return hiddenExitHints.get(dir); }
+
+    /** Called only by WorldLoader during world initialisation. */
+    public void setHiddenExits(Map<Direction, String> m)      { if (m != null) hiddenExits = m; }
+    public void setHiddenExitHints(Map<Direction, String> m)  { if (m != null) hiddenExitHints = m; }
+
     public List<Item> getItems()   { return items; }
     public List<Npc> getNpcs()     { return npcs; }
 
@@ -51,10 +64,11 @@ public class Room {
     }
 
     public boolean hasExit(Direction direction) {
-        return exits.containsKey(direction);
+        return exits.containsKey(direction) || hiddenExits.containsKey(direction);
     }
 
     public String getExit(Direction direction) {
-        return exits.get(direction);
+        String dest = exits.get(direction);
+        return dest != null ? dest : hiddenExits.get(direction);
     }
 }

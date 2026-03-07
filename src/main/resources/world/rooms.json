@@ -77,10 +77,37 @@
       "name": "Deep Forest",
       "description": "Huge ancient trees block out the sky. Bioluminescent fungi cast an eerie blue glow across the undergrowth. You feel watched. The path home leads south.",
       "exits": {
-        "SOUTH": "forest_edge"
+        "SOUTH": "forest_edge",
+        "EAST": "forest_fork"
       },
       "itemIds": ["item_glowing_mushroom", "item_animal_tracks"]
     },
+    {
+  "id": "forest_fork",
+  "name": "Forest Fork",
+  "description": "The trail divides here into two narrow paths that curl between ancient roots and mossy stones. Though the forest is silent, paw prints in the earth suggest that something loyal passed this way not long ago.",
+  "exits": {
+    "SOUTH": "deep_forest",
+    "WEST": "old_oak_crossing"
+  },
+  "hiddenExits": {
+    "EAST": "old_oak_crossing"
+  },
+  "hiddenExitHints": {
+    "EAST": "You push aside a curtain of overgrown shrubbery and discover a hidden path leading <em>east</em> — a route that clearly hasn't been used in some time."
+  },
+  "itemIds": ["item_pawprints", "item_mossy_stone"]
+},
+{
+  "id": "old_oak_crossing",
+  "name": "Old Oak Crossing",
+  "description": "Beyond the fork, both paths join again in a hidden grove beneath an ancient oak. Sunlight spills through the leaves in golden shafts, illuminating a weathered stone at the tree's roots. A magnificent sword is embedded in the stone, and beside it sits the faint spectral form of a Labrador, tail gently thumping against the earth.",
+  "exits": {
+    "SOUTH": "forest_fork"
+  },
+  "itemIds": ["item_obis_oath", "item_weathered_stone", "item_ancient_oak"],
+  "npcIds": ["npc_spirit_obi"]
+},
     {
       "id": "blacksmith",
       "name": "Blacksmith's Forge",

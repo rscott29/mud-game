@@ -2,7 +2,22 @@
   {
     "id": "npc_dog_Obi",
     "name": "Obi",
-    "description": "A boisterous young Labrador with a golden coat and boundless energy. He fixes you with intelligent amber eyes, tail wagging furiously. His collar tag reads 'Obi'. He seems to be waiting for something — or someone.",
+    "description": [
+      "A boisterous young Labrador with a golden coat and boundless energy.",
+      "He fixes you with intelligent amber eyes, tail wagging furiously.",
+      "His collar tag reads: <br><br><em>I run ahead but never leave.<br>I guard the path though I cannot speak.<br>Where the loyal wait and the lost find home,<br>Seek the place where two paths become one.</em><br>",
+      "<br>",
+      "On the reverse side, worn almost smooth with time, are four faint symbols:",
+      "<br><br>",
+      "<ul>",
+      "<li>A paw.</li>",
+      "<li>A heart.</li>",
+      "<li>A ball.</li>",
+      "<li>A compass.</li>",
+      "</ul>",
+        "<br>",
+      "He seems to be waiting for something — or someone."
+    ],
     "keywords": ["obi", "dog", "labrador", "lab", "puppy", "hound"],
     "pronoun": "he",
     "possessive": "his",
