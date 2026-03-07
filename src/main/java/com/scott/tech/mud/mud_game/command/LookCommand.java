@@ -61,7 +61,9 @@ public class LookCommand implements GameCommand {
         if (target == null) {
             List<String> others = othersInRoom(session);
             Set<Direction> discovered = session.getDiscoveredHiddenExits(room.getId());
-            return CommandResult.of(GameResponse.roomUpdate(room, Messages.get("command.look.around"), others, discovered));
+            Set<String> invIds = session.getPlayer().getInventory().stream()
+                    .map(Item::getId).collect(Collectors.toSet());
+            return CommandResult.of(GameResponse.roomUpdate(room, Messages.get("command.look.around"), others, discovered, invIds));
         }
 
         // "exits" – list directions (include discovered hidden exits)

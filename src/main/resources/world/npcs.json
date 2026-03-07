@@ -72,5 +72,33 @@
         "There's a clatter from the {from} and then Obi appears, utterly unrepentant."
       ]
     }
-  }
+  },
+  {
+  "id": "npc_keeper_of_the_bond",
+  "name": "Keeper of the Bond",
+  "description": "A silent knight stands watch beside the ancient stone of the grove. His armour is old but immaculately kept, etched with the faint image of a hound's paw upon the breastplate. A long cloak hangs from his shoulders, unmoving despite the breeze. Though his face is hidden behind a simple steel helm, you feel the unmistakable weight of his attention. <br><br>When he finally speaks, his voice is calm and steady.<br><br><em>\"Many claim loyalty. Few understand it.\"</em><br><br>He gestures toward the path beyond the grove as though inviting you to prove something.",
+  "keywords": ["keeper", "knight", "bond", "guardian", "watcher"],
+  "pronoun": "he",
+  "possessive": "his",
+  "talkTemplates": [
+    "Loyalty is not claimed. It is proven.",
+    "The Keeper of the Bond regards you silently for a long moment before speaking. \"Loyalty is not sworn. It is shown.\"",
+    "\"Many speak of loyalty,\" the Keeper says quietly. \"Few remain when it is tested.\"",
+    "The Keeper rests a gauntleted hand on the pommel of his sword. \"Would you stand when another depends on you?\"",
+    "The Keeper tilts his head slightly. \"The faithful do not ask what they gain.\"",
+    "\"Once,\" the Keeper says softly, \"there was a hound who understood loyalty better than kings.\"",
+    "The Keeper watches you with quiet patience, as though weighing your character rather than your strength.",
+    "\"The world was shaped by great hands,\" the Keeper says. \"But even the maker walked beside a companion.\""
+  ],
+  "interactTemplates": [
+    "The Keeper of the Bond shifts slightly as {player} approaches, armour softly creaking.",
+    "The Keeper inclines his head respectfully toward {player}.",
+    "The Keeper studies {player} in silence, as though measuring something unseen.",
+    "The Keeper stands unmoving as {player} enters the grove.",
+    "The Keeper turns his gaze toward {player}, his presence calm but imposing.",
+    "The Keeper folds his arms across his chest and waits patiently.",
+    "The Keeper nods once toward {player}, acknowledging their presence."
+  ],
+  "wander": null
+}
 ]

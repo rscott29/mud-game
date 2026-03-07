@@ -77,7 +77,11 @@ public record GameResponse(
     }
 
     public static GameResponse roomUpdate(Room room, String message, List<String> players, Set<Direction> discoveredHiddenExits) {
-        return new GameResponse(Type.ROOM_UPDATE, message, RoomView.from(room, players, discoveredHiddenExits));
+        return roomUpdate(room, message, players, discoveredHiddenExits, Set.of());
+    }
+
+    public static GameResponse roomUpdate(Room room, String message, List<String> players, Set<Direction> discoveredHiddenExits, Set<String> excludeItemIds) {
+        return new GameResponse(Type.ROOM_UPDATE, message, RoomView.from(room, players, discoveredHiddenExits, excludeItemIds));
     }
 
     public static GameResponse welcome(String playerName, Room room) {
@@ -89,10 +93,14 @@ public record GameResponse(
     }
 
     public static GameResponse welcome(String playerName, Room room, List<String> otherPlayers, Set<Direction> discoveredHiddenExits) {
+        return welcome(playerName, room, otherPlayers, discoveredHiddenExits, Set.of());
+    }
+
+    public static GameResponse welcome(String playerName, Room room, List<String> otherPlayers, Set<Direction> discoveredHiddenExits, Set<String> excludeItemIds) {
         return new GameResponse(
                 Type.WELCOME,
                 "Welcome to the MUD, " + playerName + "! Type 'help' for a list of commands.",
-                RoomView.from(room, otherPlayers, discoveredHiddenExits)
+                RoomView.from(room, otherPlayers, discoveredHiddenExits, excludeItemIds)
         );
     }
 
@@ -133,7 +141,7 @@ public record GameResponse(
             String name,
             String description,
             List<String> exits,
-            List<String> items,
+            List<RoomItemView> items,
             List<NpcView> npcs,
             List<String> players
     ) {
@@ -146,6 +154,10 @@ public record GameResponse(
         }
 
         public static RoomView from(Room room, List<String> playerNames, Set<Direction> discoveredHiddenExits) {
+            return from(room, playerNames, discoveredHiddenExits, Set.of());
+        }
+
+        public static RoomView from(Room room, List<String> playerNames, Set<Direction> discoveredHiddenExits, Set<String> excludeItemIds) {
             var exits = Stream.concat(
                     room.getExits().keySet().stream(),
                     room.getHiddenExits().keySet().stream()
@@ -153,7 +165,8 @@ public record GameResponse(
             ).sorted().map(d -> d.name().toLowerCase()).toList();
 
             var items = room.getItems().stream()
-                    .map(Item::getName)
+                    .filter(i -> !excludeItemIds.contains(i.getId()))
+                    .map(RoomItemView::from)
                     .toList();
 
             var npcs = room.getNpcs().stream()
@@ -174,9 +187,15 @@ public record GameResponse(
         }
     }
 
-    public record NpcView(String id, String name) {
+    public record NpcView(String id, String name, boolean sentient) {
         public static NpcView from(Npc npc) {
-            return new NpcView(npc.getId(), npc.getName());
+            return new NpcView(npc.getId(), npc.getName(), npc.isSentient());
+        }
+    }
+
+    public record RoomItemView(String name, String rarity) {
+        public static RoomItemView from(Item item) {
+            return new RoomItemView(item.getName(), item.getRarity().name().toLowerCase());
         }
     }
 

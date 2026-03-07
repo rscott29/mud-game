@@ -87,8 +87,7 @@
   "name": "Forest Fork",
   "description": "The trail divides here into two narrow paths that curl between ancient roots and mossy stones. Though the forest is silent, paw prints in the earth suggest that something loyal passed this way not long ago.",
   "exits": {
-    "SOUTH": "deep_forest",
-    "WEST": "old_oak_crossing"
+    "WEST": "deep_forest"
   },
   "hiddenExits": {
     "EAST": "old_oak_crossing"
@@ -103,10 +102,10 @@
   "name": "Old Oak Crossing",
   "description": "Beyond the fork, both paths join again in a hidden grove beneath an ancient oak. Sunlight spills through the leaves in golden shafts, illuminating a weathered stone at the tree's roots. A magnificent sword is embedded in the stone, and beside it sits the faint spectral form of a Labrador, tail gently thumping against the earth.",
   "exits": {
-    "SOUTH": "forest_fork"
+    "WEST": "forest_fork"
   },
   "itemIds": ["item_obis_oath", "item_weathered_stone", "item_ancient_oak"],
-  "npcIds": ["npc_spirit_obi"]
+  "npcIds": ["npc_keeper_of_the_bond"]
 },
     {
       "id": "blacksmith",

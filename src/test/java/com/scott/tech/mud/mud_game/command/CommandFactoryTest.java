@@ -1,8 +1,13 @@
 package com.scott.tech.mud.mud_game.command;
 
+import com.scott.tech.mud.mud_game.command.Drop.DropService;
+import com.scott.tech.mud.mud_game.command.Drop.DropValidator;
+import com.scott.tech.mud.mud_game.command.Pickup.PickupService;
+import com.scott.tech.mud.mud_game.command.Pickup.PickupValidator;
 import com.scott.tech.mud.mud_game.dto.CommandRequest;
 import com.scott.tech.mud.mud_game.dto.GameResponse;
 import com.scott.tech.mud.mud_game.model.Player;
+import com.scott.tech.mud.mud_game.persistence.service.DiscoveredExitService;
 import com.scott.tech.mud.mud_game.persistence.service.InventoryService;
 import com.scott.tech.mud.mud_game.session.GameSession;
 import com.scott.tech.mud.mud_game.session.GameSessionManager;
@@ -26,6 +31,11 @@ class CommandFactoryTest {
     private ChatClient.Builder chatClientBuilder;
     private GameSessionManager sessionManager;
     private InventoryService inventoryService;
+    private DiscoveredExitService discoveredExitService;
+    private PickupValidator pickupValidator;
+    private PickupService pickupService;
+    private DropValidator dropValidator;
+    private DropService dropService;
     private CommandFactory factory;
 
     @BeforeEach
@@ -35,11 +45,17 @@ class CommandFactoryTest {
         chatClientBuilder = mock(ChatClient.Builder.class);
         sessionManager = mock(GameSessionManager.class);
         inventoryService = mock(InventoryService.class);
+        discoveredExitService = mock(DiscoveredExitService.class);
+        pickupValidator = mock(PickupValidator.class);
+        pickupService = mock(PickupService.class);
+        dropValidator = mock(DropValidator.class);
+        dropService = mock(DropService.class);
 
         ChatClient chatClient = mock(ChatClient.class);
         when(chatClientBuilder.build()).thenReturn(chatClient);
 
-        factory = new CommandFactory(taskScheduler, worldBroadcaster, chatClientBuilder, sessionManager, inventoryService);
+        factory = new CommandFactory(taskScheduler, worldBroadcaster, chatClientBuilder, sessionManager,
+                inventoryService, discoveredExitService, pickupValidator, pickupService, dropValidator, dropService);
     }
 
     @Test
@@ -109,6 +125,12 @@ class CommandFactoryTest {
     void whoAlias_createsWhoCommand() {
         GameCommand command = factory.create(request("/who", List.of()));
         assertThat(command).isInstanceOf(WhoCommand.class);
+    }
+
+    @Test
+    void spawnCommand_createsSpawnCommand() {
+        GameCommand command = factory.create(request("spawn", List.of("item_ale_mug")));
+        assertThat(command).isInstanceOf(SpawnCommand.class);
     }
 
     private static CommandRequest request(String command, List<String> args) {

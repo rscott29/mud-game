@@ -99,10 +99,13 @@ public class MoveCommand implements GameCommand {
                 .filter(s -> !s.getSessionId().equals(wsSessionId))
                 .map(s -> s.getPlayer().getName())
                 .collect(Collectors.toList());
+        java.util.Set<String> invIds = session.getPlayer().getInventory().stream()
+                .map(com.scott.tech.mud.mud_game.model.Item::getId)
+                .collect(java.util.stream.Collectors.toSet());
 
         return CommandResult.of(
             GameResponse.roomUpdate(next, Messages.fmt("command.move.success", "direction", dirName), others,
-                    session.getDiscoveredHiddenExits(next.getId()))
+                    session.getDiscoveredHiddenExits(next.getId()), invIds)
         );
     }
 }

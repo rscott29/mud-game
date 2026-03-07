@@ -47,6 +47,7 @@
   "command.who.list"                    : "Online ({count}): {names}",
 
   "command.pickup.no_target"            : "Pick up what?",
+  "command.pickup.not_found"            : "You don't see any '{target}' here.",
   "command.pickup.not_takeable"         : "You can't pick up the {item}.",
   "command.pickup.success"              : "You pick up the {item}.",
 

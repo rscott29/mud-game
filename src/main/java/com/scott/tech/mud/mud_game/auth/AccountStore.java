@@ -78,6 +78,14 @@ public class AccountStore {
                 .orElse(MAX_ATTEMPTS);
     }
 
+    /** Returns true if the account has god (admin) privileges. */
+    @Transactional(readOnly = true)
+    public boolean isGod(String username) {
+        return accountRepository.findById(username.toLowerCase())
+                .map(AccountEntity::isGod)
+                .orElse(false);
+    }
+
     // -- Mutation --------------------------------------------------------------
 
     /**

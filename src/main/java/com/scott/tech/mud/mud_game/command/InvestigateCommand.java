@@ -21,6 +21,12 @@ public class InvestigateCommand implements GameCommand {
     private static final String FALLBACK =
             "You search every corner of the room carefully, but find nothing new.";
 
+    private final com.scott.tech.mud.mud_game.persistence.service.DiscoveredExitService discoveredExitService;
+
+    public InvestigateCommand(com.scott.tech.mud.mud_game.persistence.service.DiscoveredExitService discoveredExitService) {
+        this.discoveredExitService = discoveredExitService;
+    }
+
     @Override
     public CommandResult execute(GameSession session) {
         Room room = session.getCurrentRoom();
@@ -36,6 +42,7 @@ public class InvestigateCommand implements GameCommand {
         for (Direction dir : hiddenExits.keySet()) {
             if (!session.hasDiscoveredExit(room.getId(), dir)) {
                 session.discoverExit(room.getId(), dir);
+                discoveredExitService.saveExit(session.getPlayer().getName(), room.getId(), dir);
                 foundAny = true;
 
                 String hint = room.getHiddenExitHint(dir);
@@ -53,10 +60,14 @@ public class InvestigateCommand implements GameCommand {
         }
 
         // Finish with a room update so the newly revealed exit appears in the exits bar
+        java.util.Set<String> invIds = session.getPlayer().getInventory().stream()
+                .map(com.scott.tech.mud.mud_game.model.Item::getId)
+                .collect(java.util.stream.Collectors.toSet());
         GameResponse roomRefresh = GameResponse.roomUpdate(
                 room, null,
                 List.of(),
-                session.getDiscoveredHiddenExits(room.getId())
+                session.getDiscoveredHiddenExits(room.getId()),
+                invIds
         );
         responses.add(roomRefresh);
 

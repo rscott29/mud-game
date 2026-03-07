@@ -6,6 +6,7 @@ import com.scott.tech.mud.mud_game.model.Direction;
 import com.scott.tech.mud.mud_game.model.Player;
 import com.scott.tech.mud.mud_game.model.Room;
 import com.scott.tech.mud.mud_game.model.SessionState;
+import com.scott.tech.mud.mud_game.persistence.service.DiscoveredExitService;
 import com.scott.tech.mud.mud_game.persistence.service.InventoryService;
 import com.scott.tech.mud.mud_game.persistence.service.PlayerProfileService;
 import com.scott.tech.mud.mud_game.session.GameSession;
@@ -17,7 +18,9 @@ import org.junit.jupiter.api.Test;
 
 import java.util.EnumMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -36,6 +39,7 @@ class LoginHandlerTest {
     private ReconnectTokenStore reconnectTokenStore;
     private PlayerProfileService playerProfileService;
     private InventoryService inventoryService;
+    private DiscoveredExitService discoveredExitService;
     private LoginHandler loginHandler;
     private WorldService worldService;
     private Room startRoom;
@@ -49,8 +53,10 @@ class LoginHandlerTest {
         reconnectTokenStore = mock(ReconnectTokenStore.class);
         playerProfileService = mock(PlayerProfileService.class);
         inventoryService = mock(InventoryService.class);
+        discoveredExitService = mock(DiscoveredExitService.class);
         worldService = mock(WorldService.class);
         when(inventoryService.loadInventory(anyString(), any())).thenReturn(List.of());
+        when(discoveredExitService.loadExits(anyString())).thenReturn(Map.of());
 
         startRoom = new Room("start", "Start", "The start room",
                 new EnumMap<>(Direction.class), List.of(), List.of());
@@ -62,7 +68,7 @@ class LoginHandlerTest {
         when(sessionManager.getSessionsInRoom(anyString())).thenReturn(List.of());
 
         loginHandler = new LoginHandler(
-                accountStore, sessionManager, worldBroadcaster, reconnectTokenStore, playerProfileService, inventoryService);
+                accountStore, sessionManager, worldBroadcaster, reconnectTokenStore, playerProfileService, inventoryService, discoveredExitService);
     }
 
     @Test
@@ -208,6 +214,25 @@ class LoginHandlerTest {
         assertThat(result.getResponses().get(0).type()).isEqualTo(GameResponse.Type.WELCOME);
         assertThat(result.getResponses().get(1).type()).isEqualTo(GameResponse.Type.SESSION_TOKEN);
         assertThat(result.getResponses().get(1).token()).isEqualTo("fresh-token");
+    }
+
+    @Test
+    void handlePassword_success_restoresDiscoveredHiddenExits() {
+        GameSession session = newSession("s1", "start");
+        session.setPendingUsername("alice");
+        session.transition(SessionState.AWAITING_PASSWORD);
+
+        when(accountStore.isLocked("alice")).thenReturn(false);
+        when(accountStore.verifyPassword("alice", "secret")).thenReturn(true);
+        when(playerProfileService.getSavedRoomId("alice")).thenReturn(Optional.of("tavern"));
+        when(discoveredExitService.loadExits("alice"))
+                .thenReturn(Map.of("tavern", Set.of(Direction.NORTH)));
+        when(sessionManager.getSessionsInRoom("tavern")).thenReturn(List.of(session));
+        when(reconnectTokenStore.issue("alice")).thenReturn("token-123");
+
+        loginHandler.handle("secret", session);
+
+        assertThat(session.hasDiscoveredExit("tavern", Direction.NORTH)).isTrue();
     }
 
     @Test
