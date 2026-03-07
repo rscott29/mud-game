@@ -1,12 +1,18 @@
 export interface NpcDto {
   name: string;
+  sentient: boolean;
+}
+
+export interface RoomItemDto {
+  name: string;
+  rarity: string;
 }
 
 export interface RoomDto {
   name: string;
   description: string;
   exits: string[];
-  items: string[];
+  items: RoomItemDto[];
   npcs: NpcDto[];
   players: string[];
 }

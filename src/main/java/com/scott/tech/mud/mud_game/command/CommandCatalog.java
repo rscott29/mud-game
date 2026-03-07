@@ -23,6 +23,7 @@ public final class CommandCatalog {
     public static final String DROP = "drop";
     public static final String INVENTORY = "inventory";
     public static final String INVESTIGATE = "investigate";
+    public static final String SPAWN = "spawn";
 
     private static final Map<String, String> ALIASES = buildAliases();
 
@@ -94,6 +95,7 @@ public final class CommandCatalog {
         register(aliases, DROP, List.of("drop", "discard", "toss", "leave"));
         register(aliases, INVENTORY, List.of("inventory", "inv", "i"));
         register(aliases, INVESTIGATE, List.of("investigate", "search", "examine here", "inspect"));
+        register(aliases, SPAWN, List.of("spawn"));
 
         return Map.copyOf(aliases);
     }

@@ -49,7 +49,11 @@ public class Room {
     public void removeNpc(Npc npc)  { npcs.remove(npc); }
     public boolean hasNpc(Npc npc)  { return npcs.contains(npc); }
 
-    public void addItem(Item item)    { items.add(item); }
+    public void addItem(Item item) {
+        if (items.stream().noneMatch(i -> i.getId().equals(item.getId()))) {
+            items.add(item);
+        }
+    }
     public void removeItem(Item item) { items.remove(item); }
 
     /** Find an NPC in this room whose keywords match the given input. */

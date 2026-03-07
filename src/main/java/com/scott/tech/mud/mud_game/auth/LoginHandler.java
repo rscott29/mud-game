@@ -41,19 +41,22 @@ public class LoginHandler {
     private final ReconnectTokenStore reconnectTokenStore;
     private final PlayerProfileService playerProfileService;
     private final InventoryService inventoryService;
+    private final com.scott.tech.mud.mud_game.persistence.service.DiscoveredExitService discoveredExitService;
 
     public LoginHandler(AccountStore accountStore,
                         com.scott.tech.mud.mud_game.session.GameSessionManager sessionManager,
                         WorldBroadcaster worldBroadcaster,
                         ReconnectTokenStore reconnectTokenStore,
                         PlayerProfileService playerProfileService,
-                        InventoryService inventoryService) {
-        this.accountStore         = accountStore;
-        this.sessionManager       = sessionManager;
-        this.worldBroadcaster     = worldBroadcaster;
-        this.reconnectTokenStore  = reconnectTokenStore;
-        this.playerProfileService = playerProfileService;
-        this.inventoryService     = inventoryService;
+                        InventoryService inventoryService,
+                        com.scott.tech.mud.mud_game.persistence.service.DiscoveredExitService discoveredExitService) {
+        this.accountStore          = accountStore;
+        this.sessionManager        = sessionManager;
+        this.worldBroadcaster      = worldBroadcaster;
+        this.reconnectTokenStore   = reconnectTokenStore;
+        this.playerProfileService  = playerProfileService;
+        this.inventoryService      = inventoryService;
+        this.discoveredExitService = discoveredExitService;
     }
 
     // ── Entry point ───────────────────────────────────────────────────────────
@@ -118,12 +121,7 @@ public class LoginHandler {
         }
 
         if (accountStore.verifyPassword(username, rawPassword)) {
-            session.getPlayer().setName(capitalize(username));
-            playerProfileService.getSavedRoomId(username)
-                    .ifPresent(session.getPlayer()::setCurrentRoomId);
-            playerProfileService.restorePlayerStats(username, session.getPlayer());
-            session.getPlayer().setInventory(
-                    inventoryService.loadInventory(username, session.getWorldService()));
+            restoreAuthenticatedPlayerState(username, session);
             session.transition(SessionState.PLAYING);
             broadcastLogin(session);
             java.util.List<String> others = othersInRoom(session);
@@ -132,8 +130,12 @@ public class LoginHandler {
                 session.getPlayer().getInventory().stream()
                     .map(com.scott.tech.mud.mud_game.dto.GameResponse.ItemView::from)
                     .toList();
+            java.util.Set<String> invIds = session.getPlayer().getInventory().stream()
+                    .map(com.scott.tech.mud.mud_game.model.Item::getId)
+                    .collect(java.util.stream.Collectors.toSet());
             return CommandResult.of(
-                GameResponse.welcome(session.getPlayer().getName(), session.getCurrentRoom(), others)
+                GameResponse.welcome(session.getPlayer().getName(), session.getCurrentRoom(), others,
+                        session.getDiscoveredHiddenExits(session.getPlayer().getCurrentRoomId()), invIds)
                     .withInventory(invViews),
                 GameResponse.sessionToken(token));
         }
@@ -205,12 +207,7 @@ public class LoginHandler {
     public CommandResult reconnect(String rawToken, GameSession session) {
         return reconnectTokenStore.consume(rawToken)
             .map(username -> {
-                session.getPlayer().setName(capitalize(username));
-                playerProfileService.getSavedRoomId(username)
-                        .ifPresent(session.getPlayer()::setCurrentRoomId);
-                playerProfileService.restorePlayerStats(username, session.getPlayer());
-                session.getPlayer().setInventory(
-                        inventoryService.loadInventory(username, session.getWorldService()));
+                restoreAuthenticatedPlayerState(username, session);
                 session.transition(SessionState.PLAYING);
                 broadcastLogin(session);
                 java.util.List<String> others = othersInRoom(session);
@@ -219,8 +216,12 @@ public class LoginHandler {
                     session.getPlayer().getInventory().stream()
                         .map(com.scott.tech.mud.mud_game.dto.GameResponse.ItemView::from)
                         .toList();
+                java.util.Set<String> invIds = session.getPlayer().getInventory().stream()
+                        .map(com.scott.tech.mud.mud_game.model.Item::getId)
+                        .collect(java.util.stream.Collectors.toSet());
                 return CommandResult.of(
-                    GameResponse.welcome(session.getPlayer().getName(), session.getCurrentRoom(), others)
+                    GameResponse.welcome(session.getPlayer().getName(), session.getCurrentRoom(), others,
+                            session.getDiscoveredHiddenExits(session.getPlayer().getCurrentRoomId()), invIds)
                         .withInventory(invViews),
                     GameResponse.sessionToken(newToken));
             })
@@ -228,6 +229,21 @@ public class LoginHandler {
                 // Token expired or invalid — send nothing; the banner+prompt was already sent on connect
                 return CommandResult.of();
             });
+    }
+
+    private void restoreAuthenticatedPlayerState(String username, GameSession session) {
+        session.getPlayer().setName(capitalize(username));
+        playerProfileService.getSavedRoomId(username)
+                .ifPresent(session.getPlayer()::setCurrentRoomId);
+        playerProfileService.restorePlayerStats(username, session.getPlayer());
+        session.getPlayer().setInventory(
+                inventoryService.loadInventory(username, session.getWorldService()));
+        session.getPlayer().setGod(accountStore.isGod(username));
+        if (session.getPlayer().isGod()) {
+            session.getPlayer().setLevel(100);
+            session.getPlayer().setTitle("Immortal");
+        }
+        session.restoreDiscoveredExits(discoveredExitService.loadExits(username));
     }
 
     /** Capitalizes the first character of a username for display. */
@@ -254,3 +270,4 @@ public class LoginHandler {
                 .collect(java.util.stream.Collectors.toList());
     }
 }
+

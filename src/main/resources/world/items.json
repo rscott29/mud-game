@@ -112,6 +112,38 @@
     "rarity": "COMMON"
   },
   {
+    "id": "item_pawprints",
+    "name": "Fresh Paw Prints",
+    "description": "A neat line of fresh paw prints pressed into damp soil. The stride is steady and purposeful, and the trail bends toward denser brush to the east.",
+    "keywords": ["pawprints", "paw prints", "prints", "tracks", "trail"],
+    "takeable": false,
+    "rarity": "COMMON"
+  },
+  {
+    "id": "item_mossy_stone",
+    "name": "Mossy Stone",
+    "description": "A low standing stone draped in velvet-green moss. Someone has scratched a small paw symbol into one side, almost hidden beneath lichen.",
+    "keywords": ["stone", "mossy stone", "marker", "rune"],
+    "takeable": false,
+    "rarity": "COMMON"
+  },
+  {
+    "id": "item_weathered_stone",
+    "name": "Weathered Stone",
+    "description": "A broad weathered stone rises from the roots of the ancient oak. Its surface is worn smooth by time, except for a narrow slot where a blade once rested.",
+    "keywords": ["stone", "weathered stone", "altar", "rock"],
+    "takeable": false,
+    "rarity": "COMMON"
+  },
+  {
+    "id": "item_ancient_oak",
+    "name": "Ancient Oak",
+    "description": "An immense oak tree towers above the grove, its limbs spread like a vaulted roof. Its bark is scarred with old symbols that speak of vows kept through generations.",
+    "keywords": ["oak", "ancient oak", "tree", "grove"],
+    "takeable": false,
+    "rarity": "COMMON"
+  },
+  {
     "id": "item_iron_sword",
     "name": "Iron Sword",
     "description": "A single-edged iron sword hanging from a wall hook. The blade is solid and well-balanced. A strip of worn leather wraps the hilt. The price chalked on a slate below reads 15 silver.",
@@ -148,6 +180,23 @@
     ],
     "keywords": ["obi's oath", "oath", "obi", "sword", "blade", "legendary", "loyal blade"],
     "takeable": true,
-    "rarity": "LEGENDARY"
+    "rarity": "LEGENDARY",
+    "requiredItemIds": ["item_obis_tag"],
+    "prerequisiteFailMessage": "The sword does not stir. Something about you feels... incomplete. As if the oath demands a witness — one that has not yet been found.",
+    "triggers": [
+      { "event": "PREREQUISITE_FAIL", "npcId": "npc_keeper_of_the_bond", "templateIndex": 0 }
+    ]
+  },
+  {
+    "id": "item_obis_tag",
+    "name": "Worn Collar Tag",
+    "description": [
+      "A small, scratched brass tag that once hung from a dog's collar.",
+      "The name <em>Obi</em> is etched on one side; on the other, a single worn paw print.",
+      "<br>Whoever carries this was trusted enough to keep it."
+    ],
+    "keywords": ["collar tag", "tag", "brass tag", "obi's tag", "worn tag"],
+    "takeable": true,
+    "rarity": "RARE"
   }
 ]

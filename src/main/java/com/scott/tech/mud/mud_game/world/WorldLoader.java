@@ -96,6 +96,10 @@ public class WorldLoader {
             errors.add("startRoomId '" + start + "' does not exist as a room id");
         }
 
+        List<String> warnings = new ArrayList<>();
+        checkExitSymmetry(builtRooms, warnings);
+        warnings.forEach(msg -> log.warn("World validation: {}", msg));
+
         if (!errors.isEmpty()) {
             errors.forEach(msg -> log.error("World validation: {}", msg));
             throw new WorldLoadException("World data invalid. Fix errors above.");
@@ -169,7 +173,11 @@ public class WorldLoader {
 
         Map<String, Item> map = new HashMap<>();
         for (ItemData i : itemDataArray) {
-            if (map.put(i.getId(), new Item(i.getId(), i.getName(), i.getDescription(), i.getKeywords(), i.isTakeable(), i.getRarity())) != null) {
+            List<com.scott.tech.mud.mud_game.model.ItemTrigger> triggers = i.getTriggers().stream()
+                    .map(ItemData.TriggerData::toItemTrigger)
+                    .filter(t -> t != null)
+                    .toList();
+            if (map.put(i.getId(), new Item(i.getId(), i.getName(), i.getDescription(), i.getKeywords(), i.isTakeable(), i.getRarity(), i.getRequiredItemIds(), i.getPrerequisiteFailMessage(), triggers)) != null) {
                 throw new WorldLoadException("Duplicate item id: " + i.getId());
             }
         }
@@ -244,5 +252,45 @@ public class WorldLoader {
             }
         }
         return List.copyOf(out);
+    }
+
+    /**
+     * Checks every regular exit for symmetry: if room A exits via D to room B,
+     * then room B should have D.opposite() pointing back to room A.
+     * Logs warnings (not errors) because intentional one-way exits may exist.
+     * Hidden exits are excluded from iteration — they are expected to be one-way by design.
+     *
+     * <p>One intentional asymmetry pattern is allowed without warning: if you enter room B
+     * via a hidden exit from A, the return path from B back to A can be in a different
+     * direction (e.g. enter EAST via hidden passage, exit SOUTH back to the fork).
+     * Detected by checking whether the target room has a hidden exit pointing back to the source.
+     */
+    static void checkExitSymmetry(Map<String, Room> rooms, List<String> warnings) {
+        for (Room room : rooms.values()) {
+            for (Map.Entry<Direction, String> exit : room.getExits().entrySet()) {
+                Direction outDir    = exit.getKey();
+                String    targetId  = exit.getValue();
+                Room      target    = rooms.get(targetId);
+                if (target == null) continue; // already reported as a hard error
+
+                Direction returnDir    = outDir.opposite();
+                String    actualReturn = target.getExits().get(returnDir);
+
+                if (actualReturn == null) {
+                    // Before warning, check if the target has a hidden exit back to this room.
+                    // That indicates an intentional "secret entry, normal exit" pattern.
+                    boolean secretEntryPattern = target.getHiddenExits().containsValue(room.getId());
+                    if (!secretEntryPattern) {
+                        warnings.add(String.format(
+                                "One-way exit: '%s' --%s--> '%s' (no %s return from '%s')",
+                                room.getId(), outDir, targetId, returnDir, targetId));
+                    }
+                } else if (!actualReturn.equals(room.getId())) {
+                    warnings.add(String.format(
+                            "Mismatched exit: '%s' --%s--> '%s', but '%s' --%s--> '%s' (expected back to '%s')",
+                            room.getId(), outDir, targetId, targetId, returnDir, actualReturn, room.getId()));
+                }
+            }
+        }
     }
 }

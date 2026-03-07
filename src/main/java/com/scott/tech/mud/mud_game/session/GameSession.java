@@ -85,4 +85,19 @@ public class GameSession {
     public boolean discoverExit(String roomId, Direction dir) {
         return discoveredExits.computeIfAbsent(roomId, k -> EnumSet.noneOf(Direction.class)).add(dir);
     }
+
+    /** Bulk-restores persisted discovered exits at login. */
+    public void restoreDiscoveredExits(java.util.Map<String, Set<Direction>> saved) {
+        if (saved == null || saved.isEmpty()) {
+            return;
+        }
+        saved.forEach((roomId, dirs) -> {
+            if (dirs == null || dirs.isEmpty()) {
+                return;
+            }
+            dirs.forEach(dir -> discoveredExits
+                    .computeIfAbsent(roomId, k -> EnumSet.noneOf(Direction.class))
+                    .add(dir));
+        });
+    }
 }

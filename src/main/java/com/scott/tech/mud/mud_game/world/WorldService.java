@@ -97,6 +97,11 @@ public class WorldService {
         return itemRegistry.get(itemId);
     }
 
+    /** Removes the given item from every room that currently holds it. */
+    public void removeItemFromAllRooms(Item item) {
+        rooms.values().forEach(room -> room.removeItem(item));
+    }
+
     public java.util.Collection<Npc> getWanderingNpcs() {
         return npcRegistry.values().stream()
                 .filter(Npc::doesWander)

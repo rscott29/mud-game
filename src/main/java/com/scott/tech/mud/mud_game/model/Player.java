@@ -1,6 +1,5 @@
 package com.scott.tech.mud.mud_game.model;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -12,6 +11,7 @@ public class Player {
     private String currentRoomId;
     private int level = 1;
     private String title = "Adventurer";
+    private boolean god = false;
     private final List<Item> inventory = new CopyOnWriteArrayList<>();
 
     public Player(String id, String name, String startRoomId) {
@@ -25,20 +25,32 @@ public class Player {
     public String getCurrentRoomId() { return currentRoomId; }
     public int    getLevel()         { return level; }
     public String getTitle()         { return title; }
+    public boolean isGod()           { return god; }
     public List<Item> getInventory() { return inventory; }
 
     public void setName(String name)                  { this.name = name; }
     public void setCurrentRoomId(String currentRoomId){ this.currentRoomId = currentRoomId; }
     public void setLevel(int level)                   { this.level = level; }
     public void setTitle(String title)                { this.title = title; }
+    public void setGod(boolean god)                   { this.god = god; }
 
     /** Replaces the entire inventory (used when loading from the database on login). */
     public void setInventory(List<Item> items) {
         inventory.clear();
-        inventory.addAll(items);
+        if (items != null) {
+            items.forEach(this::addToInventory);
+        }
     }
 
-    public void addToInventory(Item item)    { inventory.add(item); }
+    public void addToInventory(Item item) {
+        if (item == null) {
+            return;
+        }
+        boolean alreadyHeld = inventory.stream().anyMatch(i -> i.getId().equals(item.getId()));
+        if (!alreadyHeld) {
+            inventory.add(item);
+        }
+    }
     public void removeFromInventory(Item item){ inventory.remove(item); }
 
     /** Finds an inventory item whose keywords match the given input (case-insensitive). */

@@ -27,11 +27,14 @@ export interface DisplayMessage {
 const DIRECT_COMMANDS = new Set([
   'n', 's', 'e', 'w', 'u', 'd',
   'north', 'south', 'east', 'west', 'up', 'down',
+  'go', 'move',
   'look', 'l', 'examine', 'x',
-  'take', 'get', 'pickup', 'pick',
-  'drop',
+  'talk', 'greet',
+  'take', 'get', 'pickup', 'pick', 'grab', 'snatch', 'lift', 'collect', 'steal',
+  'drop', 'discard', 'toss', 'leave',
   'inventory', 'inv', 'i',
   'investigate', 'search',
+  'spawn',
   'help', '?',
   'logout', 'logoff', 'quit', 'exit',
   'who',
@@ -252,20 +255,34 @@ export class TerminalComponent {
       return;
     }
 
-    const exits = (r.exits ?? []).join(', ') || 'none';
-    const items = (r.items ?? []).join(', ') || 'none';
-    const npcNames = (r.npcs ?? []).map(n => n.name).join(', ') || 'none';
-    const playerNames = (r.players ?? []).join(', ') || 'none';
+    const exitChips = (r.exits ?? []).length
+      ? (r.exits).map(e => `<span class="chip chip-exit">${esc(e)}</span>`).join('')
+      : `<span class="chip-none">none</span>`;
+
+    const itemChips = (r.items ?? []).length
+      ? (r.items).map(i => `<span class="chip chip-item rarity-${esc(i.rarity)}">${esc(i.name)}</span>`).join('')
+      : `<span class="chip-none">none</span>`;
+
+    const npcChips = (r.npcs ?? []).length
+      ? (r.npcs).map(n => `<span class="chip ${n.sentient ? 'chip-npc-sentient' : 'chip-npc'}">${esc(n.name)}</span>`).join('')
+      : `<span class="chip-none">none</span>`;
+
+    const playerChips = (r.players ?? []).length
+      ? (r.players).map(p => `<span class="chip chip-player">${esc(p)}</span>`).join('')
+      : `<span class="chip-none">none</span>`;
 
     const html = `
       ${msg.message ? `<div class="room-msg">${esc(msg.message)}</div>` : ''}
       <div class="room-name">${esc(r.name)}</div>
       <div class="room-desc">${esc(r.description)}</div>
       <div class="room-meta">
-        Exits: <span>${esc(exits)}</span> &nbsp;|&nbsp;
-        Items: <span>${esc(items)}</span> &nbsp;|&nbsp;
-        NPCs: <span>${esc(npcNames)}</span> &nbsp;|&nbsp;
-        Players: <span>${esc(playerNames)}</span>
+        <span class="meta-label">Exits</span>${exitChips}
+        <span class="meta-sep">|</span>
+        <span class="meta-label">Items</span>${itemChips}
+        <span class="meta-sep">|</span>
+        <span class="meta-label">NPCs</span>${npcChips}
+        <span class="meta-sep">|</span>
+        <span class="meta-label">Players</span>${playerChips}
       </div>
     `;
 

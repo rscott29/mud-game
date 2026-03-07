@@ -32,6 +32,9 @@ public class AccountEntity {
     @Column(name = "failed_attempts", nullable = false)
     private int failedAttempts;
 
+    @Column(name = "is_god", nullable = false)
+    private boolean god;
+
     protected AccountEntity() {}
 
     public AccountEntity(String username, String passwordHash, Instant createdAt) {
@@ -46,8 +49,10 @@ public class AccountEntity {
     public Instant getCreatedAt()    { return createdAt; }
     public Instant getLockedUntil()  { return lockedUntil; }
     public int     getFailedAttempts(){ return failedAttempts; }
+    public boolean isGod()           { return god; }
 
     public void setPasswordHash(String passwordHash)   { this.passwordHash = passwordHash; }
     public void setLockedUntil(Instant lockedUntil)    { this.lockedUntil = lockedUntil; }
     public void setFailedAttempts(int failedAttempts)  { this.failedAttempts = failedAttempts; }
+    public void setGod(boolean god)                    { this.god = god; }
 }
