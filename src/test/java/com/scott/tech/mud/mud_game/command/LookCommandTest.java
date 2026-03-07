@@ -5,6 +5,7 @@ import com.scott.tech.mud.mud_game.model.Direction;
 import com.scott.tech.mud.mud_game.model.Item;
 import com.scott.tech.mud.mud_game.model.Npc;
 import com.scott.tech.mud.mud_game.model.Player;
+import com.scott.tech.mud.mud_game.model.Rarity;
 import com.scott.tech.mud.mud_game.model.Room;
 import com.scott.tech.mud.mud_game.session.GameSession;
 import com.scott.tech.mud.mud_game.session.GameSessionManager;
@@ -144,6 +145,6 @@ class LookCommandTest {
     }
 
     private static Item item(String id, String name, String desc, List<String> keywords) {
-        return new Item(id, name, desc, keywords, false);
+        return new Item(id, name, desc, keywords, false, Rarity.COMMON);
     }
 }
