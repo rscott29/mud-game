@@ -9,6 +9,7 @@ RUN chmod +x mvnw && ./mvnw dependency:go-offline -q
 
 # Copy source and build
 COPY src ./src
+COPY front-end ./front-end
 RUN ./mvnw package -DskipTests -q
 
 # ── Stage 2: Runtime ──────────────────────────────────────────────────────────
