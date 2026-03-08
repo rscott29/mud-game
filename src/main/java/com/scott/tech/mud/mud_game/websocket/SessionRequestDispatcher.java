@@ -37,6 +37,10 @@ public class SessionRequestDispatcher {
 
     public CommandResult dispatch(WebSocketSession wsSession, GameSession gameSession, CommandRequest request) {
         String sessionId = wsSession.getId();
+        String playerName = gameSession.getPlayer().getName();
+        
+        log.info("[{}] REQUEST_RECEIVED command='{}' input='{}' args={}",
+                playerName, request.getCommand(), request.getInput(), request.getArgs());
 
         if (gameSession.getState() == SessionState.LOGOUT_CONFIRM) {
             String input = extractLoginInput(request).toLowerCase();
@@ -59,13 +63,22 @@ public class SessionRequestDispatcher {
     }
 
     private CommandResult routeInGame(GameSession gameSession, CommandRequest request) {
-        if (request.isNaturalLanguage()) {
-            log.debug("[{}] resolving natural input: '{}'",
-                    gameSession.getPlayer().getName(), request.getInput());
+        String playerName = gameSession.getPlayer().getName();
+        
+        boolean isNatural = request.isNaturalLanguage();
+        log.info("[{}] isNaturalLanguage={} (command={} input={})", 
+                playerName, isNatural, request.getCommand() != null, request.getInput() != null);
+        
+        if (isNatural) {
+            log.info("[{}] AI_RESOLVER=INVOKING input='{}'", playerName, request.getInput());
             request = aiIntentResolver.resolve(request.getInput(), gameSession.getCurrentRoom());
+            log.info("[{}] AI_RESOLVER=COMPLETE resolved_command='{}' args={}", 
+                    playerName, request.getCommand(), request.getArgs());
+        } else {
+            log.info("[{}] USING_DIRECT_COMMAND command='{}' args={}", 
+                    playerName, request.getCommand(), request.getArgs());
         }
-        log.debug("[{}] command={} args={}",
-                gameSession.getPlayer().getName(), request.getCommand(), request.getArgs());
+        
         return gameEngine.process(gameSession, request);
     }
 
