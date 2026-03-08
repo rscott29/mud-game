@@ -39,8 +39,12 @@ public class DropCommand implements GameCommand {
 
         Optional<Item> found = session.getPlayer().findInInventory(target);
         if (found.isEmpty()) {
-            return CommandResult.of(GameResponse.error(
-                    Messages.fmt("command.drop.not_in_inventory", "item", target)));
+            String inventory = describeInventory(session);
+            String errorMsg = Messages.fmt("command.drop.not_in_inventory", "item", target);
+            if (!inventory.isEmpty()) {
+                errorMsg += " You're carrying: " + inventory;
+            }
+            return CommandResult.of(GameResponse.error(errorMsg));
         }
 
         Item item = found.get();
@@ -77,5 +81,14 @@ public class DropCommand implements GameCommand {
         }
 
         return input;
+    }
+
+    /** Returns a comma-separated list of item names in the player's inventory. */
+    private String describeInventory(GameSession session) {
+        return session.getPlayer().getInventory().stream()
+                .map(Item::getName)
+                .limit(5)  // Cap at 5 items to avoid verbose output
+                .reduce((a, b) -> a + ", " + b)
+                .orElse("");
     }
 }

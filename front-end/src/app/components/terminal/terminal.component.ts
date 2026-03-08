@@ -24,20 +24,34 @@ export interface DisplayMessage {
   html: string;
 }
 
+/**
+ * Commands that can be recognized and sent directly as structured requests.
+ * These are commands with no arguments, or where arguments don't semantically matter.
+ */
 const DIRECT_COMMANDS = new Set([
   'n', 's', 'e', 'w', 'u', 'd',
   'north', 'south', 'east', 'west', 'up', 'down',
   'go', 'move',
-  'look', 'l', 'examine', 'x',
-  'talk', 'greet',
-  'take', 'get', 'pickup', 'pick', 'grab', 'snatch', 'lift', 'collect', 'steal',
-  'drop', 'discard', 'toss', 'leave',
   'inventory', 'inv', 'i',
-  'investigate', 'search',
   'spawn',
   'help', '?',
   'logout', 'logoff', 'quit', 'exit',
   'who',
+]);
+
+/**
+ * Commands that should ALWAYS be sent as natural language (input field),
+ * even if recognized. This lets the AI resolver handle semantic understanding
+ * of targets (items, NPCs, room features), typos, descriptions, etc.
+ *
+ * Examples: "look at the stone", "take shiny sword", "talk to the guard"
+ */
+const AI_RESOLVED_COMMANDS = new Set([
+  'look', 'l', 'examine', 'x',
+  'talk', 'greet',
+  'take', 'get', 'pickup', 'pick', 'grab', 'snatch', 'lift', 'collect', 'steal',
+  'drop', 'discard', 'toss', 'leave',
+  'investigate', 'search',
 ]);
 
 function esc(str: string): string {
@@ -176,6 +190,16 @@ export class TerminalComponent {
     const [first = '', ...args] = raw.split(/\s+/);
     const cmd = first.toLowerCase();
 
+    // Commands that target items/NPCs should always use AI resolution
+    if (AI_RESOLVED_COMMANDS.has(cmd)) {
+      return {
+        payload: JSON.stringify({ input: raw }),
+        echo: raw,
+        maskEcho: false,
+      };
+    }
+
+    // Simple direct commands
     if (DIRECT_COMMANDS.has(cmd)) {
       return {
         payload: JSON.stringify(args.length ? { command: cmd, args } : { command: cmd }),
@@ -184,6 +208,7 @@ export class TerminalComponent {
       };
     }
 
+    // Unknown command → natural language
     return {
       payload: JSON.stringify({ input: raw }),
       echo: raw,

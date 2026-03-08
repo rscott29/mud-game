@@ -34,6 +34,7 @@ build/
 
 ### Local secrets ###
 .env
+.env.properties
 
 ### Frontend ###
 front-end/node_modules/

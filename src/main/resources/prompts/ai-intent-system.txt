@@ -15,7 +15,7 @@ Rules:
 - "pick up", "grab", "snatch", "steal", "lift", "collect" -> "take"
 - "put down", "throw down", "leave", "discard", "toss" -> "drop"
 - "log out", "log off", "quit game", "exit game", "sign out", "disconnect" -> "logout"
-- Extract the target from natural language:
+- Extract the target from natural language. Use item/NPC descriptions to resolve semantic references:
     "look at the dog"       -> {"command":"look","args":["dog"]}
     "read the signpost"     -> {"command":"look","args":["signpost"]}
     "reed the sighpost"     -> {"command":"look","args":["signpost"]}
@@ -28,5 +28,9 @@ Rules:
     "talk to the dog"       -> {"command":"talk","args":["dog"]}
     "pet the labrador"      -> {"command":"talk","args":["labrador"]}
     "say hello to Obi"      -> {"command":"talk","args":["obi"]}
-- Prefer NPC keywords for NPC references (provided in context).
+- Match player descriptions to items using keywords and descriptions:
+    "the shiny sword" -> check item keywords/descriptions for "shiny", "sword"
+    "that gleaming blade" -> search item descriptions for related terms
+    "the magical amulet" -> use context descriptions to identify the item
+- Prefer exact keyword matches, but use semantic understanding when player describes an item by appearance, quality, or type.
 - If the intent is genuinely unclear, return {"command":"unknown","args":[]}.
