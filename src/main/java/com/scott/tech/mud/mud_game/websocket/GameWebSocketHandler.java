@@ -121,7 +121,7 @@ public class GameWebSocketHandler extends TextWebSocketHandler {
                         gameSession.getPlayer().getInventory());
                 broadcaster.broadcastToRoom(
                         gameSession.getPlayer().getCurrentRoomId(),
-                        GameResponse.message(gameSession.getPlayer().getName() + " has left the world."),
+                    GameResponse.message(Messages.fmt("event.player.left_world", "player", gameSession.getPlayer().getName())),
                         wsSession.getId());
             }
             gameEngine.onDisconnect(gameSession);

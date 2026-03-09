@@ -17,9 +17,6 @@ import java.util.stream.Collectors;
 @Service
 public class PickupValidator {
 
-    private static final String DEFAULT_PREREQUISITE_FAIL_MESSAGE =
-            "Something holds you back. You feel unworthy of taking this.";
-
     public ValidationResult validate(GameSession session, Item item) {
         if (!item.isTakeable()) {
             return ValidationResult.deny(GameResponse.error(
@@ -27,11 +24,7 @@ public class PickupValidator {
         }
 
         if (isAlreadyCarried(session, item)) {
-            return ValidationResult.deny(GameResponse.error("You're already carrying that."));
-        }
-
-        if (session.getPlayer().isGod()) {
-            return ValidationResult.allow();
+            return ValidationResult.deny(GameResponse.error(Messages.get("command.pickup.already_carrying")));
         }
 
         if (missingPrerequisites(session, item).isEmpty()) {
@@ -70,7 +63,7 @@ public class PickupValidator {
     private String resolveFailMessage(Item item) {
         String custom = item.getPrerequisiteFailMessage();
         return (custom == null || custom.isBlank())
-                ? DEFAULT_PREREQUISITE_FAIL_MESSAGE
+                ? Messages.get("command.pickup.prerequisite_fail_default")
                 : custom;
     }
 

@@ -7,7 +7,7 @@
     </div>
 
     <div class="help-body">
-      @for (cat of categories; track cat.title) {
+      @for (cat of categories(); track cat.title) {
         <section class="help-category">
           <h3 class="cat-title">
             <span class="cat-icon">{{ cat.icon }}</span>

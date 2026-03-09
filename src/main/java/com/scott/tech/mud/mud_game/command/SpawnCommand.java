@@ -1,5 +1,6 @@
 package com.scott.tech.mud.mud_game.command;
 
+import com.scott.tech.mud.mud_game.config.Messages;
 import com.scott.tech.mud.mud_game.dto.GameResponse;
 import com.scott.tech.mud.mud_game.model.Item;
 import com.scott.tech.mud.mud_game.model.Room;
@@ -29,11 +30,11 @@ public class SpawnCommand implements GameCommand {
     @Override
     public CommandResult execute(GameSession session) {
         if (!session.getPlayer().isGod()) {
-            return CommandResult.of(GameResponse.error("Unknown command."));
+            return CommandResult.of(GameResponse.error(Messages.get("command.spawn.not_god")));
         }
 
         if (rawArgs.isBlank()) {
-            return CommandResult.of(GameResponse.error("[god] Usage: spawn <item_id> [inv]"));
+            return CommandResult.of(GameResponse.error(Messages.get("command.spawn.usage")));
         }
 
         String[] parts  = rawArgs.split("\\s+", 2);
@@ -42,7 +43,7 @@ public class SpawnCommand implements GameCommand {
 
         Item item = session.getWorldService().getItemById(itemId);
         if (item == null) {
-            return CommandResult.of(GameResponse.error("[god] Unknown item id: " + itemId));
+            return CommandResult.of(GameResponse.error(Messages.fmt("command.spawn.unknown_item", "itemId", itemId)));
         }
 
         if (toInv) {
@@ -55,14 +56,14 @@ public class SpawnCommand implements GameCommand {
                     .map(GameResponse.ItemView::from).toList();
 
             return CommandResult.of(
-                    GameResponse.message("[god] Spawned " + item.getName() + " into your inventory.")
+                    GameResponse.message(Messages.fmt("command.spawn.success_inventory", "item", item.getName()))
                             .withInventory(views));
         } else {
             Room room = session.getCurrentRoom();
             room.addItem(item);
 
             return CommandResult.of(
-                    GameResponse.message("[god] Spawned " + item.getName() + " into " + room.getName() + "."));
+                    GameResponse.message(Messages.fmt("command.spawn.success_room", "item", item.getName(), "room", room.getName())));
         }
     }
 }

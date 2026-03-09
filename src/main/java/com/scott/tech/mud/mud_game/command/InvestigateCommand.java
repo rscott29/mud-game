@@ -1,5 +1,6 @@
 package com.scott.tech.mud.mud_game.command;
 
+import com.scott.tech.mud.mud_game.config.Messages;
 import com.scott.tech.mud.mud_game.dto.GameResponse;
 import com.scott.tech.mud.mud_game.model.Direction;
 import com.scott.tech.mud.mud_game.model.Room;
@@ -18,9 +19,6 @@ import java.util.Map;
  */
 public class InvestigateCommand implements GameCommand {
 
-    private static final String FALLBACK =
-            "You search every corner of the room carefully, but find nothing new.";
-
     private final com.scott.tech.mud.mud_game.persistence.service.DiscoveredExitService discoveredExitService;
 
     public InvestigateCommand(com.scott.tech.mud.mud_game.persistence.service.DiscoveredExitService discoveredExitService) {
@@ -33,7 +31,7 @@ public class InvestigateCommand implements GameCommand {
         Map<Direction, String> hiddenExits = room.getHiddenExits();
 
         if (hiddenExits.isEmpty()) {
-            return CommandResult.of(GameResponse.message(FALLBACK));
+            return CommandResult.of(GameResponse.message(Messages.get("command.investigate.fallback")));
         }
 
         List<GameResponse> responses = new ArrayList<>();
@@ -48,15 +46,14 @@ public class InvestigateCommand implements GameCommand {
                 String hint = room.getHiddenExitHint(dir);
                 String discovery = hint != null
                         ? hint
-                        : "You search carefully and discover a hidden path to the "
-                          + dir.name().toLowerCase() + "!";
+                    : Messages.fmt("command.investigate.discovery_default", "direction", dir.name().toLowerCase());
 
                 responses.add(GameResponse.message(discovery));
             }
         }
 
         if (!foundAny) {
-            return CommandResult.of(GameResponse.message(FALLBACK));
+            return CommandResult.of(GameResponse.message(Messages.get("command.investigate.fallback")));
         }
 
         // Finish with a room update so the newly revealed exit appears in the exits bar

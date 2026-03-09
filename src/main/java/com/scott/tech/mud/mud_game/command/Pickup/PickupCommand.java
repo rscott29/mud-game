@@ -38,7 +38,7 @@ public class PickupCommand implements GameCommand {
             String availableItems = describeAvailableItems(room);
             String errorMsg = Messages.fmt("command.pickup.not_found", "target", target);
             if (!availableItems.isEmpty()) {
-                errorMsg += " Available: " + availableItems;
+                errorMsg += " " + Messages.fmt("command.pickup.available_suffix", "items", availableItems);
             }
             return CommandResult.of(GameResponse.error(errorMsg));
         }

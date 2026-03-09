@@ -3,6 +3,7 @@ package com.scott.tech.mud.mud_game.websocket;
 import com.scott.tech.mud.mud_game.dto.GameResponse;
 import com.scott.tech.mud.mud_game.session.GameSessionManager;
 import org.springframework.stereotype.Component;
+import org.springframework.web.socket.CloseStatus;
 import org.springframework.web.socket.WebSocketSession;
 
 import java.util.Map;
@@ -66,6 +67,19 @@ public class WorldBroadcaster {
         WebSocketSession ws = wsSessions.get(wsSessionId);
         if (ws != null) {
             messageSender.send(ws, response);
+        }
+    }
+
+    /** Send a message and forcefully close a player's WebSocket session. */
+    public void kickSession(String wsSessionId, GameResponse kickMessage) {
+        WebSocketSession ws = wsSessions.get(wsSessionId);
+        if (ws != null) {
+            messageSender.send(ws, kickMessage);
+            try {
+                ws.close(CloseStatus.NORMAL);
+            } catch (Exception e) {
+                // Log silently if already closed
+            }
         }
     }
 }

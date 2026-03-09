@@ -24,6 +24,10 @@ public final class CommandCatalog {
     public static final String INVENTORY = "inventory";
     public static final String INVESTIGATE = "investigate";
     public static final String SPAWN = "spawn";
+    public static final String DELETE_ITEM = "deleteitem";
+    public static final String TELEPORT = "teleport";
+    public static final String SUMMON = "summon";
+    public static final String KICK = "kick";
 
     private static final Map<String, String> ALIASES = buildAliases();
 
@@ -59,6 +63,11 @@ public final class CommandCatalog {
                   /dm <player> <msg>   - Send a private message
                   who / /who           - List online players
                   investigate / search  - Search the room for hidden exits or secrets
+                                    spawn <item_id> [inv] - [god] Spawn an item by ID
+                                    deleteitem <item>     - [god] Delete an item from your inventory
+                                    teleport / tp <target>- [god] Teleport to a player or NPC
+                                    summon <player>       - [god] Summon a player to your location
+                                    kick <player>         - [god] Kick a player from the game
                   logout               - Request logout (with confirmation)
                   help                 - Show this message
                 """;
@@ -96,6 +105,10 @@ public final class CommandCatalog {
         register(aliases, INVENTORY, List.of("inventory", "inv", "i"));
         register(aliases, INVESTIGATE, List.of("investigate", "search", "examine here", "inspect"));
         register(aliases, SPAWN, List.of("spawn"));
+        register(aliases, DELETE_ITEM, List.of("deleteitem", "delitem", "deleteinv", "destroyitem"));
+        register(aliases, TELEPORT, List.of("teleport", "telport", "teleprot", "tp", "warp", "goto"));
+        register(aliases, SUMMON, List.of("summon", "call"));
+        register(aliases, KICK, List.of("kick", "remove"));
 
         return Map.copyOf(aliases);
     }

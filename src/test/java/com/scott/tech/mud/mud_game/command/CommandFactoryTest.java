@@ -1,5 +1,7 @@
 package com.scott.tech.mud.mud_game.command;
 
+import com.scott.tech.mud.mud_game.auth.AccountStore;
+import com.scott.tech.mud.mud_game.auth.ReconnectTokenStore;
 import com.scott.tech.mud.mud_game.command.Drop.DropService;
 import com.scott.tech.mud.mud_game.command.Drop.DropValidator;
 import com.scott.tech.mud.mud_game.command.Pickup.PickupService;
@@ -36,6 +38,8 @@ class CommandFactoryTest {
     private PickupService pickupService;
     private DropValidator dropValidator;
     private DropService dropService;
+    private AccountStore accountStore;
+    private ReconnectTokenStore reconnectTokenStore;
     private CommandFactory factory;
 
     @BeforeEach
@@ -50,12 +54,15 @@ class CommandFactoryTest {
         pickupService = mock(PickupService.class);
         dropValidator = mock(DropValidator.class);
         dropService = mock(DropService.class);
+        accountStore = mock(AccountStore.class);
+        reconnectTokenStore = mock(ReconnectTokenStore.class);
 
         ChatClient chatClient = mock(ChatClient.class);
         when(chatClientBuilder.build()).thenReturn(chatClient);
 
         factory = new CommandFactory(taskScheduler, worldBroadcaster, chatClientBuilder, sessionManager,
-                inventoryService, discoveredExitService, pickupValidator, pickupService, dropValidator, dropService);
+                inventoryService, discoveredExitService, pickupValidator, pickupService, dropValidator, dropService,
+                accountStore, reconnectTokenStore);
     }
 
     @Test
@@ -131,6 +138,24 @@ class CommandFactoryTest {
     void spawnCommand_createsSpawnCommand() {
         GameCommand command = factory.create(request("spawn", List.of("item_ale_mug")));
         assertThat(command).isInstanceOf(SpawnCommand.class);
+    }
+
+    @Test
+    void deleteItemCommand_createsDeleteInventoryItemCommand() {
+        GameCommand command = factory.create(request("deleteitem", List.of("iron", "sword")));
+        assertThat(command).isInstanceOf(DeleteInventoryItemCommand.class);
+    }
+
+    @Test
+    void teleportAlias_createsTeleportCommand() {
+        GameCommand command = factory.create(request("tp", List.of("obi")));
+        assertThat(command).isInstanceOf(TeleportCommand.class);
+    }
+
+    @Test
+    void teleportTypoAlias_createsTeleportCommand() {
+        GameCommand command = factory.create(request("telport", List.of("npc_dog_obi")));
+        assertThat(command).isInstanceOf(TeleportCommand.class);
     }
 
     private static CommandRequest request(String command, List<String> args) {

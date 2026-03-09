@@ -34,6 +34,10 @@ const DIRECT_COMMANDS = new Set([
   'go', 'move',
   'inventory', 'inv', 'i',
   'spawn',
+  'deleteitem', 'delitem', 'deleteinv', 'destroyitem',
+  'teleport', 'telport', 'teleprot', 'tp', 'warp', 'goto',
+  'summon', 'call',
+  'kick', 'remove',
   'help', '?',
   'logout', 'logoff', 'quit', 'exit',
   'who',
@@ -231,6 +235,10 @@ export class TerminalComponent {
         return;
 
       case 'AUTH_PROMPT':
+        // Clear messages on the initial username prompt to avoid duplicate welcome screens on reconnect
+        if ((msg.message ?? '').includes('username')) {
+          this.messages.set([]);
+        }
         this.addMsg('AUTH_PROMPT', esc(msg.message ?? ''));
         this.passwordMode.set(msg.mask === true);
         return;

@@ -12,6 +12,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.util.Map;
+import java.util.Locale;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -93,6 +94,26 @@ public class WorldService {
         return npcRoomIndex.get(npcId);
     }
 
+    /**
+     * Finds an NPC by id, exact name, exact keyword, or loose name-token match.
+     */
+    public Optional<Npc> findNpcByLookup(String input) {
+        String normalized = normalize(input);
+        if (normalized.isEmpty()) {
+            return Optional.empty();
+        }
+
+        return npcRegistry.values().stream()
+                .filter(npc -> matchesLookup(npc, normalized))
+                .findFirst();
+    }
+
+    public Optional<String> findNpcRoomIdByLookup(String input) {
+        return findNpcByLookup(input)
+                .map(Npc::getId)
+                .map(npcRoomIndex::get);
+    }
+
     public Item getItemById(String itemId) {
         return itemRegistry.get(itemId);
     }
@@ -119,5 +140,31 @@ public class WorldService {
         toRoom.addNpc(npc);
         npcRoomIndex.put(npcId, toRoomId);
         npcPositionRepository.save(new NpcPositionEntity(npcId, toRoomId));
+    }
+
+    private boolean matchesLookup(Npc npc, String normalizedInput) {
+        if (normalize(npc.getId()).equals(normalizedInput)) {
+            return true;
+        }
+        if (normalize(npc.getName()).equals(normalizedInput)) {
+            return true;
+        }
+        if (npc.getKeywords().stream().map(this::normalize).anyMatch(normalizedInput::equals)) {
+            return true;
+        }
+
+        String normalizedName = normalize(npc.getName());
+        return java.util.Arrays.stream(normalizedInput.split("\\s+"))
+                .allMatch(normalizedName::contains);
+    }
+
+    private String normalize(String value) {
+        if (value == null) {
+            return "";
+        }
+        return value.toLowerCase(Locale.ROOT)
+                .replaceAll("[^a-z0-9\\s]", "")
+                .replaceAll("\\s+", " ")
+                .trim();
     }
 }

@@ -42,7 +42,7 @@ public class DropCommand implements GameCommand {
             String inventory = describeInventory(session);
             String errorMsg = Messages.fmt("command.drop.not_in_inventory", "item", target);
             if (!inventory.isEmpty()) {
-                errorMsg += " You're carrying: " + inventory;
+                errorMsg += " " + Messages.fmt("command.inventory.carrying_suffix", "items", inventory);
             }
             return CommandResult.of(GameResponse.error(errorMsg));
         }

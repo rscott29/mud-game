@@ -1,6 +1,7 @@
 import {
   ChangeDetectionStrategy,
   Component,
+  computed,
   inject,
 } from '@angular/core';
 
@@ -26,9 +27,9 @@ interface HelpCategory {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class HelpComponent {
-  private readonly socketService = inject(GameSocketService);
+  readonly socketService = inject(GameSocketService);
 
-  readonly categories: HelpCategory[] = [
+  private readonly baseCategories: HelpCategory[] = [
     {
       title: 'Movement',
       icon: '🧭',
@@ -77,6 +78,22 @@ export class HelpComponent {
       ],
     },
   ];
+
+  private readonly godCategory: HelpCategory = {
+    title: 'God Commands',
+    icon: '👑',
+    entries: [
+      { cmd: 'spawn <item_id> [inv]', desc: 'Spawn an item by data id (room or inventory)' },
+      { cmd: 'deleteitem <item>', desc: 'Delete an item from your inventory' },
+      { cmd: 'teleport  /  tp <player|npc>', desc: 'Teleport to a player or NPC location' },
+    ],
+  };
+
+  readonly categories = computed(() =>
+    this.socketService.helpIsGod()
+      ? [...this.baseCategories, this.godCategory]
+      : this.baseCategories
+  );
 
   close(): void {
     this.socketService.helpOpen.set(false);
