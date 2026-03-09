@@ -48,6 +48,7 @@
 
   "command.pickup.no_target"            : "Pick up what?",
   "command.pickup.not_found"            : "You don't see any '{target}' here.",
+  "command.pickup.available_suffix"     : "Available: {items}",
   "command.pickup.not_takeable"         : "You can't pick up the {item}.",
   "command.pickup.success"              : "You pick up the {item}.",
 
@@ -57,6 +58,10 @@
 
   "command.inventory.empty"             : "You aren't carrying anything.",
   "command.inventory.header"            : "You are carrying:",
+  "command.inventory.carrying_suffix"   : "You're carrying: {items}",
+
+  "command.investigate.fallback"        : "You search every corner of the room carefully, but find nothing new.",
+  "command.investigate.discovery_default": "You search carefully and discover a hidden path to the {direction}!",
 
   "command.logout.confirm"              : "Are you sure you want to log out? Type yes to confirm or no to stay.",
   "command.logout.goodbye"              : "Goodbye, {player}! See you next time.",
@@ -64,11 +69,55 @@
   "command.logout.reconfirm"            : "Please type yes to log out or no to stay.",
   "command.unknown"                     : "Unknown command: '{input}'. Type 'help' for a list of commands.",
 
+  "command.kick.not_god"                : "Unknown command.",
+  "command.kick.usage"                  : "[god] Usage: kick <player>",
+  "command.kick.player_not_found"       : "[god] Could not find player: {player}",
+  "command.kick.broadcast_removal"      : "{player} has been removed from the game by {god}.",
+  "command.kick.player_message"         : "{god} evaporates your soul. You have been kicked from the game.",
+  "command.kick.god_confirm"            : "[god] You have kicked {player} from the game.",
+
+  "command.deleteitem.not_god"          : "Unknown command.",
+  "command.deleteitem.usage"            : "[god] Usage: deleteitem <item>",
+  "command.deleteitem.not_carrying"     : "[god] You are not carrying '{item}'.",
+  "command.deleteitem.success"          : "[god] Deleted {item} from your inventory.",
+
+  "command.spawn.not_god"               : "Unknown command.",
+  "command.spawn.usage"                 : "[god] Usage: spawn <item_id> [inv]",
+  "command.spawn.unknown_item"          : "[god] Unknown item id: {itemId}",
+  "command.spawn.success_inventory"     : "[god] Spawned {item} into your inventory.",
+  "command.spawn.success_room"          : "[god] Spawned {item} into {room}.",
+
+  "command.summon.not_god"              : "Unknown command.",
+  "command.summon.usage"                : "[god] Usage: summon <player>",
+  "command.summon.player_not_found"     : "[god] Could not find player: {player}",
+  "command.summon.broadcast_away"       : "{player} is summoned away in a burst of light.",
+  "command.summon.broadcast_arrive"     : "{player} appears before {god} in a burst of light.",
+  "command.summon.current_room_missing" : "[god] Current room does not exist.",
+  "command.summon.success"              : "[god] You summon {player} to your location.",
+
+  "command.teleport.not_god"            : "Unknown command.",
+  "command.teleport.usage"              : "[god] Usage: teleport <player|npc>",
+  "command.teleport.target_not_found"   : "[god] Could not find player or NPC: {target}",
+  "command.teleport.destination_missing" : "[god] Destination room does not exist: {roomId}",
+  "command.teleport.broadcast_vanish"   : "{player} vanishes in a flash of light.",
+  "command.teleport.broadcast_appear"   : "{player} appears in a flash of light.",
+  "command.teleport.broadcast_blink"    : "{player} blinks beside {target}.",
+  "command.teleport.target_label.player": "player {name}",
+  "command.teleport.target_label.npc"   : "npc {name}",
+  "command.teleport.success"            : "[god] You teleport to {room} via {target}.",
+
+  "command.drop.cannot_drop"            : "You can't drop that.",
+  "command.pickup.already_carrying"     : "You're already carrying that.",
+  "command.pickup.prerequisite_fail_default" : "Something holds you back. You feel unworthy of taking this.",
+
   "error.session_not_active"            : "Session is not currently active.",
   "error.session_not_found"             : "Session not found.",
   "error.unexpected_auth_state"         : "Unexpected auth state: {state}",
   "error.invalid_message_format"        : "Invalid message format. Expected JSON: {\"command\":\"look\",\"args\":[]} or {\"input\":\"look around\"}",
   "error.session_state"                 : "Your session is in an unexpected state. Please reconnect.",
   "error.game_error"                    : "An error occurred while processing your command.",
-  "error.internal"                      : "An unexpected error occurred. Please try again."
+  "error.internal"                      : "An unexpected error occurred. Please try again.",
+
+  "config.auth.account.lock-duration-minutes" : "1",
+  "config.auth.account.max-attempts"          : "5"
 }

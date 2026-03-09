@@ -23,6 +23,7 @@ export class GameSocketService {
   readonly whoPlayers      = signal<WhoPlayerDto[]>([]);
   readonly whoOpen         = signal(false);
   readonly helpOpen        = signal(false);
+  readonly helpIsGod       = signal(false);
 
   constructor(private zone: NgZone) {}
 
@@ -72,6 +73,7 @@ export class GameSocketService {
             this.whoOpen.set(true);
           }
           if (msg.type === 'HELP') {
+            this.helpIsGod.set((msg.message ?? '').toLowerCase() === 'god');
             this.helpOpen.set(true);
           }
           this.messages$.next(msg);

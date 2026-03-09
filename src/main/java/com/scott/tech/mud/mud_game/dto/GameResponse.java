@@ -64,6 +64,10 @@ public record GameResponse(
         return new GameResponse(Type.HELP, null, null);
     }
 
+    public static GameResponse help(String payload) {
+        return new GameResponse(Type.HELP, payload, null);
+    }
+
     public static GameResponse error(String msg) {
         return new GameResponse(Type.ERROR, msg, null);
     }

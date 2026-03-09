@@ -1,6 +1,7 @@
 package com.scott.tech.mud.mud_game.command.Drop;
 
 
+import com.scott.tech.mud.mud_game.config.Messages;
 import com.scott.tech.mud.mud_game.command.Pickup.ValidationResult;
 import com.scott.tech.mud.mud_game.dto.GameResponse;
 import com.scott.tech.mud.mud_game.model.Item;
@@ -12,7 +13,7 @@ public class DropValidator {
 
     public ValidationResult validate(GameSession session, Item item) {
         if (item == null) {
-            return ValidationResult.deny(GameResponse.error("You can't drop that."));
+            return ValidationResult.deny(GameResponse.error(Messages.get("command.drop.cannot_drop")));
         }
 
         // Future rules can live here, e.g.:

@@ -2,6 +2,7 @@ package com.scott.tech.mud.mud_game.model;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Locale;
 
 /** An interactable item that can inhabit a room.
  * {@code keywords} are the words a player can use to target this item with
@@ -64,16 +65,44 @@ public class Item {
      * Returns true if the given input identifies this item.
      * Matching strategy (first match wins):
      * 1. Exact keyword match — "tag", "brass tag", etc.
-     * 2. All words of input appear in the item's name — "worn collar" matches "Worn Collar Tag".
+     * 2. All words of input appear in the normalized searchable text
+     *    (name + keywords + description).
      */
     public boolean matchesKeyword(String input) {
         if (input == null) return false;
-        String lower = input.trim().toLowerCase();
-        if (lower.isEmpty()) return false;
+        String normalizedInput = normalizeForMatch(input);
+        if (normalizedInput.isEmpty()) return false;
+
         // 1. Exact keyword match
-        if (keywords.stream().anyMatch(k -> k.equalsIgnoreCase(lower))) return true;
-        // 2. Every word typed by the player is present somewhere in the item name
-        String nameLower = name.toLowerCase();
-        return Arrays.stream(lower.split("\\s+")).allMatch(nameLower::contains);
+        if (keywords.stream()
+                .map(this::normalizeForMatch)
+                .anyMatch(normalizedInput::equals)) {
+            return true;
+        }
+
+        // 2. Every typed word appears in at least one searchable field.
+        String normalizedName = normalizeForMatch(name);
+        String normalizedKeywords = keywords.stream()
+            .map(this::normalizeForMatch)
+            .reduce("", (a, b) -> a + " " + b)
+            .trim();
+        String normalizedDescription = normalizeForMatch(description);
+        String searchableText = (normalizedName + " " + normalizedKeywords + " " + normalizedDescription)
+            .trim();
+
+        return Arrays.stream(normalizedInput.split("\\s+"))
+            .allMatch(searchableText::contains);
+    }
+
+    private String normalizeForMatch(String value) {
+        if (value == null) {
+            return "";
+        }
+        // Strip punctuation (including apostrophes), collapse spaces, and lowercase.
+        return value
+                .toLowerCase(Locale.ROOT)
+                .replaceAll("[^a-z0-9\\s]", "")
+                .replaceAll("\\s+", " ")
+                .trim();
     }
 }

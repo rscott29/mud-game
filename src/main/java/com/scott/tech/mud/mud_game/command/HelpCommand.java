@@ -9,6 +9,6 @@ import com.scott.tech.mud.mud_game.session.GameSession;
 public class HelpCommand implements GameCommand {
     @Override
     public CommandResult execute(GameSession session) {
-        return CommandResult.of(GameResponse.help());
+        return CommandResult.of(GameResponse.help(session.getPlayer().isGod() ? "god" : "player"));
     }
 }

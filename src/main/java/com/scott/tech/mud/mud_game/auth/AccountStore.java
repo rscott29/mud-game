@@ -1,5 +1,6 @@
 package com.scott.tech.mud.mud_game.auth;
 
+import com.scott.tech.mud.mud_game.config.Messages;
 import com.scott.tech.mud.mud_game.persistence.entity.AccountEntity;
 import com.scott.tech.mud.mud_game.persistence.repository.AccountRepository;
 import org.slf4j.Logger;
@@ -25,15 +26,30 @@ public class AccountStore {
 
     private static final Logger log = LoggerFactory.getLogger(AccountStore.class);
 
-    /** Maximum failed attempts before an account is temporarily locked. */
-    public static final int MAX_ATTEMPTS = 5;
-    private static final Duration LOCK_DURATION = Duration.ofMinutes(5);
-
     private final AccountRepository accountRepository;
     private final BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
 
     public AccountStore(AccountRepository accountRepository) {
         this.accountRepository = accountRepository;
+    }
+
+    private int getMaxAttempts() {
+        try {
+            return Integer.parseInt(Messages.get("config.auth.account.max-attempts"));
+        } catch (NumberFormatException e) {
+            log.warn("Failed to parse max attempts, using default 5", e);
+            return 5;
+        }
+    }
+
+    private Duration getLockDuration() {
+        try {
+            long minutes = Long.parseLong(Messages.get("config.auth.account.lock-duration-minutes"));
+            return Duration.ofMinutes(minutes);
+        } catch (NumberFormatException e) {
+            log.warn("Failed to parse lock duration, using default 5 minutes", e);
+            return Duration.ofMinutes(5);
+        }
     }
 
     // -- Query -----------------------------------------------------------------
@@ -74,8 +90,8 @@ public class AccountStore {
     @Transactional(readOnly = true)
     public int getRemainingAttempts(String username) {
         return accountRepository.findById(username.toLowerCase())
-                .map(a -> Math.max(0, MAX_ATTEMPTS - a.getFailedAttempts()))
-                .orElse(MAX_ATTEMPTS);
+                .map(a -> Math.max(0, getMaxAttempts() - a.getFailedAttempts()))
+                .orElse(getMaxAttempts());
     }
 
     /** Returns true if the account has god (admin) privileges. */
@@ -105,14 +121,23 @@ public class AccountStore {
                     }
                     int attempts = account.getFailedAttempts() + 1;
                     account.setFailedAttempts(attempts);
-                    if (attempts >= MAX_ATTEMPTS) {
-                        account.setLockedUntil(Instant.now().plus(LOCK_DURATION));
+                    if (attempts >= getMaxAttempts()) {
+                        account.setLockedUntil(Instant.now().plus(getLockDuration()));
                         log.warn("Account '{}' locked until {} after {} failed attempts.",
                                 username, account.getLockedUntil(), attempts);
                     }
                     return false;
                 })
                 .orElse(false);
+    }
+
+    /** Temporarily locks an account (e.g., after being kicked). Account will auto-unlock after lock duration. */
+    public void lockTemporarily(String username) {
+        accountRepository.findById(username.toLowerCase())
+                .ifPresent(account -> {
+                    account.setLockedUntil(Instant.now().plus(getLockDuration()));
+                    log.info("Account '{}' locked until {} (kicked).", username, account.getLockedUntil());
+                });
     }
 
     /** Creates a brand-new account and persists it. */

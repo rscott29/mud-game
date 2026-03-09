@@ -59,6 +59,20 @@ describe('TerminalComponent', () => {
     });
   });
 
+  it('sends "telport npc_dog_obi" as a direct command payload', () => {
+    const fixture = TestBed.createComponent(TerminalComponent);
+    const component = fixture.componentInstance;
+
+    component.inputValue.set('telport npc_dog_obi');
+    component.send();
+
+    expect(socket.sent.length).toBe(1);
+    expect(JSON.parse(socket.sent[0])).toEqual({
+      command: 'telport',
+      args: ['npc_dog_obi'],
+    });
+  });
+
   it('routes unknown text through natural-language input', () => {
     const fixture = TestBed.createComponent(TerminalComponent);
     const component = fixture.componentInstance;

@@ -1,5 +1,7 @@
 package com.scott.tech.mud.mud_game.command;
 
+import com.scott.tech.mud.mud_game.auth.AccountStore;
+import com.scott.tech.mud.mud_game.auth.ReconnectTokenStore;
 import com.scott.tech.mud.mud_game.command.Drop.DropCommand;
 import com.scott.tech.mud.mud_game.command.Drop.DropService;
 import com.scott.tech.mud.mud_game.command.Drop.DropValidator;
@@ -40,13 +42,16 @@ public class CommandFactory {
     private final DiscoveredExitService discoveredExitService;
     private final PickupValidator pickupValidator;
     private final PickupService pickupService;
+    private final AccountStore accountStore;
+    private final ReconnectTokenStore reconnectTokenStore;
 
     public CommandFactory(TaskScheduler taskScheduler, WorldBroadcaster worldBroadcaster,
                           ChatClient.Builder chatClientBuilder, GameSessionManager sessionManager,
                           InventoryService inventoryService,
                           DiscoveredExitService discoveredExitService,
                           PickupValidator pickupValidator,
-                          PickupService pickupService, DropValidator dropValidator, DropService dropService) {
+                          PickupService pickupService, DropValidator dropValidator, DropService dropService,
+                          AccountStore accountStore, ReconnectTokenStore reconnectTokenStore) {
         this.taskScheduler       = taskScheduler;
         this.worldBroadcaster    = worldBroadcaster;
         this.chatClient          = chatClientBuilder.build();
@@ -57,6 +62,8 @@ public class CommandFactory {
         this.pickupService       = pickupService;
         this.dropService = dropService;
         this.dropValidator = dropValidator;
+        this.accountStore = accountStore;
+        this.reconnectTokenStore = reconnectTokenStore;
     }
 
     public GameCommand create(CommandRequest request) {
@@ -87,6 +94,10 @@ public class CommandFactory {
             case CommandCatalog.INVENTORY -> new InventoryCommand();
             case CommandCatalog.INVESTIGATE -> new InvestigateCommand(discoveredExitService);
             case CommandCatalog.SPAWN       -> new SpawnCommand(args.isEmpty() ? "" : String.join(" ", args), inventoryService);
+            case CommandCatalog.DELETE_ITEM -> new DeleteInventoryItemCommand(args.isEmpty() ? "" : String.join(" ", args), inventoryService);
+            case CommandCatalog.TELEPORT    -> new TeleportCommand(args.isEmpty() ? "" : String.join(" ", args), sessionManager, worldBroadcaster);
+            case CommandCatalog.SUMMON     -> new SummonCommand(args.isEmpty() ? "" : String.join(" ", args), sessionManager, worldBroadcaster);
+            case CommandCatalog.KICK       -> new KickCommand(args.isEmpty() ? "" : String.join(" ", args), sessionManager, worldBroadcaster, accountStore, reconnectTokenStore);
             default -> {
                 // Handles n/s/e/w/u/d and full direction names directly
                 Direction dir = Direction.fromString(raw);
