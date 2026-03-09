@@ -1,6 +1,6 @@
 import { Injectable, NgZone, signal } from '@angular/core';
 import { Subject } from 'rxjs';
-import { GameMessage, ConnectionStatus, ItemDto, WhoPlayerDto } from '../models/game-message';
+import { GameMessage, ConnectionStatus, ItemDto, WhoPlayerDto, PlayerStatsDto } from '../models/game-message';
 
 const TOKEN_KEY            = 'mudReconnectToken';
 const RECONNECT_BASE_MS    = 1_000;
@@ -24,6 +24,14 @@ export class GameSocketService {
   readonly whoOpen         = signal(false);
   readonly helpOpen        = signal(false);
   readonly helpIsGod       = signal(false);
+  readonly playerStats     = signal<PlayerStatsDto>({
+    health: 0,
+    maxHealth: 0,
+    mana: 0,
+    maxMana: 0,
+    movement: 0,
+    maxMovement: 0,
+  });
 
   constructor(private zone: NgZone) {}
 
@@ -75,6 +83,9 @@ export class GameSocketService {
           if (msg.type === 'HELP') {
             this.helpIsGod.set((msg.message ?? '').toLowerCase() === 'god');
             this.helpOpen.set(true);
+          }
+          if (msg.playerStats != null) {
+            this.playerStats.set(msg.playerStats);
           }
           this.messages$.next(msg);
         } catch {

@@ -31,6 +31,15 @@ export interface WhoPlayerDto {
   location: string;
 }
 
+export interface PlayerStatsDto {
+  health: number;
+  maxHealth: number;
+  mana: number;
+  maxMana: number;
+  movement: number;
+  maxMovement: number;
+}
+
 export interface GameMessage {
   type: string;
   message?: string;
@@ -40,6 +49,7 @@ export interface GameMessage {
   room?: RoomDto;
   inventory?: ItemDto[];
   whoPlayers?: WhoPlayerDto[];
+  playerStats?: PlayerStatsDto;
 }
 
 export type ConnectionStatus = 'connected' | 'disconnected' | 'reconnecting';
