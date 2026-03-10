@@ -42,8 +42,11 @@ public class PlayerProfileService {
      */
     @Transactional(readOnly = true)
     public Optional<String> getSavedRoomId(String username) {
-        return profileRepository.findById(username.toLowerCase())
+        String key = username.toLowerCase();
+        Optional<String> roomId = profileRepository.findById(key)
                 .map(PlayerProfileEntity::getCurrentRoomId);
+        log.debug("getSavedRoomId('{}') -> {}", key, roomId.orElse("(no profile)"));
+        return roomId;
     }
 
     /**
@@ -55,7 +58,49 @@ public class PlayerProfileService {
         profileRepository.findById(username.toLowerCase()).ifPresent(p -> {
             player.setLevel(p.getLevel());
             player.setTitle(p.getTitle());
+            player.setRace(p.getRace());
+            player.setCharacterClass(p.getCharacterClass());
+            player.setPronounsSubject(p.getPronounsSubject());
+            player.setPronounsObject(p.getPronounsObject());
+            player.setPronounsPossessive(p.getPronounsPossessive());
+            player.setDescription(p.getDescription());
+            player.setHealth(p.getHealth());
+            player.setMaxHealth(p.getMaxHealth());
+            player.setMana(p.getMana());
+            player.setMaxMana(p.getMaxMana());
+            player.setMovement(p.getMovement());
+            player.setMaxMovement(p.getMaxMovement());
         });
+    }
+
+    /**
+     * Checks if this is a new player (no profile exists yet).
+     */
+    @Transactional(readOnly = true)
+    public boolean isNewPlayer(String username) {
+        return !profileRepository.existsById(username.toLowerCase());
+    }
+
+    /**
+     * Saves character creation fields for a new player.
+     */
+    public void saveCharacterCreation(String username, String currentRoomId, String race, 
+                                     String characterClass, String pronounsSubject, 
+                                     String pronounsObject, String pronounsPossessive, 
+                                     String description) {
+        String key = username.toLowerCase();
+        PlayerProfileEntity profile = profileRepository.findById(key)
+                .orElseGet(() -> new PlayerProfileEntity(key, currentRoomId));
+        profile.setRace(race);
+        profile.setCharacterClass(characterClass);
+        profile.setPronounsSubject(pronounsSubject);
+        profile.setPronounsObject(pronounsObject);
+        profile.setPronounsPossessive(pronounsPossessive);
+        profile.setDescription(description);
+        profile.setLastSeenAt(Instant.now());
+        profileRepository.save(profile);
+        log.debug("Saved character creation for '{}': race='{}' class='{}' pronouns='{}/{}/{}'", 
+                  key, race, characterClass, pronounsSubject, pronounsObject, pronounsPossessive);
     }
 
     /**
@@ -72,6 +117,38 @@ public class PlayerProfileService {
         profile.setLastSeenAt(Instant.now());
         profileRepository.save(profile);
         log.debug("Saved profile for '{}': room='{}' level={}", key, currentRoomId, level);
+    }
+
+    public void saveProfile(Player player) {
+        if (player == null || player.getName() == null) {
+            return;
+        }
+        String key = player.getName().toLowerCase();
+        PlayerProfileEntity profile = profileRepository.findById(key)
+                .orElseGet(() -> new PlayerProfileEntity(key, player.getCurrentRoomId()));
+        profile.setCurrentRoomId(player.getCurrentRoomId());
+        profile.setLevel(player.getLevel());
+        profile.setTitle(player.getTitle());
+        profile.setRace(player.getRace());
+        profile.setCharacterClass(player.getCharacterClass());
+        profile.setPronounsSubject(player.getPronounsSubject());
+        profile.setPronounsObject(player.getPronounsObject());
+        profile.setPronounsPossessive(player.getPronounsPossessive());
+        profile.setDescription(player.getDescription());
+        profile.setHealth(player.getHealth());
+        profile.setMaxHealth(player.getMaxHealth());
+        profile.setMana(player.getMana());
+        profile.setMaxMana(player.getMaxMana());
+        profile.setMovement(player.getMovement());
+        profile.setMaxMovement(player.getMaxMovement());
+        profile.setLastSeenAt(Instant.now());
+        profileRepository.save(profile);
+        log.debug("Saved full profile for '{}': room='{}' hp={}/{} mp={}/{} mv={}/{}",
+                key,
+                player.getCurrentRoomId(),
+                player.getHealth(), player.getMaxHealth(),
+                player.getMana(), player.getMaxMana(),
+                player.getMovement(), player.getMaxMovement());
     }
 
     /** Backwards-compatible overload that preserves existing level/title. */

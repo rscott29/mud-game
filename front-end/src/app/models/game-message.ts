@@ -38,6 +38,21 @@ export interface PlayerStatsDto {
   maxMana: number;
   movement: number;
   maxMovement: number;
+  isGod: boolean;
+}
+
+export interface PronounOptionDto {
+  label: string;
+  subject: string;
+  object: string;
+  possessive: string;
+}
+
+export interface CharacterCreationDto {
+  step: 'race_class' | 'pronouns' | 'description';
+  races?: string[];
+  classes?: string[];
+  pronounOptions?: PronounOptionDto[];
 }
 
 export interface GameMessage {
@@ -50,6 +65,7 @@ export interface GameMessage {
   inventory?: ItemDto[];
   whoPlayers?: WhoPlayerDto[];
   playerStats?: PlayerStatsDto;
+  characterCreation?: CharacterCreationDto;
 }
 
 export type ConnectionStatus = 'connected' | 'disconnected' | 'reconnecting';

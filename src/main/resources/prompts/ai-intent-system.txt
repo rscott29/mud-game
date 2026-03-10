@@ -11,6 +11,7 @@ Rules:
 - "read", "examine", "inspect", "study", "check", "look at" -> "look"
 - "head", "walk", "run", "travel", "move", "go to" -> "go"
 - "speak to", "talk to", "chat with", "say hello to", "greet", "pet", "pat" -> "talk"
+- "investigate", "search", "search the room", "examine room", "examine here", "look for secrets" -> "investigate"
 - Direction shorthand: n=north, s=south, e=east, w=west, u=up, d=down
 - "pick up", "grab", "snatch", "steal", "lift", "collect" -> "take"
 - "put down", "throw down", "leave", "discard", "toss" -> "drop"

@@ -3,12 +3,19 @@
 </div>
 
 <div #logEl class="log">
-  @for (msg of messages(); track msg.id) {
-    <div class="msg" [class]="msg.cssClass" [innerHTML]="msg.html | safeHtml"></div>
+  @if (characterCreationData()) {
+    <app-character-creation
+      [data]="characterCreationData()!"
+      (selectionComplete)="onCharacterCreationComplete($event)"
+    />
+  } @else {
+    @for (msg of messages(); track msg.id) {
+      <div class="msg" [class]="msg.cssClass" [innerHTML]="msg.html | safeHtml"></div>
+    }
   }
 </div>
 
-<div class="input-bar">
+<div class="input-bar" [class.hidden]="characterCreationData() !== null">
   <input
     class="cmd-input"
     [type]="inputType()"
@@ -21,5 +28,5 @@
     spellcheck="false"
     autofocus
   />
-  <button type="button" (click)="send()">Send</button>
+  <button type="button" class="send-btn" (click)="send()">Send</button>
 </div>

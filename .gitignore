@@ -36,6 +36,9 @@ build/
 .env
 .env.properties
 
+### Scripts ###
+scripts/
+
 ### Frontend ###
 front-end/node_modules/
 front-end/.angular/

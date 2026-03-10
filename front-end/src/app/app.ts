@@ -12,10 +12,12 @@ import { GameSocketService } from './services/game-socket.service';
   standalone: true,
   imports: [TerminalComponent, InventoryComponent, WhoComponent, HelpComponent, PlayerStatsComponent],
   template: `
-    <div class="game-layout" [style.fontSize.%]="zoomService.zoomLevel()">
+    <main class="game-layout" [style.fontSize.%]="zoomService.zoomLevel()">
       <div class="game-main">
         <app-terminal class="game-terminal" />
-        <app-player-stats />
+        @if (socketService.playerStats()) {
+          <app-player-stats />
+        }
       </div>
       @if (socketService.inventoryOpen()) {
         <app-inventory class="game-inventory" />
@@ -26,7 +28,7 @@ import { GameSocketService } from './services/game-socket.service';
       @if (socketService.helpOpen()) {
         <app-help />
       }
-    </div>
+    </main>
   `,
   styles: [`
     :host {

@@ -1,8 +1,10 @@
 package com.scott.tech.mud.mud_game.auth;
 
 import com.scott.tech.mud.mud_game.command.CommandResult;
+import com.scott.tech.mud.mud_game.config.CharacterClassStatsRegistry;
 import com.scott.tech.mud.mud_game.config.Messages;
 import com.scott.tech.mud.mud_game.dto.GameResponse;
+import com.scott.tech.mud.mud_game.model.Player;
 import com.scott.tech.mud.mud_game.model.SessionState;
 import com.scott.tech.mud.mud_game.persistence.service.InventoryService;
 import com.scott.tech.mud.mud_game.persistence.service.PlayerProfileService;
@@ -42,6 +44,7 @@ public class LoginHandler {
     private final PlayerProfileService playerProfileService;
     private final InventoryService inventoryService;
     private final com.scott.tech.mud.mud_game.persistence.service.DiscoveredExitService discoveredExitService;
+    private final CharacterClassStatsRegistry classStatsRegistry;
 
     public LoginHandler(AccountStore accountStore,
                         com.scott.tech.mud.mud_game.session.GameSessionManager sessionManager,
@@ -49,7 +52,8 @@ public class LoginHandler {
                         ReconnectTokenStore reconnectTokenStore,
                         PlayerProfileService playerProfileService,
                         InventoryService inventoryService,
-                        com.scott.tech.mud.mud_game.persistence.service.DiscoveredExitService discoveredExitService) {
+                        com.scott.tech.mud.mud_game.persistence.service.DiscoveredExitService discoveredExitService,
+                        CharacterClassStatsRegistry classStatsRegistry) {
         this.accountStore          = accountStore;
         this.sessionManager        = sessionManager;
         this.worldBroadcaster      = worldBroadcaster;
@@ -57,6 +61,7 @@ public class LoginHandler {
         this.playerProfileService  = playerProfileService;
         this.inventoryService      = inventoryService;
         this.discoveredExitService = discoveredExitService;
+        this.classStatsRegistry    = classStatsRegistry;
     }
 
     // ── Entry point ───────────────────────────────────────────────────────────
@@ -75,6 +80,9 @@ public class LoginHandler {
             case AWAITING_PASSWORD          -> handlePassword(rawInput, session);
             case AWAITING_CREATION_CONFIRM  -> handleCreationConfirm(rawInput.trim(), session);
             case AWAITING_CREATION_PASSWORD -> handleCreationPassword(rawInput, session);
+            case AWAITING_RACE_CLASS        -> handleRaceClass(rawInput.trim(), session);
+            case AWAITING_PRONOUNS          -> handlePronouns(rawInput.trim(), session);
+            case AWAITING_DESCRIPTION       -> handleDescription(rawInput.trim(), session);
             default -> CommandResult.of(GameResponse.error(
                 Messages.fmt("error.unexpected_auth_state", "state", session.getState().name())));
         };
@@ -136,7 +144,8 @@ public class LoginHandler {
             return CommandResult.of(
                 GameResponse.welcome(session.getPlayer().getName(), session.getCurrentRoom(), others,
                         session.getDiscoveredHiddenExits(session.getPlayer().getCurrentRoomId()), invIds)
-                    .withInventory(invViews),
+                    .withInventory(invViews)
+                    .withPlayerStats(session.getPlayer()),
                 GameResponse.sessionToken(token));
         }
 
@@ -177,7 +186,19 @@ public class LoginHandler {
         String username = session.getPendingUsername();
         accountStore.createAccount(username, rawPassword);
         session.getPlayer().setName(capitalize(username));
-        // New characters start with an empty inventory — nothing to load
+        
+        // Check if this is a brand new character (no profile exists yet)
+        if (playerProfileService.isNewPlayer(username)) {
+            session.transition(SessionState.AWAITING_RACE_CLASS);
+            return CommandResult.of(GameResponse.characterCreation(
+                "race_class",
+                java.util.List.of("Human", "Elf", "Dwarf", "Halfling", "Orc", "Dragonborn", "Tiefling"),
+                classStatsRegistry.classNames(),
+                null
+            ));
+        }
+        
+        // Existing profile — skip character creation and go straight to playing
         session.transition(SessionState.PLAYING);
         broadcastLogin(session);
         java.util.List<String> others = othersInRoom(session);
@@ -185,7 +206,143 @@ public class LoginHandler {
         return CommandResult.of(
             GameResponse.authPrompt(Messages.get("auth.message.character_created"), false),
             GameResponse.welcome(session.getPlayer().getName(), session.getCurrentRoom(), others)
-                .withInventory(java.util.List.of()),
+                .withInventory(java.util.List.of())
+                .withPlayerStats(session.getPlayer()),
+            GameResponse.sessionToken(token));
+    }
+
+    // ── Phase: race/class selection ───────────────────────────────────────────
+
+    private CommandResult handleRaceClass(String input, GameSession session) {
+        if (input.isBlank()) {
+            return prompt(Messages.get("auth.error.race_class_blank"), false);
+        }
+        
+        // Parse input format: "race class" or "race|class" or just numbers
+        String[] parts = input.split("[\\s|,]+");
+        if (parts.length < 2) {
+            return prompt(Messages.get("auth.error.race_class_format"), false);
+        }
+        
+        String race = parts[0];
+        String characterClass = parts[1];
+        
+        // Validate race (Human, Elf, Dwarf, Halfling, Orc, etc.)
+        java.util.Set<String> validRaces = java.util.Set.of(
+            "human", "elf", "dwarf", "halfling", "orc", "dragonborn", "tiefling"
+        );
+        if (!validRaces.contains(race.toLowerCase())) {
+            return prompt(Messages.get("auth.error.race_invalid"), false);
+        }
+        
+        var classStats = classStatsRegistry.findByName(characterClass);
+        if (classStats.isEmpty()) {
+            return prompt(
+                Messages.fmt("auth.error.class_invalid", "classes", String.join(", ", classStatsRegistry.classNames())),
+                false);
+        }
+        
+        // Store temporarily in player object
+        session.getPlayer().setRace(capitalize(race));
+        session.getPlayer().setCharacterClass(classStats.get().name());
+        setStats(session.getPlayer(), classStats.get().maxHealth(), classStats.get().maxMana(), classStats.get().maxMovement());
+        
+        session.transition(SessionState.AWAITING_PRONOUNS);
+        return CommandResult.of(GameResponse.characterCreation(
+            "pronouns",
+            null,
+            null,
+            java.util.List.of(
+                new GameResponse.PronounOption("He/Him/His", "he", "him", "his"),
+                new GameResponse.PronounOption("She/Her/Her", "she", "her", "her"),
+                new GameResponse.PronounOption("They/Them/Their", "they", "them", "their"),
+                new GameResponse.PronounOption("Ze/Zir/Zir", "ze", "zir", "zir")
+            )
+        ));
+    }
+
+    // ── Phase: pronouns ───────────────────────────────────────────────────────
+
+    private CommandResult handlePronouns(String input, GameSession session) {
+        if (input.isBlank()) {
+            return prompt(Messages.get("auth.error.pronouns_blank"), false);
+        }
+        
+        // Parse input format: "subject/object/possessive" or just common sets
+        // Support shortcuts: "he", "she", "they", "ze", etc.
+        String lower = input.toLowerCase().trim();
+        String subject, object, possessive;
+        
+        if (lower.matches("he|him|his")) {
+            subject = "he"; object = "him"; possessive = "his";
+        } else if (lower.matches("she|her|hers")) {
+            subject = "she"; object = "her"; possessive = "her";
+        } else if (lower.matches("they|them|their|theirs")) {
+            subject = "they"; object = "them"; possessive = "their";
+        } else if (lower.matches("ze|zir|zirs")) {
+            subject = "ze"; object = "zir"; possessive = "zir";
+        } else if (input.contains("/")) {
+            // Custom format: "subject/object/possessive"
+            String[] parts = input.split("/");
+            if (parts.length < 3) {
+                return prompt(Messages.get("auth.error.pronouns_format"), false);
+            }
+            subject = parts[0].trim().toLowerCase();
+            object = parts[1].trim().toLowerCase();
+            possessive = parts[2].trim().toLowerCase();
+        } else {
+            return prompt(Messages.get("auth.error.pronouns_format"), false);
+        }
+        
+        // Store temporarily in player object
+        session.getPlayer().setPronounsSubject(subject);
+        session.getPlayer().setPronounsObject(object);
+        session.getPlayer().setPronounsPossessive(possessive);
+        
+        session.transition(SessionState.AWAITING_DESCRIPTION);
+        return CommandResult.of(GameResponse.characterCreation(
+            "description",
+            null,
+            null,
+            null
+        ));
+    }
+
+    // ── Phase: character description ──────────────────────────────────────────
+
+    private CommandResult handleDescription(String input, GameSession session) {
+        // Description is optional — allow skip
+        String description = input.trim();
+        if (description.equalsIgnoreCase("skip") || description.equalsIgnoreCase("none")) {
+            description = null;
+        }
+        
+        session.getPlayer().setDescription(description);
+        
+        // Save all character creation data to database
+        String username = session.getPendingUsername();
+        playerProfileService.saveCharacterCreation(
+            username,
+            session.getPlayer().getCurrentRoomId(),
+            session.getPlayer().getRace(),
+            session.getPlayer().getCharacterClass(),
+            session.getPlayer().getPronounsSubject(),
+            session.getPlayer().getPronounsObject(),
+            session.getPlayer().getPronounsPossessive(),
+            description
+        );
+        playerProfileService.saveProfile(session.getPlayer());
+        
+        // Transition to playing
+        session.transition(SessionState.PLAYING);
+        broadcastLogin(session);
+        java.util.List<String> others = othersInRoom(session);
+        String token = reconnectTokenStore.issue(username);
+        return CommandResult.of(
+            GameResponse.authPrompt(Messages.get("auth.message.character_created"), false),
+            GameResponse.welcome(session.getPlayer().getName(), session.getCurrentRoom(), others)
+                .withInventory(java.util.List.of())
+                .withPlayerStats(session.getPlayer()),
             GameResponse.sessionToken(token));
     }
 
@@ -198,6 +355,15 @@ public class LoginHandler {
 
     private static CommandResult prompt(String message, boolean mask) {
         return CommandResult.of(GameResponse.authPrompt(message, mask));
+    }
+
+    private static void setStats(Player player, int maxHealth, int maxMana, int maxMovement) {
+        player.setMaxHealth(maxHealth);
+        player.setHealth(maxHealth);
+        player.setMaxMana(maxMana);
+        player.setMana(maxMana);
+        player.setMaxMovement(maxMovement);
+        player.setMovement(maxMovement);
     }
 
     /**
@@ -222,7 +388,8 @@ public class LoginHandler {
                 return CommandResult.of(
                     GameResponse.welcome(session.getPlayer().getName(), session.getCurrentRoom(), others,
                             session.getDiscoveredHiddenExits(session.getPlayer().getCurrentRoomId()), invIds)
-                        .withInventory(invViews),
+                        .withInventory(invViews)
+                        .withPlayerStats(session.getPlayer()),
                     GameResponse.sessionToken(newToken));
             })
             .orElseGet(() -> {

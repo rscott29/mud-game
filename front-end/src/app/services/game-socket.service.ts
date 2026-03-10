@@ -1,39 +1,40 @@
 import { Injectable, NgZone, signal } from '@angular/core';
 import { Subject } from 'rxjs';
-import { GameMessage, ConnectionStatus, ItemDto, WhoPlayerDto, PlayerStatsDto } from '../models/game-message';
+import {
+  GameMessage,
+  ConnectionStatus,
+  ItemDto,
+  WhoPlayerDto,
+  PlayerStatsDto,
+} from '../models/game-message';
 
-const TOKEN_KEY            = 'mudReconnectToken';
-const RECONNECT_BASE_MS    = 1_000;
-const RECONNECT_MAX_MS     = 30_000;
-const RECONNECT_MAX_TRIES  = 10;
+const TOKEN_KEY = 'mudReconnectToken';
+const RECONNECT_BASE_MS = 1_000;
+const RECONNECT_MAX_MS = 30_000;
+const RECONNECT_MAX_TRIES = 10;
+
+type OutboundPayload = Record<string, unknown>;
 
 @Injectable({ providedIn: 'root' })
 export class GameSocketService {
-
-  private ws: WebSocket | null = null;
+  private socket: WebSocket | null = null;
   private reconnectAttempt = 0;
   private reconnectTimer: ReturnType<typeof setTimeout> | null = null;
   private intentionalClose = false;
 
-  readonly messages$       = new Subject<GameMessage>();
+  readonly messages$ = new Subject<GameMessage>();
   readonly systemMessages$ = new Subject<string>();
-  readonly status          = signal<ConnectionStatus>('disconnected');
-  readonly inventory       = signal<ItemDto[]>([]);
-  readonly inventoryOpen   = signal(false);
-  readonly whoPlayers      = signal<WhoPlayerDto[]>([]);
-  readonly whoOpen         = signal(false);
-  readonly helpOpen        = signal(false);
-  readonly helpIsGod       = signal(false);
-  readonly playerStats     = signal<PlayerStatsDto>({
-    health: 0,
-    maxHealth: 0,
-    mana: 0,
-    maxMana: 0,
-    movement: 0,
-    maxMovement: 0,
-  });
 
-  constructor(private zone: NgZone) {}
+  readonly status = signal<ConnectionStatus>('disconnected');
+  readonly inventory = signal<ItemDto[]>([]);
+  readonly inventoryOpen = signal(false);
+  readonly whoPlayers = signal<WhoPlayerDto[]>([]);
+  readonly whoOpen = signal(false);
+  readonly helpOpen = signal(false);
+  readonly helpIsGod = signal(false);
+  readonly playerStats = signal<PlayerStatsDto | null>(null);
+
+  constructor(private readonly zone: NgZone) {}
 
   private get wsUrl(): string {
     const scheme = location.protocol === 'https:' ? 'wss' : 'ws';
@@ -41,103 +42,232 @@ export class GameSocketService {
   }
 
   connect(): void {
-    if (this.ws?.readyState === WebSocket.OPEN) return;
-    clearTimeout(this.reconnectTimer!);
+    if (this.isSocketActive()) return;
 
-    this.ws = new WebSocket(this.wsUrl);
-
-    this.ws.addEventListener('open', () => {
-      this.zone.run(() => {
-        this.reconnectAttempt = 0;
-        this.status.set('connected');
-        this.systemMessages$.next('Connected');
-
-        const token = localStorage.getItem(TOKEN_KEY);
-        if (token) {
-          localStorage.removeItem(TOKEN_KEY);
-          this.send(JSON.stringify({ reconnectToken: token }));
-        }
-      });
-    });
-
-    this.ws.addEventListener('message', (evt) => {
-      this.zone.run(() => {
-        try {
-          const msg = JSON.parse(evt.data) as GameMessage;
-          if (msg.type === 'SESSION_TOKEN' && msg.token) {
-            localStorage.setItem(TOKEN_KEY, msg.token);
-            return;
-          }
-          if (msg.inventory != null) {
-            this.inventory.set(msg.inventory);
-          }
-          if (msg.type === 'INVENTORY_UPDATE') {
-            this.inventoryOpen.set(true);
-          }
-          if (msg.whoPlayers != null) {
-            this.whoPlayers.set(msg.whoPlayers);
-          }
-          if (msg.type === 'WHO_LIST') {
-            this.whoOpen.set(true);
-          }
-          if (msg.type === 'HELP') {
-            this.helpIsGod.set((msg.message ?? '').toLowerCase() === 'god');
-            this.helpOpen.set(true);
-          }
-          if (msg.playerStats != null) {
-            this.playerStats.set(msg.playerStats);
-          }
-          this.messages$.next(msg);
-        } catch {
-          this.systemMessages$.next('Non-JSON: ' + evt.data);
-        }
-      });
-    });
-
-    this.ws.addEventListener('close', () => {
-      this.zone.run(() => {
-        this.status.set('disconnected');
-        if (this.intentionalClose) return;
-        this.systemMessages$.next('Connection lost.');
-        this.scheduleReconnect();
-      });
-    });
-
-    this.ws.addEventListener('error', () => {
-      this.zone.run(() => {
-        this.systemMessages$.next('WebSocket error.');
-      });
-    });
-  }
-
-  send(payload: string): void {
-    if (this.ws?.readyState === WebSocket.OPEN) {
-      this.ws.send(payload);
-    }
+    this.intentionalClose = false;
+    this.clearReconnectTimer();
+    this.openSocket();
   }
 
   disconnect(): void {
     this.intentionalClose = true;
-    this.ws?.close();
+    this.clearReconnectTimer();
+    this.reconnectAttempt = 0;
+
+    this.socket?.close();
+    this.socket = null;
+    this.status.set('disconnected');
+  }
+
+  sendRaw(payload: string): void {
+    if (!this.isSocketOpen()) return;
+    this.socket!.send(payload);
+  }
+
+  sendJson(payload: OutboundPayload): void {
+    this.sendRaw(JSON.stringify(payload));
+  }
+
+  sendCommand(command: string): void {
+    this.sendJson({ command });
+  }
+
+  private openSocket(): void {
+    const socket = new WebSocket(this.wsUrl);
+    this.socket = socket;
+
+    socket.addEventListener('open', this.handleOpen);
+    socket.addEventListener('message', this.handleMessage);
+    socket.addEventListener('close', this.handleClose);
+    socket.addEventListener('error', this.handleError);
+  }
+
+  private readonly handleOpen = (): void => {
+    this.zone.run(() => {
+      this.reconnectAttempt = 0;
+      this.status.set('connected');
+      this.systemMessages$.next('Connected');
+
+      this.tryReconnectWithStoredToken();
+    });
+  };
+
+  private readonly handleMessage = (event: MessageEvent<string>): void => {
+    this.zone.run(() => {
+      const message = this.parseMessage(event.data);
+
+      if (!message) {
+        this.systemMessages$.next(`Non-JSON: ${event.data}`);
+        return;
+      }
+
+      if (this.handleSessionToken(message)) {
+        return;
+      }
+
+      this.applySharedState(message);
+      this.dispatchMessage(message);
+      this.messages$.next(message);
+    });
+  };
+
+  private readonly handleClose = (): void => {
+    this.zone.run(() => {
+      this.socket = null;
+      this.status.set('disconnected');
+
+      if (this.intentionalClose) {
+        return;
+      }
+
+      this.systemMessages$.next('Connection lost.');
+      this.scheduleReconnect();
+    });
+  };
+
+  private readonly handleError = (): void => {
+    this.zone.run(() => {
+      this.systemMessages$.next('WebSocket error.');
+    });
+  };
+
+  private parseMessage(raw: string): GameMessage | null {
+    try {
+      return JSON.parse(raw) as GameMessage;
+    } catch {
+      return null;
+    }
+  }
+
+  private handleSessionToken(message: GameMessage): boolean {
+    if (message.type !== 'SESSION_TOKEN' || !message.token) {
+      return false;
+    }
+
+    localStorage.setItem(TOKEN_KEY, message.token);
+    return true;
+  }
+
+  /**
+   * State that can arrive alongside many message types.
+   */
+  private applySharedState(message: GameMessage): void {
+    if (message.inventory != null) {
+      this.inventory.set(message.inventory);
+    }
+
+    if (message.whoPlayers != null) {
+      this.whoPlayers.set(message.whoPlayers);
+    }
+
+    if (message.playerStats != null) {
+      this.playerStats.set(message.playerStats);
+    }
+  }
+
+  /**
+   * Type-specific UI reactions.
+   */
+  private dispatchMessage(message: GameMessage): void {
+    switch (message.type) {
+      case 'AUTH_PROMPT':
+        // Only reset UI state when we're back at the login screen (username prompt)
+        if ((message.message ?? '').toLowerCase().includes('username')) {
+          this.playerStats.set(null);
+          this.inventoryOpen.set(false);
+          this.whoOpen.set(false);
+          this.helpOpen.set(false);
+        }
+        break;
+
+      case 'INVENTORY_UPDATE':
+        this.inventoryOpen.set(true);
+        break;
+
+      case 'WHO_LIST':
+        this.whoOpen.set(true);
+        break;
+
+      case 'HELP':
+        this.helpIsGod.set((message.message ?? '').trim().toLowerCase() === 'god');
+        this.helpOpen.set(true);
+        break;
+
+      default:
+        break;
+    }
+  }
+
+  private tryReconnectWithStoredToken(): void {
+    const token = localStorage.getItem(TOKEN_KEY);
+    if (!token) return;
+
+    localStorage.removeItem(TOKEN_KEY);
+    this.sendJson({ reconnectToken: token });
   }
 
   private scheduleReconnect(): void {
     if (this.intentionalClose) return;
 
     if (this.reconnectAttempt >= RECONNECT_MAX_TRIES) {
-      this.systemMessages$.next('Could not reconnect after several attempts. Refresh to try again.');
+      this.systemMessages$.next(
+        'Could not reconnect after several attempts. Refresh to try again.'
+      );
       return;
     }
 
-    const base  = Math.min(RECONNECT_BASE_MS * 2 ** this.reconnectAttempt, RECONNECT_MAX_MS);
-    const jitter = Math.random() * 1_000;
-    const delay  = Math.round(base + jitter);
-    this.reconnectAttempt++;
+    const nextAttempt = this.reconnectAttempt + 1;
+    const delay = this.getReconnectDelay(this.reconnectAttempt);
 
+    this.reconnectAttempt = nextAttempt;
     this.status.set('reconnecting');
     this.systemMessages$.next(
-      `Reconnecting in ${(delay / 1000).toFixed(1)}s… (attempt ${this.reconnectAttempt}/${RECONNECT_MAX_TRIES})`
+      `Reconnecting in ${(delay / 1000).toFixed(1)}s… (attempt ${nextAttempt}/${RECONNECT_MAX_TRIES})`
     );
-    this.reconnectTimer = setTimeout(() => this.zone.run(() => this.connect()), delay);
+
+    this.reconnectTimer = setTimeout(() => {
+      this.zone.run(() => this.connect());
+    }, delay);
+  }
+
+  private getReconnectDelay(attempt: number): number {
+    const exponentialBackoff = Math.min(
+      RECONNECT_BASE_MS * 2 ** attempt,
+      RECONNECT_MAX_MS
+    );
+    const jitter = Math.random() * 1_000;
+    return Math.round(exponentialBackoff + jitter);
+  }
+
+  private clearReconnectTimer(): void {
+    if (this.reconnectTimer == null) return;
+
+    clearTimeout(this.reconnectTimer);
+    this.reconnectTimer = null;
+  }
+
+  private isSocketOpen(): boolean {
+    return this.socket?.readyState === WebSocket.OPEN;
+  }
+
+  private isSocketActive(): boolean {
+    return (
+      this.socket?.readyState === WebSocket.OPEN ||
+      this.socket?.readyState === WebSocket.CONNECTING
+    );
+  }
+
+  // Optional helpers for UI consumers
+  closeInventory(): void {
+    this.inventoryOpen.set(false);
+  }
+
+  closeWho(): void {
+    this.whoOpen.set(false);
+  }
+
+  closeHelp(): void {
+    this.helpOpen.set(false);
+    this.helpIsGod.set(false);
   }
 }

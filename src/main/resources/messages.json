@@ -15,6 +15,18 @@
   "auth.message.character_created"      : "Character created! Entering the world...",
   "auth.message.farewell"               : "Farewell, adventurer. Until next time.",
 
+  "auth.prompt.race_class"              : "Choose your race and class (e.g., 'Human Warrior', 'Elf Mage'):\nRaces: Human, Elf, Dwarf, Halfling, Orc, Dragonborn, Tiefling\nClasses: Warrior, Mage, Rogue, Cleric, Ranger, Paladin, Bard",
+  "auth.error.race_class_blank"         : "Race and class cannot be blank.\nPlease choose your race and class:",
+  "auth.error.race_class_format"        : "Please specify both race and class (e.g., 'Human Warrior').",
+  "auth.error.race_invalid"             : "Invalid race. Choose from: Human, Elf, Dwarf, Halfling, Orc, Dragonborn, Tiefling",
+  "auth.error.class_invalid"            : "Invalid class. Choose from: {classes}",
+
+  "auth.prompt.pronouns"                : "What are your preferred pronouns? (Examples: he, she, they, ze, or custom format: subject/object/possessive)",
+  "auth.error.pronouns_blank"           : "Pronouns cannot be blank.\nPlease enter your preferred pronouns:",
+  "auth.error.pronouns_format"          : "Invalid pronoun format. Use 'he', 'she', 'they', 'ze', or custom format 'subject/object/possessive' (e.g., 'xe/xem/xyr').",
+
+  "auth.prompt.description"             : "Describe your character (optional, type 'skip' to skip):",
+
   "event.player.entered_world"          : "{player} has entered the world.",
   "event.player.left_world"             : "{player} has left the world.",
 
