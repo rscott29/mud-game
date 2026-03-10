@@ -113,9 +113,7 @@ public class GameWebSocketHandler extends TextWebSocketHandler {
 
             SessionState state = gameSession.getState();
             if (state == SessionState.PLAYING || state == SessionState.LOGOUT_CONFIRM) {
-                playerProfileService.saveProfile(
-                        gameSession.getPlayer().getName().toLowerCase(),
-                        gameSession.getPlayer().getCurrentRoomId());
+                playerProfileService.saveProfile(gameSession.getPlayer());
                 inventoryService.saveInventory(
                         gameSession.getPlayer().getName().toLowerCase(),
                         gameSession.getPlayer().getInventory());

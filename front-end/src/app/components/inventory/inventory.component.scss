@@ -41,7 +41,7 @@
 }
 
 .inv-title {
-  font-size: 0.85rem;
+  font-size: 0.85em;
   font-weight: 700;
   color: var(--accent-blue-lt);
   text-transform: uppercase;
@@ -54,7 +54,7 @@
   border: none;
   color: var(--text-muted);
   cursor: pointer;
-  font-size: 0.9rem;
+  font-size: 0.9em;
   line-height: 1;
   padding: 2px 4px;
   border-radius: var(--radius);
@@ -74,7 +74,7 @@
   height: 20px;
   padding: 0 5px;
   border-radius: 10px;
-  font-size: 0.75rem;
+  font-size: 0.75em;
   font-weight: 700;
   background: var(--accent-blue);
   color: var(--text-white);
@@ -96,13 +96,13 @@
   flex: 1;
   gap: 10px;
   color: var(--text-muted);
-  font-size: 0.85rem;
+  font-size: 0.85em;
   padding: 24px;
   text-align: center;
 }
 
 .inv-empty-icon {
-  font-size: 2rem;
+  font-size: 2em;
   opacity: 0.4;
 }
 
@@ -141,7 +141,7 @@
 }
 
 .inv-rarity-pip {
-  font-size: 0.65rem;
+  font-size: 0.65em;
   line-height: 1;
 }
 .rarity-common    .inv-rarity-pip { color: var(--rarity-common);    }
@@ -150,7 +150,7 @@
 .rarity-legendary .inv-rarity-pip { color: var(--rarity-legendary); }
 
 .inv-item-name {
-  font-size: 0.88rem;
+  font-size: 0.88em;
   font-weight: 600;
   color: var(--text-primary);
   white-space: nowrap;
@@ -159,7 +159,7 @@
 }
 
 .inv-rarity-label {
-  font-size: 0.7rem;
+  font-size: 0.7em;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.06em;
@@ -208,7 +208,7 @@
 }
 
 .modal-rarity-badge {
-  font-size: 0.72rem;
+  font-size: 0.72em;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.1em;
@@ -227,7 +227,7 @@
   border: none;
   color: var(--text-muted);
   cursor: pointer;
-  font-size: 0.9rem;
+  font-size: 0.9em;
   line-height: 1;
   padding: 2px 4px;
   border-radius: var(--radius);
@@ -244,7 +244,7 @@
 }
 
 .modal-name {
-  font-size: 1.25rem;
+  font-size: 1.25em;
   font-weight: 700;
   margin-bottom: 12px;
   font-family: var(--font-mono);
@@ -256,7 +256,7 @@
 }
 
 .modal-desc {
-  font-size: 0.88rem;
+  font-size: 0.88em;
   color: var(--text-desc);
   line-height: 1.65;
   font-style: italic;

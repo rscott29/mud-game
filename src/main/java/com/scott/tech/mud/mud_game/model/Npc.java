@@ -1,6 +1,8 @@
 package com.scott.tech.mud.mud_game.model;
 
+import java.util.Arrays;
 import java.util.List;
+import java.util.Locale;
 
 /**
  * A non-player character that can inhabit a room.
@@ -72,10 +74,41 @@ public class Npc {
     public boolean doesWander()                       { return wanderMinSeconds > 0; }
     public boolean hasPath()                          { return !wanderPath.isEmpty(); }
 
-    /** Returns true if the given input matches any of this NPC's keywords (case-insensitive). */
+    /** Returns true if the given input matches any of this NPC's keywords or name (case-insensitive). */
     public boolean matchesKeyword(String input) {
         if (input == null) return false;
-        String lower = input.trim().toLowerCase();
-        return keywords.stream().anyMatch(k -> k.equalsIgnoreCase(lower));
+        String normalizedInput = normalizeForMatch(input);
+        if (normalizedInput.isEmpty()) return false;
+
+        // 1. Exact keyword match
+        if (keywords.stream()
+                .map(this::normalizeForMatch)
+                .anyMatch(normalizedInput::equals)) {
+            return true;
+        }
+
+        // 2. Every typed word appears in at least one searchable field.
+        String normalizedName = normalizeForMatch(name);
+        String normalizedKeywords = keywords.stream()
+            .map(this::normalizeForMatch)
+            .reduce("", (a, b) -> a + " " + b)
+            .trim();
+        String normalizedDescription = normalizeForMatch(description);
+        String searchableText = (normalizedName + " " + normalizedKeywords + " " + normalizedDescription).trim();
+
+        return Arrays.stream(normalizedInput.split("\\s+"))
+            .allMatch(searchableText::contains);
+    }
+
+    private String normalizeForMatch(String value) {
+        if (value == null) {
+            return "";
+        }
+        // Strip punctuation (including apostrophes), collapse spaces, and lowercase.
+        return value
+                .toLowerCase(Locale.ROOT)
+                .replaceAll("[^a-z0-9\\s]", "")
+                .replaceAll("\\s+", " ")
+                .trim();
     }
 }

@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.scott.tech.mud.mud_game.model.Direction;
 import com.scott.tech.mud.mud_game.model.Item;
 import com.scott.tech.mud.mud_game.model.Npc;
+import com.scott.tech.mud.mud_game.model.Player;
 import com.scott.tech.mud.mud_game.model.Room;
 
 import java.util.List;
@@ -19,7 +20,9 @@ public record GameResponse(
         String from,
         String token,
         List<ItemView> inventory,
-        List<WhoPlayerView> whoPlayers
+        List<WhoPlayerView> whoPlayers,
+        PlayerStatsView playerStats,
+        CharacterCreationData characterCreation
 ) {
     public enum Type {
         WELCOME,
@@ -33,25 +36,30 @@ public record GameResponse(
         WHO_LIST,
         SESSION_TOKEN,
         INVENTORY_UPDATE,
-        HELP
+        HELP,
+        CHARACTER_CREATION
     }
 
     // --- compact constructors for convenience defaults ---
     private GameResponse(Type type, String message, RoomView room) {
-        this(type, message, room, false, null, null, null, null);
+        this(type, message, room, false, null, null, null, null, null, null);
     }
 
     private GameResponse(Type type, String message, RoomView room, boolean mask) {
-        this(type, message, room, mask, null, null, null, null);
+        this(type, message, room, mask, null, null, null, null, null, null);
     }
 
     private GameResponse(Type type, String message, RoomView room, boolean mask, String from) {
-        this(type, message, room, mask, from, null, null, null);
+        this(type, message, room, mask, from, null, null, null, null, null);
     }
 
     // --- factory: returns a new instance with inventory attached ---
     public GameResponse withInventory(List<ItemView> items) {
-        return new GameResponse(type, message, room, mask, from, token, items, whoPlayers);
+        return new GameResponse(type, message, room, mask, from, token, items, whoPlayers, playerStats, characterCreation);
+    }
+
+    public GameResponse withPlayerStats(Player player) {
+        return new GameResponse(type, message, room, mask, from, token, inventory, whoPlayers, PlayerStatsView.from(player), characterCreation);
     }
 
     // ----- factory methods -----
@@ -127,15 +135,20 @@ public record GameResponse(
     }
 
     public static GameResponse sessionToken(String token) {
-        return new GameResponse(Type.SESSION_TOKEN, null, null, false, null, token, null, null);
+        return new GameResponse(Type.SESSION_TOKEN, null, null, false, null, token, null, null, null, null);
     }
 
     public static GameResponse inventoryUpdate(List<ItemView> items) {
-        return new GameResponse(Type.INVENTORY_UPDATE, null, null, false, null, null, items, null);
+        return new GameResponse(Type.INVENTORY_UPDATE, null, null, false, null, null, items, null, null, null);
     }
 
     public static GameResponse whoList(List<WhoPlayerView> players) {
-        return new GameResponse(Type.WHO_LIST, null, null, false, null, null, null, players);
+        return new GameResponse(Type.WHO_LIST, null, null, false, null, null, null, players, null, null);
+    }
+
+    public static GameResponse characterCreation(String step, List<String> races, List<String> classes, List<PronounOption> pronounOptions) {
+        return new GameResponse(Type.CHARACTER_CREATION, null, null, false, null, null, null, null, null,
+                new CharacterCreationData(step, races, classes, pronounOptions));
     }
 
     // ----- nested views -----
@@ -210,5 +223,22 @@ public record GameResponse(
         }
     }
 
+    public record PlayerStatsView(int health, int maxHealth, int mana, int maxMana, int movement, int maxMovement, boolean isGod) {
+        public static PlayerStatsView from(Player player) {
+            return new PlayerStatsView(
+                    player.getHealth(),
+                    player.getMaxHealth(),
+                    player.getMana(),
+                    player.getMaxMana(),
+                    player.getMovement(),
+                    player.getMaxMovement(),
+                    player.isGod());
+        }
+    }
+
     public record WhoPlayerView(String name, int level, String title, String location) {}
+
+    public record CharacterCreationData(String step, List<String> races, List<String> classes, List<PronounOption> pronounOptions) {}
+
+    public record PronounOption(String label, String subject, String object, String possessive) {}
 }

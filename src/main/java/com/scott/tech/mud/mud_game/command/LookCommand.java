@@ -101,10 +101,37 @@ public class LookCommand implements GameCommand {
                 .filter(s -> s.getPlayer().getName().equalsIgnoreCase(target))
                 .findFirst();
         if (playerSession.isPresent()) {
-            String pName = playerSession.get().getPlayer().getName();
-            return CommandResult.of(GameResponse.message(
-                Messages.fmt("command.look.player_here", "player", pName)
-            ));
+            var player = playerSession.get().getPlayer();
+            StringBuilder desc = new StringBuilder();
+            desc.append("<b>").append(player.getName()).append("</b>");
+            
+            // Add race and class
+            String race = player.getRace();
+            String characterClass = player.getCharacterClass();
+            if (race != null || characterClass != null) {
+                desc.append(" — ");
+                if (race != null) desc.append(race);
+                if (race != null && characterClass != null) desc.append(" ");
+                if (characterClass != null) desc.append(characterClass);
+            }
+            
+            // Add pronouns
+            String pronouns = player.getPronounsSubject();
+            if (pronouns != null) {
+                desc.append(" (").append(pronouns).append("/").append(player.getPronounsObject()).append(")");
+            }
+            
+            desc.append("\n");
+            
+            // Add description if available
+            String playerDesc = player.getDescription();
+            if (playerDesc != null && !playerDesc.isBlank()) {
+                desc.append(playerDesc);
+            } else {
+                desc.append("A player standing here.");
+            }
+            
+            return CommandResult.of(GameResponse.message(desc.toString()));
         }
 
         return CommandResult.of(GameResponse.error(

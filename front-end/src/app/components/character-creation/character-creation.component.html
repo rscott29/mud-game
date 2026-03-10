@@ -1,0 +1,122 @@
+@if (data.step === 'race_class') {
+  <div class="creation-container">
+    <h2 class="title">Character Creation</h2>
+    <p class="subtitle">Choose your race and class</p>
+
+    <div class="section">
+      <h3 class="section-title">Race</h3>
+      <div class="options-grid">
+        @for (race of data.races; track race) {
+          <button
+            type="button"
+            class="option-card"
+            [ngClass]="{ selected: selectedRace() === race }"
+            (click)="selectRace(race)"
+          >
+            <span class="option-name">{{ race }}</span>
+          </button>
+        }
+      </div>
+    </div>
+
+    <div class="section">
+      <h3 class="section-title">Class</h3>
+      <div class="options-grid">
+        @for (class of data.classes; track class) {
+          <button
+            type="button"
+            class="option-card"
+            [ngClass]="{ selected: selectedClass() === class }"
+            (click)="selectClass(class)"
+          >
+            <span class="option-name">{{ class }}</span>
+          </button>
+        }
+      </div>
+    </div>
+
+    <div class="actions">
+      <button
+        type="button"
+        class="btn-primary"
+        [disabled]="!selectedRace() || !selectedClass()"
+        (click)="confirmRaceClass()"
+      >
+        Continue
+      </button>
+    </div>
+  </div>
+}
+
+@if (data.step === 'pronouns') {
+  <div class="creation-container">
+    <h2 class="title">Character Creation</h2>
+    <p class="subtitle">Choose your preferred pronouns</p>
+
+    <div class="section">
+      <div class="options-list">
+        @for (option of data.pronounOptions; track option.label) {
+          <button
+            type="button"
+            class="pronoun-option"
+            (click)="selectPronouns(option)"
+          >
+            <span class="pronoun-label">{{ option.label }}</span>
+            <span class="pronoun-example">{{ option.subject }}/{{ option.object }}/{{ option.possessive }}</span>
+          </button>
+        }
+      </div>
+      
+      <div class="custom-pronouns">
+        <p class="custom-label">Or enter custom pronouns:</p>
+        <input
+          type="text"
+          class="custom-input"
+          placeholder="e.g., xe/xem/xyr"
+          #customInput
+        />
+        <button
+          type="button"
+          class="btn-primary btn-small"
+          (click)="submitCustomPronouns(customInput.value)"
+        >
+          Use Custom
+        </button>
+      </div>
+    </div>
+  </div>
+}
+
+@if (data.step === 'description') {
+  <div class="creation-container">
+    <h2 class="title">Character Creation</h2>
+    <p class="subtitle">Describe your character (optional)</p>
+
+    <div class="section">
+      <textarea
+        class="description-input"
+        placeholder="Write a description of your character's appearance, personality, or background..."
+        rows="6"
+        [value]="description()"
+        (input)="updateDescription($event)"
+      ></textarea>
+    </div>
+
+    <div class="actions">
+      <button
+        type="button"
+        class="btn-secondary"
+        (click)="skipDescription()"
+      >
+        Skip
+      </button>
+      <button
+        type="button"
+        class="btn-primary"
+        (click)="submitDescription()"
+      >
+        Complete
+      </button>
+    </div>
+  </div>
+}

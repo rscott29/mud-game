@@ -1,6 +1,7 @@
 package com.scott.tech.mud.mud_game.auth;
 
 import com.scott.tech.mud.mud_game.command.CommandResult;
+import com.scott.tech.mud.mud_game.config.CharacterClassStatsRegistry;
 import com.scott.tech.mud.mud_game.dto.GameResponse;
 import com.scott.tech.mud.mud_game.model.Direction;
 import com.scott.tech.mud.mud_game.model.Player;
@@ -25,6 +26,7 @@ import java.util.Set;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.argThat;
 import static org.mockito.Mockito.mock;
@@ -40,6 +42,7 @@ class LoginHandlerTest {
     private PlayerProfileService playerProfileService;
     private InventoryService inventoryService;
     private DiscoveredExitService discoveredExitService;
+    private CharacterClassStatsRegistry classStatsRegistry;
     private LoginHandler loginHandler;
     private WorldService worldService;
     private Room startRoom;
@@ -54,6 +57,7 @@ class LoginHandlerTest {
         playerProfileService = mock(PlayerProfileService.class);
         inventoryService = mock(InventoryService.class);
         discoveredExitService = mock(DiscoveredExitService.class);
+        classStatsRegistry = mock(CharacterClassStatsRegistry.class);
         worldService = mock(WorldService.class);
         when(inventoryService.loadInventory(anyString(), any())).thenReturn(List.of());
         when(discoveredExitService.loadExits(anyString())).thenReturn(Map.of());
@@ -68,7 +72,7 @@ class LoginHandlerTest {
         when(sessionManager.getSessionsInRoom(anyString())).thenReturn(List.of());
 
         loginHandler = new LoginHandler(
-                accountStore, sessionManager, worldBroadcaster, reconnectTokenStore, playerProfileService, inventoryService, discoveredExitService);
+                accountStore, sessionManager, worldBroadcaster, reconnectTokenStore, playerProfileService, inventoryService, discoveredExitService, classStatsRegistry);
     }
 
     @Test

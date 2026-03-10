@@ -13,10 +13,11 @@ import {
 import { FormsModule } from '@angular/forms';
 
 import { GameSocketService } from '../../services/game-socket.service';
-import { GameMessage } from '../../models/game-message';
+import { GameMessage, CharacterCreationDto } from '../../models/game-message';
 import { SafeHtmlPipe } from '../../pipes/safe-html.pipe';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { NgClass } from '@angular/common';
+import { CharacterCreationComponent } from '../character-creation/character-creation.component';
 
 export interface DisplayMessage {
   id: number;
@@ -79,7 +80,7 @@ function renderMarkup(str: string): string {
 @Component({
   selector: 'app-terminal',
   standalone: true,
-  imports: [FormsModule, SafeHtmlPipe, NgClass],
+  imports: [FormsModule, SafeHtmlPipe, NgClass, CharacterCreationComponent],
   templateUrl: './terminal.component.html',
   styleUrl: './terminal.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -96,13 +97,14 @@ export class TerminalComponent {
   readonly inputValue = signal('');
   readonly passwordMode = signal(false);
   readonly status = this.socketService.status;
+  readonly characterCreationData = signal<CharacterCreationDto | null>(null);
 
   readonly inputType = computed(() => this.passwordMode() ? 'password' : 'text');
 
   readonly placeholder = computed(() =>
     this.passwordMode()
       ? 'Enter password…'
-      : 'Type a command or speak naturally…'
+      : 'Type a command…'
   );
 
   readonly statusLabel = computed(() => {
@@ -132,7 +134,7 @@ export class TerminalComponent {
 
     effect(() => {
       this.messages();
-      queueMicrotask(() => this.scrollToBottom());
+      setTimeout(() => this.scrollToBottom(), 50);
     });
   }
 
@@ -153,7 +155,7 @@ export class TerminalComponent {
 
     const { payload, echo, maskEcho } = this.buildPayload(raw);
     this.addMsg('SENT', `&gt; ${maskEcho ? '••••••••' : esc(echo)}`);
-    this.socketService.send(payload);
+    this.socketService.sendRaw(payload);
   }
 
   onEnter(): void {
@@ -241,6 +243,13 @@ export class TerminalComponent {
         }
         this.addMsg('AUTH_PROMPT', esc(msg.message ?? ''));
         this.passwordMode.set(msg.mask === true);
+        this.characterCreationData.set(null);
+        return;
+
+      case 'CHARACTER_CREATION':
+        this.messages.set([]);
+        this.passwordMode.set(false);
+        this.characterCreationData.set(msg.characterCreation ?? null);
         return;
 
       case 'CHAT_ROOM':
@@ -309,13 +318,10 @@ export class TerminalComponent {
       <div class="room-name">${esc(r.name)}</div>
       <div class="room-desc">${esc(r.description)}</div>
       <div class="room-meta">
-        <span class="meta-label">Exits</span>${exitChips}
-        <span class="meta-sep">|</span>
-        <span class="meta-label">Items</span>${itemChips}
-        <span class="meta-sep">|</span>
-        <span class="meta-label">NPCs</span>${npcChips}
-        <span class="meta-sep">|</span>
-        <span class="meta-label">Players</span>${playerChips}
+        <div class="meta-group"><span class="meta-label">Exits</span>${exitChips}</div>
+        <div class="meta-group"><span class="meta-label">Items</span>${itemChips}</div>
+        <div class="meta-group"><span class="meta-label">NPCs</span>${npcChips}</div>
+        <div class="meta-group"><span class="meta-label">Players</span>${playerChips}</div>
       </div>
     `;
 
@@ -327,5 +333,10 @@ export class TerminalComponent {
       ...list,
       { id: ++this.nextId, cssClass, html },
     ]);
+  }
+
+  onCharacterCreationComplete(selection: string): void {
+    this.characterCreationData.set(null);
+    this.socketService.sendRaw(JSON.stringify({ input: selection }));
   }
 }
