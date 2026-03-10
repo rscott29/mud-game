@@ -138,19 +138,22 @@
 				</configuration>
 				<executions>
 					<execution>
-						<id>install-node-and-npm</id>
-						<goals><goal>install-node-and-npm</goal></goals>
+						<id>install-node-and-pnpm</id>
+						<goals><goal>install-node-and-pnpm</goal></goals>
+						<configuration>
+							<pnpmVersion>9.15.0</pnpmVersion>
+						</configuration>
 					</execution>
 					<execution>
-						<id>npm-install</id>
-						<goals><goal>npm</goal></goals>
+						<id>pnpm-install</id>
+						<goals><goal>pnpm</goal></goals>
 						<configuration>
 							<arguments>install</arguments>
 						</configuration>
 					</execution>
 					<execution>
-						<id>npm-build</id>
-						<goals><goal>npm</goal></goals>
+						<id>pnpm-build</id>
+						<goals><goal>pnpm</goal></goals>
 						<phase>generate-resources</phase>
 						<configuration>
 							<arguments>run build</arguments>
