@@ -3,7 +3,7 @@ package com.scott.tech.mud.mud_game.websocket;
 import com.scott.tech.mud.mud_game.ai.AiIntentResolver;
 import com.scott.tech.mud.mud_game.auth.LoginHandler;
 import com.scott.tech.mud.mud_game.auth.ReconnectTokenStore;
-import com.scott.tech.mud.mud_game.command.CommandResult;
+import com.scott.tech.mud.mud_game.command.core.CommandResult;
 import com.scott.tech.mud.mud_game.config.Messages;
 import com.scott.tech.mud.mud_game.dto.CommandRequest;
 import com.scott.tech.mud.mud_game.dto.GameResponse;

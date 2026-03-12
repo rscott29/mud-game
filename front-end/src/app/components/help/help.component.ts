@@ -70,6 +70,16 @@ export class HelpComponent {
       ],
     },
     {
+      title: 'Social & Emotes',
+      icon: '🎭',
+      entries: [
+        { cmd: '/em <action>',         desc: 'Custom emote (e.g., /em dances)' },
+        { cmd: '/em <action> <player>', desc: 'Target a player (they see "at you")' },
+        { cmd: 'wave, smile, nod, bow', desc: 'Built-in social actions' },
+        { cmd: 'laugh, cheer, dance',   desc: 'More social actions (with optional target)' },
+      ],
+    },
+    {
       title: 'General',
       icon: '⚙️',
       entries: [
@@ -85,7 +95,9 @@ export class HelpComponent {
     entries: [
       { cmd: 'spawn <item_id> [inv]', desc: 'Spawn an item by data id (room or inventory)' },
       { cmd: 'deleteitem <item>', desc: 'Delete an item from your inventory' },
-      { cmd: 'teleport  /  tp <player|npc>', desc: 'Teleport to a player or NPC location' },
+      { cmd: 'teleport  /  tp <target>', desc: 'Teleport to a player or NPC location' },
+      { cmd: 'summon <player>', desc: 'Summon a player to your location' },
+      { cmd: 'kick <player>', desc: 'Kick a player from the game' },
     ],
   };
 

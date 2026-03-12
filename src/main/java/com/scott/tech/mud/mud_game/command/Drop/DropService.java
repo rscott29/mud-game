@@ -1,4 +1,4 @@
-package com.scott.tech.mud.mud_game.command.Drop;
+package com.scott.tech.mud.mud_game.command.drop;
 
 import java.util.Locale;
 

@@ -1,15 +1,17 @@
 package com.scott.tech.mud.mud_game.auth;
 
-import com.scott.tech.mud.mud_game.command.CommandResult;
+import com.scott.tech.mud.mud_game.command.core.CommandResult;
 import com.scott.tech.mud.mud_game.config.CharacterClassStatsRegistry;
 import com.scott.tech.mud.mud_game.dto.GameResponse;
 import com.scott.tech.mud.mud_game.model.Direction;
 import com.scott.tech.mud.mud_game.model.Player;
 import com.scott.tech.mud.mud_game.model.Room;
 import com.scott.tech.mud.mud_game.model.SessionState;
+import com.scott.tech.mud.mud_game.persistence.cache.PlayerStateCache;
 import com.scott.tech.mud.mud_game.persistence.service.DiscoveredExitService;
 import com.scott.tech.mud.mud_game.persistence.service.InventoryService;
 import com.scott.tech.mud.mud_game.persistence.service.PlayerProfileService;
+import com.scott.tech.mud.mud_game.session.DisconnectGracePeriodService;
 import com.scott.tech.mud.mud_game.session.GameSession;
 import com.scott.tech.mud.mud_game.session.GameSessionManager;
 import com.scott.tech.mud.mud_game.websocket.WorldBroadcaster;
@@ -28,7 +30,6 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.argThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -43,6 +44,8 @@ class LoginHandlerTest {
     private InventoryService inventoryService;
     private DiscoveredExitService discoveredExitService;
     private CharacterClassStatsRegistry classStatsRegistry;
+    private PlayerStateCache stateCache;
+    private DisconnectGracePeriodService disconnectGracePeriod;
     private LoginHandler loginHandler;
     private WorldService worldService;
     private Room startRoom;
@@ -58,6 +61,8 @@ class LoginHandlerTest {
         inventoryService = mock(InventoryService.class);
         discoveredExitService = mock(DiscoveredExitService.class);
         classStatsRegistry = mock(CharacterClassStatsRegistry.class);
+        stateCache = mock(PlayerStateCache.class);
+        disconnectGracePeriod = mock(DisconnectGracePeriodService.class);
         worldService = mock(WorldService.class);
         when(inventoryService.loadInventory(anyString(), any())).thenReturn(List.of());
         when(discoveredExitService.loadExits(anyString())).thenReturn(Map.of());
@@ -72,7 +77,8 @@ class LoginHandlerTest {
         when(sessionManager.getSessionsInRoom(anyString())).thenReturn(List.of());
 
         loginHandler = new LoginHandler(
-                accountStore, sessionManager, worldBroadcaster, reconnectTokenStore, playerProfileService, inventoryService, discoveredExitService, classStatsRegistry);
+                accountStore, sessionManager, worldBroadcaster, reconnectTokenStore, playerProfileService,
+                inventoryService, discoveredExitService, classStatsRegistry, stateCache, disconnectGracePeriod);
     }
 
     @Test
@@ -185,6 +191,7 @@ class LoginHandlerTest {
         session.setPendingUsername("newuser");
         session.transition(SessionState.AWAITING_CREATION_CONFIRM);
         session.transition(SessionState.AWAITING_CREATION_PASSWORD);
+        when(playerProfileService.isNewPlayer("newuser")).thenReturn(false);
         when(reconnectTokenStore.issue("newuser")).thenReturn("new-token");
         when(sessionManager.getSessionsInRoom("start")).thenReturn(List.of(session));
 

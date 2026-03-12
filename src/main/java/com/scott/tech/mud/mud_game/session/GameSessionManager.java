@@ -54,4 +54,13 @@ public class GameSessionManager {
                 .filter(s -> s.getPlayer().getName().equalsIgnoreCase(name))
                 .findFirst();
     }
+
+    /** Finds a PLAYING session whose player name matches (case-insensitive) and is in the specified room. */
+    public Optional<GameSession> findPlayingByNameInRoom(String name, String roomId) {
+        return sessions.values().stream()
+                .filter(s -> s.getState() == SessionState.PLAYING)
+                .filter(s -> roomId.equals(s.getPlayer().getCurrentRoomId()))
+                .filter(s -> s.getPlayer().getName().equalsIgnoreCase(name))
+                .findFirst();
+    }
 }

@@ -1,6 +1,6 @@
 package com.scott.tech.mud.mud_game.ai;
 
-import com.scott.tech.mud.mud_game.command.CommandCatalog;
+import com.scott.tech.mud.mud_game.command.registry.CommandRegistry;
 import com.scott.tech.mud.mud_game.config.Messages;
 import com.scott.tech.mud.mud_game.dto.CommandRequest;
 import com.scott.tech.mud.mud_game.model.Room;
@@ -24,7 +24,7 @@ public class AiIntentResolver {
 
     private static final String SYSTEM_PROMPT =
             Messages.loadPrompt("prompts/ai-intent-system.txt")
-                    .replace("{commandGuide}", CommandCatalog.aiCommandGuide().strip());
+                    .replace("{commandGuide}", CommandRegistry.aiCommandGuide().strip());
 
     private static final String CONTEXT_TEMPLATE =
             Messages.loadPrompt("prompts/ai-intent-context.txt");
@@ -70,7 +70,7 @@ public class AiIntentResolver {
         }
 
         // Canonicalize the command (pick -> take, head -> go, etc.)
-        String canonicalCommand = CommandCatalog.canonicalize(command.trim().toLowerCase());
+        String canonicalCommand = CommandRegistry.canonicalize(command.trim().toLowerCase());
         if (canonicalCommand.isEmpty()) {
             canonicalCommand = command.toLowerCase();
         }

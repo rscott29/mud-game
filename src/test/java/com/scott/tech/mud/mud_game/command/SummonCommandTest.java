@@ -1,5 +1,7 @@
 package com.scott.tech.mud.mud_game.command;
 
+import com.scott.tech.mud.mud_game.command.admin.SummonCommand;
+import com.scott.tech.mud.mud_game.command.core.CommandResult;
 import com.scott.tech.mud.mud_game.dto.GameResponse;
 import com.scott.tech.mud.mud_game.model.Player;
 import com.scott.tech.mud.mud_game.model.Room;
@@ -34,7 +36,7 @@ class SummonCommandTest {
         when(targetSession.getSessionId()).thenReturn("target-ws");
 
         Room godRoom = new Room("god_room", "Divine Chamber", "A god's inner sanctum.", Map.of(), List.of(), List.of());
-        Room distantRoom = new Room("distant_room", "Distant Place", "Far from the gods.", Map.of(), List.of(), List.of());
+ 
 
         GameSession adminSession = mock(GameSession.class);
         when(adminSession.getPlayer()).thenReturn(admin);

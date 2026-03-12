@@ -1,8 +1,8 @@
-package com.scott.tech.mud.mud_game.command.Drop;
+package com.scott.tech.mud.mud_game.command.drop;
 
 
+import com.scott.tech.mud.mud_game.command.pickup.ValidationResult;
 import com.scott.tech.mud.mud_game.config.Messages;
-import com.scott.tech.mud.mud_game.command.Pickup.ValidationResult;
 import com.scott.tech.mud.mud_game.dto.GameResponse;
 import com.scott.tech.mud.mud_game.model.Item;
 import com.scott.tech.mud.mud_game.session.GameSession;

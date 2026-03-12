@@ -1,7 +1,8 @@
-package com.scott.tech.mud.mud_game.command.Pickup;
+package com.scott.tech.mud.mud_game.command.pickup;
 
-import com.scott.tech.mud.mud_game.command.CommandResult;
-import com.scott.tech.mud.mud_game.command.GameCommand;
+import com.scott.tech.mud.mud_game.command.core.CommandResult;
+import com.scott.tech.mud.mud_game.command.core.GameCommand;
+import com.scott.tech.mud.mud_game.command.room.RoomAction;
 import com.scott.tech.mud.mud_game.config.Messages;
 import com.scott.tech.mud.mud_game.dto.GameResponse;
 import com.scott.tech.mud.mud_game.model.Item;
@@ -56,7 +57,9 @@ public class PickupCommand implements GameCommand {
                 .map(GameResponse.ItemView::from)
                 .toList();
 
-        return CommandResult.of(
+        String playerName = session.getPlayer().getName();
+        return CommandResult.withAction(
+                RoomAction.inCurrentRoom(Messages.fmt("action.pickup", "player", playerName, "item", item.getName())),
                 GameResponse.message(Messages.fmt("command.pickup.success", "item", item.getName()))
                         .withInventory(views)
         );

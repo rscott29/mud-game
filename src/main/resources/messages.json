@@ -122,6 +122,23 @@
   "command.pickup.already_carrying"     : "You're already carrying that.",
   "command.pickup.prerequisite_fail_default" : "Something holds you back. You feel unworthy of taking this.",
 
+  "action.look.room"                    : "{player} looks around.",
+  "action.look.target"                  : "{player} looks at the {target}.",
+  "action.look.npc"                     : "{player} looks at {target}.",
+  "action.look.player"                  : "{player} looks at {target}.",
+  "action.look.player.you"              : "{player} looks at you.",
+  "action.look.exits"                   : "{player} checks the exits.",
+  "action.talk.npc"                     : "{player} talks to {npc}.",
+  "action.pickup"                       : "{player} picks up the {item}.",
+  "action.drop"                         : "{player} drops the {item}.",
+  "action.investigate"                  : "{player} investigates the room carefully.",
+  "action.inventory"                    : "{player} checks their belongings.",
+
+  "command.emote.usage"                 : "Usage: /emote <action> or /em <action> (e.g., /em waves hello)",
+  "command.emote.player_not_found"      : "'{player}' is not in this room.",
+
+  "command.social.no_target"            : "'{target}' is not in this room.",
+
   "error.session_not_active"            : "Session is not currently active.",
   "error.session_not_found"             : "Session not found.",
   "error.unexpected_auth_state"         : "Unexpected auth state: {state}",

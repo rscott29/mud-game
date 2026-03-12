@@ -1,4 +1,4 @@
-package com.scott.tech.mud.mud_game.command.Pickup;
+package com.scott.tech.mud.mud_game.command.pickup;
 
 import com.scott.tech.mud.mud_game.config.Messages;
 import com.scott.tech.mud.mud_game.dto.GameResponse;

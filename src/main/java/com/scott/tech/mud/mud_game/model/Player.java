@@ -98,4 +98,30 @@ public class Player {
         if (keyword == null) return Optional.empty();
         return inventory.stream().filter(i -> i.matchesKeyword(keyword)).findFirst();
     }
+
+    /**
+     * Returns a Pronouns value object built from this player's pronoun fields.
+     */
+    public Pronouns getPronouns() {
+        // Derive reflexive from object (him->himself, her->herself, them->themself)
+        String reflexive = switch (pronounsObject) {
+            case "him" -> "himself";
+            case "her" -> "herself";
+            case "them" -> "themself";
+            case "it" -> "itself";
+            default -> pronounsObject + "self";
+        };
+        return new Pronouns(pronounsSubject, pronounsObject, pronounsPossessive, reflexive);
+    }
+
+    /**
+     * Sets all pronoun fields from a Pronouns value object.
+     */
+    public void setPronouns(Pronouns pronouns) {
+        if (pronouns != null) {
+            this.pronounsSubject = pronouns.subject();
+            this.pronounsObject = pronouns.object();
+            this.pronounsPossessive = pronouns.possessive();
+        }
+    }
 }

@@ -42,6 +42,10 @@ const DIRECT_COMMANDS = new Set([
   'help', '?',
   'logout', 'logoff', 'quit', 'exit',
   'who',
+  // Social action emotes
+  'wave', 'smile', 'nod', 'bow', 'wink', 'hug', 'laugh', 'cheer', 'dance', 'applaud', 'salute',
+  // Custom emote
+  '/em', '/emote', '/me', 'emote',
 ]);
 
 /**

@@ -1,5 +1,7 @@
 package com.scott.tech.mud.mud_game.command;
 
+import com.scott.tech.mud.mud_game.command.core.CommandResult;
+import com.scott.tech.mud.mud_game.command.look.LookCommand;
 import com.scott.tech.mud.mud_game.dto.GameResponse;
 import com.scott.tech.mud.mud_game.model.Direction;
 import com.scott.tech.mud.mud_game.model.Item;
@@ -59,6 +61,8 @@ class LookCommandTest {
 
         Player player = mock(Player.class);
         when(player.getCurrentRoomId()).thenReturn(room.getId());
+        when(player.getName()).thenReturn("TestPlayer");
+        when(player.getInventory()).thenReturn(List.of());
         when(session.getPlayer()).thenReturn(player);
 
         sessionManager = mock(GameSessionManager.class);

@@ -1,7 +1,7 @@
 package com.scott.tech.mud.mud_game.websocket;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.scott.tech.mud.mud_game.command.CommandResult;
+import com.scott.tech.mud.mud_game.command.core.CommandResult;
 import com.scott.tech.mud.mud_game.dto.GameResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
