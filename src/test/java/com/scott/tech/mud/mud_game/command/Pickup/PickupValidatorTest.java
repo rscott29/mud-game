@@ -1,5 +1,7 @@
 package com.scott.tech.mud.mud_game.command.Pickup;
 
+import com.scott.tech.mud.mud_game.command.pickup.PickupValidator;
+import com.scott.tech.mud.mud_game.command.pickup.ValidationResult;
 import com.scott.tech.mud.mud_game.dto.GameResponse;
 import com.scott.tech.mud.mud_game.model.Item;
 import com.scott.tech.mud.mud_game.model.Player;

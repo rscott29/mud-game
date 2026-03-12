@@ -1,7 +1,7 @@
 package com.scott.tech.mud.mud_game.websocket;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.scott.tech.mud.mud_game.command.CommandResult;
+import com.scott.tech.mud.mud_game.command.core.CommandResult;
 import com.scott.tech.mud.mud_game.config.Messages;
 import com.scott.tech.mud.mud_game.dto.GameResponse;
 import com.scott.tech.mud.mud_game.exception.GameException;

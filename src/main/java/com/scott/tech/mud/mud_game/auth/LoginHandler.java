@@ -1,13 +1,16 @@
 package com.scott.tech.mud.mud_game.auth;
 
-import com.scott.tech.mud.mud_game.command.CommandResult;
+import com.scott.tech.mud.mud_game.command.core.CommandResult;
 import com.scott.tech.mud.mud_game.config.CharacterClassStatsRegistry;
 import com.scott.tech.mud.mud_game.config.Messages;
 import com.scott.tech.mud.mud_game.dto.GameResponse;
 import com.scott.tech.mud.mud_game.model.Player;
 import com.scott.tech.mud.mud_game.model.SessionState;
+import com.scott.tech.mud.mud_game.persistence.cache.PlayerStateCache;
+import com.scott.tech.mud.mud_game.persistence.cache.PlayerStateCache.CachedPlayerState;
 import com.scott.tech.mud.mud_game.persistence.service.InventoryService;
 import com.scott.tech.mud.mud_game.persistence.service.PlayerProfileService;
+import com.scott.tech.mud.mud_game.session.DisconnectGracePeriodService;
 import com.scott.tech.mud.mud_game.session.GameSession;
 import com.scott.tech.mud.mud_game.websocket.WorldBroadcaster;
 import org.springframework.stereotype.Service;
@@ -45,6 +48,8 @@ public class LoginHandler {
     private final InventoryService inventoryService;
     private final com.scott.tech.mud.mud_game.persistence.service.DiscoveredExitService discoveredExitService;
     private final CharacterClassStatsRegistry classStatsRegistry;
+    private final PlayerStateCache stateCache;
+    private final DisconnectGracePeriodService disconnectGracePeriod;
 
     public LoginHandler(AccountStore accountStore,
                         com.scott.tech.mud.mud_game.session.GameSessionManager sessionManager,
@@ -53,7 +58,9 @@ public class LoginHandler {
                         PlayerProfileService playerProfileService,
                         InventoryService inventoryService,
                         com.scott.tech.mud.mud_game.persistence.service.DiscoveredExitService discoveredExitService,
-                        CharacterClassStatsRegistry classStatsRegistry) {
+                        CharacterClassStatsRegistry classStatsRegistry,
+                        PlayerStateCache stateCache,
+                        DisconnectGracePeriodService disconnectGracePeriod) {
         this.accountStore          = accountStore;
         this.sessionManager        = sessionManager;
         this.worldBroadcaster      = worldBroadcaster;
@@ -62,6 +69,8 @@ public class LoginHandler {
         this.inventoryService      = inventoryService;
         this.discoveredExitService = discoveredExitService;
         this.classStatsRegistry    = classStatsRegistry;
+        this.stateCache            = stateCache;
+        this.disconnectGracePeriod = disconnectGracePeriod;
     }
 
     // ── Entry point ───────────────────────────────────────────────────────────
@@ -375,7 +384,13 @@ public class LoginHandler {
             .map(username -> {
                 restoreAuthenticatedPlayerState(username, session);
                 session.transition(SessionState.PLAYING);
-                broadcastLogin(session);
+                
+                // If reconnecting within the grace period, cancel the "left" broadcast
+                // and skip the "entered" broadcast (player never visibly left)
+                boolean wasQuickReconnect = disconnectGracePeriod.cancelPendingDisconnect(username);
+                if (!wasQuickReconnect) {
+                    broadcastLogin(session);
+                }
                 java.util.List<String> others = othersInRoom(session);
                 String newToken = reconnectTokenStore.issue(username);
                 java.util.List<com.scott.tech.mud.mud_game.dto.GameResponse.ItemView> invViews =
@@ -400,11 +415,42 @@ public class LoginHandler {
 
     private void restoreAuthenticatedPlayerState(String username, GameSession session) {
         session.getPlayer().setName(capitalize(username));
-        playerProfileService.getSavedRoomId(username)
-                .ifPresent(session.getPlayer()::setCurrentRoomId);
-        playerProfileService.restorePlayerStats(username, session.getPlayer());
-        session.getPlayer().setInventory(
-                inventoryService.loadInventory(username, session.getWorldService()));
+        
+        // Check cache first - it may have fresher state than DB (e.g., after a dev restart)
+        CachedPlayerState cached = stateCache.get(username);
+        if (cached != null) {
+            // Restore from cache (fresher than DB during dev restarts)
+            session.getPlayer().setCurrentRoomId(cached.currentRoomId());
+            session.getPlayer().setLevel(cached.level());
+            session.getPlayer().setTitle(cached.title());
+            session.getPlayer().setRace(cached.race());
+            session.getPlayer().setCharacterClass(cached.characterClass());
+            session.getPlayer().setPronounsSubject(cached.pronounsSubject());
+            session.getPlayer().setPronounsObject(cached.pronounsObject());
+            session.getPlayer().setPronounsPossessive(cached.pronounsPossessive());
+            session.getPlayer().setDescription(cached.description());
+            session.getPlayer().setHealth(cached.health());
+            session.getPlayer().setMaxHealth(cached.maxHealth());
+            session.getPlayer().setMana(cached.mana());
+            session.getPlayer().setMaxMana(cached.maxMana());
+            session.getPlayer().setMovement(cached.movement());
+            session.getPlayer().setMaxMovement(cached.maxMovement());
+            // Restore inventory from cached item IDs
+            session.getPlayer().setInventory(
+                    cached.inventoryItemIds().stream()
+                            .map(id -> session.getWorldService().getItemById(id))
+                            .filter(java.util.Objects::nonNull)
+                            .toList());
+            stateCache.evict(username); // Clear cache after restore
+        } else {
+            // Fall back to DB
+            playerProfileService.getSavedRoomId(username)
+                    .ifPresent(session.getPlayer()::setCurrentRoomId);
+            playerProfileService.restorePlayerStats(username, session.getPlayer());
+            session.getPlayer().setInventory(
+                    inventoryService.loadInventory(username, session.getWorldService()));
+        }
+        
         session.getPlayer().setGod(accountStore.isGod(username));
         if (session.getPlayer().isGod()) {
             session.getPlayer().setLevel(100);

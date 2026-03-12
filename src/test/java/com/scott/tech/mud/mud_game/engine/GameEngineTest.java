@@ -1,8 +1,8 @@
 package com.scott.tech.mud.mud_game.engine;
 
-import com.scott.tech.mud.mud_game.command.CommandFactory;
-import com.scott.tech.mud.mud_game.command.CommandResult;
-import com.scott.tech.mud.mud_game.command.GameCommand;
+import com.scott.tech.mud.mud_game.command.registry.CommandFactory;
+import com.scott.tech.mud.mud_game.command.core.CommandResult;
+import com.scott.tech.mud.mud_game.command.core.GameCommand;
 import com.scott.tech.mud.mud_game.dto.CommandRequest;
 import com.scott.tech.mud.mud_game.dto.GameResponse;
 import com.scott.tech.mud.mud_game.model.SessionState;

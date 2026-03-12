@@ -1,6 +1,7 @@
 package com.scott.tech.mud.mud_game.persistence.service;
 
 import com.scott.tech.mud.mud_game.model.Player;
+import com.scott.tech.mud.mud_game.persistence.cache.PlayerStateCache.CachedPlayerState;
 import com.scott.tech.mud.mud_game.persistence.entity.PlayerProfileEntity;
 import com.scott.tech.mud.mud_game.persistence.repository.PlayerProfileRepository;
 import org.slf4j.Logger;
@@ -160,5 +161,35 @@ public class PlayerProfileService {
         profile.setLastSeenAt(Instant.now());
         profileRepository.save(profile);
         log.debug("Saved profile for '{}': room='{}'", key, currentRoomId);
+    }
+
+    /**
+     * Saves a player profile from cached state (used by the persistence scheduler).
+     */
+    public void saveFromCache(CachedPlayerState state) {
+        if (state == null || state.name() == null) {
+            return;
+        }
+        String key = state.name().toLowerCase();
+        PlayerProfileEntity profile = profileRepository.findById(key)
+                .orElseGet(() -> new PlayerProfileEntity(key, state.currentRoomId()));
+        profile.setCurrentRoomId(state.currentRoomId());
+        profile.setLevel(state.level());
+        profile.setTitle(state.title());
+        profile.setRace(state.race());
+        profile.setCharacterClass(state.characterClass());
+        profile.setPronounsSubject(state.pronounsSubject());
+        profile.setPronounsObject(state.pronounsObject());
+        profile.setPronounsPossessive(state.pronounsPossessive());
+        profile.setDescription(state.description());
+        profile.setHealth(state.health());
+        profile.setMaxHealth(state.maxHealth());
+        profile.setMana(state.mana());
+        profile.setMaxMana(state.maxMana());
+        profile.setMovement(state.movement());
+        profile.setMaxMovement(state.maxMovement());
+        profile.setLastSeenAt(state.cachedAt());
+        profileRepository.save(profile);
+        log.debug("Saved profile from cache for '{}': room='{}'", key, state.currentRoomId());
     }
 }

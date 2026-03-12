@@ -2,10 +2,26 @@ package com.scott.tech.mud.mud_game.command;
 
 import com.scott.tech.mud.mud_game.auth.AccountStore;
 import com.scott.tech.mud.mud_game.auth.ReconnectTokenStore;
-import com.scott.tech.mud.mud_game.command.Drop.DropService;
-import com.scott.tech.mud.mud_game.command.Drop.DropValidator;
-import com.scott.tech.mud.mud_game.command.Pickup.PickupService;
-import com.scott.tech.mud.mud_game.command.Pickup.PickupValidator;
+import com.scott.tech.mud.mud_game.command.admin.DeleteInventoryItemCommand;
+import com.scott.tech.mud.mud_game.command.admin.SpawnCommand;
+import com.scott.tech.mud.mud_game.command.admin.TeleportCommand;
+import com.scott.tech.mud.mud_game.command.communication.dm.DirectMessageCommand;
+import com.scott.tech.mud.mud_game.command.core.CommandResult;
+import com.scott.tech.mud.mud_game.command.core.GameCommand;
+import com.scott.tech.mud.mud_game.command.drop.DropService;
+import com.scott.tech.mud.mud_game.command.drop.DropValidator;
+import com.scott.tech.mud.mud_game.command.look.LookCommand;
+import com.scott.tech.mud.mud_game.command.move.MoveCommand;
+import com.scott.tech.mud.mud_game.command.pickup.PickupService;
+import com.scott.tech.mud.mud_game.command.pickup.PickupValidator;
+import com.scott.tech.mud.mud_game.command.registry.CommandFactory;
+import com.scott.tech.mud.mud_game.command.social.SocialCommand;
+import com.scott.tech.mud.mud_game.command.social.SocialService;
+import com.scott.tech.mud.mud_game.command.social.SocialValidator;
+import com.scott.tech.mud.mud_game.command.talk.TalkService;
+import com.scott.tech.mud.mud_game.command.talk.TalkValidator;
+import com.scott.tech.mud.mud_game.command.unknown.UnknownCommand;
+import com.scott.tech.mud.mud_game.command.who.WhoCommand;
 import com.scott.tech.mud.mud_game.dto.CommandRequest;
 import com.scott.tech.mud.mud_game.dto.GameResponse;
 import com.scott.tech.mud.mud_game.model.Player;
@@ -38,6 +54,10 @@ class CommandFactoryTest {
     private PickupService pickupService;
     private DropValidator dropValidator;
     private DropService dropService;
+    private TalkValidator talkValidator;
+    private TalkService talkService;
+    private SocialValidator socialValidator;
+    private SocialService socialService;
     private AccountStore accountStore;
     private ReconnectTokenStore reconnectTokenStore;
     private CommandFactory factory;
@@ -54,6 +74,10 @@ class CommandFactoryTest {
         pickupService = mock(PickupService.class);
         dropValidator = mock(DropValidator.class);
         dropService = mock(DropService.class);
+        talkValidator = mock(TalkValidator.class);
+        talkService = mock(TalkService.class);
+        socialValidator = mock(SocialValidator.class);
+        socialService = mock(SocialService.class);
         accountStore = mock(AccountStore.class);
         reconnectTokenStore = mock(ReconnectTokenStore.class);
 
@@ -62,6 +86,7 @@ class CommandFactoryTest {
 
         factory = new CommandFactory(taskScheduler, worldBroadcaster, chatClientBuilder, sessionManager,
                 inventoryService, discoveredExitService, pickupValidator, pickupService, dropValidator, dropService,
+                talkValidator, talkService, socialValidator, socialService,
                 accountStore, reconnectTokenStore);
     }
 
@@ -156,6 +181,12 @@ class CommandFactoryTest {
     void teleportTypoAlias_createsTeleportCommand() {
         GameCommand command = factory.create(request("telport", List.of("npc_dog_obi")));
         assertThat(command).isInstanceOf(TeleportCommand.class);
+    }
+
+    @Test
+    void socialAction_createsSocialCommand() {
+        GameCommand command = factory.create(request("wave", List.of("Bob")));
+        assertThat(command).isInstanceOf(SocialCommand.class);
     }
 
     private static CommandRequest request(String command, List<String> args) {

@@ -2,15 +2,17 @@ package com.scott.tech.mud.mud_game.websocket;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.scott.tech.mud.mud_game.auth.LoginHandler;
-import com.scott.tech.mud.mud_game.command.CommandResult;
+import com.scott.tech.mud.mud_game.command.core.CommandResult;
 import com.scott.tech.mud.mud_game.config.Messages;
 import com.scott.tech.mud.mud_game.dto.CommandRequest;
 import com.scott.tech.mud.mud_game.dto.GameResponse;
 import com.scott.tech.mud.mud_game.engine.GameEngine;
 import com.scott.tech.mud.mud_game.model.Player;
 import com.scott.tech.mud.mud_game.model.SessionState;
+import com.scott.tech.mud.mud_game.persistence.cache.PlayerStateCache;
 import com.scott.tech.mud.mud_game.persistence.service.InventoryService;
 import com.scott.tech.mud.mud_game.persistence.service.PlayerProfileService;
+import com.scott.tech.mud.mud_game.session.DisconnectGracePeriodService;
 import com.scott.tech.mud.mud_game.session.GameSession;
 import com.scott.tech.mud.mud_game.session.GameSessionManager;
 import com.scott.tech.mud.mud_game.world.WorldService;
@@ -41,6 +43,8 @@ public class GameWebSocketHandler extends TextWebSocketHandler {
     private final WsExceptionHandler wsExceptionHandler;
     private final PlayerProfileService playerProfileService;
     private final InventoryService inventoryService;
+    private final PlayerStateCache stateCache;
+    private final DisconnectGracePeriodService disconnectGracePeriod;
 
     public GameWebSocketHandler(GameEngine gameEngine,
                                 GameSessionManager sessionManager,
@@ -52,7 +56,9 @@ public class GameWebSocketHandler extends TextWebSocketHandler {
                                 WsMessageSender messageSender,
                                 WsExceptionHandler wsExceptionHandler,
                                 PlayerProfileService playerProfileService,
-                                InventoryService inventoryService) {
+                                InventoryService inventoryService,
+                                PlayerStateCache stateCache,
+                                DisconnectGracePeriodService disconnectGracePeriod) {
         this.gameEngine = gameEngine;
         this.sessionManager = sessionManager;
         this.worldService = worldService;
@@ -64,6 +70,8 @@ public class GameWebSocketHandler extends TextWebSocketHandler {
         this.wsExceptionHandler = wsExceptionHandler;
         this.playerProfileService = playerProfileService;
         this.inventoryService = inventoryService;
+        this.stateCache = stateCache;
+        this.disconnectGracePeriod = disconnectGracePeriod;
     }
 
     @Override
@@ -92,6 +100,34 @@ public class GameWebSocketHandler extends TextWebSocketHandler {
                         CommandRequest request = objectMapper.readValue(message.getPayload(), CommandRequest.class);
                         CommandResult result = requestDispatcher.dispatch(wsSession, gameSession, request);
                         messageSender.send(wsSession, result);
+
+                        // Broadcast room action to other players if present
+                        if (result.getRoomAction() != null) {
+                            var action = result.getRoomAction();
+                            String roomId = action.roomId() != null
+                                    ? action.roomId()
+                                    : gameSession.getPlayer().getCurrentRoomId();
+
+                            // Send personalized message to target player if specified
+                            if (action.targetSessionId() != null && action.targetMessage() != null) {
+                                broadcaster.sendToSession(action.targetSessionId(),
+                                        GameResponse.message(action.targetMessage()));
+                            }
+
+                            // Broadcast to room, excluding both the acting player and the target
+                            sessionManager.getSessionsInRoom(roomId).forEach(session -> {
+                                String sid = session.getSessionId();
+                                if (sid.equals(wsSession.getId())) return;
+                                if (sid.equals(action.targetSessionId())) return;
+                                broadcaster.sendToSession(sid, GameResponse.message(action.message()));
+                            });
+                        }
+
+                        // Cache player state after every command when playing (survives dev restarts)
+                        if (gameSession.getState() == SessionState.PLAYING) {
+                            stateCache.cache(gameSession.getPlayer());
+                        }
+
                         if (result.isShouldDisconnect()) {
                             wsSession.close(CloseStatus.NORMAL);
                         }
@@ -108,19 +144,26 @@ public class GameWebSocketHandler extends TextWebSocketHandler {
     public void afterConnectionClosed(@NonNull WebSocketSession wsSession, @NonNull CloseStatus status) {
         broadcaster.unregister(wsSession.getId());
         sessionManager.get(wsSession.getId()).ifPresent(gameSession -> {
+            String playerName = gameSession.getPlayer().getName();
+            String roomId = gameSession.getPlayer().getCurrentRoomId();
             log.info("Session {} disconnected (player={}, status={})",
-                    wsSession.getId(), gameSession.getPlayer().getName(), status);
+                    wsSession.getId(), playerName, status);
 
             SessionState state = gameSession.getState();
             if (state == SessionState.PLAYING || state == SessionState.LOGOUT_CONFIRM) {
                 playerProfileService.saveProfile(gameSession.getPlayer());
                 inventoryService.saveInventory(
-                        gameSession.getPlayer().getName().toLowerCase(),
+                        playerName.toLowerCase(),
                         gameSession.getPlayer().getInventory());
-                broadcaster.broadcastToRoom(
-                        gameSession.getPlayer().getCurrentRoomId(),
-                    GameResponse.message(Messages.fmt("event.player.left_world", "player", gameSession.getPlayer().getName())),
-                        wsSession.getId());
+                
+                // Schedule the "left world" broadcast with a grace period.
+                // If the player reconnects (browser refresh), this will be cancelled.
+                disconnectGracePeriod.scheduleDisconnectBroadcast(playerName, () -> {
+                    broadcaster.broadcastToRoom(
+                            roomId,
+                            GameResponse.message(Messages.fmt("event.player.left_world", "player", playerName)),
+                            wsSession.getId());
+                });
             }
             gameEngine.onDisconnect(gameSession);
             sessionManager.remove(wsSession.getId());

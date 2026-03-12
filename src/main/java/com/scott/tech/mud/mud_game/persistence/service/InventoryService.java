@@ -62,4 +62,15 @@ public class InventoryService {
         items.forEach(item -> inventoryItemRepository.save(new InventoryItemEntity(key, item.getId())));
         log.debug("Saved {} inventory item(s) for '{}'", items.size(), key);
     }
+
+    /**
+     * Saves inventory from cached item IDs (used by the persistence scheduler).
+     */
+    public void saveInventoryByIds(String username, List<String> itemIds) {
+        if (itemIds == null) return;
+        String key = username.toLowerCase();
+        inventoryItemRepository.deleteByUsername(key);
+        itemIds.forEach(itemId -> inventoryItemRepository.save(new InventoryItemEntity(key, itemId)));
+        log.debug("Saved {} inventory item(s) from cache for '{}'", itemIds.size(), key);
+    }
 }
