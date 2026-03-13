@@ -143,9 +143,10 @@ public class LoginHandler {
             broadcastLogin(session);
             java.util.List<String> others = othersInRoom(session);
             String token = reconnectTokenStore.issue(username);
+            String equippedWeaponId = session.getPlayer().getEquippedWeaponId();
             java.util.List<com.scott.tech.mud.mud_game.dto.GameResponse.ItemView> invViews =
                 session.getPlayer().getInventory().stream()
-                    .map(com.scott.tech.mud.mud_game.dto.GameResponse.ItemView::from)
+                    .map(item -> com.scott.tech.mud.mud_game.dto.GameResponse.ItemView.from(item, equippedWeaponId))
                     .toList();
             java.util.Set<String> invIds = session.getPlayer().getInventory().stream()
                     .map(com.scott.tech.mud.mud_game.model.Item::getId)
@@ -393,9 +394,10 @@ public class LoginHandler {
                 }
                 java.util.List<String> others = othersInRoom(session);
                 String newToken = reconnectTokenStore.issue(username);
+                String equippedWeaponId = session.getPlayer().getEquippedWeaponId();
                 java.util.List<com.scott.tech.mud.mud_game.dto.GameResponse.ItemView> invViews =
                     session.getPlayer().getInventory().stream()
-                        .map(com.scott.tech.mud.mud_game.dto.GameResponse.ItemView::from)
+                        .map(item -> com.scott.tech.mud.mud_game.dto.GameResponse.ItemView.from(item, equippedWeaponId))
                         .toList();
                 java.util.Set<String> invIds = session.getPlayer().getInventory().stream()
                         .map(com.scott.tech.mud.mud_game.model.Item::getId)
@@ -435,6 +437,10 @@ public class LoginHandler {
             session.getPlayer().setMaxMana(cached.maxMana());
             session.getPlayer().setMovement(cached.movement());
             session.getPlayer().setMaxMovement(cached.maxMovement());
+            session.getPlayer().setEquippedWeaponId(cached.equippedWeaponId());
+            if (cached.recallRoomId() != null && !cached.recallRoomId().isBlank()) {
+                session.getPlayer().setRecallRoomId(cached.recallRoomId());
+            }
             // Restore inventory from cached item IDs
             session.getPlayer().setInventory(
                     cached.inventoryItemIds().stream()
@@ -450,6 +456,11 @@ public class LoginHandler {
             session.getPlayer().setInventory(
                     inventoryService.loadInventory(username, session.getWorldService()));
         }
+
+        if (session.getPlayer().getRecallRoomId() == null || session.getPlayer().getRecallRoomId().isBlank()) {
+            session.getPlayer().setRecallRoomId(session.getWorldService().getDefaultRecallRoomId());
+        }
+        session.getPlayer().clearMissingEquipment();
         
         session.getPlayer().setGod(accountStore.isGod(username));
         if (session.getPlayer().isGod()) {

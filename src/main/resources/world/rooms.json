@@ -11,6 +11,8 @@
         "EAST":  "east_road",
         "WEST":  "blacksmith"
       },
+      "recallBindable": true,
+      "defaultRecallPoint": true,
       "itemIds": ["item_signpost", "item_fountain"],
       "npcIds": ["npc_dog_Obi"]
     },
@@ -31,6 +33,7 @@
       "exits": {
         "DOWN": "tavern"
       },
+      "recallBindable": true,
       "itemIds": ["item_straw_mattress", "item_cracked_window"]
     },
     {
@@ -110,11 +113,22 @@
     {
       "id": "blacksmith",
       "name": "Blacksmith's Forge",
-      "description": "The heat from the forge is intense. Weapons and armour hang from every hook. A massive blacksmith hammers a glowing sword blade on a thick anvil.",
+      "description": "The heat from the forge is intense. Weapons and armour hang from every hook. A massive blacksmith hammers a glowing sword blade on a thick anvil. A wooden gate to the west leads to the training yard.",
       "exits": {
-        "EAST": "town_square"
+        "EAST": "town_square",
+        "WEST": "training_yard"
       },
       "itemIds": ["item_iron_sword", "item_leather_shield", "item_anvil"]
+    },
+    {
+      "id": "training_yard",
+      "name": "Training Yard",
+      "description": "A dusty courtyard enclosed by wooden fencing, clearly used for martial practice. Straw-stuffed training dummies stand at attention in a row, their burlap faces scarred from countless strikes. Weapon racks line the perimeter, and a grizzled instructor watches over the area with a critical eye.",
+      "exits": {
+        "EAST": "blacksmith"
+      },
+      "itemIds": ["item_weapon_rack", "item_practice_sword", "item_training_target"],
+      "npcIds": ["npc_training_dummy_1", "npc_training_dummy_2", "npc_training_dummy_3", "npc_drill_instructor"]
     }
   ]
 }

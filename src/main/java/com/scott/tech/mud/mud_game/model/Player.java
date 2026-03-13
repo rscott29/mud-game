@@ -29,11 +29,14 @@ public class Player {
     private int maxMovement = DEFAULT_MAX_MOVEMENT;
     private boolean god = false;
     private final List<Item> inventory = new CopyOnWriteArrayList<>();
+    private String equippedWeaponId = null;
+    private String recallRoomId;
 
     public Player(String id, String name, String startRoomId) {
         this.id            = id;
         this.name          = name;
         this.currentRoomId = startRoomId;
+        this.recallRoomId  = startRoomId;
     }
 
     public String getId()                 { return id; }
@@ -55,6 +58,8 @@ public class Player {
     public int getMaxMovement()           { return maxMovement; }
     public boolean isGod()                { return god; }
     public List<Item> getInventory()      { return inventory; }
+    public String getEquippedWeaponId()   { return equippedWeaponId; }
+    public String getRecallRoomId()       { return recallRoomId; }
 
     public void setName(String name)                     { this.name = name; }
     public void setCurrentRoomId(String currentRoomId)   { this.currentRoomId = currentRoomId; }
@@ -73,6 +78,16 @@ public class Player {
     public void setMovement(int movement)                { this.movement = movement; }
     public void setMaxMovement(int maxMovement)          { this.maxMovement = maxMovement; }
     public void setGod(boolean god)                      { this.god = god; }
+    public void setEquippedWeaponId(String itemId)       { this.equippedWeaponId = itemId; }
+    public void setRecallRoomId(String recallRoomId)     { this.recallRoomId = recallRoomId; }
+
+    /** Returns the currently equipped weapon, if any and still in inventory. */
+    public Optional<Item> getEquippedWeapon() {
+        if (equippedWeaponId == null) return Optional.empty();
+        return inventory.stream()
+                .filter(i -> i.getId().equals(equippedWeaponId))
+                .findFirst();
+    }
 
     /** Replaces the entire inventory (used when loading from the database on login). */
     public void setInventory(List<Item> items) {
@@ -80,6 +95,7 @@ public class Player {
         if (items != null) {
             items.forEach(this::addToInventory);
         }
+        clearMissingEquipment();
     }
 
     public void addToInventory(Item item) {
@@ -91,7 +107,25 @@ public class Player {
             inventory.add(item);
         }
     }
-    public void removeFromInventory(Item item){ inventory.remove(item); }
+
+    public boolean removeFromInventory(Item item) {
+        boolean removed = inventory.remove(item);
+        if (removed && item != null && item.getId().equals(equippedWeaponId)) {
+            equippedWeaponId = null;
+        }
+        return removed;
+    }
+
+    public void clearMissingEquipment() {
+        if (equippedWeaponId == null) {
+            return;
+        }
+        boolean equippedStillHeld = inventory.stream()
+                .anyMatch(item -> item.getId().equals(equippedWeaponId));
+        if (!equippedStillHeld) {
+            equippedWeaponId = null;
+        }
+    }
 
     /** Finds an inventory item whose keywords match the given input (case-insensitive). */
     public Optional<Item> findInInventory(String keyword) {

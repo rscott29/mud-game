@@ -1,0 +1,18 @@
+// Equipment display in look command
+
+.equipped-slot {
+  color: var(--text-muted);
+  font-weight: normal;
+}
+
+.equipped-item {
+  font-weight: bold;
+
+  &.rarity-common { color: var(--rarity-common); }
+  &.rarity-fine { color: var(--rarity-fine); }
+  &.rarity-rare { color: var(--rarity-rare); }
+  &.rarity-legendary {
+    color: var(--rarity-legendary);
+    text-shadow: 0 0 4px var(--rarity-legendary-glow);
+  }
+}

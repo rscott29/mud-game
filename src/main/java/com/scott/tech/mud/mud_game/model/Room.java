@@ -16,6 +16,8 @@ public class Room {
     private Map<Direction, String> hiddenExitHints = new EnumMap<>(Direction.class);
     private final List<Item> items;
     private final List<Npc> npcs;
+    private boolean recallBindable;
+    private boolean defaultRecallPoint;
 
     public Room(String id, String name, String description,
                 Map<Direction, String> exits, List<Item> items, List<Npc> npcs) {
@@ -41,9 +43,13 @@ public class Room {
     /** Called only by WorldLoader during world initialisation. */
     public void setHiddenExits(Map<Direction, String> m)      { if (m != null) hiddenExits = m; }
     public void setHiddenExitHints(Map<Direction, String> m)  { if (m != null) hiddenExitHints = m; }
+    public void setRecallBindable(boolean recallBindable)     { this.recallBindable = recallBindable; }
+    public void setDefaultRecallPoint(boolean defaultRecallPoint) { this.defaultRecallPoint = defaultRecallPoint; }
 
     public List<Item> getItems()   { return items; }
     public List<Npc> getNpcs()     { return npcs; }
+    public boolean isRecallBindable()     { return recallBindable; }
+    public boolean isDefaultRecallPoint() { return defaultRecallPoint; }
 
     public void addNpc(Npc npc)    { npcs.add(npc); }
     public void removeNpc(Npc npc)  { npcs.remove(npc); }

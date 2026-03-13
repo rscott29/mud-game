@@ -30,6 +30,10 @@ public class WorldData {
         private List<String> itemIds;
         /** IDs referencing entries in npcs.json. */
         private List<String> npcIds;
+        /** Whether players may bind their recall point here. */
+        private boolean recallBindable;
+        /** Whether this room should be used as the world's default recall point. */
+        private boolean defaultRecallPoint;
 
         public String getId()                                   { return id; }
         public String getName()                                 { return name; }
@@ -39,6 +43,8 @@ public class WorldData {
         public Map<String, String> getHiddenExitHints()         { return hiddenExitHints; }
         public List<String> getItemIds()                        { return itemIds; }
         public List<String> getNpcIds()                         { return npcIds; }
+        public boolean isRecallBindable()                       { return recallBindable; }
+        public boolean isDefaultRecallPoint()                   { return defaultRecallPoint; }
 
         public void setId(String id)                            { this.id = id; }
         public void setName(String name)                        { this.name = name; }
@@ -48,5 +54,7 @@ public class WorldData {
         public void setHiddenExitHints(Map<String, String> h)   { this.hiddenExitHints = h; }
         public void setItemIds(List<String> itemIds)            { this.itemIds = itemIds; }
         public void setNpcIds(List<String> npcIds)              { this.npcIds = npcIds; }
+        public void setRecallBindable(boolean recallBindable)   { this.recallBindable = recallBindable; }
+        public void setDefaultRecallPoint(boolean defaultRecallPoint) { this.defaultRecallPoint = defaultRecallPoint; }
     }
 }

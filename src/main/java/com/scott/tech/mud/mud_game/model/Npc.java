@@ -33,12 +33,30 @@ public class Npc {
     /** Optional personality hint injected into the AI system prompt for sentient NPCs. */
     private final String personality;
 
+    // Combat-related fields
+    /** Whether this NPC can be targeted in combat (e.g., training dummies, enemies). */
+    private final boolean combatTarget;
+    /** Whether this NPC respawns after being defeated. */
+    private final boolean respawns;
+    /** Maximum health for combat. 0 = not a combat NPC. */
+    private final int maxHealth;
+    /** XP awarded when this NPC is defeated. */
+    private final int xpReward;
+    /** Minimum damage this NPC deals when attacking. */
+    private final int minDamage;
+    /** Maximum damage this NPC deals when attacking. */
+    private final int maxDamage;
+    /** Whether this NPC can reduce players to 0 HP (lethal combat). */
+    private final boolean playerDeathEnabled;
+
     public Npc(String id, String name, String description, List<String> keywords,
                String pronoun, String possessive,
                long wanderMinSeconds, long wanderMaxSeconds,
                List<String> wanderDepartureTemplates, List<String> wanderArrivalTemplates,
                List<String> wanderPath, List<String> interactTemplates,
-               boolean sentient, List<String> talkTemplates, String personality) {
+               boolean sentient, List<String> talkTemplates, String personality,
+               boolean combatTarget, boolean respawns, int maxHealth, int xpReward,
+               int minDamage, int maxDamage, boolean playerDeathEnabled) {
         this.id                       = id;
         this.name                     = name;
         this.description              = description;
@@ -54,6 +72,13 @@ public class Npc {
         this.sentient                 = sentient;
         this.talkTemplates            = talkTemplates            != null ? talkTemplates            : List.of();
         this.personality              = personality;
+        this.combatTarget             = combatTarget;
+        this.respawns                 = respawns;
+        this.maxHealth                = maxHealth;
+        this.xpReward                 = xpReward;
+        this.minDamage                = minDamage;
+        this.maxDamage                = maxDamage;
+        this.playerDeathEnabled       = playerDeathEnabled;
     }
 
     public String getId()                          { return id; }
@@ -73,6 +98,16 @@ public class Npc {
     public String getPersonality()                    { return personality; }
     public boolean doesWander()                       { return wanderMinSeconds > 0; }
     public boolean hasPath()                          { return !wanderPath.isEmpty(); }
+
+    // Combat accessors
+    public boolean isCombatTarget()                   { return combatTarget; }
+    public boolean doesRespawn()                      { return respawns; }
+    public int getMaxHealth()                         { return maxHealth; }
+    public int getXpReward()                          { return xpReward; }
+    public int getMinDamage()                         { return minDamage; }
+    public int getMaxDamage()                         { return maxDamage; }
+    public boolean isPlayerDeathEnabled()             { return playerDeathEnabled; }
+    public boolean canFightBack()                     { return maxDamage > 0; }
 
     /** Returns true if the given input matches any of this NPC's keywords or name (case-insensitive). */
     public boolean matchesKeyword(String input) {

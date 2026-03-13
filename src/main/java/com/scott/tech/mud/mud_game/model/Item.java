@@ -11,6 +11,19 @@ import java.util.Locale;
  */
 public class Item {
 
+    /**
+     * Combat statistics for an item. All values are optional (0 = no bonus).
+     * @param minDamage minimum damage bonus (weapons)
+     * @param maxDamage maximum damage bonus (weapons)
+     * @param attackSpeed attack speed modifier (lower = faster, 0 = default)
+     * @param hitChance hit chance bonus percentage (0-100 scale, added to base)
+     * @param armor damage reduction (armor items)
+     * @param attackVerb weapon attack verb (e.g., "slash", "thrust") - null for default
+     */
+    public record CombatStats(int minDamage, int maxDamage, int attackSpeed, int hitChance, int armor, String attackVerb) {
+        public static final CombatStats NONE = new CombatStats(0, 0, 0, 0, 0, null);
+    }
+
     private final String id;
     private final String name;
     private final String description;
@@ -23,23 +36,30 @@ public class Item {
     private final String prerequisiteFailMessage;
     /** Side-effects fired on specific interaction events (e.g. an NPC speaks on prereq fail). */
     private final List<ItemTrigger> triggers;
+    /** Combat stats for this item (damage, armor, etc.) */
+    private final CombatStats combatStats;
 
     public Item(String id, String name, String description, List<String> keywords, boolean takeable, Rarity rarity) {
-        this(id, name, description, keywords, takeable, rarity, List.of(), null, List.of());
+        this(id, name, description, keywords, takeable, rarity, List.of(), null, List.of(), CombatStats.NONE);
     }
 
     public Item(String id, String name, String description, List<String> keywords, boolean takeable, Rarity rarity,
                 List<String> requiredItemIds) {
-        this(id, name, description, keywords, takeable, rarity, requiredItemIds, null, List.of());
+        this(id, name, description, keywords, takeable, rarity, requiredItemIds, null, List.of(), CombatStats.NONE);
     }
 
     public Item(String id, String name, String description, List<String> keywords, boolean takeable, Rarity rarity,
                 List<String> requiredItemIds, String prerequisiteFailMessage) {
-        this(id, name, description, keywords, takeable, rarity, requiredItemIds, prerequisiteFailMessage, List.of());
+        this(id, name, description, keywords, takeable, rarity, requiredItemIds, prerequisiteFailMessage, List.of(), CombatStats.NONE);
     }
 
     public Item(String id, String name, String description, List<String> keywords, boolean takeable, Rarity rarity,
                 List<String> requiredItemIds, String prerequisiteFailMessage, List<ItemTrigger> triggers) {
+        this(id, name, description, keywords, takeable, rarity, requiredItemIds, prerequisiteFailMessage, triggers, CombatStats.NONE);
+    }
+
+    public Item(String id, String name, String description, List<String> keywords, boolean takeable, Rarity rarity,
+                List<String> requiredItemIds, String prerequisiteFailMessage, List<ItemTrigger> triggers, CombatStats combatStats) {
         this.id              = id;
         this.name            = name;
         this.description     = description;
@@ -49,6 +69,7 @@ public class Item {
         this.requiredItemIds = requiredItemIds != null ? requiredItemIds : List.of();
         this.prerequisiteFailMessage = prerequisiteFailMessage;
         this.triggers        = triggers != null ? triggers : List.of();
+        this.combatStats     = combatStats != null ? combatStats : CombatStats.NONE;
     }
 
     public String getId()                    { return id; }
@@ -60,6 +81,7 @@ public class Item {
     public List<String> getRequiredItemIds()      { return requiredItemIds; }
     public String getPrerequisiteFailMessage()     { return prerequisiteFailMessage; }
     public List<ItemTrigger> getTriggers()         { return triggers; }
+    public CombatStats getCombatStats()            { return combatStats; }
 
     /**
      * Returns true if the given input identifies this item.

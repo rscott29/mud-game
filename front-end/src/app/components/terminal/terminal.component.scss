@@ -1,7 +1,4 @@
-@keyframes legendary-pulse-chip {
-  0%, 100% { box-shadow: 0 0 4px var(--rarity-legendary-glow); }
-  50%       { box-shadow: 0 0 10px var(--rarity-legendary-glow), 0 0 20px rgba(243, 156, 18, 0.12); }
-}
+// Terminal component layout styles
 
 :host {
   display: flex;
@@ -30,161 +27,7 @@
   display: flex;
   flex-direction: column;
   gap: 0.9em;
-
-  /* Extra padding at the bottom so the last message isn't perfectly glued to the input */
   padding-bottom: 24px;
-}
-
-.msg {
-  padding: 0.7em 1em;
-  border-radius: var(--radius);
-  max-width: 900px;
-  line-height: 1.5;
-  word-break: break-word;
-
-  &.WELCOME     { background: var(--bg-surface);    border-left: 3px solid var(--border-surface); }
-  &.ROOM_UPDATE { background: var(--bg-deep);       border-left: 3px solid var(--accent-blue); }
-  &.MESSAGE     { background: var(--bg-body);       border-left: 3px solid var(--accent-purple); }
-  &.ERROR       { background: var(--bg-error);      border-left: 3px solid var(--accent-red); color: var(--text-error); }
-  &.SENT        { background: var(--bg-sent);       border-left: 3px solid var(--accent-green); color: var(--text-muted); font-size: 0.85em; }
-  &.SYSTEM      { color: var(--text-muted); font-size: 0.85em; }
-  &.AUTH_PROMPT { background: var(--bg-body);       border-left: 3px solid var(--accent-orange); color: var(--text-yellow); white-space: pre-wrap; }
-  &.CHAT_ROOM   { background: var(--bg-chat-room);  border-left: 3px solid var(--accent-teal); }
-  &.CHAT_WORLD  { background: var(--bg-chat-world); border-left: 3px solid var(--accent-purple); }
-  &.CHAT_DM     { background: var(--bg-chat-dm);    border-left: 3px solid var(--accent-red-lt); }
-}
-
-:host ::ng-deep {
-  ul {
-  margin-left: 20px
-}
-  .room-msg {
-    margin-bottom: 8px;
-    color: #ecf0f1;
-  }
-
-  .room-name {
-    margin-bottom: 4px;
-    font-size: 1.1em;
-    font-weight: 700;
-    color: var(--accent-blue-lt);
-  }
-
-  .room-desc {
-    color: var(--text-desc);
-  }
-
-  .room-meta {
-    margin-top: 16px;
-    padding-top: 12px;
-    border-top: 1px solid rgba(149, 165, 166, 0.15);
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    font-size: 0.82em;
-
-    @media (min-width: 768px) {
-      flex-direction: row;
-      flex-wrap: wrap;
-      column-gap: 32px;
-      row-gap: 12px;
-    }
-  }
-
-  .meta-group {
-    display: flex;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 6px;
-  }
-
-  .meta-label {
-    color: var(--text-muted);
-    font-size: 0.78em;
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-  }
-
-  .chip-none {
-    display: inline-block;
-    padding: 1px 7px;
-    border-radius: 10px;
-    font-size: 0.78em;
-    font-weight: 600;
-    line-height: 1.6;
-    background: rgba(127, 140, 141, 0.05);
-    color: var(--text-muted);
-    border: 1px solid rgba(127, 140, 141, 0.15);
-    font-style: italic;
-  }
-
-  .chip {
-    display: inline-block;
-    padding: 1px 7px;
-    border-radius: 10px;
-    font-size: 0.78em;
-    font-weight: 600;
-    border: 1px solid transparent;
-    line-height: 1.6;
-  }
-
-  /* Exits — subtle blue */
-  .chip-exit {
-    background: rgba(41, 128, 185, 0.15);
-    color: var(--accent-blue-lt);
-    border-color: rgba(41, 128, 185, 0.3);
-    text-transform: capitalize;
-  }
-
-  /* Items — rarity-coloured */
-  .chip-item {
-    background: rgba(149, 165, 166, 0.12);
-    color: var(--rarity-common);
-    border-color: rgba(149, 165, 166, 0.25);
-
-    &.rarity-fine      { background: rgba(39, 174, 96, 0.12);  color: var(--rarity-fine);      border-color: rgba(39, 174, 96, 0.3); }
-    &.rarity-rare      { background: rgba(41, 128, 185, 0.12); color: var(--rarity-rare);      border-color: rgba(41, 128, 185, 0.3); }
-    &.rarity-legendary { background: rgba(243, 156, 18, 0.12); color: var(--rarity-legendary); border-color: rgba(243, 156, 18, 0.35);
-                         animation: legendary-pulse-chip 2.8s ease-in-out infinite; }
-  }
-
-  /* NPCs */
-  .chip-npc {
-    background: rgba(100, 100, 120, 0.15);
-    color: #a0a8b8;
-    border-color: rgba(100, 100, 120, 0.3);
-  }
-
-  .chip-npc-sentient {
-    background: rgba(142, 68, 173, 0.15);
-    color: #c39bd3;
-    border-color: rgba(142, 68, 173, 0.35);
-  }
-
-  /* Players */
-  .chip-player {
-    background: rgba(26, 188, 156, 0.12);
-    color: var(--accent-teal);
-    border-color: rgba(26, 188, 156, 0.3);
-  }
-
-  .chat-badge {
-    margin-right: 6px;
-    padding: 1px 5px;
-    border-radius: 3px;
-    font-size: 0.75em;
-    font-weight: 700;
-    text-transform: uppercase;
-
-    &.room  { background: var(--accent-teal); color: var(--text-white); }
-    &.world { background: var(--accent-purple); color: var(--text-white); }
-    &.dm    { background: var(--accent-red-lt); color: var(--text-white); }
-  }
-
-  .chat-from {
-    margin-right: 4px;
-    font-weight: 700;
-  }
 }
 
 .input-bar {
@@ -242,3 +85,23 @@ button.send-btn {
   }
 }
 
+// Message type styling
+
+.msg {
+  padding: 0.7em 1em;
+  border-radius: var(--radius);
+  max-width: 900px;
+  line-height: 1.5;
+  word-break: break-word;
+
+  &.WELCOME     { background: var(--bg-surface);    border-left: 3px solid var(--border-surface); }
+  &.ROOM_UPDATE { background: var(--bg-deep);       border-left: 3px solid var(--accent-blue); }
+  &.MESSAGE     { background: var(--bg-body);       border-left: 3px solid var(--accent-purple); }
+  &.ERROR       { background: var(--bg-error);      border-left: 3px solid var(--accent-red); color: var(--text-error); }
+  &.SENT        { background: var(--bg-sent);       border-left: 3px solid var(--accent-green); color: var(--text-muted); font-size: 0.85em; }
+  &.SYSTEM      { color: var(--text-muted); font-size: 0.85em; }
+  &.AUTH_PROMPT { background: var(--bg-body);       border-left: 3px solid var(--accent-orange); color: var(--text-yellow); white-space: pre-wrap; }
+  &.CHAT_ROOM   { background: var(--bg-chat-room);  border-left: 3px solid var(--accent-teal); }
+  &.CHAT_WORLD  { background: var(--bg-chat-world); border-left: 3px solid var(--accent-purple); }
+  &.CHAT_DM     { background: var(--bg-chat-dm);    border-left: 3px solid var(--accent-red-lt); }
+}

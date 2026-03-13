@@ -53,8 +53,9 @@ public class DeleteInventoryItemCommand implements GameCommand {
                 session.getPlayer().getName().toLowerCase(Locale.ROOT),
                 session.getPlayer().getInventory());
 
+        String equippedWeaponId = session.getPlayer().getEquippedWeaponId();
         List<GameResponse.ItemView> views = session.getPlayer().getInventory().stream()
-                .map(GameResponse.ItemView::from)
+                .map(i -> GameResponse.ItemView.from(i, equippedWeaponId))
                 .toList();
 
         return CommandResult.of(

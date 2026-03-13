@@ -145,7 +145,8 @@ class LookCommandTest {
     private static Npc npc(String id, String name, String desc, List<String> keywords) {
         return new Npc(id, name, desc, keywords,
                 "he", "his", 0, 0, List.of(), List.of(), List.of(), List.of(),
-                false, List.of(), null);
+                false, List.of(), null,
+                false, false, 0, 0, 0, 0, true);
     }
 
     private static Item item(String id, String name, String desc, List<String> keywords) {

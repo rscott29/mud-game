@@ -11,74 +11,21 @@ import {
   signal,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-
-import { GameSocketService } from '../../services/game-socket.service';
-import { GameMessage, CharacterCreationDto } from '../../models/game-message';
-import { SafeHtmlPipe } from '../../pipes/safe-html.pipe';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { NgClass } from '@angular/common';
+
+import { GameSocketService } from '../../services/game-socket.service';
+import { CommandBuilderService } from '../../services/command-builder.service';
+import { MessageFormatterService } from '../../services/message-formatter.service';
+import { CharacterCreationDto } from '../../models/game-message';
+import { SafeHtmlPipe } from '../../pipes/safe-html.pipe';
 import { CharacterCreationComponent } from '../character-creation/character-creation.component';
+import { escapeHtml } from '../../utils/html';
 
 export interface DisplayMessage {
   id: number;
   cssClass: string;
   html: string;
-}
-
-/**
- * Commands that can be recognized and sent directly as structured requests.
- * These are commands with no arguments, or where arguments don't semantically matter.
- */
-const DIRECT_COMMANDS = new Set([
-  'n', 's', 'e', 'w', 'u', 'd',
-  'north', 'south', 'east', 'west', 'up', 'down',
-  'go', 'move',
-  'inventory', 'inv', 'i',
-  'spawn',
-  'deleteitem', 'delitem', 'deleteinv', 'destroyitem',
-  'teleport', 'telport', 'teleprot', 'tp', 'warp', 'goto',
-  'summon', 'call',
-  'kick', 'remove',
-  'help', '?',
-  'logout', 'logoff', 'quit', 'exit',
-  'who',
-  // Social action emotes
-  'wave', 'smile', 'nod', 'bow', 'wink', 'hug', 'laugh', 'cheer', 'dance', 'applaud', 'salute',
-  // Custom emote
-  '/em', '/emote', '/me', 'emote',
-]);
-
-/**
- * Commands that should ALWAYS be sent as natural language (input field),
- * even if recognized. This lets the AI resolver handle semantic understanding
- * of targets (items, NPCs, room features), typos, descriptions, etc.
- *
- * Examples: "look at the stone", "take shiny sword", "talk to the guard"
- */
-const AI_RESOLVED_COMMANDS = new Set([
-  'look', 'l', 'examine', 'x',
-  'talk', 'greet',
-  'take', 'get', 'pickup', 'pick', 'grab', 'snatch', 'lift', 'collect', 'steal',
-  'drop', 'discard', 'toss', 'leave',
-  'investigate', 'search',
-]);
-
-function esc(str: string): string {
-  return String(str)
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;');
-}
-
-/**
- * Escapes the string for safe HTML insertion, then re-opens a curated
- * allowlist of presentational tags so game content can use light markup.
- * Only <em>, <i>, <b>, <strong>, and <br> (including self-closing) are
- * permitted; everything else stays escaped.
- */
-const MARKUP_RE = /&lt;(\/?(?:em|i|b|strong|br|ul|ol|li)\s*\/?)&gt;/g;
-function renderMarkup(str: string): string {
-  return esc(str).replace(MARKUP_RE, '<$1>');
 }
 
 @Component({
@@ -93,6 +40,8 @@ export class TerminalComponent {
   @ViewChild('logEl') private logEl?: ElementRef<HTMLDivElement>;
 
   private readonly socketService = inject(GameSocketService);
+  private readonly commandBuilder = inject(CommandBuilderService);
+  private readonly messageFormatter = inject(MessageFormatterService);
   private readonly destroyRef = inject(DestroyRef);
 
   private nextId = 0;
@@ -130,11 +79,36 @@ export class TerminalComponent {
 
     this.socketService.messages$
       .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe(msg => this.renderMessage(msg));
+      .subscribe(msg => {
+        // Handle state changes (clear messages, password mode)
+        const stateChanges = this.messageFormatter.getStateChanges(msg);
+        if (stateChanges) {
+          if (stateChanges.clearMessages) {
+            this.messages.set([]);
+          }
+          if (stateChanges.passwordMode !== undefined) {
+            this.passwordMode.set(stateChanges.passwordMode);
+          }
+        }
+
+        // Format and display the message
+        const action = this.messageFormatter.format(msg);
+        switch (action.type) {
+          case 'display':
+            this.addMsg(action.message.cssClass, action.message.html);
+            break;
+          case 'character_creation':
+            this.characterCreationData.set(msg.characterCreation ?? null);
+            break;
+          case 'skip':
+            // No terminal output needed
+            break;
+        }
+      });
 
     this.socketService.systemMessages$
       .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe(text => this.addMsg('SYSTEM', esc(text)));
+      .subscribe(text => this.addMsg('SYSTEM', escapeHtml(text)));
 
     effect(() => {
       this.messages();
@@ -157,8 +131,8 @@ export class TerminalComponent {
 
     this.inputValue.set('');
 
-    const { payload, echo, maskEcho } = this.buildPayload(raw);
-    this.addMsg('SENT', `&gt; ${maskEcho ? '••••••••' : esc(echo)}`);
+    const { payload, echo, maskEcho } = this.commandBuilder.build(raw, this.passwordMode());
+    this.addMsg('SENT', `&gt; ${maskEcho ? '••••••••' : escapeHtml(echo)}`);
     this.socketService.sendRaw(payload);
   }
 
@@ -168,168 +142,15 @@ export class TerminalComponent {
 
   trackMessage = (_: number, msg: DisplayMessage) => msg.id;
 
+  onCharacterCreationComplete(selection: string): void {
+    this.characterCreationData.set(null);
+    this.socketService.sendRaw(JSON.stringify({ input: selection }));
+  }
+
   private scrollToBottom(): void {
     const el = this.logEl?.nativeElement;
     if (!el) return;
     el.scrollTop = el.scrollHeight;
-  }
-
-  private buildPayload(raw: string): { payload: string; echo: string; maskEcho: boolean } {
-    if (this.passwordMode()) {
-      return {
-        payload: JSON.stringify({ input: raw }),
-        echo: raw,
-        maskEcho: true,
-      };
-    }
-
-    if (raw.startsWith('{')) {
-      return { payload: raw, echo: raw, maskEcho: false };
-    }
-
-    if (raw.startsWith('/')) {
-      const [command, ...args] = raw.trim().split(/\s+/);
-      const cmd = command.toLowerCase();
-      return {
-        payload: JSON.stringify(args.length ? { command: cmd, args } : { command: cmd }),
-        echo: raw,
-        maskEcho: false,
-      };
-    }
-
-    const [first = '', ...args] = raw.split(/\s+/);
-    const cmd = first.toLowerCase();
-
-    // Commands that target items/NPCs should always use AI resolution
-    if (AI_RESOLVED_COMMANDS.has(cmd)) {
-      return {
-        payload: JSON.stringify({ input: raw }),
-        echo: raw,
-        maskEcho: false,
-      };
-    }
-
-    // Simple direct commands
-    if (DIRECT_COMMANDS.has(cmd)) {
-      return {
-        payload: JSON.stringify(args.length ? { command: cmd, args } : { command: cmd }),
-        echo: raw,
-        maskEcho: false,
-      };
-    }
-
-    // Unknown command → natural language
-    return {
-      payload: JSON.stringify({ input: raw }),
-      echo: raw,
-      maskEcho: false,
-    };
-  }
-
-  private renderMessage(msg: GameMessage): void {
-    const type = msg.type ?? 'MESSAGE';
-
-    switch (type) {
-      case 'WELCOME':
-        this.messages.set([]);
-        this.passwordMode.set(false);
-        this.renderRoomish(msg);
-        return;
-
-      case 'ROOM_UPDATE':
-        this.renderRoomish(msg);
-        return;
-
-      case 'AUTH_PROMPT':
-        // Clear messages on the initial username prompt to avoid duplicate welcome screens on reconnect
-        if ((msg.message ?? '').includes('username')) {
-          this.messages.set([]);
-        }
-        this.addMsg('AUTH_PROMPT', esc(msg.message ?? ''));
-        this.passwordMode.set(msg.mask === true);
-        this.characterCreationData.set(null);
-        return;
-
-      case 'CHARACTER_CREATION':
-        this.messages.set([]);
-        this.passwordMode.set(false);
-        this.characterCreationData.set(msg.characterCreation ?? null);
-        return;
-
-      case 'CHAT_ROOM':
-      case 'CHAT_WORLD':
-      case 'CHAT_DM':
-        this.renderChat(msg);
-        return;
-
-      case 'WHO_LIST':
-      case 'INVENTORY_UPDATE':
-      case 'HELP':
-        // Handled visually by their respective panels — no terminal output needed.
-        return;
-
-      default:
-        this.addMsg(type, renderMarkup(msg.message ?? JSON.stringify(msg)));
-    }
-  }
-
-  private renderChat(msg: GameMessage): void {
-    const type = msg.type!;
-    const badgeKey =
-      type === 'CHAT_ROOM' ? 'room' :
-      type === 'CHAT_WORLD' ? 'world' :
-      'dm';
-
-    const label =
-      type === 'CHAT_ROOM' ? 'Room' :
-      type === 'CHAT_WORLD' ? 'World' :
-      'DM';
-
-    const html = `
-      <span class="chat-badge ${badgeKey}">${label}</span>
-      <span class="chat-from">${esc(msg.from ?? '')}</span>
-      ${esc(msg.message ?? '')}
-    `;
-
-    this.addMsg(type, html);
-  }
-
-  private renderRoomish(msg: GameMessage): void {
-    const r = msg.room;
-    if (!r) {
-      this.addMsg(msg.type ?? 'MESSAGE', esc(msg.message ?? ''));
-      return;
-    }
-
-    const exitChips = (r.exits ?? []).length
-      ? (r.exits).map(e => `<span class="chip chip-exit">${esc(e)}</span>`).join('')
-      : `<span class="chip-none">none</span>`;
-
-    const itemChips = (r.items ?? []).length
-      ? (r.items).map(i => `<span class="chip chip-item rarity-${esc(i.rarity)}">${esc(i.name)}</span>`).join('')
-      : `<span class="chip-none">none</span>`;
-
-    const npcChips = (r.npcs ?? []).length
-      ? (r.npcs).map(n => `<span class="chip ${n.sentient ? 'chip-npc-sentient' : 'chip-npc'}">${esc(n.name)}</span>`).join('')
-      : `<span class="chip-none">none</span>`;
-
-    const playerChips = (r.players ?? []).length
-      ? (r.players).map(p => `<span class="chip chip-player">${esc(p)}</span>`).join('')
-      : `<span class="chip-none">none</span>`;
-
-    const html = `
-      ${msg.message ? `<div class="room-msg">${esc(msg.message)}</div>` : ''}
-      <div class="room-name">${esc(r.name)}</div>
-      <div class="room-desc">${esc(r.description)}</div>
-      <div class="room-meta">
-        <div class="meta-group"><span class="meta-label">Exits</span>${exitChips}</div>
-        <div class="meta-group"><span class="meta-label">Items</span>${itemChips}</div>
-        <div class="meta-group"><span class="meta-label">NPCs</span>${npcChips}</div>
-        <div class="meta-group"><span class="meta-label">Players</span>${playerChips}</div>
-      </div>
-    `;
-
-    this.addMsg(msg.type ?? 'ROOM_UPDATE', html);
   }
 
   private addMsg(cssClass: string, html: string): void {
@@ -337,10 +158,5 @@ export class TerminalComponent {
       ...list,
       { id: ++this.nextId, cssClass, html },
     ]);
-  }
-
-  onCharacterCreationComplete(selection: string): void {
-    this.characterCreationData.set(null);
-    this.socketService.sendRaw(JSON.stringify({ input: selection }));
   }
 }

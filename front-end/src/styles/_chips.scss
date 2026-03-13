@@ -1,0 +1,78 @@
+// Chip styles for exits, items, NPCs, players
+
+.chip-none {
+  display: inline-block;
+  padding: 1px 7px;
+  border-radius: 10px;
+  font-size: 0.78em;
+  font-weight: 600;
+  line-height: 1.6;
+  background: rgba(127, 140, 141, 0.05);
+  color: var(--text-muted);
+  border: 1px solid rgba(127, 140, 141, 0.15);
+  font-style: italic;
+}
+
+.chip {
+  display: inline-block;
+  padding: 1px 7px;
+  border-radius: 10px;
+  font-size: 0.78em;
+  font-weight: 600;
+  border: 1px solid transparent;
+  line-height: 1.6;
+}
+
+// Exits — subtle blue
+.chip-exit {
+  background: rgba(41, 128, 185, 0.15);
+  color: var(--accent-blue-lt);
+  border-color: rgba(41, 128, 185, 0.3);
+  text-transform: capitalize;
+}
+
+// Items — rarity-coloured
+.chip-item {
+  background: rgba(149, 165, 166, 0.12);
+  color: var(--rarity-common);
+  border-color: rgba(149, 165, 166, 0.25);
+
+  &.rarity-fine {
+    background: rgba(39, 174, 96, 0.12);
+    color: var(--rarity-fine);
+    border-color: rgba(39, 174, 96, 0.3);
+  }
+
+  &.rarity-rare {
+    background: rgba(41, 128, 185, 0.12);
+    color: var(--rarity-rare);
+    border-color: rgba(41, 128, 185, 0.3);
+  }
+
+  &.rarity-legendary {
+    background: rgba(243, 156, 18, 0.12);
+    color: var(--rarity-legendary);
+    border-color: rgba(243, 156, 18, 0.35);
+    animation: legendary-pulse-chip 2.8s ease-in-out infinite;
+  }
+}
+
+// NPCs
+.chip-npc {
+  background: rgba(100, 100, 120, 0.15);
+  color: #a0a8b8;
+  border-color: rgba(100, 100, 120, 0.3);
+}
+
+.chip-npc-sentient {
+  background: rgba(142, 68, 173, 0.15);
+  color: #c39bd3;
+  border-color: rgba(142, 68, 173, 0.35);
+}
+
+// Players
+.chip-player {
+  background: rgba(26, 188, 156, 0.12);
+  color: var(--accent-teal);
+  border-color: rgba(26, 188, 156, 0.3);
+}

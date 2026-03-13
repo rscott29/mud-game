@@ -29,6 +29,7 @@ public class WorldService {
     private Map<String, Item> itemRegistry = Map.of();
     private final Map<String, String> npcRoomIndex = new ConcurrentHashMap<>();
     private String startRoomId;
+    private String defaultRecallRoomId;
 
     public WorldService(WorldLoader worldLoader, NpcPositionRepository npcPositionRepository) {
         this.worldLoader           = worldLoader;
@@ -43,6 +44,7 @@ public class WorldService {
             this.npcRegistry = loaded.npcRegistry();
             this.itemRegistry = loaded.itemRegistry();
             this.startRoomId = loaded.startRoomId();
+            this.defaultRecallRoomId = loaded.defaultRecallRoomId();
 
             npcRoomIndex.clear();
             npcRoomIndex.putAll(loaded.npcRoomIndex());
@@ -84,6 +86,10 @@ public class WorldService {
 
     public String getStartRoomId() {
         return startRoomId;
+    }
+
+    public String getDefaultRecallRoomId() {
+        return defaultRecallRoomId;
     }
 
     public Npc getNpcById(String npcId) {

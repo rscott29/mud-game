@@ -35,6 +35,7 @@ class WorldServiceTest {
                 Map.of("npc_bartender", npc),
                 Map.of(),
                 Map.of("npc_bartender", "room_1"),
+                "room_1",
                 "room_1"
         );
 
@@ -76,6 +77,7 @@ class WorldServiceTest {
                 Map.of("npc_bartender", npc),
                 Map.of(),
                 Map.of("npc_bartender", "room_1"),
+                "room_1",
                 "room_1"
         ));
         when(npcPositionRepository.findAll()).thenReturn(List.of());
@@ -104,6 +106,7 @@ class WorldServiceTest {
                 Map.of("npc_bartender", npc),
                 Map.of(),
                 Map.of("npc_bartender", "room_1"),
+                "room_1",
                 "room_1"
         ));
         when(npcPositionRepository.findAll()).thenReturn(List.of());
@@ -122,7 +125,8 @@ class WorldServiceTest {
         return new Npc(id, "Bartender", "A seasoned barkeep.",
                 List.of("bartender"), "he", "his",
                 0, 0, List.of(), List.of(), List.of(), List.of(),
-                false, List.of(), null);
+                false, List.of(), null,
+                false, false, 0, 0, 0, 0, true);
     }
 
     private static Room room(String id, List<Npc> npcs) {

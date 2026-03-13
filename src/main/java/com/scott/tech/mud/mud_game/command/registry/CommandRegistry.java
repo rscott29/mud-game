@@ -1,7 +1,10 @@
 package com.scott.tech.mud.mud_game.command.registry;
 
+import com.scott.tech.mud.mud_game.command.attack.AttackCommand;
+import com.scott.tech.mud.mud_game.command.bind.BindRecallCommand;
 import com.scott.tech.mud.mud_game.command.drop.DropCommand;
 import com.scott.tech.mud.mud_game.command.emote.EmoteCommand;
+import com.scott.tech.mud.mud_game.command.equip.EquipCommand;
 import com.scott.tech.mud.mud_game.command.help.HelpCommand;
 import com.scott.tech.mud.mud_game.command.inventory.InventoryCommand;
 import com.scott.tech.mud.mud_game.command.investigate.InvestigateCommand;
@@ -46,7 +49,10 @@ public final class CommandRegistry {
     public static final String WHO = "who";
     public static final String PICKUP = "take";
     public static final String DROP = "drop";
-    public static final String INVENTORY = "inventory";
+    public static final String EQUIP = "equip";
+    public static final String ATTACK = "attack";
+    public static final String BIND = "bind";
+    public static final String INVENTORY = "inventory";;
     public static final String INVESTIGATE = "investigate";
     public static final String EMOTE = "emote";
     // God commands
@@ -55,7 +61,6 @@ public final class CommandRegistry {
     public static final String TELEPORT = "teleport";
     public static final String SUMMON = "summon";
     public static final String KICK = "kick";
-    public static final String KILL = "kill";
 
     private static final List<CommandDefinition> ALL_DEFINITIONS = buildDefinitions();
     private static final List<CommandMetadata> ALL_COMMANDS = ALL_DEFINITIONS.stream()
@@ -289,6 +294,41 @@ public final class CommandRegistry {
                         ctx.deps().dropValidator(),
                         ctx.deps().dropService()
                 ))
+                .build());
+
+        commands.add(CommandDefinition.builder(EQUIP)
+                .aliases("equip", "wield", "arm", "ready")
+                .category(INTERACTION)
+                .usage("equip <weapon>")
+                .description("Equip a weapon from your inventory")
+                .creator(ctx -> new EquipCommand(
+                        ctx.hasNoArgs() ? null : ctx.joinedArgs(),
+                        ctx.deps().equipValidator(),
+                        ctx.deps().equipService()
+                ))
+                .build());
+
+        // Combat commands
+        commands.add(CommandDefinition.builder(ATTACK)
+                .aliases("attack", "kill", "fight", "hit", "strike", "slay")
+                .category(INTERACTION)
+                .usage("attack <target>")
+                .description("Attack an NPC in combat")
+                .creator(ctx -> new AttackCommand(
+                        ctx.hasNoArgs() ? null : ctx.joinedArgs(),
+                        ctx.deps().attackValidator(),
+                        ctx.deps().combatService(),
+                        ctx.deps().combatLoopScheduler(),
+                        ctx.deps().combatState()
+                ))
+                .build());
+
+        commands.add(CommandDefinition.builder(BIND)
+                .aliases("bind", "setrecall", "sethome")
+                .category(INTERACTION)
+                .usage("bind")
+                .description("Bind your recall point in a sanctified room")
+                .creator(ctx -> new BindRecallCommand())
                 .build());
 
 

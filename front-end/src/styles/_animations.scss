@@ -1,0 +1,6 @@
+// Global animations used across multiple components
+
+@keyframes legendary-pulse-chip {
+  0%, 100% { box-shadow: 0 0 4px var(--rarity-legendary-glow); }
+  50%       { box-shadow: 0 0 10px var(--rarity-legendary-glow), 0 0 20px rgba(243, 156, 18, 0.12); }
+}

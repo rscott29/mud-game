@@ -135,6 +135,16 @@ public class LookService {
             description.append("A player standing here.");
         }
 
+        // Show equipped gear
+        player.getEquippedWeapon().ifPresent(weapon -> {
+            description.append("\n\n<b>Equipment:</b>\n");
+            description.append("  <span class='equipped-slot'>Weapon:</span> <span class='equipped-item rarity-")
+                    .append(weapon.getRarity().name().toLowerCase())
+                    .append("'>")
+                    .append(weapon.getName())
+                    .append("</span>");
+        });
+
         return description.toString();
     }
 

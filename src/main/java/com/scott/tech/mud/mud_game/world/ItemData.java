@@ -34,6 +34,8 @@ public class ItemData {
     private List<String> requiredItemIds = List.of();
     private String prerequisiteFailMessage;
     private List<TriggerData> triggers = List.of();
+    /** Combat stats (optional, defaults to zeros). */
+    private CombatStatsData combatStats;
 
     public String getId()                          { return id; }
     public String getName()                        { return name; }
@@ -44,6 +46,7 @@ public class ItemData {
     public List<String> getRequiredItemIds()       { return requiredItemIds; }
     public String getPrerequisiteFailMessage()     { return prerequisiteFailMessage; }
     public List<TriggerData> getTriggers()         { return triggers; }
+    public CombatStatsData getCombatStats()        { return combatStats; }
 
     public void setId(String id)                              { this.id = id; }
     public void setName(String name)                          { this.name = name; }
@@ -54,6 +57,31 @@ public class ItemData {
     public void setRequiredItemIds(List<String> requiredItemIds) { this.requiredItemIds = requiredItemIds != null ? requiredItemIds : List.of(); }
     public void setPrerequisiteFailMessage(String msg)           { this.prerequisiteFailMessage = msg; }
     public void setTriggers(List<TriggerData> triggers)          { this.triggers = triggers != null ? triggers : List.of(); }
+    public void setCombatStats(CombatStatsData combatStats)      { this.combatStats = combatStats; }
+
+    /** Flat DTO for combat stats in items.json. */
+    public static class CombatStatsData {
+        private int minDamage;
+        private int maxDamage;
+        private int attackSpeed;
+        private int hitChance;
+        private int armor;
+        private String attackVerb;
+
+        public int getMinDamage()   { return minDamage; }
+        public int getMaxDamage()   { return maxDamage; }
+        public int getAttackSpeed() { return attackSpeed; }
+        public int getHitChance()   { return hitChance; }
+        public int getArmor()       { return armor; }
+        public String getAttackVerb() { return attackVerb; }
+
+        public void setMinDamage(int minDamage)     { this.minDamage = minDamage; }
+        public void setMaxDamage(int maxDamage)     { this.maxDamage = maxDamage; }
+        public void setAttackSpeed(int attackSpeed) { this.attackSpeed = attackSpeed; }
+        public void setHitChance(int hitChance)     { this.hitChance = hitChance; }
+        public void setArmor(int armor)             { this.armor = armor; }
+        public void setAttackVerb(String attackVerb) { this.attackVerb = attackVerb; }
+    }
 
     /** Flat DTO for a trigger entry in items.json. */
     public static class TriggerData {

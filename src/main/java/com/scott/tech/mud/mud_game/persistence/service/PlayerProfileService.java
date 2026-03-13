@@ -71,6 +71,10 @@ public class PlayerProfileService {
             player.setMaxMana(p.getMaxMana());
             player.setMovement(p.getMovement());
             player.setMaxMovement(p.getMaxMovement());
+            player.setEquippedWeaponId(p.getEquippedWeaponId());
+            if (p.getRecallRoomId() != null && !p.getRecallRoomId().isBlank()) {
+                player.setRecallRoomId(p.getRecallRoomId());
+            }
         });
     }
 
@@ -142,6 +146,8 @@ public class PlayerProfileService {
         profile.setMaxMana(player.getMaxMana());
         profile.setMovement(player.getMovement());
         profile.setMaxMovement(player.getMaxMovement());
+        profile.setEquippedWeaponId(player.getEquippedWeaponId());
+        profile.setRecallRoomId(player.getRecallRoomId());
         profile.setLastSeenAt(Instant.now());
         profileRepository.save(profile);
         log.debug("Saved full profile for '{}': room='{}' hp={}/{} mp={}/{} mv={}/{}",
@@ -188,6 +194,8 @@ public class PlayerProfileService {
         profile.setMaxMana(state.maxMana());
         profile.setMovement(state.movement());
         profile.setMaxMovement(state.maxMovement());
+        profile.setEquippedWeaponId(state.equippedWeaponId());
+        profile.setRecallRoomId(state.recallRoomId());
         profile.setLastSeenAt(state.cachedAt());
         profileRepository.save(profile);
         log.debug("Saved profile from cache for '{}': room='{}'", key, state.currentRoomId());

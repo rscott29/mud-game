@@ -54,8 +54,9 @@ public class SpawnCommand implements GameCommand {
                     session.getPlayer().getName().toLowerCase(),
                     session.getPlayer().getInventory());
 
+            String equippedWeaponId = session.getPlayer().getEquippedWeaponId();
             List<GameResponse.ItemView> views = session.getPlayer().getInventory().stream()
-                    .map(GameResponse.ItemView::from).toList();
+                    .map(i -> GameResponse.ItemView.from(i, equippedWeaponId)).toList();
 
             return CommandResult.of(
                     GameResponse.message(Messages.fmt("command.spawn.success_inventory", "item", item.getName()))

@@ -56,7 +56,8 @@ class NaturalLanguageInputTest {
                 "A boisterous young Labrador with a golden coat.",
                 List.of("obi", "dog", "labrador", "lab", "puppy"),
                 "he", "his", 0, 0, List.of(), List.of(), List.of(), List.of(),
-                false, List.of("Obi wags at {player}."), null);
+                false, List.of("Obi wags at {player}."), null,
+                false, false, 0, 0, 0, 0, true);
 
         Item signpost = new Item("item_signpost", "Signpost",
                 "A wooden signpost pointing in all directions.",

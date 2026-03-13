@@ -37,7 +37,8 @@ public record GameResponse(
         SESSION_TOKEN,
         INVENTORY_UPDATE,
         HELP,
-        CHARACTER_CREATION
+        CHARACTER_CREATION,
+        STAT_UPDATE
     }
 
     // --- compact constructors for convenience defaults ---
@@ -142,6 +143,10 @@ public record GameResponse(
         return new GameResponse(Type.INVENTORY_UPDATE, null, null, false, null, null, items, null, null, null);
     }
 
+    public static GameResponse playerStatsUpdate(Player player) {
+        return new GameResponse(Type.STAT_UPDATE, null, null, false, null, null, null, null, PlayerStatsView.from(player), null);
+    }
+
     public static GameResponse whoList(List<WhoPlayerView> players) {
         return new GameResponse(Type.WHO_LIST, null, null, false, null, null, null, players, null, null);
     }
@@ -216,10 +221,16 @@ public record GameResponse(
         }
     }
 
-    public record ItemView(String id, String name, String description, String rarity) {
+    public record ItemView(String id, String name, String description, String rarity, boolean equipped) {
         public static ItemView from(Item item) {
             return new ItemView(item.getId(), item.getName(), item.getDescription(),
-                    item.getRarity().name().toLowerCase());
+                    item.getRarity().name().toLowerCase(), false);
+        }
+
+        public static ItemView from(Item item, String equippedWeaponId) {
+            boolean isEquipped = item.getId().equals(equippedWeaponId);
+            return new ItemView(item.getId(), item.getName(), item.getDescription(),
+                    item.getRarity().name().toLowerCase(), isEquipped);
         }
     }
 
