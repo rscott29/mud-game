@@ -66,6 +66,8 @@ public class WorldLoader {
                 Room room = new Room(def.getId(), def.getName(), def.getDescription(), exits, roomItems, roomNpcs);
                 room.setHiddenExits(parseExitMap(def.getHiddenExits(), def.getId(), errors));
                 room.setHiddenExitHints(parseDirectionStringMap(def.getHiddenExitHints(), def.getId()));
+                room.setRecallBindable(def.isRecallBindable());
+                room.setDefaultRecallPoint(def.isDefaultRecallPoint());
                 if (builtRooms.put(def.getId(), room) != null) {
                     errors.add("Duplicate room id: " + def.getId());
                 }
@@ -96,6 +98,8 @@ public class WorldLoader {
             errors.add("startRoomId '" + start + "' does not exist as a room id");
         }
 
+        String defaultRecallRoomId = resolveDefaultRecallRoomId(builtRooms, errors, start);
+
         List<String> warnings = new ArrayList<>();
         checkExitSymmetry(builtRooms, warnings);
         warnings.forEach(msg -> log.warn("World validation: {}", msg));
@@ -115,7 +119,8 @@ public class WorldLoader {
                 Map.copyOf(npcs),
                 Map.copyOf(items),
                 Map.copyOf(npcRoomIndex),
-                start
+                start,
+                defaultRecallRoomId
         );
     }
 
@@ -140,13 +145,16 @@ public class WorldLoader {
             }
 
             validateWanderRange(n.getId(), minSec, maxSec);
+            validateCombatConfig(n);
 
             Npc npc = new Npc(
                     n.getId(), n.getName(), n.getDescription(), n.getKeywords(),
                     n.getPronoun(), n.getPossessive(),
                     minSec, maxSec, depTemplates, arrTemplates, pathList,
                     n.getInteractTemplates(),
-                    n.isSentient(), n.getTalkTemplates(), n.getPersonality()
+                    n.isSentient(), n.getTalkTemplates(), n.getPersonality(),
+                    n.isCombatTarget(), n.isRespawns(), n.getMaxHealth(), n.getXpReward(),
+                    n.getMinDamage(), n.getMaxDamage(), n.isPlayerDeathEnabled()
             );
 
             if (map.put(n.getId(), npc) != null) {
@@ -167,6 +175,29 @@ public class WorldLoader {
         }
     }
 
+    private static void validateCombatConfig(NpcData npc) {
+        String npcId = npc.getId();
+        if (!npc.isCombatTarget()) {
+            if (npc.getMaxHealth() > 0 || npc.getXpReward() > 0 || npc.getMinDamage() > 0 || npc.getMaxDamage() > 0) {
+                log.warn("NPC '{}' defines combat stats but combatTarget is false; stats will be ignored", npcId);
+            }
+            return;
+        }
+
+        if (npc.getMaxHealth() <= 0) {
+            throw new WorldLoadException("NPC '" + npcId + "' is combatTarget but maxHealth <= 0");
+        }
+        if (npc.getXpReward() < 0) {
+            throw new WorldLoadException("NPC '" + npcId + "' has negative xpReward");
+        }
+        if (npc.getMinDamage() < 0 || npc.getMaxDamage() < 0) {
+            throw new WorldLoadException("NPC '" + npcId + "' has negative damage values");
+        }
+        if (npc.getMaxDamage() < npc.getMinDamage()) {
+            throw new WorldLoadException("NPC '" + npcId + "' has maxDamage lower than minDamage");
+        }
+    }
+
     private Map<String, Item> loadItemRegistry() throws Exception {
         ItemData[] itemDataArray = objectMapper.readValue(
                 new ClassPathResource(ITEMS_FILE).getInputStream(), ItemData[].class);
@@ -177,12 +208,69 @@ public class WorldLoader {
                     .map(ItemData.TriggerData::toItemTrigger)
                     .filter(t -> t != null)
                     .toList();
-            if (map.put(i.getId(), new Item(i.getId(), i.getName(), i.getDescription(), i.getKeywords(), i.isTakeable(), i.getRarity(), i.getRequiredItemIds(), i.getPrerequisiteFailMessage(), triggers)) != null) {
+            validateItemCombatConfig(i);
+            Item.CombatStats combatStats = toCombatStats(i.getCombatStats());
+            if (map.put(i.getId(), new Item(i.getId(), i.getName(), i.getDescription(), i.getKeywords(), i.isTakeable(), i.getRarity(), i.getRequiredItemIds(), i.getPrerequisiteFailMessage(), triggers, combatStats)) != null) {
                 throw new WorldLoadException("Duplicate item id: " + i.getId());
             }
         }
         log.info("Item registry loaded: {} items", map.size());
         return map;
+    }
+
+    private static Item.CombatStats toCombatStats(ItemData.CombatStatsData data) {
+        if (data == null) {
+            return Item.CombatStats.NONE;
+        }
+        return new Item.CombatStats(
+                data.getMinDamage(),
+                data.getMaxDamage(),
+                data.getAttackSpeed(),
+                data.getHitChance(),
+                data.getArmor(),
+                data.getAttackVerb()
+        );
+    }
+
+    private static void validateItemCombatConfig(ItemData item) {
+        ItemData.CombatStatsData stats = item.getCombatStats();
+        if (stats == null) {
+            return;
+        }
+
+        String itemId = item.getId();
+        if (stats.getMinDamage() < 0 || stats.getMaxDamage() < 0) {
+            throw new WorldLoadException("Item '" + itemId + "' has negative damage values");
+        }
+        if (stats.getMaxDamage() < stats.getMinDamage()) {
+            throw new WorldLoadException("Item '" + itemId + "' has maxDamage lower than minDamage");
+        }
+        if (stats.getHitChance() < -100 || stats.getHitChance() > 100) {
+            throw new WorldLoadException("Item '" + itemId + "' has hitChance outside -100..100");
+        }
+        if (stats.getArmor() < 0) {
+            throw new WorldLoadException("Item '" + itemId + "' has negative armor");
+        }
+        if (stats.getAttackSpeed() < -20 || stats.getAttackSpeed() > 20) {
+            throw new WorldLoadException("Item '" + itemId + "' has attackSpeed outside -20..20");
+        }
+    }
+
+    private static String resolveDefaultRecallRoomId(Map<String, Room> rooms, List<String> errors, String startRoomId) {
+        List<String> defaultRecallRooms = rooms.values().stream()
+                .filter(Room::isDefaultRecallPoint)
+                .map(Room::getId)
+                .toList();
+
+        if (defaultRecallRooms.size() > 1) {
+            errors.add("Multiple rooms are marked as defaultRecallPoint: " + String.join(", ", defaultRecallRooms));
+        }
+
+        if (defaultRecallRooms.size() == 1) {
+            return defaultRecallRooms.getFirst();
+        }
+
+        return startRoomId;
     }
 
     private static Map<String, String> buildNpcRoomIndex(Iterable<Room> rooms) {

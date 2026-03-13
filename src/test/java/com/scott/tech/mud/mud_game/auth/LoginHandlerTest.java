@@ -4,7 +4,9 @@ import com.scott.tech.mud.mud_game.command.core.CommandResult;
 import com.scott.tech.mud.mud_game.config.CharacterClassStatsRegistry;
 import com.scott.tech.mud.mud_game.dto.GameResponse;
 import com.scott.tech.mud.mud_game.model.Direction;
+import com.scott.tech.mud.mud_game.model.Item;
 import com.scott.tech.mud.mud_game.model.Player;
+import com.scott.tech.mud.mud_game.model.Rarity;
 import com.scott.tech.mud.mud_game.model.Room;
 import com.scott.tech.mud.mud_game.model.SessionState;
 import com.scott.tech.mud.mud_game.persistence.cache.PlayerStateCache;
@@ -244,6 +246,49 @@ class LoginHandlerTest {
         loginHandler.handle("secret", session);
 
         assertThat(session.hasDiscoveredExit("tavern", Direction.NORTH)).isTrue();
+    }
+
+    @Test
+    void handlePassword_success_restoresEquippedWeaponAndRecallPointFromCache() {
+        GameSession session = newSession("s1", "start");
+        session.setPendingUsername("alice");
+        session.transition(SessionState.AWAITING_PASSWORD);
+
+        Item sword = new Item("iron_sword", "Iron Sword", "A steel blade.", List.of("sword"), true, Rarity.COMMON);
+
+        when(accountStore.isLocked("alice")).thenReturn(false);
+        when(accountStore.verifyPassword("alice", "secret")).thenReturn(true);
+        when(stateCache.get("alice")).thenReturn(new PlayerStateCache.CachedPlayerState(
+                "Alice",
+                "tavern",
+                3,
+                "Veteran",
+                "Human",
+                "Warrior",
+                "they",
+                "them",
+                "their",
+                "desc",
+                80,
+                100,
+                20,
+                50,
+                60,
+                100,
+                List.of("iron_sword"),
+                "iron_sword",
+                "town_square",
+                java.time.Instant.now()
+        ));
+        when(worldService.getItemById("iron_sword")).thenReturn(sword);
+        when(sessionManager.getSessionsInRoom("tavern")).thenReturn(List.of(session));
+        when(reconnectTokenStore.issue("alice")).thenReturn("token-123");
+
+        loginHandler.handle("secret", session);
+
+        assertThat(session.getPlayer().getInventory()).containsExactly(sword);
+        assertThat(session.getPlayer().getEquippedWeaponId()).isEqualTo("iron_sword");
+        assertThat(session.getPlayer().getRecallRoomId()).isEqualTo("town_square");
     }
 
     @Test

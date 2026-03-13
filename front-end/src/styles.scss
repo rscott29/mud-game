@@ -82,3 +82,11 @@ body {
   scrollbar-width: thin;
   scrollbar-color: var(--border-surface) var(--bg-deep);
 }
+
+/* ── Global content styles (rendered via innerHTML) ─────────────── */
+@import 'styles/animations';
+@import 'styles/room';
+@import 'styles/chips';
+@import 'styles/chat';
+@import 'styles/equipment';
+@import 'styles/combat';

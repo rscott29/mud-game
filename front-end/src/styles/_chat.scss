@@ -1,0 +1,19 @@
+// Chat channel badges and sender styling
+
+.chat-badge {
+  margin-right: 6px;
+  padding: 1px 5px;
+  border-radius: 3px;
+  font-size: 0.75em;
+  font-weight: 700;
+  text-transform: uppercase;
+
+  &.room  { background: var(--accent-teal); color: var(--text-white); }
+  &.world { background: var(--accent-purple); color: var(--text-white); }
+  &.dm    { background: var(--accent-red-lt); color: var(--text-white); }
+}
+
+.chat-from {
+  margin-right: 4px;
+  font-weight: 700;
+}

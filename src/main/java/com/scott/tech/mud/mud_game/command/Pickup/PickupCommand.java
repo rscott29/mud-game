@@ -53,8 +53,9 @@ public class PickupCommand implements GameCommand {
 
         pickupService.pickup(session, room, item);
 
+        String equippedWeaponId = session.getPlayer().getEquippedWeaponId();
         List<GameResponse.ItemView> views = session.getPlayer().getInventory().stream()
-                .map(GameResponse.ItemView::from)
+                .map(i -> GameResponse.ItemView.from(i, equippedWeaponId))
                 .toList();
 
         String playerName = session.getPlayer().getName();

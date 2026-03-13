@@ -11,6 +11,7 @@ public record WorldLoadResult(
         Map<String, Npc> npcRegistry,
         Map<String, Item> itemRegistry,
         Map<String, String> npcRoomIndex,
-        String startRoomId
+        String startRoomId,
+        String defaultRecallRoomId
 ) {
 }

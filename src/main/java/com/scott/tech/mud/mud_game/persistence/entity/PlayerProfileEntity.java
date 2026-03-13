@@ -66,6 +66,12 @@ public class PlayerProfileEntity {
     @Column(name = "max_movement", nullable = false)
     private int maxMovement = 100;
 
+    @Column(name = "equipped_weapon_id", length = 100)
+    private String equippedWeaponId;
+
+    @Column(name = "recall_room_id", length = 100)
+    private String recallRoomId;
+
     @Column(name = "last_seen_at", nullable = false)
     private Instant lastSeenAt;
 
@@ -93,6 +99,8 @@ public class PlayerProfileEntity {
     public int     getMaxMana()           { return maxMana; }
     public int     getMovement()          { return movement; }
     public int     getMaxMovement()       { return maxMovement; }
+    public String  getEquippedWeaponId()  { return equippedWeaponId; }
+    public String  getRecallRoomId()      { return recallRoomId; }
     public Instant getLastSeenAt()        { return lastSeenAt; }
 
     public void setCurrentRoomId(String currentRoomId)    { this.currentRoomId = currentRoomId; }
@@ -110,5 +118,7 @@ public class PlayerProfileEntity {
     public void setMaxMana(int maxMana)                  { this.maxMana = maxMana; }
     public void setMovement(int movement)                { this.movement = movement; }
     public void setMaxMovement(int maxMovement)          { this.maxMovement = maxMovement; }
+    public void setEquippedWeaponId(String equippedWeaponId) { this.equippedWeaponId = equippedWeaponId; }
+    public void setRecallRoomId(String recallRoomId)     { this.recallRoomId = recallRoomId; }
     public void setLastSeenAt(Instant lastSeenAt)         { this.lastSeenAt = lastSeenAt; }
 }

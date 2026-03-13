@@ -22,6 +22,7 @@ export interface ItemDto {
   name: string;
   description: string;
   rarity: string;
+  equipped: boolean;
 }
 
 export interface WhoPlayerDto {

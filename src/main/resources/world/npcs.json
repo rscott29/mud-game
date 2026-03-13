@@ -100,5 +100,113 @@
     "The Keeper nods once toward {player}, acknowledging their presence."
   ],
   "wander": null
+},
+{
+  "id": "npc_drill_instructor",
+  "name": "Drill Instructor Magnus",
+  "description": "A battle-scarred veteran with a shaved head and arms like tree trunks. His voice carries across the yard like a thunderclap. Despite his gruff exterior, there's a patient wisdom in his eyes — he's trained hundreds of recruits, and he'll train hundreds more.",
+  "keywords": ["instructor", "magnus", "drill", "veteran", "trainer", "teacher"],
+  "pronoun": "he",
+  "possessive": "his",
+  "talkTemplates": [
+    "Magnus crosses his arms and studies you. \"Want to learn to fight? First, learn to survive. Attack those dummies until your arms burn.\"",
+    "\"Combat isn't about strength alone,\" Magnus growls. \"It's about knowing when to strike and when to defend.\"",
+    "Magnus snorts. \"You think a real enemy will wait? Practice your attacks on those dummies until it becomes instinct.\"",
+    "\"To attack, type <strong>attack</strong> followed by your target,\" Magnus explains. \"Try it on a training dummy — they don't hit back. Much.\"",
+    "Magnus nods approvingly. \"Good. You're here to learn. Hit the dummies, watch your stamina, and remember: a tired fighter is a dead fighter.\"",
+    "\"Every great warrior started right here,\" Magnus says, gesturing at the training yard. \"Show me what you've got.\"",
+    "Magnus cracks his knuckles. \"Combat is simple: attack your enemy before they attack you. These dummies are perfect for practice.\""
+  ],
+  "interactTemplates": [
+    "Magnus eyes {player} critically as they enter the training yard. \"Fresh meat. Let's see what you're made of.\"",
+    "Magnus gives {player} a curt nod. \"Ready to train? The dummies aren't going to hit themselves.\"",
+    "Magnus pauses his inspection of a practice sword as {player} approaches. \"Another recruit. Good.\"",
+    "Magnus turns his attention to {player}. \"If you're here to learn, grab a weapon and start swinging.\"",
+    "Magnus crosses his arms as {player} enters. \"The training yard is open to all. Don't waste my time.\""
+  ],
+  "wander": null
+},
+{
+  "id": "npc_training_dummy_1",
+  "name": "Straw Training Dummy",
+  "description": "A man-shaped figure stuffed with straw, mounted on a wooden post. Its burlap face is painted with a crude, menacing expression. Deep gashes and sword cuts cover its torso — evidence of countless practice sessions. A sign hangs around its neck: <em>\"Attack me to practice combat!\"</em>",
+  "keywords": ["dummy", "training", "straw", "target", "practice", "straw dummy"],
+  "pronoun": "it",
+  "possessive": "its",
+  "talkTemplates": [
+    "The training dummy stares back at you with cold, painted eyes. It says nothing. It's a dummy.",
+    "You address the straw dummy. It does not respond. Unsurprising, really.",
+    "The dummy sways slightly in the breeze. If it understood you, it shows no sign.",
+    "Talking to a training dummy. Bold strategy. It remains unmoved by your words.",
+    "The dummy's painted smile seems to mock your attempt at conversation."
+  ],
+  "interactTemplates": [
+    "The straw dummy stands motionless, waiting to be struck.",
+    "A gentle breeze causes the training dummy to sway slightly on its post.",
+    "The training dummy's burlap face stares vacantly as {player} passes by.",
+    "Bits of straw poke out from fresh cuts in the dummy's torso."
+  ],
+  "wander": null,
+  "combatTarget": true,
+  "respawns": true,
+  "maxHealth": 50,
+  "xpReward": 5,
+  "minDamage": 1,
+  "maxDamage": 2,
+  "playerDeathEnabled": false
+},
+{
+  "id": "npc_training_dummy_2",
+  "name": "Armored Training Dummy",
+  "description": "A reinforced training dummy wearing dented iron plates strapped over its straw body. This one is clearly meant for practicing against armored opponents. The metal is scratched and battered from countless blows.",
+  "keywords": ["dummy", "armored", "training", "iron", "metal", "armored dummy"],
+  "pronoun": "it",
+  "possessive": "its",
+  "talkTemplates": [
+    "The armored dummy clanks slightly as you speak to it. Still no response.",
+    "Your words echo off the iron plates. The dummy remains stoically silent.",
+    "You try to engage the armored dummy in conversation. It's about as responsive as you'd expect.",
+    "The armored dummy's iron faceplate stares back at you, unmoved by your eloquence."
+  ],
+  "interactTemplates": [
+    "The armored dummy stands firm, its iron plates glinting in the light.",
+    "A dull metallic rattle sounds as the wind catches the armored dummy's plates.",
+    "The armored dummy's dented armor tells tales of countless practice battles."
+  ],
+  "wander": null,
+  "combatTarget": true,
+  "respawns": true,
+  "maxHealth": 100,
+  "xpReward": 10,
+  "minDamage": 1,
+  "maxDamage": 2,
+  "playerDeathEnabled": false
+},
+{
+  "id": "npc_training_dummy_3",
+  "name": "Spinning Training Dummy",
+  "description": "An advanced training mechanism — a wooden mannequin mounted on a swivel with weighted arms that spin when struck. One wrong move and those arms will swing back at you. A plaque reads: <em>\"Hit it, then dodge!\"</em>",
+  "keywords": ["dummy", "spinning", "wooden", "swivel", "advanced", "spinning dummy"],
+  "pronoun": "it",
+  "possessive": "its",
+  "talkTemplates": [
+    "The spinning dummy creaks ominously. It has no ears, so your words fall on... wood.",
+    "You talk to the spinning dummy. Its weighted arms sway gently, as if shrugging.",
+    "The wooden mechanism groans but offers no verbal response. How rude.",
+    "Speaking to training equipment. Bold. The dummy spins lazily in response."
+  ],
+  "interactTemplates": [
+    "The spinning dummy rattles gently, its weighted arms swaying in anticipation.",
+    "A slight breeze sets the spinning dummy's arms rotating slowly.",
+    "The spinning dummy creaks on its swivel, ready for action."
+  ],
+  "wander": null,
+  "combatTarget": true,
+  "respawns": true,
+  "maxHealth": 75,
+  "xpReward": 15,
+  "minDamage": 2,
+  "maxDamage": 4,
+  "playerDeathEnabled": false
 }
 ]

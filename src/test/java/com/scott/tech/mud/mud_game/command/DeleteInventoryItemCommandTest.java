@@ -24,7 +24,9 @@ class DeleteInventoryItemCommandTest {
         InventoryService inventoryService = mock(InventoryService.class);
         Player player = new Player("p1", "Admin", "room_1");
         player.setGod(true);
-        player.addToInventory(new Item("iron_sword", "Iron Sword", "A steel blade.", List.of("sword"), true, Rarity.COMMON));
+        Item sword = new Item("iron_sword", "Iron Sword", "A steel blade.", List.of("sword"), true, Rarity.COMMON);
+        player.addToInventory(sword);
+        player.setEquippedWeaponId(sword.getId());
 
         GameSession session = mock(GameSession.class);
         when(session.getPlayer()).thenReturn(player);
@@ -33,6 +35,7 @@ class DeleteInventoryItemCommandTest {
         CommandResult result = command.execute(session);
 
         assertThat(player.getInventory()).isEmpty();
+        assertThat(player.getEquippedWeaponId()).isNull();
         assertThat(result.getResponses()).hasSize(1);
         assertThat(result.getResponses().get(0).type()).isEqualTo(GameResponse.Type.MESSAGE);
         assertThat(result.getResponses().get(0).message()).contains("Deleted Iron Sword");

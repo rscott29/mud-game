@@ -73,6 +73,8 @@ public class PlayerStateCache {
                 player.getMovement(),
                 player.getMaxMovement(),
                 player.getInventory().stream().map(Item::getId).toList(),
+                player.getEquippedWeaponId(),
+                player.getRecallRoomId(),
                 Instant.now()
         );
         
@@ -170,6 +172,8 @@ public class PlayerStateCache {
             int movement,
             int maxMovement,
             List<String> inventoryItemIds,
+            String equippedWeaponId,
+            String recallRoomId,
             Instant cachedAt
     ) {}
 }

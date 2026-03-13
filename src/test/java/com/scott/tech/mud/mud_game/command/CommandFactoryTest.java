@@ -2,14 +2,21 @@ package com.scott.tech.mud.mud_game.command;
 
 import com.scott.tech.mud.mud_game.auth.AccountStore;
 import com.scott.tech.mud.mud_game.auth.ReconnectTokenStore;
+import com.scott.tech.mud.mud_game.combat.CombatLoopScheduler;
+import com.scott.tech.mud.mud_game.combat.CombatService;
+import com.scott.tech.mud.mud_game.combat.CombatState;
+import com.scott.tech.mud.mud_game.command.attack.AttackValidator;
 import com.scott.tech.mud.mud_game.command.admin.DeleteInventoryItemCommand;
 import com.scott.tech.mud.mud_game.command.admin.SpawnCommand;
 import com.scott.tech.mud.mud_game.command.admin.TeleportCommand;
+import com.scott.tech.mud.mud_game.command.bind.BindRecallCommand;
 import com.scott.tech.mud.mud_game.command.communication.dm.DirectMessageCommand;
 import com.scott.tech.mud.mud_game.command.core.CommandResult;
 import com.scott.tech.mud.mud_game.command.core.GameCommand;
 import com.scott.tech.mud.mud_game.command.drop.DropService;
 import com.scott.tech.mud.mud_game.command.drop.DropValidator;
+import com.scott.tech.mud.mud_game.command.equip.EquipService;
+import com.scott.tech.mud.mud_game.command.equip.EquipValidator;
 import com.scott.tech.mud.mud_game.command.look.LookCommand;
 import com.scott.tech.mud.mud_game.command.move.MoveCommand;
 import com.scott.tech.mud.mud_game.command.pickup.PickupService;
@@ -54,6 +61,12 @@ class CommandFactoryTest {
     private PickupService pickupService;
     private DropValidator dropValidator;
     private DropService dropService;
+    private EquipValidator equipValidator;
+    private EquipService equipService;
+    private AttackValidator attackValidator;
+    private CombatService combatService;
+    private CombatState combatState;
+    private CombatLoopScheduler combatLoopScheduler;
     private TalkValidator talkValidator;
     private TalkService talkService;
     private SocialValidator socialValidator;
@@ -74,6 +87,12 @@ class CommandFactoryTest {
         pickupService = mock(PickupService.class);
         dropValidator = mock(DropValidator.class);
         dropService = mock(DropService.class);
+        equipValidator = mock(EquipValidator.class);
+        equipService = mock(EquipService.class);
+        attackValidator = mock(AttackValidator.class);
+        combatService = mock(CombatService.class);
+        combatState = mock(CombatState.class);
+        combatLoopScheduler = mock(CombatLoopScheduler.class);
         talkValidator = mock(TalkValidator.class);
         talkService = mock(TalkService.class);
         socialValidator = mock(SocialValidator.class);
@@ -86,6 +105,8 @@ class CommandFactoryTest {
 
         factory = new CommandFactory(taskScheduler, worldBroadcaster, chatClientBuilder, sessionManager,
                 inventoryService, discoveredExitService, pickupValidator, pickupService, dropValidator, dropService,
+                equipValidator, equipService,
+                attackValidator, combatService, combatState, combatLoopScheduler,
                 talkValidator, talkService, socialValidator, socialService,
                 accountStore, reconnectTokenStore);
     }
@@ -187,6 +208,12 @@ class CommandFactoryTest {
     void socialAction_createsSocialCommand() {
         GameCommand command = factory.create(request("wave", List.of("Bob")));
         assertThat(command).isInstanceOf(SocialCommand.class);
+    }
+
+    @Test
+    void bindCommand_createsBindRecallCommand() {
+        GameCommand command = factory.create(request("bind", List.of()));
+        assertThat(command).isInstanceOf(BindRecallCommand.class);
     }
 
     private static CommandRequest request(String command, List<String> args) {

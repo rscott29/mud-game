@@ -40,4 +40,24 @@ class PlayerTest {
 
         assertThat(player.getInventory()).hasSize(1);
     }
+
+    @Test
+    void removeFromInventory_clearsEquippedWeaponWhenRemovedItemWasEquipped() {
+        Player player = new Player("p1", "Alice", "start");
+        Item sword = new Item("item_sword", "Sword", "A sword", List.of("sword"), true, Rarity.COMMON);
+        player.addToInventory(sword);
+        player.setEquippedWeaponId(sword.getId());
+
+        boolean removed = player.removeFromInventory(sword);
+
+        assertThat(removed).isTrue();
+        assertThat(player.getEquippedWeaponId()).isNull();
+    }
+
+    @Test
+    void constructor_defaultsRecallRoomToStartRoom() {
+        Player player = new Player("p1", "Alice", "start");
+
+        assertThat(player.getRecallRoomId()).isEqualTo("start");
+    }
 }

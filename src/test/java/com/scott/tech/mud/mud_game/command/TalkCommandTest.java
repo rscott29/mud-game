@@ -213,7 +213,8 @@ class TalkCommandTest {
         return new Npc(keyword, keyword.substring(0, 1).toUpperCase() + keyword.substring(1),
                 "A " + keyword + ".", List.of(keyword),
                 "it", "its", 0, 0, List.of(), List.of(), List.of(), List.of(),
-                false, talkTemplates, null);
+                false, talkTemplates, null,
+                false, false, 0, 0, 0, 0, true);
     }
 
     private static Npc npcWithKeywords(String id, List<String> keywords,
@@ -221,13 +222,15 @@ class TalkCommandTest {
         return new Npc(id, id.substring(0, 1).toUpperCase() + id.substring(1),
                 "A " + id + ".", keywords,
                 "he", "his", 0, 0, List.of(), List.of(), List.of(), List.of(),
-                sentient, talkTemplates, null);
+                sentient, talkTemplates, null,
+                false, false, 0, 0, 0, 0, true);
     }
 
     private static Npc sentientNpc(String id, String description, String personality) {
         return new Npc(id, id.substring(0, 1).toUpperCase() + id.substring(1),
                 description, List.of(id),
                 "they", "their", 0, 0, List.of(), List.of(), List.of(), List.of(),
-                true, List.of(), personality);
+                true, List.of(), personality,
+                false, false, 0, 0, 0, 0, true);
     }
 }

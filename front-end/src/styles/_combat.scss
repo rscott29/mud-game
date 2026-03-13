@@ -1,0 +1,155 @@
+// Combat log styles, damage qualifiers, health bars
+
+.combat-log {
+  border-left: 3px solid #c0392b;
+  background: rgba(0, 0, 0, 0.2);
+  padding: 8px 14px;
+  margin: 8px 0;
+  border-radius: 0 4px 4px 0;
+}
+
+.combat-header {
+  font-family: inherit;
+  font-size: 0.85em;
+  font-weight: 700;
+  color: #c0392b;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin-bottom: 6px;
+  opacity: 0.9;
+}
+
+.combat-line {
+  font-family: 'Consolas', 'Courier New', monospace;
+  font-size: 0.95em;
+  line-height: 1.5;
+  color: #d1d5db;
+
+  &.engage {
+    color: #f39c12;
+    font-style: italic;
+    font-family: inherit;
+  }
+
+  &.player-hit { color: #ecf0f1; }
+  &.npc-hit { color: #bdc3c7; }
+
+  &.health-status {
+    color: #7f8c8d;
+    font-size: 0.9em;
+    margin-top: 2px;
+  }
+
+  &.victory {
+    color: #f1c40f;
+    font-weight: 700;
+    font-size: 1.05em;
+    margin-top: 6px;
+    font-family: inherit;
+  }
+
+  &.defeat {
+    color: #e74c3c;
+    font-weight: 700;
+    margin-top: 6px;
+    font-family: inherit;
+  }
+
+  &.xp-gain {
+    color: #9b59b6;
+    font-style: italic;
+    font-family: inherit;
+  }
+
+  &.respawn {
+    color: #3498db;
+    font-style: italic;
+    opacity: 0.8;
+    font-family: inherit;
+  }
+
+  &.warning {
+    color: #f39c12;
+    background: rgba(243, 156, 18, 0.1);
+    border-left: 3px solid #f39c12;
+    padding: 6px 10px;
+    margin: 6px 0;
+    border-radius: 0 4px 4px 0;
+    font-family: inherit;
+
+    .warning-text {
+      color: #f5d89a;
+    }
+
+    strong {
+      color: #fff;
+      background: rgba(255, 255, 255, 0.1);
+      padding: 1px 4px;
+      border-radius: 3px;
+    }
+  }
+}
+
+.combat-icon {
+  display: inline-block;
+  min-width: 22px;
+  text-align: center;
+  opacity: 0.9;
+}
+
+.combat-target {
+  color: #e74c3c;
+  font-weight: bold;
+}
+
+.hp-bar {
+  color: #8ed1fc;
+  font-weight: bold;
+  &.player { color: #2ecc71; }
+}
+
+.xp-value {
+  color: #f1c40f;
+  font-weight: 700;
+}
+
+// Weapon attack verb
+.weapon-verb {
+  color: #3498db;
+  font-weight: bold;
+}
+
+// Damage qualifiers (ordered by severity)
+.qualifier-miss { color: #555555; font-style: italic; }
+.qualifier-scratch { color: #7f8c8d; }
+.qualifier-graze { color: #95a5a6; }
+.qualifier-hit { color: #bdc3c7; }
+.qualifier-injure { color: #ecf0f1; font-weight: bold; }
+.qualifier-wound { color: #f1c40f; font-weight: bold; }
+.qualifier-maul { color: #e67e22; font-weight: bold; }
+.qualifier-decimate { color: #d35400; font-weight: bold; }
+.qualifier-devastate { color: #e74c3c; font-weight: bold; }
+.qualifier-maim { color: #c0392b; font-weight: bold; }
+.qualifier-mutilate { color: #ff3333; font-weight: bold; text-transform: uppercase; }
+.qualifier-disembowel { color: #cc0000; font-weight: bold; text-transform: uppercase; }
+.qualifier-massacre { color: #ff0055; font-weight: 900; text-transform: uppercase; letter-spacing: 0.02em; }
+.qualifier-obliterate {
+  color: #ff3333;
+  font-weight: 900;
+  text-transform: uppercase;
+  font-size: 1.15em;
+  text-shadow: 0 0 8px rgba(255, 51, 51, 0.8), 0 0 2px #fff;
+  letter-spacing: 0.05em;
+}
+.qualifier-annihilate {
+  color: #ff00ff;
+  font-weight: 900;
+  text-transform: uppercase;
+  font-size: 1.18em;
+  text-shadow: 0 0 3px #ff00ff, 0 0 1px #fff;
+  letter-spacing: 0.04em;
+  border-bottom: 2px solid #ff00ff;
+  padding-bottom: 2px;
+  background: linear-gradient(90deg, #2d0036 0%, #ff00ff33 100%);
+  border-radius: 2px;
+}

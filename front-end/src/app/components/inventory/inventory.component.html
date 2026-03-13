@@ -13,9 +13,12 @@
   } @else {
     <ul class="inv-list">
       @for (item of items(); track item.id) {
-        <li class="inv-item rarity-{{ item.rarity }}" (click)="openModal(item)">
+        <li class="inv-item rarity-{{ item.rarity }}" [ngClass]="{ equipped: item.equipped }" (click)="openModal(item)">
           <span class="inv-rarity-pip">{{ rarityIcon(item.rarity) }}</span>
           <span class="inv-item-name">{{ item.name }}</span>
+          @if (item.equipped) {
+            <span class="inv-equipped-badge">⚔️</span>
+          }
           <span class="inv-rarity-label">{{ rarityLabel(item.rarity) }}</span>
         </li>
       }

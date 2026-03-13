@@ -121,7 +121,7 @@
 
 .inv-item {
   display: grid;
-  grid-template-columns: 18px 1fr auto;
+  grid-template-columns: 18px 1fr auto auto;
   align-items: center;
   gap: 8px;
   padding: 9px 10px;
@@ -138,6 +138,16 @@
   &.rarity-rare:hover      { border-color: var(--rarity-rare); }
   &.rarity-legendary       { border-color: var(--rarity-legendary); animation: legendary-pulse 2.4s ease-in-out infinite; }
   &.rarity-legendary:hover { animation-duration: 1.4s; }
+
+  &.equipped {
+    border-color: var(--accent-green);
+    background: rgba(46, 204, 113, 0.08);
+  }
+}
+
+.inv-equipped-badge {
+  font-size: 0.85em;
+  opacity: 0.9;
 }
 
 .inv-rarity-pip {

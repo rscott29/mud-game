@@ -149,7 +149,15 @@
     "description": "A single-edged iron sword hanging from a wall hook. The blade is solid and well-balanced. A strip of worn leather wraps the hilt. The price chalked on a slate below reads 15 silver.",
     "keywords": ["sword", "iron sword", "blade", "weapon"],
     "takeable": true,
-    "rarity": "COMMON"
+    "rarity": "COMMON",
+    "combatStats": {
+      "minDamage": 8,
+      "maxDamage": 16,
+      "attackSpeed": 0,
+      "hitChance": 5,
+      "armor": 0,
+      "attackVerb": "slash"
+    }
   },
   {
     "id": "item_leather_shield",
@@ -157,7 +165,14 @@
     "description": "A round shield faced with thick boiled leather over a wooden frame. A central iron boss is riveted in place. Scuff marks at the edges hint at real use. Sturdy and light.",
     "keywords": ["shield", "leather shield", "buckler", "armor", "armour"],
     "takeable": true,
-    "rarity": "RARE"
+    "rarity": "RARE",
+    "combatStats": {
+      "minDamage": 0,
+      "maxDamage": 0,
+      "attackSpeed": 0,
+      "hitChance": 0,
+      "armor": 5
+    }
   },
   {
     "id": "item_anvil",
@@ -185,7 +200,15 @@
     "prerequisiteFailMessage": "The sword does not stir. Something about you feels... incomplete. As if the oath demands a witness — one that has not yet been found.",
     "triggers": [
       { "event": "PREREQUISITE_FAIL", "npcId": "npc_keeper_of_the_bond", "templateIndex": 0 }
-    ]
+    ],
+    "combatStats": {
+      "minDamage": 20,
+      "maxDamage": 35,
+      "attackSpeed": -10,
+      "hitChance": 15,
+      "armor": 0,
+      "attackVerb": "strike"
+    }
   },
   {
     "id": "item_obis_tag",
@@ -198,5 +221,37 @@
     "keywords": ["collar tag", "tag", "brass tag", "obi's tag", "worn tag"],
     "takeable": true,
     "rarity": "RARE"
+  },
+  {
+    "id": "item_weapon_rack",
+    "name": "Weapon Rack",
+    "description": "A sturdy wooden rack holding an assortment of practice weapons — blunted blades, weighted staves, and padded clubs. Each slot is labeled with care: <em>\"Return after use.\"</em>",
+    "keywords": ["weapon rack", "rack", "weapons rack"],
+    "takeable": false,
+    "rarity": "COMMON"
+  },
+  {
+    "id": "item_practice_sword",
+    "name": "Practice Sword",
+    "description": "A wooden training sword, weighted to match a real blade. The edges are rounded and wrapped in leather to prevent serious injury. Ideal for beginners learning the basics of combat.",
+    "keywords": ["practice sword", "wooden sword", "training sword", "practice weapon", "bokken"],
+    "takeable": true,
+    "rarity": "COMMON",
+    "combatStats": {
+      "minDamage": 2,
+      "maxDamage": 4,
+      "attackSpeed": 0,
+      "hitChance": 0,
+      "armor": 0,
+      "attackVerb": "swing"
+    }
+  },
+  {
+    "id": "item_training_target",
+    "name": "Archery Target",
+    "description": "A large circular target made of tightly bundled straw, mounted on a wooden frame. Concentric circles are painted in red and white. Several arrows protrude from various rings, and a few have missed entirely.",
+    "keywords": ["target", "archery target", "bullseye", "straw target"],
+    "takeable": false,
+    "rarity": "COMMON"
   }
 ]

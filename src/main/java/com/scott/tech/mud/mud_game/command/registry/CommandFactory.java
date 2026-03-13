@@ -2,9 +2,15 @@ package com.scott.tech.mud.mud_game.command.registry;
 
 import com.scott.tech.mud.mud_game.auth.AccountStore;
 import com.scott.tech.mud.mud_game.auth.ReconnectTokenStore;
+import com.scott.tech.mud.mud_game.combat.CombatLoopScheduler;
+import com.scott.tech.mud.mud_game.combat.CombatService;
+import com.scott.tech.mud.mud_game.combat.CombatState;
+import com.scott.tech.mud.mud_game.command.attack.AttackValidator;
 import com.scott.tech.mud.mud_game.command.core.GameCommand;
 import com.scott.tech.mud.mud_game.command.drop.DropService;
 import com.scott.tech.mud.mud_game.command.drop.DropValidator;
+import com.scott.tech.mud.mud_game.command.equip.EquipService;
+import com.scott.tech.mud.mud_game.command.equip.EquipValidator;
 import com.scott.tech.mud.mud_game.command.move.MoveCommand;
 import com.scott.tech.mud.mud_game.command.pickup.PickupService;
 import com.scott.tech.mud.mud_game.command.pickup.PickupValidator;
@@ -48,6 +54,10 @@ public class CommandFactory {
                           DiscoveredExitService discoveredExitService,
                           PickupValidator pickupValidator,
                           PickupService pickupService, DropValidator dropValidator, DropService dropService,
+                          EquipValidator equipValidator, EquipService equipService,
+                          AttackValidator attackValidator, CombatService combatService,
+                          CombatState combatState,
+                          CombatLoopScheduler combatLoopScheduler,
                           TalkValidator talkValidator, TalkService talkService,
                           SocialValidator socialValidator, SocialService socialService,
                           AccountStore accountStore, ReconnectTokenStore reconnectTokenStore) {
@@ -62,6 +72,12 @@ public class CommandFactory {
                 pickupService,
                 dropValidator,
                 dropService,
+                equipValidator,
+                equipService,
+                attackValidator,
+                combatService,
+                combatState,
+                combatLoopScheduler,
                 talkValidator,
                 talkService,
                 socialValidator,

@@ -1,0 +1,52 @@
+// Room display styles
+
+ul {
+  margin-left: 20px;
+}
+
+.room-msg {
+  margin-bottom: 8px;
+  color: #ecf0f1;
+}
+
+.room-name {
+  margin-bottom: 4px;
+  font-size: 1.1em;
+  font-weight: 700;
+  color: var(--accent-blue-lt);
+}
+
+.room-desc {
+  color: var(--text-desc);
+}
+
+.room-meta {
+  margin-top: 16px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(149, 165, 166, 0.15);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 0.82em;
+
+  @media (min-width: 768px) {
+    flex-direction: row;
+    flex-wrap: wrap;
+    column-gap: 32px;
+    row-gap: 12px;
+  }
+}
+
+.meta-group {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.meta-label {
+  color: var(--text-muted);
+  font-size: 0.78em;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}

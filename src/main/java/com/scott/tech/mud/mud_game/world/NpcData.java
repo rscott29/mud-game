@@ -52,6 +52,22 @@ public class NpcData {
      */
     private String personality;
 
+    // Combat-related fields (for training dummies and future enemies)
+    /** Whether this NPC can be targeted in combat. */
+    private boolean combatTarget = false;
+    /** Whether this NPC respawns after being defeated. */
+    private boolean respawns = false;
+    /** Maximum health for combat. */
+    private int maxHealth = 0;
+    /** XP awarded when defeated. */
+    private int xpReward = 0;
+    /** Minimum damage this NPC deals when attacking. */
+    private int minDamage = 0;
+    /** Maximum damage this NPC deals when attacking. */
+    private int maxDamage = 0;
+    /** Whether this NPC can reduce players to 0 HP. */
+    private boolean playerDeathEnabled = true;
+
     public String getId()                          { return id; }
     public String getName()                        { return name; }
     public String getDescription()                 { return description; }
@@ -63,6 +79,13 @@ public class NpcData {
     public boolean isSentient()                    { return sentient; }
     public List<String> getTalkTemplates()         { return talkTemplates; }
     public String getPersonality()                 { return personality; }
+    public boolean isCombatTarget()                { return combatTarget; }
+    public boolean isRespawns()                    { return respawns; }
+    public int getMaxHealth()                      { return maxHealth; }
+    public int getXpReward()                       { return xpReward; }
+    public int getMinDamage()                      { return minDamage; }
+    public int getMaxDamage()                      { return maxDamage; }
+    public boolean isPlayerDeathEnabled()          { return playerDeathEnabled; }
 
     public void setId(String id)                           { this.id = id; }
     public void setName(String name)                       { this.name = name; }
@@ -75,6 +98,13 @@ public class NpcData {
     public void setSentient(boolean s)                     { this.sentient = s; }
     public void setTalkTemplates(List<String> t)           { this.talkTemplates = t != null ? t : List.of(); }
     public void setPersonality(String p)                   { this.personality = p; }
+    public void setCombatTarget(boolean c)                 { this.combatTarget = c; }
+    public void setRespawns(boolean r)                     { this.respawns = r; }
+    public void setMaxHealth(int h)                        { this.maxHealth = h; }
+    public void setXpReward(int xp)                        { this.xpReward = xp; }
+    public void setMinDamage(int d)                        { this.minDamage = d; }
+    public void setMaxDamage(int d)                        { this.maxDamage = d; }
+    public void setPlayerDeathEnabled(boolean playerDeathEnabled)  { this.playerDeathEnabled = playerDeathEnabled; }
 
     /** Accepts a plain JSON string or a JSON array of strings (joined with a space). */
     static class DescriptionDeserializer extends StdDeserializer<String> {
