@@ -12,11 +12,13 @@ import com.scott.tech.mud.mud_game.command.look.LookCommand;
 import com.scott.tech.mud.mud_game.command.logout.LogoutCommand;
 import com.scott.tech.mud.mud_game.command.move.MoveCommand;
 import com.scott.tech.mud.mud_game.command.pickup.PickupCommand;
+import com.scott.tech.mud.mud_game.command.skills.SkillsCommand;
 import com.scott.tech.mud.mud_game.command.talk.TalkCommand;
 import com.scott.tech.mud.mud_game.command.unknown.UnknownCommand;
 import com.scott.tech.mud.mud_game.command.who.WhoCommand;
 import com.scott.tech.mud.mud_game.command.admin.DeleteInventoryItemCommand;
 import com.scott.tech.mud.mud_game.command.admin.KickCommand;
+import com.scott.tech.mud.mud_game.command.admin.SetLevelCommand;
 import com.scott.tech.mud.mud_game.command.admin.SpawnCommand;
 import com.scott.tech.mud.mud_game.command.admin.SummonCommand;
 import com.scott.tech.mud.mud_game.command.admin.TeleportCommand;
@@ -54,6 +56,7 @@ public final class CommandRegistry {
     public static final String BIND = "bind";
     public static final String INVENTORY = "inventory";;
     public static final String INVESTIGATE = "investigate";
+    public static final String SKILLS = "skills";
     public static final String EMOTE = "emote";
     // God commands
     public static final String SPAWN = "spawn";
@@ -61,6 +64,7 @@ public final class CommandRegistry {
     public static final String TELEPORT = "teleport";
     public static final String SUMMON = "summon";
     public static final String KICK = "kick";
+    public static final String SET_LEVEL = "setlevel";
 
     private static final List<CommandDefinition> ALL_DEFINITIONS = buildDefinitions();
     private static final List<CommandMetadata> ALL_COMMANDS = ALL_DEFINITIONS.stream()
@@ -319,7 +323,8 @@ public final class CommandRegistry {
                         ctx.deps().attackValidator(),
                         ctx.deps().combatService(),
                         ctx.deps().combatLoopScheduler(),
-                        ctx.deps().combatState()
+                        ctx.deps().combatState(),
+                        ctx.deps().xpTables()
                 ))
                 .build());
 
@@ -388,6 +393,14 @@ public final class CommandRegistry {
                 .creator(ctx -> new HelpCommand())
                 .build());
 
+        commands.add(CommandDefinition.builder(SKILLS)
+                .aliases("skills", "sk", "progression", "abilities")
+                .category(SESSION)
+                .usage("skills")
+                .description("View your class skill progression")
+                .creator(ctx -> new SkillsCommand())
+                .build());
+
         commands.add(CommandDefinition.builder(LOGOUT)
                 .aliases("logout", "logoff", "quit", "exit")
                 .category(SESSION)
@@ -453,6 +466,23 @@ public final class CommandRegistry {
                         ctx.deps().worldBroadcaster(),
                         ctx.deps().accountStore(),
                         ctx.deps().reconnectTokenStore()
+                ))
+                .build());
+
+        commands.add(CommandDefinition.builder(SET_LEVEL)
+                .aliases("setlevel", "setlvl", "level")
+                .category(GOD)
+                .usage("setlevel [player] <level>")
+                .description("Set a player's level (or your own if no player specified)")
+                .godOnly()
+                .creator(ctx -> new SetLevelCommand(
+                        ctx.joinedArgs(),
+                        ctx.deps().sessionManager(),
+                        ctx.deps().worldBroadcaster(),
+                        ctx.deps().xpTables(),
+                        ctx.deps().levelingService(),
+                        ctx.deps().playerProfileService(),
+                        ctx.deps().stateCache()
                 ))
                 .build());
 

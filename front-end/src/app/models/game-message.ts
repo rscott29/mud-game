@@ -39,7 +39,13 @@ export interface PlayerStatsDto {
   maxMana: number;
   movement: number;
   maxMovement: number;
+  level: number;
+  maxLevel: number;
+  xpProgress: number;
+  xpForNextLevel: number;
+  totalXp: number;
   isGod: boolean;
+  characterClass: string;
 }
 
 export interface PronounOptionDto {

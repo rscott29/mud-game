@@ -1,5 +1,6 @@
 package com.scott.tech.mud.mud_game.combat;
 
+import com.scott.tech.mud.mud_game.config.SkillTableService;
 import com.scott.tech.mud.mud_game.model.Item;
 import com.scott.tech.mud.mud_game.model.Player;
 import org.springframework.stereotype.Service;
@@ -14,6 +15,14 @@ public class CombatStatsResolver {
     static final int BASE_PLAYER_MIN_DAMAGE = 2;
     static final int BASE_PLAYER_MAX_DAMAGE = 6;
     static final int BASE_HIT_CHANCE = 75;
+    static final int MIN_HIT_CHANCE = 1;
+    static final int MAX_HIT_CHANCE = 99;
+
+    private final SkillTableService skillTableService;
+
+    public CombatStatsResolver(SkillTableService skillTableService) {
+        this.skillTableService = skillTableService;
+    }
 
     public PlayerCombatStats resolve(Player player) {
         int minDamage = BASE_PLAYER_MIN_DAMAGE;
@@ -40,10 +49,19 @@ public class CombatStatsResolver {
                 .mapToInt(Item.CombatStats::armor)
                 .sum();
 
+        SkillTableService.PassiveBonuses passiveBonuses = skillTableService.getPassiveBonuses(
+                player.getCharacterClass(),
+                player.getLevel()
+        );
+        minDamage = Math.max(1, minDamage + passiveBonuses.minDamageBonus());
+        maxDamage = Math.max(minDamage, maxDamage + passiveBonuses.maxDamageBonus());
+        hitChance += passiveBonuses.hitChanceBonus();
+        armor = Math.max(0, armor + passiveBonuses.armorBonus());
+
         return new PlayerCombatStats(
                 minDamage,
                 maxDamage,
-                Math.min(99, hitChance),
+                Math.max(MIN_HIT_CHANCE, Math.min(MAX_HIT_CHANCE, hitChance)),
                 attackSpeed,
                 armor,
                 attackVerb

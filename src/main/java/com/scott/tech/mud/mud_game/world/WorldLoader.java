@@ -153,7 +153,7 @@ public class WorldLoader {
                     minSec, maxSec, depTemplates, arrTemplates, pathList,
                     n.getInteractTemplates(),
                     n.isSentient(), n.getTalkTemplates(), n.getPersonality(),
-                    n.isCombatTarget(), n.isRespawns(), n.getMaxHealth(), n.getXpReward(),
+                    n.isCombatTarget(), n.isRespawns(), n.getMaxHealth(), n.getLevel(), n.getXpReward(),
                     n.getMinDamage(), n.getMaxDamage(), n.isPlayerDeathEnabled()
             );
 
@@ -181,9 +181,15 @@ public class WorldLoader {
             if (npc.getMaxHealth() > 0 || npc.getXpReward() > 0 || npc.getMinDamage() > 0 || npc.getMaxDamage() > 0) {
                 log.warn("NPC '{}' defines combat stats but combatTarget is false; stats will be ignored", npcId);
             }
+            if (npc.getLevel() != 1) {
+                log.warn("NPC '{}' defines level={} but combatTarget is false; level is ignored", npcId, npc.getLevel());
+            }
             return;
         }
 
+        if (npc.getLevel() < 1) {
+            throw new WorldLoadException("NPC '" + npcId + "' has invalid level (must be >= 1)");
+        }
         if (npc.getMaxHealth() <= 0) {
             throw new WorldLoadException("NPC '" + npcId + "' is combatTarget but maxHealth <= 0");
         }

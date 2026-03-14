@@ -1,5 +1,6 @@
 package com.scott.tech.mud.mud_game.combat;
 
+import com.scott.tech.mud.mud_game.config.ExperienceTableService;
 import com.scott.tech.mud.mud_game.dto.GameResponse;
 import com.scott.tech.mud.mud_game.model.Player;
 import com.scott.tech.mud.mud_game.session.GameSession;
@@ -33,11 +34,14 @@ public class HealthRegenScheduler {
     private final GameSessionManager sessionManager;
     private final CombatState combatState;
     private final WorldBroadcaster worldBroadcaster;
+    private final ExperienceTableService xpTables;
 
-    public HealthRegenScheduler(GameSessionManager sessionManager, CombatState combatState, WorldBroadcaster worldBroadcaster) {
+    public HealthRegenScheduler(GameSessionManager sessionManager, CombatState combatState, 
+                                WorldBroadcaster worldBroadcaster, ExperienceTableService xpTables) {
         this.sessionManager = sessionManager;
         this.combatState = combatState;
         this.worldBroadcaster = worldBroadcaster;
+        this.xpTables = xpTables;
     }
 
     /**
@@ -84,7 +88,7 @@ public class HealthRegenScheduler {
 
         // Push stats update to the player if anything changed
         if (changed) {
-            worldBroadcaster.sendToSession(sessionId, GameResponse.playerStatsUpdate(player));
+            worldBroadcaster.sendToSession(sessionId, GameResponse.playerStatsUpdate(player, xpTables));
         }
     }
 }

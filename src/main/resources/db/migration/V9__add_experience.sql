@@ -1,0 +1,1 @@
+ALTER TABLE player_profiles ADD COLUMN experience INTEGER NOT NULL DEFAULT 0;

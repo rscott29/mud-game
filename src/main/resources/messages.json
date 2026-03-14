@@ -97,6 +97,14 @@
   "command.kick.player_message"         : "{god} evaporates your soul. You have been kicked from the game.",
   "command.kick.god_confirm"            : "[god] You have kicked {player} from the game.",
 
+  "command.setlevel.not_god"            : "Unknown command.",
+  "command.setlevel.usage"              : "[god] Usage: setlevel [player] <level>",
+  "command.setlevel.invalid_level"      : "[god] Invalid level: must be a number.",
+  "command.setlevel.player_not_found"   : "[god] Could not find player: {player}",
+  "command.setlevel.level_out_of_range" : "[god] Level must be between 1 and {max}.",
+  "command.setlevel.success"            : "[god] Set {player}'s level to {new_level} (was {old_level}).",
+  "command.setlevel.target_notify"      : "Your level has been set to {level} by divine intervention.",
+
   "command.deleteitem.not_god"          : "Unknown command.",
   "command.deleteitem.usage"            : "[god] Usage: deleteitem <item>",
   "command.deleteitem.not_carrying"     : "[god] You are not carrying '{item}'.",
@@ -167,6 +175,14 @@
   "combat.player_defeated"              : "<div class='combat-line defeat'>💀 You have been defeated!</div>",
   "combat.xp_gained"                    : "<div class='combat-line xp-gain'>✨ You gain <span class='xp-value'>{xp}</span> experience points.</div>",
   "combat.npc_respawns"                 : "<div class='combat-line respawn'>🔄 {npc} reconstitutes itself, ready for more training.</div>",
+
+  "level.up"                            : "<div class='level-up'>🎉 <span class='level-up-text'>LEVEL UP!</span> {name} has reached <span class='level-value'>Level {level}</span>!</div>",
+  "level.up.multi"                      : "<div class='level-up'>🎉 <span class='level-up-text'>LEVEL UP!</span> {name} has advanced from Level {old_level} to <span class='level-value'>Level {new_level}</span>!</div>",
+  "level.up.world"                      : "<div class='level-up-world'>🎉 <strong>{name}</strong> has reached <span class='level-value'>Level {level}</span>! Congratulations!</div>",
+  "level.up.world.multi"                : "<div class='level-up-world'>🎉 <strong>{name}</strong> has advanced to <span class='level-value'>Level {level}</span>! Congratulations!</div>",
+  "level.max_reached"                   : "<div class='level-up max'>⭐ {name} has reached the maximum level!</div>",
+  "skill.unlock"                        : "<div class='skill-unlock'>You have unlocked <strong>{skill}</strong>.</div>",
+
   "combat.player_respawns"              : "You awaken at {room}, pulled back to your recall point.",
   "combat.player_respawn_departure"     : "{player}'s body dissolves into pale light.",
   "combat.player_respawn_arrival"       : "{player} staggers in, dragged back from the brink.",

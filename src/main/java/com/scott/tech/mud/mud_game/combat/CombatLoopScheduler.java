@@ -3,6 +3,7 @@ package com.scott.tech.mud.mud_game.combat;
 import com.scott.tech.mud.mud_game.config.Messages;
 import com.scott.tech.mud.mud_game.dto.GameResponse;
 import com.scott.tech.mud.mud_game.model.Npc;
+import com.scott.tech.mud.mud_game.service.LevelingService;
 import com.scott.tech.mud.mud_game.session.GameSession;
 import com.scott.tech.mud.mud_game.session.GameSessionManager;
 import com.scott.tech.mud.mud_game.websocket.WorldBroadcaster;
@@ -12,6 +13,7 @@ import org.springframework.scheduling.TaskScheduler;
 import org.springframework.stereotype.Component;
 
 import java.time.Instant;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ScheduledFuture;
@@ -28,6 +30,7 @@ public class CombatLoopScheduler {
     private final PlayerRespawnService playerRespawnService;
     private final WorldBroadcaster broadcaster;
     private final GameSessionManager sessionManager;
+    private final LevelingService levelingService;
 
     private final Map<String, ScheduledFuture<?>> scheduledActions = new ConcurrentHashMap<>();
 
@@ -37,7 +40,8 @@ public class CombatLoopScheduler {
                                CombatTimingPolicy combatTimingPolicy,
                                PlayerRespawnService playerRespawnService,
                                WorldBroadcaster broadcaster,
-                               GameSessionManager sessionManager) {
+                               GameSessionManager sessionManager,
+                               LevelingService levelingService) {
         this.taskScheduler = taskScheduler;
         this.combatService = combatService;
         this.combatState = combatState;
@@ -45,6 +49,7 @@ public class CombatLoopScheduler {
         this.playerRespawnService = playerRespawnService;
         this.broadcaster = broadcaster;
         this.sessionManager = sessionManager;
+        this.levelingService = levelingService;
     }
 
     public void scheduleNpcCounterAttack(String sessionId) {
@@ -115,7 +120,7 @@ public class CombatLoopScheduler {
             String roomId = session.getPlayer().getCurrentRoomId();
             Npc target = encounter.getTarget();
             broadcaster.sendToSession(sessionId,
-                    GameResponse.message(result.message()).withPlayerStats(session.getPlayer()));
+                    GameResponse.message(result.message()).withPlayerStats(session.getPlayer(), levelingService.getXpTables()));
 
             String actionKey = result.playerDefeated()
                     ? "action.combat.npc_defeats"
@@ -162,8 +167,40 @@ public class CombatLoopScheduler {
             }
 
             CombatService.AttackResult result = combatService.executePlayerAttack(session, encounter);
-            broadcaster.sendToSession(sessionId,
-                    GameResponse.message(result.message()).withPlayerStats(session.getPlayer()));
+
+            // Handle XP gain and potential level up
+            if (result.xpGained() > 0) {
+                LevelingService.XpGainResult xpResult = levelingService.addExperience(session.getPlayer(), result.xpGained());
+                
+                // Send combat result first (with accurate XP progress)
+                broadcaster.sendToSession(sessionId,
+                        GameResponse.message(result.message()).withPlayerStats(session.getPlayer(), levelingService.getXpTables()));
+                
+                // If leveled up, send level up message and broadcast to world
+                if (xpResult.leveledUp()) {
+                    broadcaster.sendToSession(sessionId,
+                            GameResponse.message(xpResult.levelUpMessage()).withPlayerStats(session.getPlayer(), levelingService.getXpTables()));
+
+                    List<String> unlockedSkills = levelingService.getNewlyUnlockedSkillNames(
+                            session.getPlayer(),
+                            xpResult.oldLevel(),
+                            xpResult.newLevel()
+                    );
+                    for (String skillName : unlockedSkills) {
+                        broadcaster.sendToSession(sessionId,
+                                GameResponse.message(Messages.fmt("skill.unlock", "skill", skillName)));
+                    }
+                    
+                    // Broadcast level up to the world so they can celebrate!
+                    String worldMsg = Messages.fmt("level.up.world",
+                            "name", session.getPlayer().getName(),
+                            "level", String.valueOf(xpResult.newLevel()));
+                    broadcaster.broadcastToAll(GameResponse.message(worldMsg));
+                }
+            } else {
+                broadcaster.sendToSession(sessionId,
+                        GameResponse.message(result.message()).withPlayerStats(session.getPlayer(), levelingService.getXpTables()));
+            }
 
             String actionMsg = result.targetDefeated()
                     ? Messages.fmt("action.combat.defeat", "player", session.getPlayer().getName(), "npc", encounter.getTarget().getName())

@@ -4,13 +4,14 @@ import { InventoryComponent } from './components/inventory/inventory.component';
 import { WhoComponent } from './components/who/who.component';
 import { HelpComponent } from './components/help/help.component';
 import { PlayerStatsComponent } from './components/player-stats/player-stats.component';
+import { ClassProgressionComponent } from './components/class-progression/class-progression.component';
 import { ZoomService } from './services/zoom.service';
 import { GameSocketService } from './services/game-socket.service';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [TerminalComponent, InventoryComponent, WhoComponent, HelpComponent, PlayerStatsComponent],
+  imports: [TerminalComponent, InventoryComponent, WhoComponent, HelpComponent, PlayerStatsComponent, ClassProgressionComponent],
   template: `
     <main class="game-layout" [style.fontSize.%]="zoomService.zoomLevel()">
       <div class="game-main">
@@ -27,6 +28,9 @@ import { GameSocketService } from './services/game-socket.service';
       }
       @if (socketService.helpOpen()) {
         <app-help />
+      }
+      @if (socketService.classProgressionOpen()) {
+        <app-class-progression />
       }
     </main>
   `,

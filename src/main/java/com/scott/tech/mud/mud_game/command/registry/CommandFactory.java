@@ -3,6 +3,7 @@ package com.scott.tech.mud.mud_game.command.registry;
 import com.scott.tech.mud.mud_game.auth.AccountStore;
 import com.scott.tech.mud.mud_game.auth.ReconnectTokenStore;
 import com.scott.tech.mud.mud_game.combat.CombatLoopScheduler;
+import com.scott.tech.mud.mud_game.config.ExperienceTableService;
 import com.scott.tech.mud.mud_game.combat.CombatService;
 import com.scott.tech.mud.mud_game.combat.CombatState;
 import com.scott.tech.mud.mud_game.command.attack.AttackValidator;
@@ -23,8 +24,11 @@ import com.scott.tech.mud.mud_game.command.talk.TalkValidator;
 import com.scott.tech.mud.mud_game.command.unknown.UnknownCommand;
 import com.scott.tech.mud.mud_game.dto.CommandRequest;
 import com.scott.tech.mud.mud_game.model.Direction;
+import com.scott.tech.mud.mud_game.persistence.cache.PlayerStateCache;
 import com.scott.tech.mud.mud_game.persistence.service.DiscoveredExitService;
 import com.scott.tech.mud.mud_game.persistence.service.InventoryService;
+import com.scott.tech.mud.mud_game.persistence.service.PlayerProfileService;
+import com.scott.tech.mud.mud_game.service.LevelingService;
 import com.scott.tech.mud.mud_game.session.GameSessionManager;
 import com.scott.tech.mud.mud_game.websocket.WorldBroadcaster;
 import org.springframework.ai.chat.client.ChatClient;
@@ -60,7 +64,11 @@ public class CommandFactory {
                           CombatLoopScheduler combatLoopScheduler,
                           TalkValidator talkValidator, TalkService talkService,
                           SocialValidator socialValidator, SocialService socialService,
-                          AccountStore accountStore, ReconnectTokenStore reconnectTokenStore) {
+                          AccountStore accountStore, ReconnectTokenStore reconnectTokenStore,
+                          ExperienceTableService xpTables,
+                          LevelingService levelingService,
+                          PlayerProfileService playerProfileService,
+                          PlayerStateCache stateCache) {
         this.deps = new CommandDependencies(
                 taskScheduler,
                 worldBroadcaster,
@@ -83,7 +91,11 @@ public class CommandFactory {
                 socialValidator,
                 socialService,
                 accountStore,
-                reconnectTokenStore
+                reconnectTokenStore,
+                xpTables,
+                levelingService,
+                playerProfileService,
+                stateCache
         );
     }
 

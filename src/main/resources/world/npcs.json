@@ -150,6 +150,7 @@
   "combatTarget": true,
   "respawns": true,
   "maxHealth": 50,
+  "level": 3,
   "xpReward": 5,
   "minDamage": 1,
   "maxDamage": 2,
@@ -177,9 +178,10 @@
   "combatTarget": true,
   "respawns": true,
   "maxHealth": 100,
-  "xpReward": 10,
+  "level": 8,
+  "xpReward": 25,
   "minDamage": 1,
-  "maxDamage": 2,
+  "maxDamage": 4,
   "playerDeathEnabled": false
 },
 {
@@ -204,9 +206,10 @@
   "combatTarget": true,
   "respawns": true,
   "maxHealth": 75,
-  "xpReward": 15,
+  "level": 14,
+  "xpReward": 35,
   "minDamage": 2,
-  "maxDamage": 4,
+  "maxDamage": 5,
   "playerDeathEnabled": false
 }
 ]

@@ -2,6 +2,7 @@ package com.scott.tech.mud.mud_game.auth;
 
 import com.scott.tech.mud.mud_game.command.core.CommandResult;
 import com.scott.tech.mud.mud_game.config.CharacterClassStatsRegistry;
+import com.scott.tech.mud.mud_game.config.ExperienceTableService;
 import com.scott.tech.mud.mud_game.config.Messages;
 import com.scott.tech.mud.mud_game.dto.GameResponse;
 import com.scott.tech.mud.mud_game.model.Player;
@@ -48,6 +49,7 @@ public class LoginHandler {
     private final InventoryService inventoryService;
     private final com.scott.tech.mud.mud_game.persistence.service.DiscoveredExitService discoveredExitService;
     private final CharacterClassStatsRegistry classStatsRegistry;
+    private final ExperienceTableService xpTables;
     private final PlayerStateCache stateCache;
     private final DisconnectGracePeriodService disconnectGracePeriod;
 
@@ -59,6 +61,7 @@ public class LoginHandler {
                         InventoryService inventoryService,
                         com.scott.tech.mud.mud_game.persistence.service.DiscoveredExitService discoveredExitService,
                         CharacterClassStatsRegistry classStatsRegistry,
+                        ExperienceTableService xpTables,
                         PlayerStateCache stateCache,
                         DisconnectGracePeriodService disconnectGracePeriod) {
         this.accountStore          = accountStore;
@@ -69,6 +72,7 @@ public class LoginHandler {
         this.inventoryService      = inventoryService;
         this.discoveredExitService = discoveredExitService;
         this.classStatsRegistry    = classStatsRegistry;
+        this.xpTables              = xpTables;
         this.stateCache            = stateCache;
         this.disconnectGracePeriod = disconnectGracePeriod;
     }
@@ -155,7 +159,7 @@ public class LoginHandler {
                 GameResponse.welcome(session.getPlayer().getName(), session.getCurrentRoom(), others,
                         session.getDiscoveredHiddenExits(session.getPlayer().getCurrentRoomId()), invIds)
                     .withInventory(invViews)
-                    .withPlayerStats(session.getPlayer()),
+                    .withPlayerStats(session.getPlayer(), xpTables),
                 GameResponse.sessionToken(token));
         }
 
@@ -217,7 +221,7 @@ public class LoginHandler {
             GameResponse.authPrompt(Messages.get("auth.message.character_created"), false),
             GameResponse.welcome(session.getPlayer().getName(), session.getCurrentRoom(), others)
                 .withInventory(java.util.List.of())
-                .withPlayerStats(session.getPlayer()),
+                .withPlayerStats(session.getPlayer(), xpTables),
             GameResponse.sessionToken(token));
     }
 
@@ -352,7 +356,7 @@ public class LoginHandler {
             GameResponse.authPrompt(Messages.get("auth.message.character_created"), false),
             GameResponse.welcome(session.getPlayer().getName(), session.getCurrentRoom(), others)
                 .withInventory(java.util.List.of())
-                .withPlayerStats(session.getPlayer()),
+                .withPlayerStats(session.getPlayer(), xpTables),
             GameResponse.sessionToken(token));
     }
 
@@ -406,7 +410,7 @@ public class LoginHandler {
                     GameResponse.welcome(session.getPlayer().getName(), session.getCurrentRoom(), others,
                             session.getDiscoveredHiddenExits(session.getPlayer().getCurrentRoomId()), invIds)
                         .withInventory(invViews)
-                        .withPlayerStats(session.getPlayer()),
+                        .withPlayerStats(session.getPlayer(), xpTables),
                     GameResponse.sessionToken(newToken));
             })
             .orElseGet(() -> {
@@ -437,6 +441,7 @@ public class LoginHandler {
             session.getPlayer().setMaxMana(cached.maxMana());
             session.getPlayer().setMovement(cached.movement());
             session.getPlayer().setMaxMovement(cached.maxMovement());
+            session.getPlayer().setExperience(cached.experience());
             session.getPlayer().setEquippedWeaponId(cached.equippedWeaponId());
             if (cached.recallRoomId() != null && !cached.recallRoomId().isBlank()) {
                 session.getPlayer().setRecallRoomId(cached.recallRoomId());

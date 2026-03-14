@@ -1,5 +1,6 @@
 package com.scott.tech.mud.mud_game.combat;
 
+import com.scott.tech.mud.mud_game.config.ExperienceTableService;
 import com.scott.tech.mud.mud_game.dto.GameResponse;
 import com.scott.tech.mud.mud_game.model.Direction;
 import com.scott.tech.mud.mud_game.model.Player;
@@ -15,6 +16,8 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -45,7 +48,12 @@ class PlayerRespawnServiceTest {
         GameSession session = new GameSession("session-1", player, worldService);
         when(sessionManager.getSessionsInRoom("town_square")).thenReturn(List.of(session));
 
-        PlayerRespawnService service = new PlayerRespawnService(sessionManager, broadcaster);
+        ExperienceTableService xpTables = mock(ExperienceTableService.class);
+        when(xpTables.getMaxLevel(anyString())).thenReturn(70);
+        when(xpTables.getXpProgressInLevel(anyString(), anyInt(), anyInt())).thenReturn(0);
+        when(xpTables.getXpToNextLevel(anyString(), anyInt())).thenReturn(100);
+
+        PlayerRespawnService service = new PlayerRespawnService(sessionManager, broadcaster, xpTables);
         GameResponse response = service.respawn(session);
 
         assertThat(player.getCurrentRoomId()).isEqualTo("town_square");

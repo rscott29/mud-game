@@ -40,6 +40,8 @@ public class Npc {
     private final boolean respawns;
     /** Maximum health for combat. 0 = not a combat NPC. */
     private final int maxHealth;
+    /** Recommended combat level used for XP scaling. */
+    private final int level;
     /** XP awarded when this NPC is defeated. */
     private final int xpReward;
     /** Minimum damage this NPC deals when attacking. */
@@ -56,6 +58,26 @@ public class Npc {
                List<String> wanderPath, List<String> interactTemplates,
                boolean sentient, List<String> talkTemplates, String personality,
                boolean combatTarget, boolean respawns, int maxHealth, int xpReward,
+               int minDamage, int maxDamage, boolean playerDeathEnabled) {
+        this(
+                id, name, description, keywords,
+                pronoun, possessive,
+                wanderMinSeconds, wanderMaxSeconds,
+                wanderDepartureTemplates, wanderArrivalTemplates,
+                wanderPath, interactTemplates,
+                sentient, talkTemplates, personality,
+                combatTarget, respawns, maxHealth, 1, xpReward,
+                minDamage, maxDamage, playerDeathEnabled
+        );
+    }
+
+    public Npc(String id, String name, String description, List<String> keywords,
+               String pronoun, String possessive,
+               long wanderMinSeconds, long wanderMaxSeconds,
+               List<String> wanderDepartureTemplates, List<String> wanderArrivalTemplates,
+               List<String> wanderPath, List<String> interactTemplates,
+               boolean sentient, List<String> talkTemplates, String personality,
+               boolean combatTarget, boolean respawns, int maxHealth, int level, int xpReward,
                int minDamage, int maxDamage, boolean playerDeathEnabled) {
         this.id                       = id;
         this.name                     = name;
@@ -75,6 +97,7 @@ public class Npc {
         this.combatTarget             = combatTarget;
         this.respawns                 = respawns;
         this.maxHealth                = maxHealth;
+        this.level                    = Math.max(1, level);
         this.xpReward                 = xpReward;
         this.minDamage                = minDamage;
         this.maxDamage                = maxDamage;
@@ -103,6 +126,7 @@ public class Npc {
     public boolean isCombatTarget()                   { return combatTarget; }
     public boolean doesRespawn()                      { return respawns; }
     public int getMaxHealth()                         { return maxHealth; }
+    public int getLevel()                             { return level; }
     public int getXpReward()                          { return xpReward; }
     public int getMinDamage()                         { return minDamage; }
     public int getMaxDamage()                         { return maxDamage; }

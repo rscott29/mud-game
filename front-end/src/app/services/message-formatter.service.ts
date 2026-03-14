@@ -61,6 +61,7 @@ export class MessageFormatterService {
       case 'INVENTORY_UPDATE':
       case 'HELP':
       case 'STAT_UPDATE':
+      case 'CLASS_PROGRESSION':
         // Handled visually by their respective panels — no terminal output needed.
         return { type: 'skip' };
 

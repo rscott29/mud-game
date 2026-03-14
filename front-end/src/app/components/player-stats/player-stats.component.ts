@@ -26,6 +26,18 @@ import { ZoomService } from '../../services/zoom.service';
           <div class="stat-name">Movement</div>
           <div class="stat-display movement" [class.is-god-stat]="isGod()">{{ displayMovement() }}</div>
         </div>
+        <div class="stat-block xp-block">
+          <div class="stat-name">Level {{ currentLevel() }}@if (!isMaxLevel()) { / {{ maxLevel() }} }</div>
+          <div class="xp-bar-container" [class.max-level]="isMaxLevel()">
+            <div class="xp-bar-fill" [style.width.%]="xpPercentage()"></div>
+          </div>
+          @if (isMaxLevel()) {
+            <div class="xp-text max">MAX LEVEL</div>
+          } @else {
+            <div class="xp-text">{{ xpProgress() }} / {{ xpForNextLevel() }} XP</div>
+            <div class="xp-total-text">Total XP: {{ totalXp() }}</div>
+          }
+        </div>
         @if (isGod()) {
           <div class="god-indicator">
             <span class="bolt">⚡</span>
@@ -102,6 +114,66 @@ import { ZoomService } from '../../services/zoom.service';
 
     .stat-display.movement {
       color: var(--accent-green);
+    }
+
+    .xp-block {
+      min-width: 140px;
+    }
+
+    .xp-bar-container {
+      width: 100%;
+      height: 8px;
+      background: var(--bg-surface);
+      border: 1px solid var(--border-surface);
+      border-radius: 4px;
+      overflow: hidden;
+      margin: 2px 0;
+    }
+
+    .xp-bar-container.max-level {
+      border-color: var(--accent-gold, #ffd700);
+      box-shadow: 0 0 4px var(--accent-gold, #ffd700);
+    }
+
+    .xp-bar-fill {
+      height: 100%;
+      background: linear-gradient(90deg, 
+        var(--accent-purple, #9575cd) 0%, 
+        var(--accent-purple-lt, #b39ddb) 100%);
+      border-radius: 3px;
+      transition: width 0.3s ease-out;
+      box-shadow: 0 0 6px var(--accent-purple, #9575cd);
+    }
+
+    .xp-bar-container.max-level .xp-bar-fill {
+      background: linear-gradient(90deg, 
+        var(--accent-gold, #ffd700) 0%, 
+        #ffeb3b 50%,
+        var(--accent-gold, #ffd700) 100%);
+      box-shadow: 0 0 8px var(--accent-gold, #ffd700);
+    }
+
+    .xp-text {
+      font-size: 0.7em;
+      font-family: var(--font-mono);
+      color: var(--accent-purple-lt, #b39ddb);
+      text-align: center;
+      line-height: 1;
+    }
+
+    .xp-total-text {
+      margin-top: 2px;
+      font-size: 0.62em;
+      font-family: var(--font-mono);
+      color: var(--text-muted);
+      text-align: center;
+      line-height: 1;
+    }
+
+    .xp-text.max {
+      color: var(--accent-gold, #ffd700);
+      font-weight: 700;
+      letter-spacing: 0.05em;
     }
 
     .god-mode {
@@ -225,4 +297,18 @@ export class PlayerStatsComponent {
   readonly displayMovement = computed(() => 
     this.isGod() ? '∞' : `${this.currentMovement()} / ${this.maxMovement()}`
   );
+
+  readonly currentLevel = computed(() => this.stats()?.level ?? 1);
+  readonly maxLevel = computed(() => this.stats()?.maxLevel ?? 70);
+  readonly isMaxLevel = computed(() => this.currentLevel() >= this.maxLevel());
+  readonly xpProgress = computed(() => this.stats()?.xpProgress ?? 0);
+  readonly xpForNextLevel = computed(() => this.stats()?.xpForNextLevel ?? 100);
+  readonly totalXp = computed(() => this.stats()?.totalXp ?? 0);
+  readonly xpPercentage = computed(() => {
+    if (this.isMaxLevel()) return 100;
+    const xp = this.xpProgress();
+    const needed = this.xpForNextLevel();
+    if (needed <= 0) return 100;
+    return Math.min(100, Math.round((xp / needed) * 100));
+  });
 }

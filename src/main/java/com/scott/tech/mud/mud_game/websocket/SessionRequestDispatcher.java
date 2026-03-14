@@ -39,7 +39,7 @@ public class SessionRequestDispatcher {
         String sessionId = wsSession.getId();
         String playerName = gameSession.getPlayer().getName();
         
-        log.info("[{}] REQUEST_RECEIVED command='{}' input='{}' args={}",
+        log.debug("[{}] REQUEST_RECEIVED command='{}' input='{}' args={}",
                 playerName, request.getCommand(), request.getInput(), request.getArgs());
 
         if (gameSession.getState() == SessionState.LOGOUT_CONFIRM) {
@@ -66,16 +66,11 @@ public class SessionRequestDispatcher {
         String playerName = gameSession.getPlayer().getName();
         
         boolean isNatural = request.isNaturalLanguage();
-        log.info("[{}] isNaturalLanguage={} (command={} input={})", 
-                playerName, isNatural, request.getCommand() != null, request.getInput() != null);
         
         if (isNatural) {
-            log.info("[{}] AI_RESOLVER=INVOKING input='{}'", playerName, request.getInput());
+            log.debug("[{}] AI_RESOLVER input='{}'", playerName, request.getInput());
             request = aiIntentResolver.resolve(request.getInput(), gameSession.getCurrentRoom());
-            log.info("[{}] AI_RESOLVER=COMPLETE resolved_command='{}' args={}", 
-                    playerName, request.getCommand(), request.getArgs());
-        } else {
-            log.info("[{}] USING_DIRECT_COMMAND command='{}' args={}", 
+            log.debug("[{}] AI_RESOLVER resolved='{}' args={}", 
                     playerName, request.getCommand(), request.getArgs());
         }
         

@@ -13,6 +13,7 @@ import com.scott.tech.mud.mud_game.persistence.cache.PlayerStateCache;
 import com.scott.tech.mud.mud_game.persistence.service.DiscoveredExitService;
 import com.scott.tech.mud.mud_game.persistence.service.InventoryService;
 import com.scott.tech.mud.mud_game.persistence.service.PlayerProfileService;
+import com.scott.tech.mud.mud_game.config.ExperienceTableService;
 import com.scott.tech.mud.mud_game.session.DisconnectGracePeriodService;
 import com.scott.tech.mud.mud_game.session.GameSession;
 import com.scott.tech.mud.mud_game.session.GameSessionManager;
@@ -48,6 +49,7 @@ class LoginHandlerTest {
     private CharacterClassStatsRegistry classStatsRegistry;
     private PlayerStateCache stateCache;
     private DisconnectGracePeriodService disconnectGracePeriod;
+    private ExperienceTableService xpTables;
     private LoginHandler loginHandler;
     private WorldService worldService;
     private Room startRoom;
@@ -65,6 +67,7 @@ class LoginHandlerTest {
         classStatsRegistry = mock(CharacterClassStatsRegistry.class);
         stateCache = mock(PlayerStateCache.class);
         disconnectGracePeriod = mock(DisconnectGracePeriodService.class);
+        xpTables = mock(ExperienceTableService.class);
         worldService = mock(WorldService.class);
         when(inventoryService.loadInventory(anyString(), any())).thenReturn(List.of());
         when(discoveredExitService.loadExits(anyString())).thenReturn(Map.of());
@@ -80,7 +83,8 @@ class LoginHandlerTest {
 
         loginHandler = new LoginHandler(
                 accountStore, sessionManager, worldBroadcaster, reconnectTokenStore, playerProfileService,
-                inventoryService, discoveredExitService, classStatsRegistry, stateCache, disconnectGracePeriod);
+                inventoryService, discoveredExitService, classStatsRegistry, xpTables, stateCache,
+                disconnectGracePeriod);
     }
 
     @Test
@@ -275,6 +279,7 @@ class LoginHandlerTest {
                 50,
                 60,
                 100,
+                150,
                 List.of("iron_sword"),
                 "iron_sword",
                 "town_square",
