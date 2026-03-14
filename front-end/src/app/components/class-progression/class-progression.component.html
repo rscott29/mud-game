@@ -1,0 +1,104 @@
+<div class="progression-panel">
+  <div class="panel-header">
+    <span class="panel-title">{{ formatClassName(characterClass()) }} Skills</span>
+    <span class="progress-badge" [ngClass]="{ complete: progressPercent() === 100 }">
+      {{ unlockedSkills().length }}/{{ skills().length }}
+    </span>
+    <button class="panel-close" (click)="close()" title="Close">✕</button>
+  </div>
+
+  <div class="progress-bar-container">
+    <div class="progress-bar-fill" [style.width.%]="progressPercent()"></div>
+    <span class="progress-text">{{ progressPercent() }}% Unlocked</span>
+  </div>
+
+  @if (loading()) {
+    <div class="empty-state">
+      <span class="empty-icon">⏳</span>
+      <span>Loading skills...</span>
+    </div>
+  } @else if (skills().length === 0) {
+    <div class="empty-state">
+      <span class="empty-icon">📜</span>
+      <span>No skills found for this class</span>
+    </div>
+  } @else {
+    <div class="skills-container">
+      @if (unlockedSkills().length > 0) {
+        <div class="skill-section">
+          <h3 class="section-title unlocked">
+            <span class="section-icon">✓</span> Unlocked
+          </h3>
+          <ul class="skill-list">
+            @for (skill of unlockedSkills(); track skill.id) {
+              <li class="skill-item unlocked" (click)="selectSkill(skill)">
+                <div class="skill-info">
+                  <span class="skill-name">{{ skill.name }}</span>
+                  <span class="skill-level">Level {{ skill.unlockLevel }}</span>
+                </div>
+                <span class="skill-type">{{ skill.type }}</span>
+              </li>
+            }
+          </ul>
+        </div>
+      }
+
+      @if (lockedSkills().length > 0) {
+        <div class="skill-section">
+          <h3 class="section-title locked">
+            <span class="section-icon">🔒</span> Locked
+          </h3>
+          <ul class="skill-list">
+            @for (skill of lockedSkills(); track skill.id) {
+              <li class="skill-item locked" (click)="selectSkill(skill)">
+                <div class="skill-info">
+                  <span class="skill-name">{{ skill.name }}</span>
+                  <span class="skill-level">Unlocks at Level {{ skill.unlockLevel }}</span>
+                </div>
+                <span class="skill-type">{{ skill.type }}</span>
+              </li>
+            }
+          </ul>
+        </div>
+      }
+    </div>
+  }
+</div>
+
+<!-- Skill detail modal -->
+@if (selectedSkill()) {
+  <div class="modal-backdrop" (click)="closeSkillModal()">
+    <div class="modal-card" 
+         [ngClass]="{ unlocked: selectedSkill()!.unlockLevel <= playerLevel(), locked: selectedSkill()!.unlockLevel > playerLevel() }"
+         (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <span class="modal-type-badge">{{ selectedSkill()!.type }}</span>
+        <button class="modal-close" (click)="closeSkillModal()">✕</button>
+      </div>
+      <div class="modal-body">
+        <h2 class="modal-name">{{ selectedSkill()!.name }}</h2>
+        <p class="modal-level">
+          @if (selectedSkill()!.unlockLevel <= playerLevel()) {
+            <span class="unlocked-text">✓ Unlocked at Level {{ selectedSkill()!.unlockLevel }}</span>
+          } @else {
+            <span class="locked-text">🔒 Unlocks at Level {{ selectedSkill()!.unlockLevel }}</span>
+          }
+        </p>
+        
+        @if (getBonuses(selectedSkill()!).length > 0) {
+          <div class="bonuses-section">
+            <h4 class="bonuses-title">Passive Bonuses</h4>
+            <ul class="bonuses-list">
+              @for (bonus of getBonuses(selectedSkill()!); track bonus.label) {
+                <li class="bonus-item">
+                  <span class="bonus-label">{{ bonus.label }}</span>
+                  <span class="bonus-value">+{{ bonus.value }}</span>
+                </li>
+              }
+            </ul>
+          </div>
+        }
+      </div>
+    </div>
+  </div>
+}

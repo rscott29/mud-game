@@ -16,8 +16,12 @@ import com.scott.tech.mud.mud_game.command.social.SocialService;
 import com.scott.tech.mud.mud_game.command.social.SocialValidator;
 import com.scott.tech.mud.mud_game.command.talk.TalkService;
 import com.scott.tech.mud.mud_game.command.talk.TalkValidator;
+import com.scott.tech.mud.mud_game.config.ExperienceTableService;
+import com.scott.tech.mud.mud_game.persistence.cache.PlayerStateCache;
 import com.scott.tech.mud.mud_game.persistence.service.DiscoveredExitService;
 import com.scott.tech.mud.mud_game.persistence.service.InventoryService;
+import com.scott.tech.mud.mud_game.persistence.service.PlayerProfileService;
+import com.scott.tech.mud.mud_game.service.LevelingService;
 import com.scott.tech.mud.mud_game.session.GameSessionManager;
 import com.scott.tech.mud.mud_game.websocket.WorldBroadcaster;
 import org.springframework.ai.chat.client.ChatClient;
@@ -49,6 +53,10 @@ public record CommandDependencies(
         SocialValidator socialValidator,
         SocialService socialService,
         AccountStore accountStore,
-        ReconnectTokenStore reconnectTokenStore
+        ReconnectTokenStore reconnectTokenStore,
+        ExperienceTableService xpTables,
+        LevelingService levelingService,
+        PlayerProfileService playerProfileService,
+        PlayerStateCache stateCache
 ) {
 }

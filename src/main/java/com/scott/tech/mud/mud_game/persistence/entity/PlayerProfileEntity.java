@@ -72,6 +72,9 @@ public class PlayerProfileEntity {
     @Column(name = "recall_room_id", length = 100)
     private String recallRoomId;
 
+    @Column(name = "experience", nullable = false)
+    private int experience = 0;
+
     @Column(name = "last_seen_at", nullable = false)
     private Instant lastSeenAt;
 
@@ -101,6 +104,7 @@ public class PlayerProfileEntity {
     public int     getMaxMovement()       { return maxMovement; }
     public String  getEquippedWeaponId()  { return equippedWeaponId; }
     public String  getRecallRoomId()      { return recallRoomId; }
+    public int     getExperience()        { return experience; }
     public Instant getLastSeenAt()        { return lastSeenAt; }
 
     public void setCurrentRoomId(String currentRoomId)    { this.currentRoomId = currentRoomId; }
@@ -120,5 +124,6 @@ public class PlayerProfileEntity {
     public void setMaxMovement(int maxMovement)          { this.maxMovement = maxMovement; }
     public void setEquippedWeaponId(String equippedWeaponId) { this.equippedWeaponId = equippedWeaponId; }
     public void setRecallRoomId(String recallRoomId)     { this.recallRoomId = recallRoomId; }
+    public void setExperience(int experience)            { this.experience = experience; }
     public void setLastSeenAt(Instant lastSeenAt)         { this.lastSeenAt = lastSeenAt; }
 }

@@ -1,5 +1,6 @@
 package com.scott.tech.mud.mud_game.combat;
 
+import com.scott.tech.mud.mud_game.config.ExperienceTableService;
 import com.scott.tech.mud.mud_game.config.Messages;
 import com.scott.tech.mud.mud_game.dto.GameResponse;
 import com.scott.tech.mud.mud_game.model.Item;
@@ -17,10 +18,13 @@ public class PlayerRespawnService {
 
     private final GameSessionManager sessionManager;
     private final WorldBroadcaster worldBroadcaster;
+    private final ExperienceTableService xpTables;
 
-    public PlayerRespawnService(GameSessionManager sessionManager, WorldBroadcaster worldBroadcaster) {
+    public PlayerRespawnService(GameSessionManager sessionManager, WorldBroadcaster worldBroadcaster,
+                                ExperienceTableService xpTables) {
         this.sessionManager = sessionManager;
         this.worldBroadcaster = worldBroadcaster;
+        this.xpTables = xpTables;
     }
 
     public GameResponse respawn(GameSession session) {
@@ -64,7 +68,7 @@ public class PlayerRespawnService {
                         session.getDiscoveredHiddenExits(destination.getId()),
                         inventoryItemIds
                 )
-                .withPlayerStats(session.getPlayer());
+                .withPlayerStats(session.getPlayer(), xpTables);
     }
 
     private Room resolveRecallRoom(GameSession session) {

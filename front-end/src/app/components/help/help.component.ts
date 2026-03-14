@@ -83,8 +83,9 @@ export class HelpComponent {
       title: 'General',
       icon: '⚙️',
       entries: [
-        { cmd: 'help  /  ?',  desc: 'Open this help panel' },
-        { cmd: 'logout',      desc: 'Log out of the game (with confirmation)' },
+        { cmd: 'help  /  ?',     desc: 'Open this help panel' },
+        { cmd: 'skills  /  sk',  desc: 'View your class skill progression' },
+        { cmd: 'logout',         desc: 'Log out of the game (with confirmation)' },
       ],
     },
   ];
@@ -98,6 +99,7 @@ export class HelpComponent {
       { cmd: 'teleport  /  tp <target>', desc: 'Teleport to a player or NPC location' },
       { cmd: 'summon <player>', desc: 'Summon a player to your location' },
       { cmd: 'kick <player>', desc: 'Kick a player from the game' },
+      { cmd: 'setlevel [player] <level>', desc: 'Set a player\'s level (or your own)' },
     ],
   };
 

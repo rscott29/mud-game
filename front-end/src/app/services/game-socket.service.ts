@@ -32,6 +32,7 @@ export class GameSocketService {
   readonly whoOpen = signal(false);
   readonly helpOpen = signal(false);
   readonly helpIsGod = signal(false);
+  readonly classProgressionOpen = signal(false);
   readonly playerStats = signal<PlayerStatsDto | null>(null);
 
   constructor(private readonly zone: NgZone) {}
@@ -177,6 +178,7 @@ export class GameSocketService {
           this.inventoryOpen.set(false);
           this.whoOpen.set(false);
           this.helpOpen.set(false);
+          this.classProgressionOpen.set(false);
         }
         break;
 
@@ -191,6 +193,10 @@ export class GameSocketService {
       case 'HELP':
         this.helpIsGod.set((message.message ?? '').trim().toLowerCase() === 'god');
         this.helpOpen.set(true);
+        break;
+
+      case 'CLASS_PROGRESSION':
+        this.classProgressionOpen.set(true);
         break;
 
       default:

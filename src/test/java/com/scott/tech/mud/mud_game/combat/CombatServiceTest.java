@@ -1,24 +1,39 @@
 package com.scott.tech.mud.mud_game.combat;
 
+import com.scott.tech.mud.mud_game.config.SkillTableService;
 import com.scott.tech.mud.mud_game.model.Npc;
 import com.scott.tech.mud.mud_game.model.Player;
 import com.scott.tech.mud.mud_game.session.GameSession;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 class CombatServiceTest {
 
-    private final CombatState combatState = new CombatState();
-    private final CombatService combatService = new CombatService(
-            combatState,
-            new CombatStatsResolver(),
-            new CombatNarrator()
-    );
+    private CombatState combatState;
+    private CombatService combatService;
+
+    @BeforeEach
+    void setUp() {
+        combatState = new CombatState();
+
+        SkillTableService skillTableService = mock(SkillTableService.class);
+        when(skillTableService.getPassiveBonuses(anyString(), anyInt()))
+                .thenReturn(SkillTableService.PassiveBonuses.ZERO);
+
+        combatService = new CombatService(
+                combatState,
+                new CombatStatsResolver(skillTableService),
+                new CombatNarrator()
+        );
+    }
 
     @Test
     void nonLethalNpcAttack_doesNotDropPlayerBelowOneHp() {
@@ -80,5 +95,23 @@ class CombatServiceTest {
                 maxDamage,
                 playerDeathEnabled
         );
+    }
+
+    @Test
+    void scaleXpForLevelDifference_sameLevel_returnsFullXp() {
+        int scaled = CombatService.scaleXpForLevelDifference(100, 20, 20);
+        assertThat(scaled).isEqualTo(100);
+    }
+
+    @Test
+    void scaleXpForLevelDifference_farAboveTarget_returnsZeroXp() {
+        int scaled = CombatService.scaleXpForLevelDifference(100, 30, 10);
+        assertThat(scaled).isZero();
+    }
+
+    @Test
+    void scaleXpForLevelDifference_moderateGap_reducesButKeepsPositiveXp() {
+        int scaled = CombatService.scaleXpForLevelDifference(100, 15, 10);
+        assertThat(scaled).isBetween(1, 99);
     }
 }

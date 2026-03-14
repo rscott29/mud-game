@@ -5,6 +5,7 @@ import com.scott.tech.mud.mud_game.auth.ReconnectTokenStore;
 import com.scott.tech.mud.mud_game.combat.CombatLoopScheduler;
 import com.scott.tech.mud.mud_game.combat.CombatService;
 import com.scott.tech.mud.mud_game.combat.CombatState;
+import com.scott.tech.mud.mud_game.config.ExperienceTableService;
 import com.scott.tech.mud.mud_game.command.attack.AttackValidator;
 import com.scott.tech.mud.mud_game.command.admin.DeleteInventoryItemCommand;
 import com.scott.tech.mud.mud_game.command.admin.SpawnCommand;
@@ -32,8 +33,11 @@ import com.scott.tech.mud.mud_game.command.who.WhoCommand;
 import com.scott.tech.mud.mud_game.dto.CommandRequest;
 import com.scott.tech.mud.mud_game.dto.GameResponse;
 import com.scott.tech.mud.mud_game.model.Player;
+import com.scott.tech.mud.mud_game.persistence.cache.PlayerStateCache;
 import com.scott.tech.mud.mud_game.persistence.service.DiscoveredExitService;
 import com.scott.tech.mud.mud_game.persistence.service.InventoryService;
+import com.scott.tech.mud.mud_game.persistence.service.PlayerProfileService;
+import com.scott.tech.mud.mud_game.service.LevelingService;
 import com.scott.tech.mud.mud_game.session.GameSession;
 import com.scott.tech.mud.mud_game.session.GameSessionManager;
 import com.scott.tech.mud.mud_game.websocket.WorldBroadcaster;
@@ -73,6 +77,10 @@ class CommandFactoryTest {
     private SocialService socialService;
     private AccountStore accountStore;
     private ReconnectTokenStore reconnectTokenStore;
+    private ExperienceTableService xpTables;
+    private LevelingService levelingService;
+    private PlayerProfileService playerProfileService;
+    private PlayerStateCache stateCache;
     private CommandFactory factory;
 
     @BeforeEach
@@ -99,6 +107,10 @@ class CommandFactoryTest {
         socialService = mock(SocialService.class);
         accountStore = mock(AccountStore.class);
         reconnectTokenStore = mock(ReconnectTokenStore.class);
+        xpTables = mock(ExperienceTableService.class);
+        levelingService = mock(LevelingService.class);
+        playerProfileService = mock(PlayerProfileService.class);
+        stateCache = mock(PlayerStateCache.class);
 
         ChatClient chatClient = mock(ChatClient.class);
         when(chatClientBuilder.build()).thenReturn(chatClient);
@@ -108,7 +120,7 @@ class CommandFactoryTest {
                 equipValidator, equipService,
                 attackValidator, combatService, combatState, combatLoopScheduler,
                 talkValidator, talkService, socialValidator, socialService,
-                accountStore, reconnectTokenStore);
+                accountStore, reconnectTokenStore, xpTables, levelingService, playerProfileService, stateCache);
     }
 
     @Test

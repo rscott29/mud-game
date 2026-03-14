@@ -68,10 +68,8 @@ public class NpcWanderScheduler {
         worldService.getWanderingNpcs().forEach(npc -> {
             if (npc.hasPath()) {
                 pathIndices.put(npc.getId(), new AtomicInteger(0));
-                log.info("NpcWanderScheduler: '{}' uses a defined path of {} stops", npc.getId(), npc.getWanderPath().size());
             }
             long delayMs = randomDelay(npc);
-            log.info("NpcWanderScheduler: '{}' will first wander in {}s", npc.getId(), delayMs / 1000);
             pendingFutures.put(npc.getId(),
                 taskScheduler.schedule(() -> wander(npc.getId()), Instant.now().plusMillis(delayMs)));
         });

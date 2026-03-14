@@ -1,17 +1,32 @@
 package com.scott.tech.mud.mud_game.combat;
 
+import com.scott.tech.mud.mud_game.config.SkillTableService;
 import com.scott.tech.mud.mud_game.model.Item;
 import com.scott.tech.mud.mud_game.model.Player;
 import com.scott.tech.mud.mud_game.model.Rarity;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 class CombatStatsResolverTest {
 
-    private final CombatStatsResolver resolver = new CombatStatsResolver();
+    private SkillTableService skillTableService;
+    private CombatStatsResolver resolver;
+
+    @BeforeEach
+    void setUp() {
+        skillTableService = mock(SkillTableService.class);
+        when(skillTableService.getPassiveBonuses(anyString(), anyInt()))
+                .thenReturn(SkillTableService.PassiveBonuses.ZERO);
+        resolver = new CombatStatsResolver(skillTableService);
+    }
 
     @Test
     void resolve_usesEquippedWeaponAndCarriedDefensiveItems() {
@@ -53,5 +68,22 @@ class CombatStatsResolverTest {
         assertThat(stats.attackSpeed()).isEqualTo(-2);
         assertThat(stats.armor()).isEqualTo(5);
         assertThat(stats.attackVerb()).isEqualTo("slash");
+    }
+
+    @Test
+    void resolve_appliesPassiveSkillBonuses() {
+        Player player = new Player("p2", "Scout", "start");
+        player.setCharacterClass("Warrior");
+        player.setLevel(10);
+
+        when(skillTableService.getPassiveBonuses("Warrior", 10))
+                .thenReturn(new SkillTableService.PassiveBonuses(1, 2, 4, 3));
+
+        PlayerCombatStats stats = resolver.resolve(player);
+
+        assertThat(stats.minDamage()).isEqualTo(3);
+        assertThat(stats.maxDamage()).isEqualTo(8);
+        assertThat(stats.hitChance()).isEqualTo(79);
+        assertThat(stats.armor()).isEqualTo(3);
     }
 }

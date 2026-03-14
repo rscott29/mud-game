@@ -27,6 +27,7 @@ public class Player {
     private int maxMana = DEFAULT_MAX_MANA;
     private int movement = DEFAULT_MAX_MOVEMENT;
     private int maxMovement = DEFAULT_MAX_MOVEMENT;
+    private int experience = 0;
     private boolean god = false;
     private final List<Item> inventory = new CopyOnWriteArrayList<>();
     private String equippedWeaponId = null;
@@ -56,6 +57,7 @@ public class Player {
     public int getMaxMana()               { return maxMana; }
     public int getMovement()              { return movement; }
     public int getMaxMovement()           { return maxMovement; }
+    public int getExperience()            { return experience; }
     public boolean isGod()                { return god; }
     public List<Item> getInventory()      { return inventory; }
     public String getEquippedWeaponId()   { return equippedWeaponId; }
@@ -77,6 +79,8 @@ public class Player {
     public void setMaxMana(int maxMana)                  { this.maxMana = maxMana; }
     public void setMovement(int movement)                { this.movement = movement; }
     public void setMaxMovement(int maxMovement)          { this.maxMovement = maxMovement; }
+    public void setExperience(int experience)            { this.experience = experience; }
+    public void addExperience(int xp)                    { this.experience += xp; }
     public void setGod(boolean god)                      { this.god = god; }
     public void setEquippedWeaponId(String itemId)       { this.equippedWeaponId = itemId; }
     public void setRecallRoomId(String recallRoomId)     { this.recallRoomId = recallRoomId; }

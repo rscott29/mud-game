@@ -72,6 +72,7 @@ public class PlayerProfileService {
             player.setMovement(p.getMovement());
             player.setMaxMovement(p.getMaxMovement());
             player.setEquippedWeaponId(p.getEquippedWeaponId());
+            player.setExperience(p.getExperience());
             if (p.getRecallRoomId() != null && !p.getRecallRoomId().isBlank()) {
                 player.setRecallRoomId(p.getRecallRoomId());
             }
@@ -148,14 +149,16 @@ public class PlayerProfileService {
         profile.setMaxMovement(player.getMaxMovement());
         profile.setEquippedWeaponId(player.getEquippedWeaponId());
         profile.setRecallRoomId(player.getRecallRoomId());
+        profile.setExperience(player.getExperience());
         profile.setLastSeenAt(Instant.now());
         profileRepository.save(profile);
-        log.debug("Saved full profile for '{}': room='{}' hp={}/{} mp={}/{} mv={}/{}",
+        log.debug("Saved full profile for '{}': room='{}' hp={}/{} mp={}/{} mv={}/{} xp={}",
                 key,
                 player.getCurrentRoomId(),
                 player.getHealth(), player.getMaxHealth(),
                 player.getMana(), player.getMaxMana(),
-                player.getMovement(), player.getMaxMovement());
+                player.getMovement(), player.getMaxMovement(),
+                player.getExperience());
     }
 
     /** Backwards-compatible overload that preserves existing level/title. */
@@ -196,6 +199,7 @@ public class PlayerProfileService {
         profile.setMaxMovement(state.maxMovement());
         profile.setEquippedWeaponId(state.equippedWeaponId());
         profile.setRecallRoomId(state.recallRoomId());
+        profile.setExperience(state.experience());
         profile.setLastSeenAt(state.cachedAt());
         profileRepository.save(profile);
         log.debug("Saved profile from cache for '{}': room='{}'", key, state.currentRoomId());

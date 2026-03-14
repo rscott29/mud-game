@@ -38,7 +38,8 @@ public record GameResponse(
         INVENTORY_UPDATE,
         HELP,
         CHARACTER_CREATION,
-        STAT_UPDATE
+        STAT_UPDATE,
+        CLASS_PROGRESSION
     }
 
     // --- compact constructors for convenience defaults ---
@@ -63,6 +64,10 @@ public record GameResponse(
         return new GameResponse(type, message, room, mask, from, token, inventory, whoPlayers, PlayerStatsView.from(player), characterCreation);
     }
 
+    public GameResponse withPlayerStats(Player player, com.scott.tech.mud.mud_game.config.ExperienceTableService xpTables) {
+        return new GameResponse(type, message, room, mask, from, token, inventory, whoPlayers, PlayerStatsView.from(player, xpTables), characterCreation);
+    }
+
     // ----- factory methods -----
 
     public static GameResponse message(String msg) {
@@ -75,6 +80,10 @@ public record GameResponse(
 
     public static GameResponse help(String payload) {
         return new GameResponse(Type.HELP, payload, null);
+    }
+
+    public static GameResponse classProgression() {
+        return new GameResponse(Type.CLASS_PROGRESSION, null, null);
     }
 
     public static GameResponse error(String msg) {
@@ -145,6 +154,10 @@ public record GameResponse(
 
     public static GameResponse playerStatsUpdate(Player player) {
         return new GameResponse(Type.STAT_UPDATE, null, null, false, null, null, null, null, PlayerStatsView.from(player), null);
+    }
+
+    public static GameResponse playerStatsUpdate(Player player, com.scott.tech.mud.mud_game.config.ExperienceTableService xpTables) {
+        return new GameResponse(Type.STAT_UPDATE, null, null, false, null, null, null, null, PlayerStatsView.from(player, xpTables), null);
     }
 
     public static GameResponse whoList(List<WhoPlayerView> players) {
@@ -234,8 +247,27 @@ public record GameResponse(
         }
     }
 
-    public record PlayerStatsView(int health, int maxHealth, int mana, int maxMana, int movement, int maxMovement, boolean isGod) {
+    public record PlayerStatsView(
+            int health, int maxHealth,
+            int mana, int maxMana,
+            int movement, int maxMovement,
+            int level, int maxLevel,
+            int xpProgress, int xpForNextLevel,
+            int totalXp,
+            boolean isGod,
+            String characterClass
+    ) {
+        /**
+         * Creates a PlayerStatsView without XP table data (uses formula-based fallback).
+         * Prefer using from(Player, ExperienceTableService) when available.
+         */
         public static PlayerStatsView from(Player player) {
+            int level = player.getLevel();
+            int currentLevelXp = (level - 1) * 100; // Fallback formula
+            int nextLevelXp = level * 100;
+            int totalXp = Math.max(0, player.getExperience());
+            int xpProgress = totalXp - currentLevelXp;
+            int xpForNext = nextLevelXp - currentLevelXp;
             return new PlayerStatsView(
                     player.getHealth(),
                     player.getMaxHealth(),
@@ -243,7 +275,39 @@ public record GameResponse(
                     player.getMaxMana(),
                     player.getMovement(),
                     player.getMaxMovement(),
-                    player.isGod());
+                    level,
+                    70, // Fallback max level
+                    Math.max(0, xpProgress),
+                    xpForNext,
+                    totalXp,
+                    player.isGod(),
+                    player.getCharacterClass());
+        }
+
+        /**
+         * Creates a PlayerStatsView with accurate XP data from the experience table.
+         */
+        public static PlayerStatsView from(Player player, com.scott.tech.mud.mud_game.config.ExperienceTableService xpTables) {
+            int level = player.getLevel();
+            String charClass = player.getCharacterClass();
+            int maxLevel = xpTables.getMaxLevel(charClass);
+            int totalXp = Math.max(0, player.getExperience());
+            int xpProgress = xpTables.getXpProgressInLevel(charClass, totalXp, level);
+            int xpForNext = xpTables.getXpToNextLevel(charClass, level);
+            return new PlayerStatsView(
+                    player.getHealth(),
+                    player.getMaxHealth(),
+                    player.getMana(),
+                    player.getMaxMana(),
+                    player.getMovement(),
+                    player.getMaxMovement(),
+                    level,
+                    maxLevel,
+                    Math.max(0, xpProgress),
+                    xpForNext,
+                    totalXp,
+                    player.isGod(),
+                    player.getCharacterClass());
         }
     }
 

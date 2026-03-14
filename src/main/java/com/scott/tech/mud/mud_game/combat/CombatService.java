@@ -13,6 +13,11 @@ import java.util.concurrent.ThreadLocalRandom;
 @Service
 public class CombatService {
 
+    /** No XP penalty while player is within this many levels above a target. */
+    static final int XP_FULL_REWARD_LEVEL_DELTA = 2;
+    /** No XP reward when player exceeds this many levels above a target. */
+    static final int XP_ZERO_REWARD_LEVEL_DELTA = 12;
+
     private final CombatState combatState;
     private final CombatStatsResolver statsResolver;
     private final CombatNarrator narrator;
@@ -65,7 +70,11 @@ public class CombatService {
             if (!encounter.isAlive()) {
                 message.append(narrator.npcDefeated(target));
 
-                int xpGained = target.getXpReward();
+                int xpGained = scaleXpForLevelDifference(
+                        target.getXpReward(),
+                        player.getLevel(),
+                        target.getLevel()
+                );
                 if (xpGained > 0) {
                     message.append(narrator.xpGained(xpGained));
                 }
@@ -129,5 +138,24 @@ public class CombatService {
             return min;
         }
         return ThreadLocalRandom.current().nextInt(min, max + 1);
+    }
+
+    static int scaleXpForLevelDifference(int baseXp, int playerLevel, int targetLevel) {
+        if (baseXp <= 0) {
+            return 0;
+        }
+
+        int playerAboveTarget = playerLevel - targetLevel;
+        if (playerAboveTarget <= XP_FULL_REWARD_LEVEL_DELTA) {
+            return baseXp;
+        }
+        if (playerAboveTarget >= XP_ZERO_REWARD_LEVEL_DELTA) {
+            return 0;
+        }
+
+        double range = XP_ZERO_REWARD_LEVEL_DELTA - XP_FULL_REWARD_LEVEL_DELTA;
+        double remaining = XP_ZERO_REWARD_LEVEL_DELTA - playerAboveTarget;
+        int scaled = (int) Math.round(baseXp * (remaining / range));
+        return Math.max(1, scaled);
     }
 }

@@ -7,6 +7,7 @@ import com.scott.tech.mud.mud_game.combat.CombatState;
 import com.scott.tech.mud.mud_game.command.core.CommandResult;
 import com.scott.tech.mud.mud_game.command.core.GameCommand;
 import com.scott.tech.mud.mud_game.command.room.RoomAction;
+import com.scott.tech.mud.mud_game.config.ExperienceTableService;
 import com.scott.tech.mud.mud_game.config.Messages;
 import com.scott.tech.mud.mud_game.dto.GameResponse;
 import com.scott.tech.mud.mud_game.model.Npc;
@@ -31,17 +32,20 @@ public class AttackCommand implements GameCommand {
     private final CombatService combatService;
     private final CombatLoopScheduler combatLoopScheduler;
     private final CombatState combatState;
+    private final ExperienceTableService xpTables;
 
     public AttackCommand(String target,
                          AttackValidator attackValidator,
                          CombatService combatService,
                          CombatLoopScheduler combatLoopScheduler,
-                         CombatState combatState) {
+                         CombatState combatState,
+                         ExperienceTableService xpTables) {
         this.target = stripArticle(target);
         this.attackValidator = attackValidator;
         this.combatService = combatService;
         this.combatLoopScheduler = combatLoopScheduler;
         this.combatState = combatState;
+        this.xpTables = xpTables;
     }
 
     @Override
@@ -96,7 +100,7 @@ public class AttackCommand implements GameCommand {
 
         return CommandResult.withAction(
                 RoomAction.inCurrentRoom(actionMsg),
-                GameResponse.message(sb.toString()).withPlayerStats(session.getPlayer())
+                GameResponse.message(sb.toString()).withPlayerStats(session.getPlayer(), xpTables)
         );
     }
 

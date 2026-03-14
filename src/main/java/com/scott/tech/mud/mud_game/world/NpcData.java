@@ -59,6 +59,8 @@ public class NpcData {
     private boolean respawns = false;
     /** Maximum health for combat. */
     private int maxHealth = 0;
+    /** Suggested combat level for XP scaling. */
+    private int level = 1;
     /** XP awarded when defeated. */
     private int xpReward = 0;
     /** Minimum damage this NPC deals when attacking. */
@@ -82,6 +84,7 @@ public class NpcData {
     public boolean isCombatTarget()                { return combatTarget; }
     public boolean isRespawns()                    { return respawns; }
     public int getMaxHealth()                      { return maxHealth; }
+    public int getLevel()                          { return level; }
     public int getXpReward()                       { return xpReward; }
     public int getMinDamage()                      { return minDamage; }
     public int getMaxDamage()                      { return maxDamage; }
@@ -101,6 +104,7 @@ public class NpcData {
     public void setCombatTarget(boolean c)                 { this.combatTarget = c; }
     public void setRespawns(boolean r)                     { this.respawns = r; }
     public void setMaxHealth(int h)                        { this.maxHealth = h; }
+    public void setLevel(int level)                        { this.level = level; }
     public void setXpReward(int xp)                        { this.xpReward = xp; }
     public void setMinDamage(int d)                        { this.minDamage = d; }
     public void setMaxDamage(int d)                        { this.maxDamage = d; }

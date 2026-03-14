@@ -113,6 +113,72 @@
   font-weight: 700;
 }
 
+// Level up celebration
+.level-up {
+  background: linear-gradient(90deg, rgba(155, 89, 182, 0.2) 0%, rgba(241, 196, 15, 0.3) 50%, rgba(155, 89, 182, 0.2) 100%);
+  border: 1px solid rgba(241, 196, 15, 0.5);
+  border-radius: 6px;
+  padding: 12px 16px;
+  margin: 10px 0;
+  text-align: center;
+  animation: levelUpGlow 1.5s ease-in-out;
+
+  .level-up-text {
+    color: #f1c40f;
+    font-weight: 900;
+    font-size: 1.3em;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    text-shadow: 0 0 10px rgba(241, 196, 15, 0.8), 0 0 20px rgba(241, 196, 15, 0.4);
+  }
+
+  .level-value {
+    color: #9b59b6;
+    font-weight: 800;
+    font-size: 1.1em;
+    text-shadow: 0 0 6px rgba(155, 89, 182, 0.6);
+  }
+
+  &.max {
+    background: linear-gradient(90deg, rgba(241, 196, 15, 0.3) 0%, rgba(255, 215, 0, 0.4) 50%, rgba(241, 196, 15, 0.3) 100%);
+    border-color: rgba(255, 215, 0, 0.7);
+  }
+}
+
+// World broadcast when someone levels up
+.level-up-world {
+  background: linear-gradient(90deg, rgba(155, 89, 182, 0.15) 0%, rgba(46, 204, 113, 0.2) 50%, rgba(155, 89, 182, 0.15) 100%);
+  border-left: 3px solid #2ecc71;
+  padding: 8px 14px;
+  margin: 6px 0;
+  border-radius: 0 4px 4px 0;
+  color: #ecf0f1;
+
+  strong {
+    color: #2ecc71;
+  }
+
+  .level-value {
+    color: #9b59b6;
+    font-weight: 700;
+  }
+}
+
+@keyframes levelUpGlow {
+  0% {
+    box-shadow: 0 0 5px rgba(241, 196, 15, 0.3);
+    transform: scale(0.98);
+  }
+  50% {
+    box-shadow: 0 0 25px rgba(241, 196, 15, 0.6), 0 0 50px rgba(155, 89, 182, 0.3);
+    transform: scale(1.01);
+  }
+  100% {
+    box-shadow: 0 0 5px rgba(241, 196, 15, 0.2);
+    transform: scale(1);
+  }
+}
+
 // Weapon attack verb
 .weapon-verb {
   color: #3498db;
