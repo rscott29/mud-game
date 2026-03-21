@@ -1,6 +1,8 @@
 package com.scott.tech.mud.mud_game.auth;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.scott.tech.mud.mud_game.command.core.CommandResult;
+import com.scott.tech.mud.mud_game.config.CharacterCreationOptionsRegistry;
 import com.scott.tech.mud.mud_game.config.CharacterClassStatsRegistry;
 import com.scott.tech.mud.mud_game.dto.GameResponse;
 import com.scott.tech.mud.mud_game.model.Direction;
@@ -47,6 +49,7 @@ class LoginHandlerTest {
     private PlayerProfileService playerProfileService;
     private InventoryService inventoryService;
     private DiscoveredExitService discoveredExitService;
+    private CharacterCreationOptionsRegistry characterCreationOptions;
     private CharacterClassStatsRegistry classStatsRegistry;
     private PlayerStateCache stateCache;
     private DisconnectGracePeriodService disconnectGracePeriod;
@@ -66,6 +69,7 @@ class LoginHandlerTest {
         playerProfileService = mock(PlayerProfileService.class);
         inventoryService = mock(InventoryService.class);
         discoveredExitService = mock(DiscoveredExitService.class);
+        characterCreationOptions = new CharacterCreationOptionsRegistry(new ObjectMapper());
         classStatsRegistry = mock(CharacterClassStatsRegistry.class);
         stateCache = mock(PlayerStateCache.class);
         disconnectGracePeriod = mock(DisconnectGracePeriodService.class);
@@ -86,7 +90,7 @@ class LoginHandlerTest {
 
         loginHandler = new LoginHandler(
                 accountStore, sessionManager, worldBroadcaster, reconnectTokenStore, playerProfileService,
-                inventoryService, discoveredExitService, classStatsRegistry, xpTables, stateCache,
+                inventoryService, discoveredExitService, characterCreationOptions, classStatsRegistry, xpTables, stateCache,
                 disconnectGracePeriod, questService);
     }
 
@@ -214,6 +218,58 @@ class LoginHandlerTest {
         assertThat(result.getResponses().get(1).type()).isEqualTo(GameResponse.Type.WELCOME);
         assertThat(result.getResponses().get(2).type()).isEqualTo(GameResponse.Type.SESSION_TOKEN);
         assertThat(result.getResponses().get(2).token()).isEqualTo("new-token");
+    }
+
+    @Test
+    void handleCreationPassword_newPlayer_usesConfiguredCharacterCreationOptions() {
+        GameSession session = newSession("s1", "start");
+        session.setPendingUsername("newuser");
+        session.transition(SessionState.AWAITING_CREATION_CONFIRM);
+        session.transition(SessionState.AWAITING_CREATION_PASSWORD);
+        when(playerProfileService.isNewPlayer("newuser")).thenReturn(true);
+        when(classStatsRegistry.classNames()).thenReturn(List.of("Warrior", "Mage"));
+
+        CommandResult result = loginHandler.handle("abcd", session);
+
+        assertThat(session.getState()).isEqualTo(SessionState.AWAITING_RACE_CLASS);
+        assertThat(singleResponse(result).type()).isEqualTo(GameResponse.Type.CHARACTER_CREATION);
+        assertThat(singleResponse(result).characterCreation().step()).isEqualTo("race_class");
+        assertThat(singleResponse(result).characterCreation().races()).contains("Human", "Dragonborn");
+        assertThat(singleResponse(result).characterCreation().classes()).containsExactly("Warrior", "Mage");
+    }
+
+    @Test
+    void handleRaceClass_acceptsConfiguredRaceAndReturnsConfiguredPronounPresets() {
+        GameSession session = newSession("s1", "start");
+        session.transition(SessionState.AWAITING_RACE_CLASS);
+        when(classStatsRegistry.findByName("mage"))
+                .thenReturn(Optional.of(new CharacterClassStatsRegistry.ClassStats("mage", "Mage", 85, 120, 95)));
+
+        CommandResult result = loginHandler.handle("dragonborn mage", session);
+
+        assertThat(session.getState()).isEqualTo(SessionState.AWAITING_PRONOUNS);
+        assertThat(session.getPlayer().getRace()).isEqualTo("Dragonborn");
+        assertThat(session.getPlayer().getCharacterClass()).isEqualTo("Mage");
+        assertThat(singleResponse(result).type()).isEqualTo(GameResponse.Type.CHARACTER_CREATION);
+        assertThat(singleResponse(result).characterCreation().step()).isEqualTo("pronouns");
+        assertThat(singleResponse(result).characterCreation().pronounOptions())
+                .extracting(GameResponse.PronounOption::label)
+                .contains("They/Them/Their", "Ze/Zir/Zir");
+    }
+
+    @Test
+    void handlePronouns_acceptsConfiguredPresetAlias() {
+        GameSession session = newSession("s1", "start");
+        session.transition(SessionState.AWAITING_PRONOUNS);
+
+        CommandResult result = loginHandler.handle("they", session);
+
+        assertThat(session.getState()).isEqualTo(SessionState.AWAITING_DESCRIPTION);
+        assertThat(session.getPlayer().getPronounsSubject()).isEqualTo("they");
+        assertThat(session.getPlayer().getPronounsObject()).isEqualTo("them");
+        assertThat(session.getPlayer().getPronounsPossessive()).isEqualTo("their");
+        assertThat(singleResponse(result).type()).isEqualTo(GameResponse.Type.CHARACTER_CREATION);
+        assertThat(singleResponse(result).characterCreation().step()).isEqualTo("description");
     }
 
     @Test

@@ -4,17 +4,18 @@ import { Subject, of } from 'rxjs';
 
 import {
   CONNECTION_STATUSES,
-  ConnectionStatus,
+  type ConnectionStatus,
   GAME_MESSAGE_TYPES,
-  GameMessage,
+  type GameMessage,
+  type PlayerStatsDto,
   TERMINAL_MESSAGE_CLASSES,
 } from '../../models/game-message';
 import {
   COMMAND_DISPATCH_MODES,
   COMMAND_HELP_CATEGORIES,
-  CommandCatalogEntry,
+  type CommandCatalogEntry,
   CommandCatalogService,
-  HelpCategory,
+  type HelpCategory,
 } from '../../services/command-catalog.service';
 import { GameSocketService } from '../../services/game-socket.service';
 import { SkillProgressionService } from '../../services/skill-progression.service';
@@ -25,7 +26,7 @@ class MockGameSocketService {
   readonly messages$ = new Subject<GameMessage>();
   readonly systemMessages$ = new Subject<string>();
   readonly status = signal<ConnectionStatus>(CONNECTION_STATUSES.CONNECTED);
-  readonly playerStats = signal(null);
+  readonly playerStats = signal<PlayerStatsDto | null>(null);
   readonly sent: string[] = [];
 
   connect(): void {}
@@ -52,7 +53,7 @@ class MockCommandCatalogService {
   private readonly commands: CommandCatalogEntry[] = [
     {
       canonicalName: 'go',
-      aliases: ['go', 'move', 'north', 'n'],
+      aliases: ['go', 'move', 'north', 'n', 'south', 's', 'east', 'e', 'west', 'w', 'up', 'u', 'down', 'd'],
       category: COMMAND_HELP_CATEGORIES.EXPLORATION,
       usage: 'go <direction>',
       description: 'Move in a direction (n/s/e/w/u/d)',
@@ -165,16 +166,16 @@ describe('TerminalComponent', () => {
     });
   });
 
-  it('sends "north" as a direct alias payload', () => {
+  it('sends "up" as a direct command payload instead of natural language', () => {
     const fixture = TestBed.createComponent(TerminalComponent);
     const component = fixture.componentInstance;
 
-    component.input.inputValue.set('north');
+    component.input.inputValue.set('up');
     component.input.send();
 
     expect(socket.sent.length).toBe(1);
     expect(JSON.parse(socket.sent[0])).toEqual({
-      command: 'north',
+      command: 'up',
     });
   });
 
@@ -260,6 +261,55 @@ describe('TerminalComponent', () => {
     expect(component.view.messages()[0].cssClass).toBe(TERMINAL_MESSAGE_CLASSES.AUTH_PROMPT);
     expect(component.view.messages()[0].html).toContain('term-card--prompt');
     expect(component.view.messages()[0].html).toContain('Welcome to the MUD!<br>Enter your username:');
+  });
+
+  it('shows god levels above the normal cap without a confusing max-level suffix', () => {
+    const fixture = TestBed.createComponent(TerminalComponent);
+    const component = fixture.componentInstance;
+
+    socket.playerStats.set({
+      health: 999,
+      maxHealth: 999,
+      mana: 999,
+      maxMana: 999,
+      movement: 999,
+      maxMovement: 999,
+      level: 100,
+      maxLevel: 70,
+      xpProgress: 0,
+      xpForNextLevel: 0,
+      totalXp: 105,
+      isGod: true,
+      characterClass: 'mage',
+    });
+
+    expect(component.view.levelLabel()).toBe('Level 100');
+  });
+
+  it('hides total xp in the header for god accounts', () => {
+    const fixture = TestBed.createComponent(TerminalComponent);
+
+    socket.playerStats.set({
+      health: 999,
+      maxHealth: 999,
+      mana: 999,
+      maxMana: 999,
+      movement: 999,
+      maxMovement: 999,
+      level: 100,
+      maxLevel: 70,
+      xpProgress: 0,
+      xpForNextLevel: 0,
+      totalXp: 105,
+      isGod: true,
+      characterClass: 'mage',
+    });
+
+    fixture.detectChanges();
+
+    const text = fixture.nativeElement.textContent ?? '';
+    expect(text).toContain('GOD');
+    expect(text).not.toContain('Total XP 105');
   });
 
   it('merges same-room updates into the existing room card', () => {
@@ -430,6 +480,42 @@ describe('TerminalComponent', () => {
     expect(component.view.messages()[0].html).toContain('term-inline-event--player-action');
     expect(component.view.messages()[0].html).toContain('Traveler');
     expect(component.view.messages()[0].html).toContain('Quentor arrives from the east.');
+  });
+
+  it('moves the active room card back to the bottom when it receives updates after inventory', () => {
+    const fixture = TestBed.createComponent(TerminalComponent);
+    const component = fixture.componentInstance;
+
+    const room = {
+      id: 'town_square',
+      name: 'Town Square',
+      description: 'A lively square.',
+      exits: ['north'],
+      items: [],
+      npcs: [],
+      players: [],
+    };
+
+    socket.messages$.next({ type: GAME_MESSAGE_TYPES.ROOM_UPDATE, message: 'You arrive.', room });
+    socket.messages$.next({
+      type: GAME_MESSAGE_TYPES.INVENTORY_UPDATE,
+      inventory: [
+        {
+          id: 'item_lantern',
+          name: 'Lantern',
+          description: 'A warm copper lantern.',
+          rarity: 'common',
+          equipped: false,
+        },
+      ],
+    });
+    socket.messages$.next({ type: GAME_MESSAGE_TYPES.ROOM_ACTION, message: 'Quentor arrives from the east.' });
+
+    expect(component.view.messages().length).toBe(2);
+    expect(component.view.messages()[0].cssClass).toBe(TERMINAL_MESSAGE_CLASSES.INVENTORY_UPDATE);
+    expect(component.view.messages()[1].cssClass).toBe(TERMINAL_MESSAGE_CLASSES.ROOM_UPDATE);
+    expect(component.view.messages()[1].html).toContain('You arrive.');
+    expect(component.view.messages()[1].html).toContain('Quentor arrives from the east.');
   });
 
   it('renders help from the command catalog instead of hardcoded frontend lists', () => {

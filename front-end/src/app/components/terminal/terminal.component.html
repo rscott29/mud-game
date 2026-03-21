@@ -1,8 +1,8 @@
 <div class="terminal-shell">
   <header class="terminal-header">
     <div class="terminal-brand">
-      <span class="terminal-brand__eyebrow">Wayfarer's Log</span>
-      <span class="terminal-brand__title">Lantern Ledger</span>
+
+      <span class="terminal-brand__title">The Obsidian Kingdom</span>
     </div>
 
     <div class="terminal-status" [ngClass]="view.statusClass()">
@@ -17,7 +17,9 @@
         <div class="hud-profile__eyebrow">{{ view.classLabel() || 'Adventurer' }}</div>
         <div class="hud-profile__title">{{ view.levelLabel() }}</div>
         <div class="hud-profile__meta">
-          <span>Total XP {{ stats.totalXp }}</span>
+          @if (!stats.isGod) {
+            <span>Total XP {{ stats.totalXp }}</span>
+          }
           @if (stats.isGod) {
             <span class="hud-chip hud-chip--god">GOD</span>
           }
@@ -41,7 +43,7 @@
       </div>
     } @else {
       <div class="hud-empty">
-        Sign in to wake your traveler record, then guide the tale from this console.
+        Sign in to begin or continue your adventure!
       </div>
     }
 

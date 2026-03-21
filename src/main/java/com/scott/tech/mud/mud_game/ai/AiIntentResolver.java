@@ -46,7 +46,8 @@ public class AiIntentResolver {
                     .call()
                     .entity(CommandRequest.class);
 
-            // Normalize the AI response: canonicalize commands, preserve arg shape.
+            // Normalize the AI response: canonicalize commands, but leave
+            // command-specific argument cleanup to the command layer.
             result = normalizeResolved(result, rawInput);
             log.debug("AI resolved '{}' -> normalized command='{}' args={}", rawInput, result.getCommand(), result.getArgs());
             return result;
@@ -57,7 +58,7 @@ public class AiIntentResolver {
     }
 
     /**
-     * Normalizes AI output by canonicalizing the command while leaving
+     * Normalizes AI output by canonicalizing command aliases while leaving
      * command-specific argument cleanup to the command layer.
      */
     private CommandRequest normalizeResolved(CommandRequest aiResult, String rawInput) {
@@ -70,23 +71,21 @@ public class AiIntentResolver {
             return fallback(rawInput);
         }
 
-        // Canonicalize the command (pick -> take, head -> go, etc.)
         String canonicalCommand = CommandRegistry.canonicalize(command.trim().toLowerCase());
         if (canonicalCommand.isEmpty()) {
             canonicalCommand = command.toLowerCase();
         }
 
-        List<String> args = aiResult.getArgs();
-        if (args != null) {
-            args = args.stream()
-                    .filter(arg -> arg != null && !arg.isBlank())
-                    .map(String::trim)
-                    .toList();
-        }
+        List<String> args = aiResult.getArgs() != null
+                ? aiResult.getArgs().stream()
+                .filter(arg -> arg != null && !arg.isBlank())
+                .map(String::trim)
+                .toList()
+                : List.of();
 
         CommandRequest normalized = new CommandRequest();
         normalized.setCommand(canonicalCommand);
-        normalized.setArgs(args != null ? args : List.of());
+        normalized.setArgs(args);
         return normalized;
     }
 
@@ -96,8 +95,8 @@ public class AiIntentResolver {
                 .collect(Collectors.joining(", "));
 
         String items = room.getItems().isEmpty() ? "none" : room.getItems().stream()
-                .map(i -> i.getName() + " (keywords: " + String.join(", ", i.getKeywords()) + 
-                         "; description: " + i.getDescription() + ")")
+                .map(i -> i.getName() + " (keywords: " + String.join(", ", i.getKeywords())
+                        + "; description: " + i.getDescription() + ")")
                 .collect(Collectors.joining("; "));
 
         String npcs = room.getNpcs().isEmpty() ? "none" : room.getNpcs().stream()

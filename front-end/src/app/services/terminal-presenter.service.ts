@@ -48,7 +48,12 @@ export class TerminalPresenterService {
     if (!stats) {
       return 'Awaiting profile';
     }
-    return `Level ${stats.level}${stats.maxLevel > 0 ? ` / ${stats.maxLevel}` : ''}`;
+
+    if (stats.isGod || stats.maxLevel <= 0 || stats.level > stats.maxLevel) {
+      return `Level ${stats.level}`;
+    }
+
+    return `Level ${stats.level} / ${stats.maxLevel}`;
   });
   readonly hudHealth = computed(() =>
     this.formatResource('HP', this.playerStats(), stats => stats.health, stats => stats.maxHealth)

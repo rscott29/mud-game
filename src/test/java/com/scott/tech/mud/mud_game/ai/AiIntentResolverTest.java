@@ -75,6 +75,20 @@ class AiIntentResolverTest {
     }
 
     @Test
+    void resolvePreservesDirectionArgsProducedByAi() {
+        CommandRequest aiResponse = new CommandRequest();
+        aiResponse.setCommand("go");
+        aiResponse.setArgs(List.of("up"));
+        when(callSpec.entity(CommandRequest.class)).thenReturn(aiResponse);
+
+        AiIntentResolver resolver = new AiIntentResolver(builder);
+        CommandRequest result = resolver.resolve("go up", room);
+
+        assertThat(result.getCommand()).isEqualTo("go");
+        assertThat(result.getArgs()).containsExactly("up");
+    }
+
+    @Test
     void fallbackUsesTheSameTokenShapeAsDirectCommandInput() {
         when(callSpec.entity(CommandRequest.class)).thenThrow(new RuntimeException("resolver unavailable"));
 
@@ -83,5 +97,16 @@ class AiIntentResolverTest {
 
         assertThat(result.getCommand()).isEqualTo("look");
         assertThat(result.getArgs()).containsExactly("at", "the", "dog");
+    }
+
+    @Test
+    void fallbackPreservesMultiWordDirectionArgs() {
+        when(callSpec.entity(CommandRequest.class)).thenThrow(new RuntimeException("AI unavailable"));
+
+        AiIntentResolver resolver = new AiIntentResolver(builder);
+        CommandRequest result = resolver.resolve("go up now", room);
+
+        assertThat(result.getCommand()).isEqualTo("go");
+        assertThat(result.getArgs()).containsExactly("up", "now");
     }
 }

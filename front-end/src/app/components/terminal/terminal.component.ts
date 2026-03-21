@@ -41,7 +41,6 @@ export class TerminalComponent {
   private readonly facade = inject(TerminalFacade);
   readonly input = inject(TerminalInputService);
   readonly view = inject(TerminalPresenterService);
-  
 
   constructor() {
     effect(() => {
@@ -54,7 +53,6 @@ export class TerminalComponent {
   @HostListener('window:beforeunload')
   onBeforeUnload(): void {
     this.facade.disconnect();
-
   }
 
   ngOnDestroy(): void {

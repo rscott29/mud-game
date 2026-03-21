@@ -116,7 +116,7 @@ describe('TerminalPresenterService', () => {
       maxMana: 999,
       movement: 999,
       maxMovement: 999,
-      level: 10,
+      level: 100,
       maxLevel: 10,
       xpProgress: 0,
       xpForNextLevel: 0,
@@ -125,6 +125,7 @@ describe('TerminalPresenterService', () => {
       characterClass: 'archon',
     });
 
+    expect(presenter.levelLabel()).toBe('Level 100');
     expect(presenter.hudHealth()).toBe('HP INF');
     expect(presenter.hudMana()).toBe('MP INF');
     expect(presenter.hudMovement()).toBe('MV INF');

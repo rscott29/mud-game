@@ -100,7 +100,7 @@ export class TerminalMessageStore {
         room: source.room,
         roomType: source.type,
       };
-      return updated;
+      return this.moveMessageToEnd(updated, targetIndex);
     });
   }
 
@@ -135,7 +135,7 @@ export class TerminalMessageStore {
         html: formatted.html,
         roomMessage: mergedSource.message ?? '',
       };
-      return updated;
+      return this.moveMessageToEnd(updated, targetIndex);
     });
   }
 
@@ -164,6 +164,17 @@ export class TerminalMessageStore {
 
   private shouldStartFreshRoomMessage(message: GameMessage): boolean {
     return message.type === GAME_MESSAGE_TYPES.ROOM_REFRESH;
+  }
+
+  private moveMessageToEnd(list: DisplayMessage[], index: number): DisplayMessage[] {
+    if (index < 0 || index >= list.length || index === list.length - 1) {
+      return list;
+    }
+
+    const updated = [...list];
+    const [entry] = updated.splice(index, 1);
+    updated.push(entry);
+    return updated;
   }
 
   private joinRoomMessages(existing?: string, incoming?: string): string {

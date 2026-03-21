@@ -67,6 +67,8 @@ class CommandRegistryTest {
 
     @Test
     void directionAliasesCanonicalizeIntoGo() {
+        assertThat(CommandRegistry.canonicalize("up")).isEqualTo(CommandRegistry.GO);
+        assertThat(CommandRegistry.canonicalize("u")).isEqualTo(CommandRegistry.GO);
         assertThat(CommandRegistry.canonicalize("n")).isEqualTo(CommandRegistry.GO);
         assertThat(CommandRegistry.canonicalize("north")).isEqualTo(CommandRegistry.GO);
     }

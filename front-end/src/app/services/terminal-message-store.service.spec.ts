@@ -92,4 +92,36 @@ describe('TerminalMessageStore', () => {
     expect(store.messages()[0].html).toContain('You arrive.');
     expect(store.messages()[0].html).toContain('Quentor arrives from the east.');
   });
+
+  it('moves the active room entry back to the bottom when it receives a later update', () => {
+    const store = TestBed.inject(TerminalMessageStore);
+    const room = {
+      id: 'town_square',
+      name: 'Town Square',
+      description: 'A lively square.',
+      exits: ['north'],
+      items: [],
+      npcs: [],
+      players: [],
+    };
+
+    store.upsertRoomMessage({ type: GAME_MESSAGE_TYPES.ROOM_UPDATE, message: 'You arrive.', room });
+    store.addDisplayMessage({
+      cssClass: TERMINAL_MESSAGE_CLASSES.INVENTORY_UPDATE,
+      html: '<div class="term-card">Inventory</div>',
+    });
+    store.appendToActiveRoomMessage(
+      { type: GAME_MESSAGE_TYPES.ROOM_ACTION, message: 'Quentor arrives from the east.' },
+      '<span class="term-inline-event">Quentor arrives from the east.</span>',
+      {
+        cssClass: TERMINAL_MESSAGE_CLASSES.ROOM_ACTION,
+        html: '<div>Quentor arrives from the east.</div>',
+      }
+    );
+
+    expect(store.messages()).toHaveLength(2);
+    expect(store.messages()[0].cssClass).toBe(TERMINAL_MESSAGE_CLASSES.INVENTORY_UPDATE);
+    expect(store.messages()[1].cssClass).toBe(TERMINAL_MESSAGE_CLASSES.ROOM_UPDATE);
+    expect(store.messages()[1].html).toContain('Quentor arrives from the east.');
+  });
 });

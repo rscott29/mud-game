@@ -159,6 +159,12 @@ class CommandFactoryTest {
     }
 
     @Test
+    void upDirectionAlias_createsMoveCommand() {
+        GameCommand command = factory.create(request("up", List.of()));
+        assertThat(command).isInstanceOf(MoveCommand.class);
+    }
+
+    @Test
     void fullDirectionAlias_createsMoveCommand() {
         GameCommand command = factory.create(request("north", List.of()));
         assertThat(command).isInstanceOf(MoveCommand.class);
