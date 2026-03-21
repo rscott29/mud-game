@@ -16,11 +16,6 @@ public record RoomAction(String message, String roomId, String targetSessionId, 
         return new RoomAction(message, null, null, null);
     }
 
-    /** Creates a room action for a specific room. */
-    public static RoomAction inRoom(String roomId, String message) {
-        return new RoomAction(message, roomId, null, null);
-    }
-
     /**
      * Creates a room action with a personalized message for a specific target player.
      * Other players see the normal message, the target sees their personalized version.

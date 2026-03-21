@@ -3,8 +3,6 @@ import { Subject } from 'rxjs';
 import {
   GameMessage,
   ConnectionStatus,
-  ItemDto,
-  WhoPlayerDto,
   PlayerStatsDto,
 } from '../models/game-message';
 
@@ -26,13 +24,6 @@ export class GameSocketService {
   readonly systemMessages$ = new Subject<string>();
 
   readonly status = signal<ConnectionStatus>('disconnected');
-  readonly inventory = signal<ItemDto[]>([]);
-  readonly inventoryOpen = signal(false);
-  readonly whoPlayers = signal<WhoPlayerDto[]>([]);
-  readonly whoOpen = signal(false);
-  readonly helpOpen = signal(false);
-  readonly helpIsGod = signal(false);
-  readonly classProgressionOpen = signal(false);
   readonly playerStats = signal<PlayerStatsDto | null>(null);
 
   constructor(private readonly zone: NgZone) {}
@@ -153,14 +144,6 @@ export class GameSocketService {
    * State that can arrive alongside many message types.
    */
   private applySharedState(message: GameMessage): void {
-    if (message.inventory != null) {
-      this.inventory.set(message.inventory);
-    }
-
-    if (message.whoPlayers != null) {
-      this.whoPlayers.set(message.whoPlayers);
-    }
-
     if (message.playerStats != null) {
       this.playerStats.set(message.playerStats);
     }
@@ -175,28 +158,7 @@ export class GameSocketService {
         // Only reset UI state when we're back at the login screen (username prompt)
         if ((message.message ?? '').toLowerCase().includes('username')) {
           this.playerStats.set(null);
-          this.inventoryOpen.set(false);
-          this.whoOpen.set(false);
-          this.helpOpen.set(false);
-          this.classProgressionOpen.set(false);
         }
-        break;
-
-      case 'INVENTORY_UPDATE':
-        this.inventoryOpen.set(true);
-        break;
-
-      case 'WHO_LIST':
-        this.whoOpen.set(true);
-        break;
-
-      case 'HELP':
-        this.helpIsGod.set((message.message ?? '').trim().toLowerCase() === 'god');
-        this.helpOpen.set(true);
-        break;
-
-      case 'CLASS_PROGRESSION':
-        this.classProgressionOpen.set(true);
         break;
 
       default:
@@ -261,19 +223,5 @@ export class GameSocketService {
       this.socket?.readyState === WebSocket.OPEN ||
       this.socket?.readyState === WebSocket.CONNECTING
     );
-  }
-
-  // Optional helpers for UI consumers
-  closeInventory(): void {
-    this.inventoryOpen.set(false);
-  }
-
-  closeWho(): void {
-    this.whoOpen.set(false);
-  }
-
-  closeHelp(): void {
-    this.helpOpen.set(false);
-    this.helpIsGod.set(false);
   }
 }

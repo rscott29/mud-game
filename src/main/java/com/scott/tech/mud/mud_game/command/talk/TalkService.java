@@ -1,7 +1,6 @@
 package com.scott.tech.mud.mud_game.command.talk;
 
 import com.scott.tech.mud.mud_game.config.Messages;
-import com.scott.tech.mud.mud_game.dto.GameResponse;
 import com.scott.tech.mud.mud_game.model.Npc;
 import com.scott.tech.mud.mud_game.session.GameSession;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,14 +39,6 @@ public class TalkService {
         }
 
         return sentientDialogue(npc, playerName);
-    }
-
-    /**
-     * @deprecated Use buildDialogue() instead for consistent room-based output.
-     */
-    @Deprecated
-    public GameResponse buildResponse(GameSession session, Npc npc) {
-        return GameResponse.narrative(buildDialogue(session, npc));
     }
 
     private String nonSentientDialogue(Npc npc, String playerName) {

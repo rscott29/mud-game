@@ -4,6 +4,7 @@ import { Subject, of } from 'rxjs';
 
 import { App } from './app';
 import { ConnectionStatus, GameMessage } from './models/game-message';
+import { CommandCatalogService } from './services/command-catalog.service';
 import { GameSocketService } from './services/game-socket.service';
 import { SkillProgressionService } from './services/skill-progression.service';
 import { ZoomService } from './services/zoom.service';
@@ -32,6 +33,10 @@ class MockZoomService {
   decreaseZoom(): void {}
 }
 
+class MockCommandCatalogService {
+  load(): void {}
+}
+
 describe('App', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
@@ -40,6 +45,7 @@ describe('App', () => {
         { provide: GameSocketService, useClass: MockGameSocketService },
         { provide: SkillProgressionService, useClass: MockSkillProgressionService },
         { provide: ZoomService, useClass: MockZoomService },
+        { provide: CommandCatalogService, useClass: MockCommandCatalogService },
       ],
     }).compileComponents();
   });

@@ -68,7 +68,7 @@ public class SessionDisplayResponseNormalizer {
         }
 
         return switch (response.type()) {
-            case WELCOME, ROOM_UPDATE, ROOM_REFRESH, NARRATIVE, AMBIENT_EVENT, COMPANION_DIALOGUE, MESSAGE -> true;
+            case WELCOME, ROOM_UPDATE, ROOM_REFRESH, NARRATIVE, AMBIENT_EVENT, COMPANION_DIALOGUE -> true;
             case ERROR -> session != null && session.getState() == SessionState.PLAYING;
             default -> false;
         };
