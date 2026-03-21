@@ -1,5 +1,7 @@
 package com.scott.tech.mud.mud_game.model;
 
+import com.scott.tech.mud.mud_game.quest.PlayerQuestState;
+
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -32,6 +34,7 @@ public class Player {
     private final List<Item> inventory = new CopyOnWriteArrayList<>();
     private String equippedWeaponId = null;
     private String recallRoomId;
+    private final PlayerQuestState questState = new PlayerQuestState();
 
     public Player(String id, String name, String startRoomId) {
         this.id            = id;
@@ -62,6 +65,7 @@ public class Player {
     public List<Item> getInventory()      { return inventory; }
     public String getEquippedWeaponId()   { return equippedWeaponId; }
     public String getRecallRoomId()       { return recallRoomId; }
+    public PlayerQuestState getQuestState() { return questState; }
 
     public void setName(String name)                     { this.name = name; }
     public void setCurrentRoomId(String currentRoomId)   { this.currentRoomId = currentRoomId; }
@@ -131,9 +135,22 @@ public class Player {
         }
     }
 
-    /** Finds an inventory item whose keywords match the given input (case-insensitive). */
+    /** 
+     * Finds an inventory item whose keywords match the given input (case-insensitive).
+     * Prioritizes exact keyword matches over partial/description matches.
+     */
     public Optional<Item> findInInventory(String keyword) {
         if (keyword == null) return Optional.empty();
+        
+        // First pass: find items with exact keyword match
+        Optional<Item> exactMatch = inventory.stream()
+                .filter(i -> i.hasExactKeyword(keyword))
+                .findFirst();
+        if (exactMatch.isPresent()) {
+            return exactMatch;
+        }
+        
+        // Second pass: fall back to partial/description matching
         return inventory.stream().filter(i -> i.matchesKeyword(keyword)).findFirst();
     }
 

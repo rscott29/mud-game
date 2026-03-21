@@ -10,6 +10,8 @@ import com.scott.tech.mud.mud_game.persistence.service.InventoryService;
 import com.scott.tech.mud.mud_game.session.GameSession;
 
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * God-only command to materialise an item by its data ID into the current room
@@ -59,14 +61,24 @@ public class SpawnCommand implements GameCommand {
                     .map(i -> GameResponse.ItemView.from(i, equippedWeaponId)).toList();
 
             return CommandResult.of(
-                    GameResponse.message(Messages.fmt("command.spawn.success_inventory", "item", item.getName()))
+                    GameResponse.narrative(Messages.fmt("command.spawn.success_inventory", "item", item.getName()))
                             .withInventory(views));
         } else {
             Room room = session.getCurrentRoom();
             room.addItem(item);
 
+            Set<String> inventoryItemIds = session.getPlayer().getInventory().stream()
+                    .map(Item::getId)
+                    .collect(Collectors.toSet());
+
             return CommandResult.of(
-                    GameResponse.message(Messages.fmt("command.spawn.success_room", "item", item.getName(), "room", room.getName())));
+                    GameResponse.roomUpdate(
+                            room,
+                            Messages.fmt("command.spawn.success_room", "item", item.getName(), "room", room.getName()),
+                            List.of(),
+                            session.getDiscoveredHiddenExits(room.getId()),
+                            inventoryItemIds
+                    ));
         }
     }
 }

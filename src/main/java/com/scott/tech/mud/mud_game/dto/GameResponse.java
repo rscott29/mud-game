@@ -27,7 +27,9 @@ public record GameResponse(
     public enum Type {
         WELCOME,
         ROOM_UPDATE,
-        MESSAGE,
+        ROOM_REFRESH,
+        /** @deprecated Use NARRATIVE instead for consistent visual styling. */
+        @Deprecated(forRemoval = true) MESSAGE,
         ERROR,
         AUTH_PROMPT,
         CHAT_ROOM,
@@ -39,7 +41,11 @@ public record GameResponse(
         HELP,
         CHARACTER_CREATION,
         STAT_UPDATE,
-        CLASS_PROGRESSION
+        CLASS_PROGRESSION,
+        NARRATIVE,
+        ROOM_ACTION,
+        AMBIENT_EVENT,
+        COMPANION_DIALOGUE
     }
 
     // --- compact constructors for convenience defaults ---
@@ -60,6 +66,11 @@ public record GameResponse(
         return new GameResponse(type, message, room, mask, from, token, items, whoPlayers, playerStats, characterCreation);
     }
 
+    public GameResponse withAppendedMessage(String appendedMessage) {
+        String newMessage = message == null ? appendedMessage : message + appendedMessage;
+        return new GameResponse(type, newMessage, room, mask, from, token, inventory, whoPlayers, playerStats, characterCreation);
+    }
+
     public GameResponse withPlayerStats(Player player) {
         return new GameResponse(type, message, room, mask, from, token, inventory, whoPlayers, PlayerStatsView.from(player), characterCreation);
     }
@@ -70,8 +81,30 @@ public record GameResponse(
 
     // ----- factory methods -----
 
+    /**
+     * @deprecated Use {@link #narrative(String)} for consistent visual styling.
+     *             The MESSAGE type has been phased out in favor of NARRATIVE.
+     */
+    @Deprecated(forRemoval = true)
     public static GameResponse message(String msg) {
         return new GameResponse(Type.MESSAGE, msg, null);
+    }
+
+    public static GameResponse narrative(String html) {
+        return new GameResponse(Type.NARRATIVE, html, null);
+    }
+
+    public static GameResponse roomAction(String message) {
+        return new GameResponse(Type.ROOM_ACTION, message, null);
+    }
+
+    public static GameResponse ambientEvent(String message) {
+        return new GameResponse(Type.AMBIENT_EVENT, message, null);
+    }
+
+    public static GameResponse companionDialogue(String npcName, String message) {
+        String html = "<span class=\"speaker\">" + npcName + ":</span> " + message;
+        return new GameResponse(Type.COMPANION_DIALOGUE, html, null);
     }
 
     public static GameResponse help() {
@@ -104,6 +137,22 @@ public record GameResponse(
 
     public static GameResponse roomUpdate(Room room, String message, List<String> players, Set<Direction> discoveredHiddenExits, Set<String> excludeItemIds) {
         return new GameResponse(Type.ROOM_UPDATE, message, RoomView.from(room, players, discoveredHiddenExits, excludeItemIds));
+    }
+
+    public static GameResponse roomRefresh(Room room, String message) {
+        return roomRefresh(room, message, List.of(), Set.of());
+    }
+
+    public static GameResponse roomRefresh(Room room, String message, List<String> players) {
+        return roomRefresh(room, message, players, Set.of());
+    }
+
+    public static GameResponse roomRefresh(Room room, String message, List<String> players, Set<Direction> discoveredHiddenExits) {
+        return roomRefresh(room, message, players, discoveredHiddenExits, Set.of());
+    }
+
+    public static GameResponse roomRefresh(Room room, String message, List<String> players, Set<Direction> discoveredHiddenExits, Set<String> excludeItemIds) {
+        return new GameResponse(Type.ROOM_REFRESH, message, RoomView.from(room, players, discoveredHiddenExits, excludeItemIds));
     }
 
     public static GameResponse welcome(String playerName, Room room) {

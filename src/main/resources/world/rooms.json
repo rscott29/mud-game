@@ -14,7 +14,7 @@
       "recallBindable": true,
       "defaultRecallPoint": true,
       "itemIds": ["item_signpost", "item_fountain"],
-      "npcIds": ["npc_dog_Obi"]
+      "npcIds": ["npc_dog_Obi", "npc_joyful_child"]
     },
     {
       "id": "tavern",
@@ -44,7 +44,7 @@
         "NORTH": "town_square",
         "EAST":  "alchemist"
       },
-      "itemIds": ["item_bread_loaf", "item_strange_trinket"]
+      "itemIds": ["item_bread_loaf", "item_strange_trinket", "item_childs_ball"]
     },
     {
       "id": "alchemist",
@@ -73,7 +73,220 @@
         "WEST":  "east_road",
         "NORTH": "deep_forest"
       },
-      "itemIds": ["item_broken_arrow", "item_odd_mushroom"]
+      "hiddenExits": {
+        "SOUTH": "cave_entrance"
+      },
+      "hiddenExitHints": {
+        "SOUTH": "Behind a curtain of hanging vines, you discover a dark cave entrance leading <em>south</em>."
+      },
+      "itemIds": ["item_broken_arrow", "item_odd_mushroom"],
+      "npcIds": ["npc_wounded_pilgrim"]
+    },
+    {
+      "id": "cave_entrance",
+      "name": "Cave Entrance",
+      "description": "A cold draft blows from the yawning darkness ahead. The cave mouth is barely wide enough for one person. Beyond this point, the light from outside will not reach. <em>Something about this place feels draining — you sense your body will not heal naturally here.</em>",
+      "exits": {
+        "NORTH": "forest_edge",
+        "SOUTH": "dark_passage_1"
+      },
+      "ambientZone": "cave",
+      "suppressRegen": true,
+      "itemIds": ["item_cave_moss"]
+    },
+    {
+      "id": "dark_passage_1",
+      "name": "Dark Passage",
+      "description": "Pitch blackness surrounds you. The air is damp and cold. You can feel passages leading in several directions, but you cannot see which way is safe. <em>Trust your instincts... or suffer the consequences.</em>",
+      "exits": {
+        "NORTH": "cave_entrance",
+        "SOUTH": "dark_passage_2",
+        "EAST": "dark_dead_end_1",
+        "WEST": "dark_dead_end_2"
+      },
+      "dark": true,
+      "safeExit": "SOUTH",
+      "wrongExitDamage": 8,
+      "ambientZone": "cave",
+      "suppressRegen": true,
+      "itemIds": []
+    },
+    {
+      "id": "dark_dead_end_1",
+      "name": "Dark Dead End",
+      "description": "You slam into a solid wall of stone. Pain shoots through your body as you stumble back.",
+      "exits": {
+        "WEST": "dark_passage_1"
+      },
+      "ambientZone": "cave",
+      "suppressRegen": true,
+      "itemIds": []
+    },
+    {
+      "id": "dark_dead_end_2",
+      "name": "Dark Dead End", 
+      "description": "Your foot catches on a jagged rock and you crash to the ground. The fall leaves you bruised and disoriented.",
+      "exits": {
+        "EAST": "dark_passage_1"
+      },
+      "ambientZone": "cave",
+      "suppressRegen": true,
+      "itemIds": []
+    },
+    {
+      "id": "dark_passage_2",
+      "name": "Dark Passage",
+      "description": "The darkness is absolute. Water drips somewhere nearby. You feel passages in multiple directions — a slight breeze from one suggests a way forward.",
+      "exits": {
+        "NORTH": "dark_passage_1",
+        "SOUTH": "dark_dead_end_3",
+        "EAST": "dark_passage_3",
+        "WEST": "dark_dead_end_4"
+      },
+      "dark": true,
+      "safeExit": "EAST",
+      "wrongExitDamage": 8,
+      "ambientZone": "cave",
+      "suppressRegen": true,
+      "itemIds": []
+    },
+    {
+      "id": "dark_dead_end_3",
+      "name": "Dark Dead End",
+      "description": "You step into empty air and fall several feet before slamming into the ground below.",
+      "exits": {
+        "NORTH": "dark_passage_2"
+      },
+      "ambientZone": "cave",
+      "suppressRegen": true,
+      "itemIds": ["item_cave_moss"]
+    },
+    {
+      "id": "dark_dead_end_4",
+      "name": "Dark Dead End",
+      "description": "Sharp stalactites rake across your arms as you push into a narrow crevice that goes nowhere.",
+      "exits": {
+        "EAST": "dark_passage_2"
+      },
+      "ambientZone": "cave",
+      "suppressRegen": true,
+      "itemIds": []
+    },
+    {
+      "id": "dark_passage_3",
+      "name": "Dark Passage",
+      "description": "The stone beneath your feet is slick with moisture. You can hear the distant echo of dripping water from multiple directions.",
+      "exits": {
+        "WEST": "dark_passage_2",
+        "NORTH": "dark_dead_end_5",
+        "SOUTH": "dark_passage_4",
+        "EAST": "dark_dead_end_6"
+      },
+      "dark": true,
+      "safeExit": "SOUTH",
+      "wrongExitDamage": 10,
+      "ambientZone": "cave",
+      "suppressRegen": true,
+      "itemIds": []
+    },
+    {
+      "id": "dark_dead_end_5",
+      "name": "Dark Dead End",
+      "description": "The passage narrows to nothing. You scrape against rough stone trying to force your way through.",
+      "exits": {
+        "SOUTH": "dark_passage_3"
+      },
+      "ambientZone": "cave",
+      "suppressRegen": true,
+      "itemIds": []
+    },
+    {
+      "id": "dark_dead_end_6",
+      "name": "Dark Dead End",
+      "description": "You walk face-first into a curtain of wet, slimy moss. Spitting and wiping your face, you retreat.",
+      "exits": {
+        "WEST": "dark_passage_3"
+      },
+      "ambientZone": "cave",
+      "suppressRegen": true,
+      "itemIds": ["item_cave_moss"]
+    },
+    {
+      "id": "dark_passage_4",
+      "name": "Dark Passage",
+      "description": "The air grows noticeably warmer here. You feel a faint updraft from somewhere below, carrying the scent of minerals.",
+      "exits": {
+        "NORTH": "dark_passage_3",
+        "SOUTH": "dark_dead_end_7",
+        "EAST": "dark_dead_end_8",
+        "WEST": "dark_passage_5"
+      },
+      "dark": true,
+      "safeExit": "WEST",
+      "wrongExitDamage": 10,
+      "ambientZone": "cave",
+      "suppressRegen": true,
+      "itemIds": []
+    },
+    {
+      "id": "dark_dead_end_7",
+      "name": "Dark Dead End",
+      "description": "A sudden drop! You tumble down a rocky slope, barely managing to claw your way back up.",
+      "exits": {
+        "NORTH": "dark_passage_4"
+      },
+      "ambientZone": "cave",
+      "suppressRegen": true,
+      "itemIds": []
+    },
+    {
+      "id": "dark_dead_end_8",
+      "name": "Dark Dead End",
+      "description": "The ceiling collapses to head height, then chest height. You crawl on your belly before realizing there's no way through.",
+      "exits": {
+        "WEST": "dark_passage_4"
+      },
+      "ambientZone": "cave",
+      "suppressRegen": true,
+      "itemIds": ["item_health_potion"]
+    },
+    {
+      "id": "dark_passage_5",
+      "name": "Dark Passage",
+      "description": "Something feels different about this place. The darkness seems less oppressive. Is that... a faint glow ahead?",
+      "exits": {
+        "EAST": "dark_passage_4",
+        "NORTH": "dark_dead_end_9",
+        "SOUTH": "cave_heart"
+      },
+      "dark": true,
+      "safeExit": "SOUTH",
+      "wrongExitDamage": 12,
+      "ambientZone": "cave",
+      "suppressRegen": true,
+      "itemIds": []
+    },
+    {
+      "id": "dark_dead_end_9",
+      "name": "Dark Dead End",
+      "description": "You squeeze through a crack only to find yourself in a tiny chamber with no exit. The walls press in claustrophobically.",
+      "exits": {
+        "SOUTH": "dark_passage_5"
+      },
+      "ambientZone": "cave",
+      "suppressRegen": true,
+      "itemIds": ["item_cave_moss"]
+    },
+    {
+      "id": "cave_heart",
+      "name": "Heart of the Cave",
+      "description": "A shaft of light descends from a hole high above, illuminating a small underground chamber. Crystals embedded in the walls catch the light and scatter it in rainbow hues. A sense of profound peace fills this sacred space. <em>Here, you feel your body can recover once more.</em>",
+      "exits": {
+        "NORTH": "dark_passage_5",
+        "UP": "forest_edge"
+      },
+      "ambientZone": "cave",
+      "itemIds": []
     },
     {
       "id": "deep_forest",
@@ -83,7 +296,8 @@
         "SOUTH": "forest_edge",
         "EAST": "forest_fork"
       },
-      "itemIds": ["item_glowing_mushroom", "item_animal_tracks"]
+      "itemIds": ["item_glowing_mushroom", "item_animal_tracks"],
+      "npcIds": ["npc_lost_traveler"]
     },
     {
   "id": "forest_fork",
@@ -98,7 +312,8 @@
   "hiddenExitHints": {
     "EAST": "You push aside a curtain of overgrown shrubbery and discover a hidden path leading <em>east</em> — a route that clearly hasn't been used in some time."
   },
-  "itemIds": ["item_pawprints", "item_mossy_stone"]
+  "itemIds": ["item_pawprints", "item_mossy_stone"],
+  "npcIds": ["npc_blind_guide"]
 },
 {
   "id": "old_oak_crossing",
@@ -107,7 +322,7 @@
   "exits": {
     "WEST": "forest_fork"
   },
-  "itemIds": ["item_obis_oath", "item_weathered_stone", "item_ancient_oak"],
+  "itemIds": ["item_obis_oath", "item_obis_tag", "item_weathered_stone", "item_ancient_oak"],
   "npcIds": ["npc_keeper_of_the_bond"]
 },
     {

@@ -211,5 +211,121 @@
   "minDamage": 2,
   "maxDamage": 5,
   "playerDeathEnabled": false
+},
+{
+  "id": "npc_lost_traveler",
+  "name": "Lost Traveler",
+  "description": "A weary figure huddles against a tree, their traveling cloak torn and muddy. They look utterly exhausted, eyes darting nervously at every forest sound. When they notice you, relief floods their face. <br><br><em>\"Please — I've been lost for days. I can't find my way back to town.\"</em>",
+  "keywords": ["traveler", "lost", "wanderer", "stranger", "figure"],
+  "pronoun": "they",
+  "possessive": "their",
+  "talkTemplates": [
+    "The traveler clutches your arm gratefully. \"You'll help me? Truly? I thought I'd die out here alone.\"",
+    "\"I was following the road when the mist came,\" the traveler says. \"Before I knew it, I was hopelessly turned around.\"",
+    "The traveler's voice breaks. \"My family must be so worried. I just want to go home.\"",
+    "\"The forest plays tricks,\" the traveler whispers. \"Paths that lead nowhere. Sounds that aren't there.\"",
+    "The traveler nods eagerly. \"West. I remember now — town is to the west. Will you walk with me?\"",
+    "\"I had this once,\" the traveler says, pressing something brass into your hand. \"A keepsake from better days. Take it — for your kindness.\""
+  ],
+  "interactTemplates": [
+    "The lost traveler looks up hopefully as {player} approaches.",
+    "The traveler wrings their hands nervously, watching {player}.",
+    "The traveler takes a tentative step toward {player}, uncertainty in their eyes.",
+    "A flicker of hope crosses the traveler's face as they see {player}."
+  ],
+  "wander": null
+},
+{
+  "id": "npc_wounded_pilgrim",
+  "name": "Wounded Pilgrim",
+  "description": "A pilgrim in simple robes lies propped against a rock, one hand pressed against a bloody wound in their side. Their face is pale but their eyes are calm. <br><br><em>\"Fear not for me, traveler. The wound looks worse than it is. But... I could use aid, if you're willing to offer it.\"</em>",
+  "keywords": ["pilgrim", "wounded", "injured", "robed", "hurt"],
+  "pronoun": "they",
+  "possessive": "their",
+  "talkTemplates": [
+    "The pilgrim smiles weakly. \"Kindness costs nothing but courage. Remember that.\"",
+    "\"I was set upon by wolves,\" the pilgrim explains. \"I outran them, but not their teeth.\"",
+    "The pilgrim studies your face. \"You have a good heart. I can see it.\"",
+    "\"A healing potion would mend this wound,\" the pilgrim admits. \"But I won't beg for what isn't freely given.\"",
+    "The pilgrim nods gratefully. \"To help a stranger when you could walk past — that is true courage.\"",
+    "The pilgrim presses a brass fragment into your palm. \"I found this on the road. It feels... important. Perhaps it was meant for someone braver than me.\""
+  ],
+  "interactTemplates": [],
+  "wander": null
+},
+{
+  "id": "npc_joyful_child",
+  "name": "Joyful Child",
+  "description": "A young child sits on the fountain's edge, swinging their legs and humming a cheerful tune. A worn leather ball rests in their lap, and they keep glancing around as if looking for someone to play with. <br><br><em>\"Hey! You look fun! Wanna play catch? Please please please?\"</em>",
+  "keywords": ["child", "kid", "joyful", "young", "little one"],
+  "pronoun": "they",
+  "possessive": "their",
+  "talkTemplates": [
+    "The child bounces excitedly. \"If you find my lucky ball, I'll give you something special! I lost it somewhere in the market!\"",
+    "\"Games are the best!\" the child declares. \"My grandma says even heroes need to play sometimes.\"",
+    "The child giggles. \"Do you know any dogs? I love dogs! They always want to play!\"",
+    "\"I found this shiny thing once,\" the child says, pulling a brass fragment from their pocket. \"But I'd trade it for my ball!\"",
+    "The child's eyes light up. \"You'll help me find it? You're the BEST!\"",
+    "\"Grown-ups forget how to have fun,\" the child says sagely. \"Don't be like that, okay?\""
+  ],
+  "interactTemplates": [
+    "The child waves enthusiastically as {player} walks by.",
+    "The child hops off the fountain and runs over to {player}.",
+    "The child tugs at {player}'s sleeve. \"Play with me?\"",
+    "The child beams at {player}, practically vibrating with energy."
+  ],
+  "wander": null
+},
+{
+  "id": "npc_blind_guide",
+  "name": "Blind Guide",
+  "description": "An elderly figure sits cross-legged at the fork in the path, a worn walking staff across their knees. Their eyes are milky and sightless, yet they turn unerringly toward you as you approach. <br><br><em>\"Lost?\"</em> they ask with a knowing smile. <em>\"Many are. The forest tests those who seek its heart. But those who follow loyalty's path always find their way.\"</em>",
+  "keywords": ["guide", "blind", "elder", "old", "seer", "wise"],
+  "pronoun": "they",
+  "possessive": "their",
+  "talkTemplates": [
+    "The guide tilts their head. \"The paw marks the faithful. Have you walked beside one who never left your side?\"",
+    "\"The heart knows courage,\" the guide says. \"Did you offer aid when you could have walked past?\"",
+    "\"Joy is often forgotten by those who think themselves too important for play.\" The guide chuckles softly.",
+    "\"The compass points true for those who know their purpose. Why do you seek the grove?\"",
+    "The guide nods slowly. \"Four fragments. Four lessons. United, they form something greater.\"",
+    "\"East lies the crossing,\" the guide whispers. \"But only the worthy see the path.\""
+  ],
+  "interactTemplates": [
+    "The blind guide turns toward {player}, somehow sensing their presence.",
+    "The guide's sightless eyes seem to look through {player}.",
+    "The guide inclines their head as {player} approaches the fork.",
+    "The guide smiles knowingly as {player} arrives."
+  ],
+  "wander": null
+},
+{
+  "id": "npc_forest_wolf",
+  "name": "Forest Wolf",
+  "description": "A lean grey wolf with hungry yellow eyes and scarred muzzle. Its lips curl back to reveal yellowed fangs, a low growl rumbling from deep in its chest. This predator has clearly survived many battles.",
+  "keywords": ["wolf", "grey wolf", "forest wolf", "predator", "beast"],
+  "pronoun": "it",
+  "possessive": "its",
+  "talkTemplates": [
+    "The wolf snarls in response, clearly uninterested in conversation.",
+    "A guttural growl is the only reply. Wolves don't talk.",
+    "The wolf bares its fangs. Words mean nothing to it.",
+    "The wolf's yellow eyes narrow. It understands only one language: violence."
+  ],
+  "interactTemplates": [
+    "The forest wolf circles {player}, hackles raised.",
+    "The wolf's ears flatten against its skull as {player} approaches.",
+    "A threatening growl rumbles from the wolf as it notices {player}.",
+    "The wolf tracks {player}'s movements with predatory focus."
+  ],
+  "wander": null,
+  "combatTarget": true,
+  "respawns": false,
+  "maxHealth": 40,
+  "level": 5,
+  "xpReward": 15,
+  "minDamage": 4,
+  "maxDamage": 8,
+  "playerDeathEnabled": true
 }
 ]

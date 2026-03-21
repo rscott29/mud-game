@@ -55,14 +55,14 @@ public class SummonCommand implements GameCommand {
         if (!targetRoomId.equals(godRoomId)) {
             worldBroadcaster.broadcastToRoom(
                     targetRoomId,
-                    GameResponse.message(Messages.fmt("command.summon.broadcast_away", "player", targetName)),
+                    GameResponse.roomAction(Messages.fmt("command.summon.broadcast_away", "player", targetName)),
                     target.getSessionId());
 
             target.getPlayer().setCurrentRoomId(godRoomId);
 
             worldBroadcaster.broadcastToRoom(
                     godRoomId,
-                    GameResponse.message(Messages.fmt("command.summon.broadcast_arrive", "player", targetName, "god", godName)),
+                    GameResponse.roomAction(Messages.fmt("command.summon.broadcast_arrive", "player", targetName, "god", godName)),
                     wsSessionId);
         }
 

@@ -52,7 +52,7 @@ public class PlayerPersistenceScheduler {
         // First, cache any active sessions
         Collection<GameSession> sessions = sessionManager.getPlayingSessions();
         for (GameSession session : sessions) {
-            stateCache.cache(session.getPlayer());
+            stateCache.cache(session);
         }
 
         // Then flush all cached states to DB
@@ -87,7 +87,7 @@ public class PlayerPersistenceScheduler {
         // Cache any active sessions first
         Collection<GameSession> sessions = sessionManager.getPlayingSessions();
         for (GameSession session : sessions) {
-            stateCache.cache(session.getPlayer());
+            stateCache.cache(session);
         }
 
         Map<String, CachedPlayerState> cached = stateCache.getAll();

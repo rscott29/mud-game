@@ -1,0 +1,52 @@
+{
+  "zones": {
+    "cave": {
+      "ambient": [
+        "Your footsteps echo along the stone corridor, the sound lingering longer than it should.",
+        "Cold air drifts through the passage, carrying the scent of damp stone and ancient dust.",
+        "A faint drip echoes somewhere deep in the darkness ahead.",
+        "The cave walls glisten faintly, slick with moisture.",
+        "For a moment, your footsteps seem to echo twice.",
+        "The deeper you go, the heavier the air feels.",
+        "A cold draft brushes past you, carrying the faint smell of earth.",
+        "Somewhere in the distance, water trickles over stone.",
+        "The silence here feels different — thick and watchful.",
+        "Shadows shift at the edge of your vision, though nothing moves."
+      ],
+      "uneasy": [
+        "You pause for a moment. The silence here feels unnatural.",
+        "A loose pebble skitters across the stone behind you — though nothing touched it.",
+        "The darkness ahead seems thicker than it should be.",
+        "A distant rumble travels through the rock, then fades into silence.",
+        "You could swear the walls just shifted slightly.",
+        "Something in the darkness breathes — or perhaps it's just the cave itself."
+      ]
+    }
+  },
+
+  "companionDialogue": {
+    "npc_wounded_pilgrim": {
+      "cave": [
+        "\"Listen carefully,\" the pilgrim whispers. \"The cave speaks through its silence.\"",
+        "\"Few who enter here are patient enough to find the way.\"",
+        "\"Long ago, pilgrims walked these tunnels seeking something greater than themselves.\"",
+        "\"The cave does not measure strength. It measures something far harder to carry.\"",
+        "The pilgrim glances back toward the darkness behind you, as if expecting something to follow.",
+        "\"These stones remember every footstep. Every choice.\"",
+        "The pilgrim pauses, resting one hand against the damp wall. \"We are close. I can feel it.\"",
+        "\"Some say the cave tests those who enter. Others say it simply... watches.\""
+      ]
+    }
+  },
+
+  "triggerChance": {
+    "ambient": 0.25,
+    "uneasy": 0.10,
+    "companionDialogue": 0.30
+  },
+
+  "delayMs": {
+    "min": 1500,
+    "max": 3500
+  }
+}

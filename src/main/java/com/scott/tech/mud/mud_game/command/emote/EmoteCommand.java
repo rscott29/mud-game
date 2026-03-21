@@ -61,7 +61,7 @@ public class EmoteCommand implements GameCommand {
 
             return CommandResult.withAction(
                     RoomAction.inCurrentRoom(othersMessage),
-                    GameResponse.message(selfMessage)
+                    GameResponse.narrative(selfMessage)
             );
         }
 
@@ -85,7 +85,7 @@ public class EmoteCommand implements GameCommand {
                                 other.getSessionId(),
                                 messageForTarget
                         ),
-                        GameResponse.message(messageForSelf)
+                        GameResponse.narrative(messageForSelf)
                 );
             }
         }
@@ -96,7 +96,7 @@ public class EmoteCommand implements GameCommand {
 
         return CommandResult.withAction(
                 RoomAction.inCurrentRoom(roomMessage),
-                GameResponse.message(selfMessage)
+                GameResponse.narrative(selfMessage)
         );
     }
 

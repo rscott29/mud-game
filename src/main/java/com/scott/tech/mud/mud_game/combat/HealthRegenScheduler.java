@@ -65,8 +65,13 @@ public class HealthRegenScheduler {
         String sessionId = session.getSessionId();
         Player player = session.getPlayer();
 
-        // Skip if in combat
-        if (combatState.isInCombat(sessionId) || player.getHealth() <= 0) {
+        // Skip if in combat (dead players can still regen until death mechanic is implemented)
+        if (combatState.isInCombat(sessionId)) {
+            return;
+        }
+        
+        // Skip if current room suppresses regen (e.g., dark caves)
+        if (session.getCurrentRoom() != null && session.getCurrentRoom().isSuppressRegen()) {
             return;
         }
 

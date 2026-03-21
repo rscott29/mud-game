@@ -1,46 +1,61 @@
-/* ── CSS custom properties ───────────────────────────────────────────── */
+@use 'styles/index';
+
 :root {
-  /* Accent colours */
-  --accent-blue:    #3b82f6;
-  --accent-blue-lt: #60a5fa;
-  --accent-purple:  #a855f7;
-  --accent-teal:    #2dd4bf;
-  --accent-green:   #4ade80;
-  --accent-orange:  #fbbf24;
-  --accent-red:     #ef4444;
-  --accent-red-lt:  #f87171;
+  color-scheme: dark;
 
-  /* Backgrounds */
-  --bg-body:       #111827;
-  --bg-surface:    #1f2937;
-  --bg-deep:       #030712;
-  --bg-error:      #3f1b1b;
-  --bg-sent:       #0d2b0d;
-  --bg-chat-room:  #0a1f1a;
-  --bg-chat-world: #1a0f2e;
-  --bg-chat-dm:    #1a0d0d;
-  --bg-who:        #0f1a2e;
+  --terminal-accent: #b7c8a1;
+  --terminal-accent-soft: #e7ddbf;
+  --terminal-info: #9eb3ca;
+  --terminal-warning: #d6b173;
+  --terminal-danger: #c38b7f;
+  --terminal-text: #f3ead9;
+  --terminal-muted: #b8ab95;
+  --terminal-border: rgba(214, 177, 115, 0.16);
+  --terminal-panel: rgba(24, 18, 14, 0.9);
+  --terminal-shadow: rgba(0, 0, 0, 0.45);
+  --font-display: 'Iowan Old Style', 'Palatino Linotype', 'Book Antiqua', Georgia, serif;
 
-  /* Text */
-  --text-primary: #f9fafb;
-  --text-muted:   #9ca3af;
-  --text-subtle:  #d1d5db;
-  --text-desc:    #e5e7eb;
-  --text-yellow:  #fde047;
-  --text-error:   #fca5a5;
-  --text-white:   #fff;
+  /* Compatibility tokens for existing component styles. */
+  --accent-blue: #9eb3ca;
+  --accent-blue-lt: #d6e1ed;
+  --accent-purple: #a99cc0;
+  --accent-purple-lt: #d8cfe7;
+  --accent-teal: #b7c8a1;
+  --accent-green: #b9d2ac;
+  --accent-orange: #d6b173;
+  --accent-red: #c38b7f;
+  --accent-red-lt: #d8a59c;
+  --accent-gold: #e0c38c;
 
-  /* Rarity colours */
-  --rarity-common:          #d1d5db;
-  --rarity-fine:            #4ade80;
-  --rarity-rare:            #60a5fa;
-  --rarity-legendary:       #fbbf24;
-  --rarity-legendary-glow:  rgba(251, 191, 36, 0.35);
+  --bg-body: #15100d;
+  --bg-surface: #211914;
+  --bg-deep: #0f0b09;
+  --bg-error: #321917;
+  --bg-sent: #1b1c14;
+  --bg-chat-room: #18150f;
+  --bg-chat-world: #16151b;
+  --bg-chat-dm: #221713;
+  --bg-who: #171412;
 
-  /* Structure */
-  --border-surface: #0f3460;
-  --radius:         4px;
-  --font-mono:      'Courier New', monospace;
+  --text-primary: var(--terminal-text);
+  --text-muted: var(--terminal-muted);
+  --text-subtle: #cdc4b6;
+  --text-desc: #e6dccd;
+  --text-body: #e6dccd;
+  --text-yellow: #ead09d;
+  --text-error: #dfb3ab;
+  --text-white: #ffffff;
+
+  --rarity-common: #d8cec1;
+  --rarity-fine: #b7c8a1;
+  --rarity-rare: #9eb3ca;
+  --rarity-legendary: #d6b173;
+  --rarity-legendary-glow: rgba(214, 177, 115, 0.32);
+
+  --border-surface: rgba(214, 177, 115, 0.16);
+  --radius: 12px;
+  --radius-lg: 18px;
+  --font-mono: 'Cascadia Mono', 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
 }
 
 *, *::before, *::after {
@@ -54,39 +69,42 @@ html, body {
 }
 
 body {
-  background: var(--bg-body);
-  color: var(--text-primary);
+  background:
+    radial-gradient(circle at top left, rgba(214, 177, 115, 0.1), transparent 30%),
+    radial-gradient(circle at top right, rgba(158, 179, 202, 0.08), transparent 28%),
+    radial-gradient(circle at bottom center, rgba(183, 200, 161, 0.05), transparent 32%),
+    linear-gradient(180deg, #1b1511 0%, #0c0908 100%);
+  color: var(--terminal-text);
   font-family: var(--font-mono);
 }
 
-/* ── Custom Scrollbars ───────────────────────────────────────────── */
+button,
+input,
+textarea,
+select {
+  font: inherit;
+}
+
 ::-webkit-scrollbar {
   width: 10px;
   height: 10px;
 }
 
 ::-webkit-scrollbar-track {
-  background: var(--bg-deep);
+  background: rgba(15, 11, 9, 0.92);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--border-surface);
-  border-radius: var(--radius);
+  border-radius: 999px;
+  background: rgba(214, 177, 115, 0.25);
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--accent-blue);
+  background: rgba(183, 200, 161, 0.28);
 }
 
 * {
   scrollbar-width: thin;
-  scrollbar-color: var(--border-surface) var(--bg-deep);
+  scrollbar-color: rgba(214, 177, 115, 0.25) rgba(15, 11, 9, 0.92);
 }
 
-/* ── Global content styles (rendered via innerHTML) ─────────────── */
-@import 'styles/animations';
-@import 'styles/room';
-@import 'styles/chips';
-@import 'styles/chat';
-@import 'styles/equipment';
-@import 'styles/combat';

@@ -56,7 +56,7 @@ class TeleportCommandTest {
         verify(broadcaster).broadcastToRoom(
             org.mockito.ArgumentMatchers.eq("target_room"),
             org.mockito.ArgumentMatchers.argThat(r ->
-                r.type() == GameResponse.Type.MESSAGE &&
+                r.type() == GameResponse.Type.ROOM_ACTION &&
                     r.message() != null &&
                     r.message().contains("appears in a flash of light")),
             org.mockito.ArgumentMatchers.eq("admin-ws"));
@@ -94,7 +94,7 @@ class TeleportCommandTest {
         verify(broadcaster).broadcastToRoom(
             org.mockito.ArgumentMatchers.eq("shared_room"),
             org.mockito.ArgumentMatchers.argThat(r ->
-                r.type() == GameResponse.Type.MESSAGE &&
+                r.type() == GameResponse.Type.ROOM_ACTION &&
                     r.message() != null &&
                     r.message().contains("blinks beside Ranger")),
             org.mockito.ArgumentMatchers.eq("admin-ws"));

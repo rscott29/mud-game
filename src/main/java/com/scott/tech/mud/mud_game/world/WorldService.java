@@ -25,7 +25,7 @@ public class WorldService {
     private final NpcPositionRepository npcPositionRepository;
 
     private Map<String, Room> rooms = Map.of();
-    private Map<String, Npc> npcRegistry = Map.of();
+    private Map<String, Npc> npcRegistry = new ConcurrentHashMap<>();
     private Map<String, Item> itemRegistry = Map.of();
     private final Map<String, String> npcRoomIndex = new ConcurrentHashMap<>();
     private String startRoomId;
@@ -41,7 +41,7 @@ public class WorldService {
         try {
             WorldLoadResult loaded = worldLoader.load();
             this.rooms = loaded.rooms();
-            this.npcRegistry = loaded.npcRegistry();
+            this.npcRegistry = new ConcurrentHashMap<>(loaded.npcRegistry());
             this.itemRegistry = loaded.itemRegistry();
             this.startRoomId = loaded.startRoomId();
             this.defaultRecallRoomId = loaded.defaultRecallRoomId();
@@ -146,6 +146,32 @@ public class WorldService {
         toRoom.addNpc(npc);
         npcRoomIndex.put(npcId, toRoomId);
         npcPositionRepository.save(new NpcPositionEntity(npcId, toRoomId));
+    }
+
+    /**
+     * Updates an NPC's description in the registry and any room it currently occupies.
+     */
+    public synchronized void updateNpcDescription(String npcId, String newDescription) {
+        Npc oldNpc = npcRegistry.get(npcId);
+        if (oldNpc == null) {
+            log.warn("Cannot update description: NPC '{}' not found", npcId);
+            return;
+        }
+
+        Npc updatedNpc = oldNpc.withDescription(newDescription);
+        npcRegistry.put(npcId, updatedNpc);
+
+        // Update the NPC instance in its current room
+        String roomId = npcRoomIndex.get(npcId);
+        if (roomId != null) {
+            Room room = rooms.get(roomId);
+            if (room != null) {
+                room.removeNpc(oldNpc);
+                room.addNpc(updatedNpc);
+            }
+        }
+
+        log.debug("Updated NPC '{}' description", npcId);
     }
 
     private boolean matchesLookup(Npc npc, String normalizedInput) {

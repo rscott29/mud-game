@@ -46,7 +46,7 @@ class GameEngineTest {
 
         CommandRequest request = new CommandRequest();
         GameCommand command = mock(GameCommand.class);
-        CommandResult expected = CommandResult.of(GameResponse.message("ok"));
+        CommandResult expected = CommandResult.of(GameResponse.narrative("ok"));
 
         when(commandFactory.create(request)).thenReturn(command);
         when(command.execute(session)).thenReturn(expected);

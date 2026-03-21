@@ -42,12 +42,12 @@ public class PlayerRespawnService {
         if (!destination.getId().equals(fromRoomId)) {
             worldBroadcaster.broadcastToRoom(
                     fromRoomId,
-                    GameResponse.message(Messages.fmt("combat.player_respawn_departure",
+                    GameResponse.roomAction(Messages.fmt("combat.player_respawn_departure",
                             "player", session.getPlayer().getName())),
                     session.getSessionId());
             worldBroadcaster.broadcastToRoom(
                     destination.getId(),
-                    GameResponse.message(Messages.fmt("combat.player_respawn_arrival",
+                    GameResponse.roomAction(Messages.fmt("combat.player_respawn_arrival",
                             "player", session.getPlayer().getName())),
                     session.getSessionId());
         }

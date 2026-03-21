@@ -1,37 +1,14 @@
 import { Component, inject } from '@angular/core';
 import { TerminalComponent } from './components/terminal/terminal.component';
-import { InventoryComponent } from './components/inventory/inventory.component';
-import { WhoComponent } from './components/who/who.component';
-import { HelpComponent } from './components/help/help.component';
-import { PlayerStatsComponent } from './components/player-stats/player-stats.component';
-import { ClassProgressionComponent } from './components/class-progression/class-progression.component';
 import { ZoomService } from './services/zoom.service';
-import { GameSocketService } from './services/game-socket.service';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [TerminalComponent, InventoryComponent, WhoComponent, HelpComponent, PlayerStatsComponent, ClassProgressionComponent],
+  imports: [TerminalComponent],
   template: `
     <main class="game-layout" [style.fontSize.%]="zoomService.zoomLevel()">
-      <div class="game-main">
-        <app-terminal class="game-terminal" />
-        @if (socketService.playerStats()) {
-          <app-player-stats />
-        }
-      </div>
-      @if (socketService.inventoryOpen()) {
-        <app-inventory class="game-inventory" />
-      }
-      @if (socketService.whoOpen()) {
-        <app-who class="game-who" />
-      }
-      @if (socketService.helpOpen()) {
-        <app-help />
-      }
-      @if (socketService.classProgressionOpen()) {
-        <app-class-progression />
-      }
+      <app-terminal class="game-terminal" />
     </main>
   `,
   styles: [`
@@ -42,29 +19,16 @@ import { GameSocketService } from './services/game-socket.service';
     }
 
     .game-layout {
-      display: flex;
       height: 100%;
-    }
-
-    .game-main {
-      flex: 1 1 0;
-      min-width: 0;
-      display: flex;
-      flex-direction: column;
+      padding: clamp(10px, 1.6vw, 18px);
     }
 
     .game-terminal {
-      flex: 1 1 0;
-      min-width: 0;
-    }
-
-    .game-who {
-      flex: 0 0 260px;
-      width: 260px;
+      display: block;
+      height: 100%;
     }
   `],
 })
 export class App {
-  readonly socketService = inject(GameSocketService);
   readonly zoomService = inject(ZoomService);
 }

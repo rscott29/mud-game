@@ -68,6 +68,18 @@ public class WorldLoader {
                 room.setHiddenExitHints(parseDirectionStringMap(def.getHiddenExitHints(), def.getId()));
                 room.setRecallBindable(def.isRecallBindable());
                 room.setDefaultRecallPoint(def.isDefaultRecallPoint());
+                room.setDark(def.isDark());
+                if (def.getSafeExit() != null) {
+                    try {
+                        room.setSafeExit(Direction.valueOf(def.getSafeExit().toUpperCase()));
+                    } catch (IllegalArgumentException e) {
+                        errors.add(String.format("Room '%s' has invalid safeExit direction '%s'", 
+                                def.getId(), def.getSafeExit()));
+                    }
+                }
+                room.setWrongExitDamage(def.getWrongExitDamage());
+                room.setSuppressRegen(def.isSuppressRegen());
+                room.setAmbientZone(def.getAmbientZone());
                 if (builtRooms.put(def.getId(), room) != null) {
                     errors.add("Duplicate room id: " + def.getId());
                 }

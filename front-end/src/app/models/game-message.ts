@@ -9,6 +9,7 @@ export interface RoomItemDto {
 }
 
 export interface RoomDto {
+  id?: string;
   name: string;
   description: string;
   exits: string[];

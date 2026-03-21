@@ -70,7 +70,7 @@ public class EquipCommand implements GameCommand {
                 RoomAction.inCurrentRoom(Messages.fmt("action.equip", 
                         "player", playerName, 
                         "item", item.getName())),
-                GameResponse.message(successMsg)
+                GameResponse.narrative(successMsg)
         );
     }
 

@@ -99,7 +99,7 @@ class TalkCommandTest {
         CommandResult result = new TalkCommand("obi", chatClient).execute(session);
 
         GameResponse response = singleResponse(result);
-        assertThat(response.type()).isEqualTo(GameResponse.Type.MESSAGE);
+        assertThat(response.type()).isEqualTo(GameResponse.Type.ROOM_UPDATE);
         assertThat(response.message()).contains("Adventurer");
         verify(chatClient, never()).prompt();   // AI must NOT be called
     }
@@ -125,7 +125,7 @@ class TalkCommandTest {
 
         CommandResult result = new TalkCommand("rock", chatClient).execute(session);
 
-        assertThat(singleResponse(result).type()).isEqualTo(GameResponse.Type.MESSAGE);
+        assertThat(singleResponse(result).type()).isEqualTo(GameResponse.Type.ROOM_UPDATE);
         assertThat(singleResponse(result).message()).contains("doesn't seem to understand");
         verify(chatClient, never()).prompt();
     }
@@ -141,7 +141,7 @@ class TalkCommandTest {
         setRoom(List.of(obi));
 
         CommandResult result = new TalkCommand(input, chatClient).execute(session);
-        assertThat(singleResponse(result).type()).isEqualTo(GameResponse.Type.MESSAGE);
+        assertThat(singleResponse(result).type()).isEqualTo(GameResponse.Type.ROOM_UPDATE);
     }
 
     // ── Sentient NPC ──────────────────────────────────────────────────────────
@@ -156,7 +156,7 @@ class TalkCommandTest {
         CommandResult result = new TalkCommand("bartender", chatClient).execute(session);
         GameResponse response = singleResponse(result);
 
-        assertThat(response.type()).isEqualTo(GameResponse.Type.MESSAGE);
+        assertThat(response.type()).isEqualTo(GameResponse.Type.ROOM_UPDATE);
         assertThat(response.message())
                 .startsWith("Bartender:")
                 .contains("\"Aye, stranger, what brings ye here?\"");
@@ -185,7 +185,7 @@ class TalkCommandTest {
         CommandResult result = new TalkCommand("bartender", chatClient).execute(session);
         GameResponse response = singleResponse(result);
 
-        assertThat(response.type()).isEqualTo(GameResponse.Type.MESSAGE);
+        assertThat(response.type()).isEqualTo(GameResponse.Type.ROOM_UPDATE);
         assertThat(response.message()).contains("words seem to get lost");
     }
 

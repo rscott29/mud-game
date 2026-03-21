@@ -104,6 +104,14 @@
     "rarity": "RARE"
   },
   {
+    "id": "item_cave_moss",
+    "name": "Luminescent Healing Moss",
+    "description": "A soft, glowing patch of moss that grows in the damp crevices of the cave. Ancient pilgrims claimed it has restorative properties. Crushing it against a wound is said to heal injuries instantly (+25 HP).",
+    "keywords": ["moss", "healing moss", "luminescent", "cave moss", "glowing moss"],
+    "takeable": true,
+    "rarity": "RARE"
+  },
+  {
     "id": "item_animal_tracks",
     "name": "Animal Tracks",
     "description": "A series of large paw prints pressed deep into the soft earth. Four toes, no claw marks. The tracks lead deeper into the forest and do not return.",
@@ -141,6 +149,18 @@
     "description": "An immense oak tree towers above the grove, its limbs spread like a vaulted roof. Its bark is scarred with old symbols that speak of vows kept through generations.",
     "keywords": ["oak", "ancient oak", "tree", "grove"],
     "takeable": false,
+    "rarity": "COMMON"
+  },
+  {
+    "id": "item_childs_ball",
+    "name": "Worn Leather Ball",
+    "description": [
+      "A scuffed leather ball, well-loved and much-used.",
+      "It's exactly the kind of thing a child — or a dog — would chase with pure joy.",
+      "Stitched into the leather is a faded name: <em>Joy</em>."
+    ],
+    "keywords": ["ball", "leather ball", "toy", "childs ball", "worn ball"],
+    "takeable": true,
     "rarity": "COMMON"
   },
   {
@@ -211,16 +231,68 @@
     }
   },
   {
-    "id": "item_obis_tag",
-    "name": "Worn Collar Tag",
+    "id": "item_tag_shard_paw",
+    "name": "Paw Shard",
     "description": [
-      "A small, scratched brass tag that once hung from a dog's collar.",
-      "The name <em>Obi</em> is etched on one side; on the other, a single worn paw print.",
-      "<br>Whoever carries this was trusted enough to keep it."
+      "A fragment of brass shaped like a paw print, warm to the touch.",
+      "The metal seems almost alive — it pulses faintly when you hold it close.",
+      "<br><em>Loyalty is not claimed. It is proven.</em>"
     ],
-    "keywords": ["collar tag", "tag", "brass tag", "obi's tag", "worn tag"],
+    "keywords": ["paw shard", "paw", "shard", "brass paw", "paw fragment"],
     "takeable": true,
     "rarity": "RARE"
+  },
+  {
+    "id": "item_tag_shard_heart",
+    "name": "Heart Shard",
+    "description": [
+      "A fragment of brass in the shape of a small heart, worn smooth by time.",
+      "It feels heavier than it looks — as if it carries the weight of every brave deed.",
+      "<br><em>Courage is not the absence of fear, but the will to act despite it.</em>"
+    ],
+    "keywords": ["heart shard", "heart", "shard", "brass heart", "heart fragment"],
+    "takeable": true,
+    "rarity": "RARE"
+  },
+  {
+    "id": "item_tag_shard_ball",
+    "name": "Ball Shard",
+    "description": [
+      "A fragment of brass etched with the outline of a ball, scuffed and joyful.",
+      "Holding it fills you with an inexplicable urge to smile.",
+      "<br><em>Even heroes need to remember the simple joys.</em>"
+    ],
+    "keywords": ["ball shard", "ball", "shard", "brass ball", "ball fragment"],
+    "takeable": true,
+    "rarity": "RARE"
+  },
+  {
+    "id": "item_tag_shard_compass",
+    "name": "Compass Shard",
+    "description": [
+      "A fragment of brass bearing a tiny compass rose, its needle forever pointing true.",
+      "When you're lost, it seems to grow warmer — guiding you home.",
+      "<br><em>No matter how lost the road becomes, purpose lights the way.</em>"
+    ],
+    "keywords": ["compass shard", "compass", "shard", "brass compass", "compass fragment"],
+    "takeable": true,
+    "rarity": "RARE"
+  },
+  {
+    "id": "item_obis_tag",
+    "name": "Obi's Collar Tag",
+    "description": [
+      "A complete brass tag, reassembled from four ancient fragments.",
+      "The name <em>Obi</em> gleams on one side. On the reverse, four symbols shine:",
+      "a paw, a heart, a ball, and a compass — united at last.",
+      "<br>The tag hums with warmth, as if recognizing its rightful bearer.",
+      "<br><em>He walked beside the one who shaped this world. Not as servant. But as friend.</em>"
+    ],
+    "keywords": ["collar tag", "tag", "brass tag", "obi's tag", "complete tag"],
+    "takeable": true,
+    "rarity": "EPIC",
+    "requiredItemIds": ["item_tag_shard_paw", "item_tag_shard_heart", "item_tag_shard_ball", "item_tag_shard_compass"],
+    "prerequisiteFailMessage": "The tag's fragments refuse to unite. You sense that something is missing — a piece of the journey left incomplete."
   },
   {
     "id": "item_weapon_rack",

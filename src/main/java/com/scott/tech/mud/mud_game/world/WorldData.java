@@ -34,6 +34,16 @@ public class WorldData {
         private boolean recallBindable;
         /** Whether this room should be used as the world's default recall point. */
         private boolean defaultRecallPoint;
+        /** If true, room is pitch black and description may be hidden. */
+        private boolean dark;
+        /** The safe direction to exit in a dark room (other directions cause damage). */
+        private String safeExit;
+        /** Damage dealt when taking a wrong exit in a dark room. */
+        private int wrongExitDamage;
+        /** If true, players in this room do not regenerate health or mana. */
+        private boolean suppressRegen;
+        /** Optional zone identifier for ambient events (e.g., "cave", "forest"). */
+        private String ambientZone;
 
         public String getId()                                   { return id; }
         public String getName()                                 { return name; }
@@ -45,6 +55,11 @@ public class WorldData {
         public List<String> getNpcIds()                         { return npcIds; }
         public boolean isRecallBindable()                       { return recallBindable; }
         public boolean isDefaultRecallPoint()                   { return defaultRecallPoint; }
+        public boolean isDark()                                 { return dark; }
+        public String getSafeExit()                             { return safeExit; }
+        public int getWrongExitDamage()                         { return wrongExitDamage; }
+        public boolean isSuppressRegen()                         { return suppressRegen; }
+        public String getAmbientZone()                             { return ambientZone; }
 
         public void setId(String id)                            { this.id = id; }
         public void setName(String name)                        { this.name = name; }
@@ -56,5 +71,10 @@ public class WorldData {
         public void setNpcIds(List<String> npcIds)              { this.npcIds = npcIds; }
         public void setRecallBindable(boolean recallBindable)   { this.recallBindable = recallBindable; }
         public void setDefaultRecallPoint(boolean defaultRecallPoint) { this.defaultRecallPoint = defaultRecallPoint; }
+        public void setDark(boolean dark)                       { this.dark = dark; }
+        public void setSafeExit(String safeExit)                { this.safeExit = safeExit; }
+        public void setWrongExitDamage(int wrongExitDamage)     { this.wrongExitDamage = wrongExitDamage; }
+        public void setSuppressRegen(boolean suppressRegen)      { this.suppressRegen = suppressRegen; }
+        public void setAmbientZone(String ambientZone)             { this.ambientZone = ambientZone; }
     }
 }

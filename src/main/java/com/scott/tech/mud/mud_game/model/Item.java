@@ -84,6 +84,28 @@ public class Item {
     public CombatStats getCombatStats()            { return combatStats; }
 
     /**
+     * Returns a copy of this item with a new description.
+     */
+    public Item withDescription(String newDescription) {
+        return new Item(id, name, newDescription, keywords, takeable, rarity,
+                requiredItemIds, prerequisiteFailMessage, triggers, combatStats);
+    }
+
+    /**
+     * Returns true if the input exactly matches one of this item's keywords.
+     * Does not check description or partial matches.
+     */
+    public boolean hasExactKeyword(String input) {
+        if (input == null) return false;
+        String normalizedInput = normalizeForMatch(input);
+        if (normalizedInput.isEmpty()) return false;
+        
+        return keywords.stream()
+                .map(this::normalizeForMatch)
+                .anyMatch(normalizedInput::equals);
+    }
+
+    /**
      * Returns true if the given input identifies this item.
      * Matching strategy (first match wins):
      * 1. Exact keyword match — "tag", "brass tag", etc.
@@ -96,9 +118,7 @@ public class Item {
         if (normalizedInput.isEmpty()) return false;
 
         // 1. Exact keyword match
-        if (keywords.stream()
-                .map(this::normalizeForMatch)
-                .anyMatch(normalizedInput::equals)) {
+        if (hasExactKeyword(input)) {
             return true;
         }
 

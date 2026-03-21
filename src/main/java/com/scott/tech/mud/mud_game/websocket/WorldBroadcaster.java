@@ -34,6 +34,7 @@ public class WorldBroadcaster {
 
     public void unregister(String wsSessionId) {
         wsSessions.remove(wsSessionId);
+        messageSender.clearSessionGuard(wsSessionId);
     }
 
     /** Push a response to every player currently in the given room. */
@@ -47,7 +48,7 @@ public class WorldBroadcaster {
             if (session.getSessionId().equals(excludeSessionId)) return;
             WebSocketSession ws = wsSessions.get(session.getSessionId());
             if (ws != null) {
-                messageSender.send(ws, response);
+                messageSender.sendUnmodified(ws, response);
             }
         });
     }
@@ -57,7 +58,7 @@ public class WorldBroadcaster {
         sessionManager.getPlayingSessions().forEach(session -> {
             WebSocketSession ws = wsSessions.get(session.getSessionId());
             if (ws != null) {
-                messageSender.send(ws, response);
+                messageSender.sendUnmodified(ws, response);
             }
         });
     }

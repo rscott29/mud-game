@@ -18,6 +18,16 @@ public class Room {
     private final List<Npc> npcs;
     private boolean recallBindable;
     private boolean defaultRecallPoint;
+    /** If true, room is pitch black and description is hidden until lit. */
+    private boolean dark;
+    /** The safe direction to exit in a dark room (other directions cause damage). */
+    private Direction safeExit;
+    /** Damage dealt when taking a wrong exit in a dark room. */
+    private int wrongExitDamage;
+    /** If true, players in this room do not regenerate health or mana. */
+    private boolean suppressRegen;
+    /** Optional zone identifier for ambient events (e.g., "cave", "forest"). */
+    private String ambientZone;
 
     public Room(String id, String name, String description,
                 Map<Direction, String> exits, List<Item> items, List<Npc> npcs) {
@@ -50,6 +60,17 @@ public class Room {
     public List<Npc> getNpcs()     { return npcs; }
     public boolean isRecallBindable()     { return recallBindable; }
     public boolean isDefaultRecallPoint() { return defaultRecallPoint; }
+    public boolean isDark()               { return dark; }
+    public Direction getSafeExit()        { return safeExit; }
+    public int getWrongExitDamage()       { return wrongExitDamage; }
+
+    public void setDark(boolean dark)                   { this.dark = dark; }
+    public void setSafeExit(Direction safeExit)         { this.safeExit = safeExit; }
+    public void setWrongExitDamage(int wrongExitDamage) { this.wrongExitDamage = wrongExitDamage; }
+    public boolean isSuppressRegen()                    { return suppressRegen; }
+    public void setSuppressRegen(boolean suppressRegen) { this.suppressRegen = suppressRegen; }
+    public String getAmbientZone()                       { return ambientZone; }
+    public void setAmbientZone(String ambientZone)       { this.ambientZone = ambientZone; }
 
     public void addNpc(Npc npc)    { npcs.add(npc); }
     public void removeNpc(Npc npc)  { npcs.remove(npc); }

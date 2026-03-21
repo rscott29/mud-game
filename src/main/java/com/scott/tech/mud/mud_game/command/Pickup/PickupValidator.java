@@ -82,7 +82,7 @@ public class PickupValidator {
             findNpcInRoom(session, trigger.getNpcId())
                     .flatMap(npc -> resolveTemplate(npc, trigger.getTemplateIndex())
                             .map(template -> npc.getName() + ": \"" + interpolate(template, npc, session) + "\""))
-                    .map(GameResponse::message)
+                    .map(GameResponse::narrative)
                     .ifPresent(responses::add);
         }
 

@@ -100,7 +100,7 @@ public class AttackCommand implements GameCommand {
 
         return CommandResult.withAction(
                 RoomAction.inCurrentRoom(actionMsg),
-                GameResponse.message(sb.toString()).withPlayerStats(session.getPlayer(), xpTables)
+                GameResponse.narrative(sb.toString()).withPlayerStats(session.getPlayer(), xpTables)
         );
     }
 

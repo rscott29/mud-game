@@ -32,7 +32,7 @@ class BindRecallCommandTest {
 
         assertThat(session.getPlayer().getRecallRoomId()).isEqualTo("town_square");
         assertThat(result.getResponses()).hasSize(1);
-        assertThat(result.getResponses().get(0).type()).isEqualTo(GameResponse.Type.MESSAGE);
+        assertThat(result.getResponses().get(0).type()).isEqualTo(GameResponse.Type.NARRATIVE);
         assertThat(result.getResponses().get(0).message()).contains("Town Square");
     }
 

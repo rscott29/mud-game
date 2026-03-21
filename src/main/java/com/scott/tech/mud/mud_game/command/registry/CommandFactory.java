@@ -28,7 +28,10 @@ import com.scott.tech.mud.mud_game.persistence.cache.PlayerStateCache;
 import com.scott.tech.mud.mud_game.persistence.service.DiscoveredExitService;
 import com.scott.tech.mud.mud_game.persistence.service.InventoryService;
 import com.scott.tech.mud.mud_game.persistence.service.PlayerProfileService;
+import com.scott.tech.mud.mud_game.quest.QuestService;
+import com.scott.tech.mud.mud_game.service.AmbientEventService;
 import com.scott.tech.mud.mud_game.service.LevelingService;
+import com.scott.tech.mud.mud_game.world.WorldService;
 import com.scott.tech.mud.mud_game.session.GameSessionManager;
 import com.scott.tech.mud.mud_game.websocket.WorldBroadcaster;
 import org.springframework.ai.chat.client.ChatClient;
@@ -68,7 +71,10 @@ public class CommandFactory {
                           ExperienceTableService xpTables,
                           LevelingService levelingService,
                           PlayerProfileService playerProfileService,
-                          PlayerStateCache stateCache) {
+                          PlayerStateCache stateCache,
+                          QuestService questService,
+                          WorldService worldService,
+                          AmbientEventService ambientEventService) {
         this.deps = new CommandDependencies(
                 taskScheduler,
                 worldBroadcaster,
@@ -95,7 +101,10 @@ public class CommandFactory {
                 xpTables,
                 levelingService,
                 playerProfileService,
-                stateCache
+                stateCache,
+                questService,
+                worldService,
+                ambientEventService
         );
     }
 
@@ -132,7 +141,8 @@ public class CommandFactory {
         // Try direct direction input (n/s/e/w/u/d or full names)
         Direction dir = Direction.fromString(raw.toLowerCase());
         if (dir != null) {
-            return new MoveCommand(dir, deps.taskScheduler(), deps.worldBroadcaster(), deps.sessionManager());
+            return new MoveCommand(dir, deps.taskScheduler(), deps.worldBroadcaster(), deps.sessionManager(),
+                    deps.questService(), deps.levelingService(), deps.worldService(), deps.ambientEventService());
         }
 
         return new UnknownCommand(raw);

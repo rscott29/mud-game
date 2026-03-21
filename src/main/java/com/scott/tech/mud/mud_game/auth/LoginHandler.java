@@ -52,6 +52,7 @@ public class LoginHandler {
     private final ExperienceTableService xpTables;
     private final PlayerStateCache stateCache;
     private final DisconnectGracePeriodService disconnectGracePeriod;
+    private final com.scott.tech.mud.mud_game.quest.QuestService questService;
 
     public LoginHandler(AccountStore accountStore,
                         com.scott.tech.mud.mud_game.session.GameSessionManager sessionManager,
@@ -63,7 +64,8 @@ public class LoginHandler {
                         CharacterClassStatsRegistry classStatsRegistry,
                         ExperienceTableService xpTables,
                         PlayerStateCache stateCache,
-                        DisconnectGracePeriodService disconnectGracePeriod) {
+                        DisconnectGracePeriodService disconnectGracePeriod,
+                        com.scott.tech.mud.mud_game.quest.QuestService questService) {
         this.accountStore          = accountStore;
         this.sessionManager        = sessionManager;
         this.worldBroadcaster      = worldBroadcaster;
@@ -75,6 +77,7 @@ public class LoginHandler {
         this.xpTables              = xpTables;
         this.stateCache            = stateCache;
         this.disconnectGracePeriod = disconnectGracePeriod;
+        this.questService          = questService;
     }
 
     // ── Entry point ───────────────────────────────────────────────────────────
@@ -452,6 +455,23 @@ public class LoginHandler {
                             .map(id -> session.getWorldService().getItemById(id))
                             .filter(java.util.Objects::nonNull)
                             .toList());
+            // Restore quest state
+            if (cached.activeQuests() != null) {
+                for (var aq : cached.activeQuests()) {
+                    session.getPlayer().getQuestState().restoreActiveQuest(
+                            aq.questId(), aq.currentObjectiveId(), 
+                            aq.objectiveProgress(), aq.dialogueStage());
+                }
+            }
+            if (cached.completedQuests() != null) {
+                for (String questId : cached.completedQuests()) {
+                    session.getPlayer().getQuestState().restoreCompletedQuest(questId);
+                }
+            }
+            // Restore followers
+            if (cached.followingNpcIds() != null) {
+                session.restoreFollowers(cached.followingNpcIds());
+            }
             stateCache.evict(username); // Clear cache after restore
         } else {
             // Fall back to DB
@@ -473,6 +493,9 @@ public class LoginHandler {
             session.getPlayer().setTitle("Immortal");
         }
         session.restoreDiscoveredExits(discoveredExitService.loadExits(username));
+
+        // Apply NPC description updates for completed quests (idempotent)
+        questService.applyNpcDescriptionUpdates(session.getPlayer().getQuestState().getCompletedQuests());
     }
 
     /** Capitalizes the first character of a username for display. */
@@ -485,7 +508,7 @@ public class LoginHandler {
     private void broadcastLogin(GameSession session) {
         worldBroadcaster.broadcastToRoom(
             session.getPlayer().getCurrentRoomId(),
-            GameResponse.message(Messages.fmt("event.player.entered_world", "player", session.getPlayer().getName())),
+            GameResponse.roomAction(Messages.fmt("event.player.entered_world", "player", session.getPlayer().getName())),
             session.getSessionId())
         ;
     }

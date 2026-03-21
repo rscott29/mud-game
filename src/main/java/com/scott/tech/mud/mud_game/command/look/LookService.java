@@ -8,6 +8,7 @@ import com.scott.tech.mud.mud_game.model.Direction;
 import com.scott.tech.mud.mud_game.model.Item;
 import com.scott.tech.mud.mud_game.model.Player;
 import com.scott.tech.mud.mud_game.model.Room;
+import com.scott.tech.mud.mud_game.quest.QuestService;
 import com.scott.tech.mud.mud_game.session.GameSession;
 import com.scott.tech.mud.mud_game.session.GameSessionManager;
 
@@ -19,9 +20,11 @@ import java.util.stream.Stream;
 public class LookService {
 
     private final GameSessionManager sessionManager;
+    private final QuestService questService;
 
-    public LookService(GameSessionManager sessionManager) {
+    public LookService(GameSessionManager sessionManager, QuestService questService) {
         this.sessionManager = sessionManager;
+        this.questService = questService;
     }
 
     public CommandResult buildResult(GameSession session, LookValidationResult validation) {
@@ -31,7 +34,7 @@ public class LookService {
         return switch (validation.targetMode()) {
             case ROOM -> roomLookResult(session, room, playerName);
             case EXITS -> exitsResult(session, room, playerName);
-            case NPC -> npcResult(validation, playerName);
+            case NPC -> npcResult(session, validation, playerName);
             case ITEM -> itemResult(validation, playerName);
             case PLAYER -> playerResult(validation, playerName);
         };
@@ -46,7 +49,7 @@ public class LookService {
 
         return CommandResult.withAction(
                 RoomAction.inCurrentRoom(Messages.fmt("action.look.room", "player", playerName)),
-                GameResponse.roomUpdate(room, Messages.get("command.look.around"), others, discovered, inventoryItemIds)
+                GameResponse.roomRefresh(room, Messages.get("command.look.around"), others, discovered, inventoryItemIds)
         );
     }
 
@@ -63,16 +66,30 @@ public class LookService {
 
         return CommandResult.withAction(
                 RoomAction.inCurrentRoom(Messages.fmt("action.look.exits", "player", playerName)),
-                GameResponse.message(message)
+                GameResponse.narrative(message)
         );
     }
 
-    private CommandResult npcResult(LookValidationResult validation, String playerName) {
+    private CommandResult npcResult(GameSession session, LookValidationResult validation, String playerName) {
         var npc = validation.npc();
+        StringBuilder description = new StringBuilder();
+        description.append(npc.getName()).append(": ").append(npc.getDescription());
+        
+        // Add quest indicator if NPC has available quests
+        if (questService != null) {
+            var availableQuests = questService.getAvailableQuestsForNpc(
+                    session.getPlayer(), npc.getId());
+            if (!availableQuests.isEmpty()) {
+                description.append("\n\n<span class='quest-available'>📜 ")
+                        .append(npc.getName())
+                        .append(" has a quest for you! Type <strong>accept</strong> to see available quests.</span>");
+            }
+        }
+        
         return CommandResult.withAction(
                 RoomAction.inCurrentRoom(
                         Messages.fmt("action.look.npc", "player", playerName, "target", npc.getName())),
-                GameResponse.message(npc.getName() + ": " + npc.getDescription())
+                GameResponse.narrative(description.toString())
         );
     }
 
@@ -81,7 +98,7 @@ public class LookService {
         return CommandResult.withAction(
                 RoomAction.inCurrentRoom(
                         Messages.fmt("action.look.target", "player", playerName, "target", item.getName())),
-                GameResponse.message(item.getName() + ": " + item.getDescription())
+                GameResponse.narrative(item.getName() + ": " + item.getDescription())
         );
     }
 
@@ -94,7 +111,7 @@ public class LookService {
                         Messages.fmt("action.look.player", "player", playerName, "target", targetPlayer.getName()),
                         targetSession.getSessionId(),
                         Messages.fmt("action.look.player.you", "player", playerName)),
-                GameResponse.message(buildPlayerDescription(targetPlayer))
+                GameResponse.narrative(buildPlayerDescription(targetPlayer))
         );
     }
 
