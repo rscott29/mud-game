@@ -48,6 +48,30 @@ public record SocialAction(
         return targetedRoom != null;
     }
 
+    public String usage() {
+        return name + (supportsTarget() ? " [target]" : "");
+    }
+
+    public String helpDescription() {
+        return switch (name) {
+            case "wave" -> "Wave to someone or simply wave.";
+            case "smile" -> "Smile warmly, with or without a target.";
+            case "nod" -> "Offer a quick nod of acknowledgment.";
+            case "bow" -> "Bow gracefully.";
+            case "wink" -> "Give a playful wink.";
+            case "hug" -> "Offer a hug.";
+            case "sigh" -> "Let out a weary sigh.";
+            case "shrug" -> "Shrug in uncertainty.";
+            case "laugh" -> "Laugh aloud.";
+            case "cheer" -> "Celebrate loudly.";
+            case "dance" -> "Dance on your own or with someone.";
+            case "think" -> "Look thoughtful.";
+            case "applaud" -> "Offer applause.";
+            case "salute" -> "Give a formal salute.";
+            default -> "Built-in social action.";
+        };
+    }
+
     // -------------------------------------------------------------------------
     // Built-in social actions
     // -------------------------------------------------------------------------
@@ -62,10 +86,7 @@ public record SocialAction(
         return Optional.ofNullable(ACTIONS.get(name.toLowerCase().trim()));
     }
 
-    /**
-     * Returns all built-in social actions.
-     */
-    public static List<SocialAction> all() {
+    public static List<SocialAction> ordered() {
         return ACTIONS.values().stream().distinct().toList();
     }
 

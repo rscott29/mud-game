@@ -16,6 +16,7 @@ import com.scott.tech.mud.mud_game.command.quest.AcceptCommand;
 import com.scott.tech.mud.mud_game.command.quest.GiveCommand;
 import com.scott.tech.mud.mud_game.command.quest.QuestCommand;
 import com.scott.tech.mud.mud_game.command.skills.SkillsCommand;
+import com.scott.tech.mud.mud_game.command.social.SocialAction;
 import com.scott.tech.mud.mud_game.command.talk.TalkCommand;
 import com.scott.tech.mud.mud_game.command.unknown.UnknownCommand;
 import com.scott.tech.mud.mud_game.command.who.WhoCommand;
@@ -178,8 +179,12 @@ public final class CommandRegistry {
 
         // Add social actions summary
         sb.append("\nBuilt-in social actions (type directly, with optional target):\n");
-        sb.append("  wave, smile, nod, bow, wink, hug, laugh, cheer, dance, applaud, salute\n");
-        sb.append("  Examples: wave, wave Bob, smile alice, nod\n");
+        sb.append("  ")
+                .append(SocialAction.ordered().stream()
+                        .map(SocialAction::name)
+                        .collect(Collectors.joining(", ")))
+                .append("\n");
+        sb.append("  Examples: wave, wave Bob, smile Alice, nod\n");
         sb.append("\nFreeform emotes:\n");
         sb.append("  /em <action>           - Custom emote (auto-detects player names)\n");
         sb.append("  Examples: /em stretches, /em high-fives Bob\n");
@@ -213,11 +218,9 @@ public final class CommandRegistry {
 
         // Add social actions for AI
         sb.append("\nSocial actions (built-in emotes):\n");
-        sb.append("  wave [target]           - Wave at someone or just wave\n");
-        sb.append("  smile [target]          - Smile (also: grin)\n");
-        sb.append("  nod [target]            - Nod acknowledgment\n");
-        sb.append("  bow [target]            - Bow gracefully\n");
-        sb.append("  laugh [target]          - Laugh (also: lol)\n");
+        for (SocialAction action : SocialAction.ordered()) {
+            sb.append(String.format("  %-22s - %s%n", action.usage(), action.helpDescription()));
+        }
 
         return sb.toString();
     }
@@ -235,6 +238,7 @@ public final class CommandRegistry {
                 .category(EXPLORATION)
                 .usage("look [target]")
                 .description("Describe surroundings or examine something")
+                .naturalLanguage()
                 .creator(ctx -> new LookCommand(
                         ctx.hasNoArgs() ? null : ctx.joinedArgs(),
                         ctx.deps().sessionManager(),
@@ -270,6 +274,7 @@ public final class CommandRegistry {
                 .category(EXPLORATION)
                 .usage("investigate")
                 .description("Search for hidden exits or secrets")
+                .naturalLanguage()
                 .creator(ctx -> new InvestigateCommand(ctx.deps().discoveredExitService()))
                 .build());
 
@@ -279,6 +284,7 @@ public final class CommandRegistry {
                 .category(INTERACTION)
                 .usage("talk <npc>")
                 .description("Talk to an NPC in the room")
+                .naturalLanguage()
                 .creator(ctx -> new TalkCommand(
                         ctx.hasNoArgs() ? null : ctx.joinedArgs(),
                         ctx.deps().talkValidator(),
@@ -292,6 +298,7 @@ public final class CommandRegistry {
                 .category(INTERACTION)
                 .usage("take <item>")
                 .description("Pick up an item from the room")
+                .naturalLanguage()
                 .creator(ctx -> new PickupCommand(
                         ctx.hasNoArgs() ? null : ctx.joinedArgs(),
                         ctx.deps().pickupValidator(),
@@ -305,6 +312,7 @@ public final class CommandRegistry {
                 .category(INTERACTION)
                 .usage("drop <item>")
                 .description("Drop an item from your inventory")
+                .naturalLanguage()
                 .creator(ctx -> new DropCommand(
                         ctx.hasNoArgs() ? null : ctx.joinedArgs(),
                         ctx.deps().dropValidator(),

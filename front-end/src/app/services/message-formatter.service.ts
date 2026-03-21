@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 
 import {
   GameMessage,
@@ -6,86 +6,8 @@ import {
   WhoPlayerDto,
 } from '../models/game-message';
 import { escapeHtml, renderMarkup } from '../utils/html';
+import { CommandCatalogService } from './command-catalog.service';
 import { SkillDto } from './skill-progression.service';
-
-interface HelpEntry {
-  cmd: string;
-  desc: string;
-}
-
-interface HelpCategory {
-  title: string;
-  entries: HelpEntry[];
-}
-
-const BASE_HELP_CATEGORIES: HelpCategory[] = [
-  {
-    title: 'Movement',
-    entries: [
-      { cmd: 'look / l', desc: 'Describe your current surroundings.' },
-      { cmd: 'look <target>', desc: 'Examine an item, NPC, or room feature.' },
-      { cmd: 'go <direction>', desc: 'Move north, south, east, west, up, or down.' },
-      { cmd: 'n / s / e / w / u / d', desc: 'Short directional commands.' },
-    ],
-  },
-  {
-    title: 'Exploration',
-    entries: [
-      { cmd: 'investigate / search', desc: 'Search the room for hidden exits or secrets.' },
-      { cmd: 'quest / quests', desc: 'Review your active quest log.' },
-      { cmd: 'accept <quest>', desc: 'Accept a quest offered by an NPC.' },
-      { cmd: 'give <item> to <npc>', desc: 'Turn in quest items or make an offering.' },
-    ],
-  },
-  {
-    title: 'Items',
-    entries: [
-      { cmd: 'take <item> / get <item>', desc: 'Pick up an item from the room.' },
-      { cmd: 'drop <item>', desc: 'Drop an item from your inventory.' },
-      { cmd: 'inventory / inv / i', desc: 'List what you are carrying.' },
-      { cmd: 'equip <item>', desc: 'Equip a weapon from your pack.' },
-    ],
-  },
-  {
-    title: 'Communication',
-    entries: [
-      { cmd: 'talk <npc>', desc: 'Talk to a sentient NPC in the room.' },
-      { cmd: '/speak <message>', desc: 'Chat with players in your room.' },
-      { cmd: '/world <message>', desc: 'Broadcast to all online players.' },
-      { cmd: '/dm <player> <msg>', desc: 'Send a private message.' },
-      { cmd: 'who / /who', desc: 'List online players and their locations.' },
-    ],
-  },
-  {
-    title: 'Social',
-    entries: [
-      { cmd: '/em <action>', desc: 'Perform a custom emote.' },
-      { cmd: 'wave, smile, nod, bow', desc: 'Built-in social actions.' },
-      { cmd: 'laugh, cheer, dance', desc: 'More socials, with optional targets.' },
-    ],
-  },
-  {
-    title: 'General',
-    entries: [
-      { cmd: 'help / ?', desc: 'Open the command reference.' },
-      { cmd: 'skills / sk', desc: 'View your class progression track.' },
-      { cmd: 'logout', desc: 'Log out of the game safely.' },
-    ],
-  },
-];
-
-const GOD_HELP_CATEGORY: HelpCategory = {
-  title: 'God Commands',
-  entries: [
-    { cmd: 'spawn <item_id> [inv]', desc: 'Spawn an item in the room or inventory.' },
-    { cmd: 'deleteitem <item>', desc: 'Delete an item from your inventory.' },
-    { cmd: 'teleport / tp <target>', desc: 'Teleport to a player or NPC.' },
-    { cmd: 'summon <player>', desc: 'Pull a player to your location.' },
-    { cmd: 'kick <player>', desc: 'Kick a player from the game.' },
-    { cmd: 'setlevel [player] <level>', desc: 'Set a player level directly.' },
-    { cmd: 'resetquest <player> <quest>', desc: 'Reset quest state for a player.' },
-  ],
-};
 
 export interface FormattedMessage {
   cssClass: string;
@@ -100,8 +22,14 @@ export type MessageAction =
 
 @Injectable({ providedIn: 'root' })
 export class MessageFormatterService {
+  private readonly commandCatalog = inject(CommandCatalogService);
+
+  constructor() {
+    this.commandCatalog.load();
+  }
+
   format(msg: GameMessage): MessageAction {
-    const type = msg.type ?? 'MESSAGE';
+    const type = msg.type ?? 'NARRATIVE';
 
     switch (type) {
       case 'WELCOME':
@@ -225,7 +153,7 @@ export class MessageFormatterService {
   }
 
   getStateChanges(msg: GameMessage): { clearMessages?: boolean; passwordMode?: boolean } | null {
-    const type = msg.type ?? 'MESSAGE';
+    const type = msg.type ?? 'NARRATIVE';
 
     if (type === 'WELCOME') {
       return { clearMessages: true, passwordMode: false };
@@ -409,7 +337,7 @@ export class MessageFormatterService {
   private formatRoom(msg: GameMessage): string {
     const room = msg.room;
     if (!room) {
-      return this.formatNarrative(msg.type ?? 'MESSAGE', msg.message ?? '');
+      return this.formatNarrative(msg.type ?? 'NARRATIVE', msg.message ?? '');
     }
 
     const fullMessage = msg.message ?? '';
@@ -516,7 +444,7 @@ export class MessageFormatterService {
   }
 
   private formatHelp(isGod: boolean): string {
-    const categories = isGod ? [...BASE_HELP_CATEGORIES, GOD_HELP_CATEGORY] : BASE_HELP_CATEGORIES;
+    const categories = this.commandCatalog.helpCategories(isGod);
 
     return `
       <section class="term-card term-card--help">
@@ -528,7 +456,9 @@ export class MessageFormatterService {
           <span class="term-badge">${isGod ? "warden's sight" : "traveler's sight"}</span>
         </div>
         <div class="term-columns">
-          ${categories.map(category => `
+          ${categories.length === 0 ? `
+            <div class="term-empty">Command reference is still loading.</div>
+          ` : categories.map(category => `
             <section class="term-section">
               <div class="term-section__title">${escapeHtml(category.title)}</div>
               <div class="term-kv-list">

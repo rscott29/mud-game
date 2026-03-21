@@ -67,6 +67,11 @@ public record CommandDefinition(
             return this;
         }
 
+        public Builder naturalLanguage() {
+            metadataBuilder.naturalLanguage();
+            return this;
+        }
+
         public Builder creator(CommandCreator creator) {
             this.creator = Objects.requireNonNull(creator, "creator must not be null");
             return this;

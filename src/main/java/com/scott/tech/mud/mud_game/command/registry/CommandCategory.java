@@ -11,10 +11,10 @@ public enum CommandCategory {
     INTERACTION("Interaction"),
 
     /** Room/world/DM chat commands */
-    SOCIAL("Social"),
+    SOCIAL("Communication"),
 
     /** Custom emotes and social actions */
-    EMOTE("Emote"),
+    EMOTE("Social"),
 
     /** Session management (logout, help) */
     SESSION("Session"),

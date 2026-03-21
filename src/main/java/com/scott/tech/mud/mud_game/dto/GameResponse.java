@@ -28,8 +28,6 @@ public record GameResponse(
         WELCOME,
         ROOM_UPDATE,
         ROOM_REFRESH,
-        /** @deprecated Use NARRATIVE instead for consistent visual styling. */
-        @Deprecated(forRemoval = true) MESSAGE,
         ERROR,
         AUTH_PROMPT,
         CHAT_ROOM,
@@ -81,15 +79,6 @@ public record GameResponse(
 
     // ----- factory methods -----
 
-    /**
-     * @deprecated Use {@link #narrative(String)} for consistent visual styling.
-     *             The MESSAGE type has been phased out in favor of NARRATIVE.
-     */
-    @Deprecated(forRemoval = true)
-    public static GameResponse message(String msg) {
-        return new GameResponse(Type.MESSAGE, msg, null);
-    }
-
     public static GameResponse narrative(String html) {
         return new GameResponse(Type.NARRATIVE, html, null);
     }
@@ -105,10 +94,6 @@ public record GameResponse(
     public static GameResponse companionDialogue(String npcName, String message) {
         String html = "<span class=\"speaker\">" + npcName + ":</span> " + message;
         return new GameResponse(Type.COMPANION_DIALOGUE, html, null);
-    }
-
-    public static GameResponse help() {
-        return new GameResponse(Type.HELP, null, null);
     }
 
     public static GameResponse help(String payload) {

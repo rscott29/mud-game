@@ -18,6 +18,7 @@ import java.util.Objects;
  * @param godOnly       Whether this command requires god privileges
  * @param showInHelp    Whether to display in standard help output
  * @param showInAiGuide Whether to include in AI command guide
+ * @param dispatchMode  Preferred frontend dispatch mode
  */
 public record CommandMetadata(
         String canonicalName,
@@ -27,8 +28,14 @@ public record CommandMetadata(
         String description,
         boolean godOnly,
         boolean showInHelp,
-        boolean showInAiGuide
+        boolean showInAiGuide,
+        DispatchMode dispatchMode
 ) {
+    public enum DispatchMode {
+        DIRECT,
+        NATURAL_LANGUAGE
+    }
+
     public static Builder builder(String canonicalName) {
         return new Builder(canonicalName);
     }
@@ -42,6 +49,7 @@ public record CommandMetadata(
         private boolean godOnly = false;
         private boolean showInHelp = true;
         private boolean showInAiGuide = true;
+        private DispatchMode dispatchMode = DispatchMode.DIRECT;
 
         private Builder(String canonicalName) {
             this.canonicalName = requireNonBlank(canonicalName, "canonicalName")
@@ -106,6 +114,11 @@ public record CommandMetadata(
             return this;
         }
 
+        public Builder naturalLanguage() {
+            this.dispatchMode = DispatchMode.NATURAL_LANGUAGE;
+            return this;
+        }
+
         public CommandMetadata build() {
             List<String> finalAliases;
 
@@ -126,7 +139,8 @@ public record CommandMetadata(
                     description,
                     godOnly,
                     showInHelp,
-                    showInAiGuide
+                    showInAiGuide,
+                    dispatchMode
             );
         }
 

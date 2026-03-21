@@ -23,12 +23,14 @@ import java.util.EnumMap;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
@@ -52,7 +54,7 @@ class MoveServiceTest {
         List<ScheduledCall> scheduledCalls = new ArrayList<>();
         doAnswer(invocation -> {
             scheduledCalls.add(new ScheduledCall(invocation.getArgument(0), invocation.getArgument(1)));
-            return mock(ScheduledFuture.class);
+            return new NoOpScheduledFuture();
         }).when(taskScheduler).schedule(any(Runnable.class), any(Instant.class));
 
         Room startRoom = new Room("start", "Trail", "A dusty trail.", exits(Direction.NORTH, "grove"), List.of(), List.of());
@@ -121,7 +123,7 @@ class MoveServiceTest {
         List<ScheduledCall> scheduledCalls = new ArrayList<>();
         doAnswer(invocation -> {
             scheduledCalls.add(new ScheduledCall(invocation.getArgument(0), invocation.getArgument(1)));
-            return mock(ScheduledFuture.class);
+            return new NoOpScheduledFuture();
         }).when(taskScheduler).schedule(any(Runnable.class), any(Instant.class));
 
         Room startRoom = new Room("start", "Trail", "A dusty trail.", exits(Direction.NORTH, "grove"), List.of(), List.of());
@@ -173,7 +175,7 @@ class MoveServiceTest {
 
         when(ambientEventService.getRandomAmbientEvent(anyString())).thenReturn(Optional.empty());
         when(ambientEventService.getRandomCompanionDialogue(any(), anyString())).thenReturn(Optional.empty());
-        when(taskScheduler.schedule(any(Runnable.class), any(Instant.class))).thenReturn(mock(ScheduledFuture.class));
+        doReturn(new NoOpScheduledFuture()).when(taskScheduler).schedule(any(Runnable.class), any(Instant.class));
 
         Room startRoom = new Room("start", "Trail", "A dusty trail.", exits(Direction.NORTH, "grove"), List.of(), List.of());
         Room nextRoom = new Room("grove", "Whispering Grove", "Trees lean close here.", new EnumMap<>(Direction.class), List.of(), List.of());
@@ -238,4 +240,41 @@ class MoveServiceTest {
     }
 
     private record ScheduledCall(Runnable task, Instant at) {}
+
+    private static final class NoOpScheduledFuture implements ScheduledFuture<Object> {
+        @Override
+        public long getDelay(TimeUnit unit) {
+            return 0;
+        }
+
+        @Override
+        public int compareTo(java.util.concurrent.Delayed other) {
+            return 0;
+        }
+
+        @Override
+        public boolean cancel(boolean mayInterruptIfRunning) {
+            return false;
+        }
+
+        @Override
+        public boolean isCancelled() {
+            return false;
+        }
+
+        @Override
+        public boolean isDone() {
+            return false;
+        }
+
+        @Override
+        public Object get() {
+            return null;
+        }
+
+        @Override
+        public Object get(long timeout, TimeUnit unit) {
+            return null;
+        }
+    }
 }

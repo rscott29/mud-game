@@ -1,49 +1,5 @@
-import { Injectable } from '@angular/core';
-
-/**
- * Commands that can be recognized and sent directly as structured requests.
- * These are commands with no arguments, or where arguments don't semantically matter.
- */
-const DIRECT_COMMANDS = new Set([
-  'n', 's', 'e', 'w', 'u', 'd',
-  'north', 'south', 'east', 'west', 'up', 'down',
-  'go', 'move',
-  'inventory', 'inv', 'i',
-  'skills', 'sk', 'progression', 'abilities',
-  'spawn',
-  'deleteitem', 'delitem', 'deleteinv', 'destroyitem',
-  'teleport', 'telport', 'teleprot', 'tp', 'warp', 'goto',
-  'summon', 'call',
-  'kick', 'remove', 'boot',
-  'setlevel', 'setlvl', 'level',
-  'resetquest', 'resetq', 'questreset',
-  'help', '?',
-  'logout', 'logoff', 'quit', 'exit',
-  'who',
-  // Quest commands
-  'give', 'hand', 'offer', 'present',
-  'accept',
-  'quest', 'quests',
-  // Social action emotes
-  'wave', 'smile', 'nod', 'bow', 'wink', 'hug', 'laugh', 'cheer', 'dance', 'applaud', 'salute',
-  // Custom emote
-  '/em', '/emote', '/me', 'emote',
-]);
-
-/**
- * Commands that should ALWAYS be sent as natural language (input field),
- * even if recognized. This lets the AI resolver handle semantic understanding
- * of targets (items, NPCs, room features), typos, descriptions, etc.
- *
- * Examples: "look at the stone", "take shiny sword", "talk to the guard"
- */
-const AI_RESOLVED_COMMANDS = new Set([
-  'look', 'l', 'examine', 'x',
-  'talk', 'greet',
-  'take', 'get', 'pickup', 'pick', 'grab', 'snatch', 'lift', 'collect', 'steal',
-  'drop', 'discard', 'toss', 'leave',
-  'investigate', 'search',
-]);
+import { Injectable, inject } from '@angular/core';
+import { CommandCatalogService } from './command-catalog.service';
 
 export interface CommandPayload {
   /** JSON string to send over the socket */
@@ -60,6 +16,11 @@ export interface CommandPayload {
  */
 @Injectable({ providedIn: 'root' })
 export class CommandBuilderService {
+  private readonly commandCatalog = inject(CommandCatalogService);
+
+  constructor() {
+    this.commandCatalog.load();
+  }
 
   /**
    * Build a payload from raw user input.
@@ -93,9 +54,9 @@ export class CommandBuilderService {
 
     const [first = '', ...args] = raw.split(/\s+/);
     const cmd = first.toLowerCase();
+    const knownCommand = this.commandCatalog.findByAlias(cmd);
 
-    // Commands that target items/NPCs should always use AI resolution
-    if (AI_RESOLVED_COMMANDS.has(cmd)) {
+    if (knownCommand?.dispatchMode === 'NATURAL_LANGUAGE') {
       return {
         payload: JSON.stringify({ input: raw }),
         echo: raw,
@@ -103,8 +64,7 @@ export class CommandBuilderService {
       };
     }
 
-    // Simple direct commands
-    if (DIRECT_COMMANDS.has(cmd)) {
+    if (knownCommand) {
       return {
         payload: JSON.stringify(args.length ? { command: cmd, args } : { command: cmd }),
         echo: raw,
