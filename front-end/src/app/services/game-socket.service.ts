@@ -1,6 +1,8 @@
 import { Injectable, NgZone, signal } from '@angular/core';
 import { Subject } from 'rxjs';
 import {
+  CONNECTION_STATUSES,
+  GAME_MESSAGE_TYPES,
   GameMessage,
   ConnectionStatus,
   PlayerStatsDto,
@@ -23,7 +25,7 @@ export class GameSocketService {
   readonly messages$ = new Subject<GameMessage>();
   readonly systemMessages$ = new Subject<string>();
 
-  readonly status = signal<ConnectionStatus>('disconnected');
+  readonly status = signal<ConnectionStatus>(CONNECTION_STATUSES.DISCONNECTED);
   readonly playerStats = signal<PlayerStatsDto | null>(null);
 
   constructor(private readonly zone: NgZone) {}
@@ -48,7 +50,7 @@ export class GameSocketService {
 
     this.socket?.close();
     this.socket = null;
-    this.status.set('disconnected');
+    this.status.set(CONNECTION_STATUSES.DISCONNECTED);
   }
 
   sendRaw(payload: string): void {
@@ -77,7 +79,7 @@ export class GameSocketService {
   private readonly handleOpen = (): void => {
     this.zone.run(() => {
       this.reconnectAttempt = 0;
-      this.status.set('connected');
+      this.status.set(CONNECTION_STATUSES.CONNECTED);
       this.systemMessages$.next('Connected');
 
       this.tryReconnectWithStoredToken();
@@ -106,7 +108,7 @@ export class GameSocketService {
   private readonly handleClose = (): void => {
     this.zone.run(() => {
       this.socket = null;
-      this.status.set('disconnected');
+      this.status.set(CONNECTION_STATUSES.DISCONNECTED);
 
       if (this.intentionalClose) {
         return;
@@ -132,7 +134,7 @@ export class GameSocketService {
   }
 
   private handleSessionToken(message: GameMessage): boolean {
-    if (message.type !== 'SESSION_TOKEN' || !message.token) {
+    if (message.type !== GAME_MESSAGE_TYPES.SESSION_TOKEN || !message.token) {
       return false;
     }
 
@@ -154,7 +156,7 @@ export class GameSocketService {
    */
   private dispatchMessage(message: GameMessage): void {
     switch (message.type) {
-      case 'AUTH_PROMPT':
+      case GAME_MESSAGE_TYPES.AUTH_PROMPT:
         // Only reset UI state when we're back at the login screen (username prompt)
         if ((message.message ?? '').toLowerCase().includes('username')) {
           this.playerStats.set(null);
@@ -188,7 +190,7 @@ export class GameSocketService {
     const delay = this.getReconnectDelay(this.reconnectAttempt);
 
     this.reconnectAttempt = nextAttempt;
-    this.status.set('reconnecting');
+    this.status.set(CONNECTION_STATUSES.RECONNECTING);
     this.systemMessages$.next(
       `Reconnecting in ${(delay / 1000).toFixed(1)}s… (attempt ${nextAttempt}/${RECONNECT_MAX_TRIES})`
     );

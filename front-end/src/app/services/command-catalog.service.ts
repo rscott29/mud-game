@@ -2,12 +2,32 @@ import { Injectable, inject, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { take } from 'rxjs';
 
-export type CommandDispatchMode = 'DIRECT' | 'NATURAL_LANGUAGE';
+export const COMMAND_DISPATCH_MODES = {
+  DIRECT: 'DIRECT',
+  NATURAL_LANGUAGE: 'NATURAL_LANGUAGE',
+} as const;
+
+export type CommandDispatchMode =
+  typeof COMMAND_DISPATCH_MODES[keyof typeof COMMAND_DISPATCH_MODES];
+
+export const COMMAND_HELP_CATEGORIES = {
+  EXPLORATION: 'Exploration',
+  INTERACTION: 'Interaction',
+  COMMUNICATION: 'Communication',
+  SOCIAL: 'Social',
+  SESSION: 'Session',
+  GOD: 'God',
+} as const;
+
+export type KnownCommandHelpCategory =
+  typeof COMMAND_HELP_CATEGORIES[keyof typeof COMMAND_HELP_CATEGORIES];
+
+export type CommandHelpCategory = KnownCommandHelpCategory | (string & {});
 
 export interface CommandCatalogEntry {
   canonicalName: string;
   aliases: string[];
-  category: string;
+  category: CommandHelpCategory;
   usage: string;
   description: string;
   godOnly: boolean;
@@ -15,13 +35,24 @@ export interface CommandCatalogEntry {
   dispatchMode: CommandDispatchMode;
 }
 
-interface CommandCatalogResponse {
-  commands: CommandCatalogEntry[];
+interface RawCommandCatalogEntry {
+  canonicalName: string;
+  aliases: string[];
+  category: string;
+  usage: string;
+  description: string;
+  godOnly: boolean;
+  showInHelp: boolean;
+  dispatchMode: string;
 }
 
 export interface HelpCategory {
-  title: string;
+  title: CommandHelpCategory;
   entries: Array<{ cmd: string; desc: string }>;
+}
+
+interface CommandCatalogResponse {
+  commands: RawCommandCatalogEntry[];
 }
 
 @Injectable({ providedIn: 'root' })
@@ -40,7 +71,7 @@ export class CommandCatalogService {
       .pipe(take(1))
       .subscribe({
         next: response => {
-          this.catalog.set(response?.commands ?? []);
+          this.catalog.set((response?.commands ?? []).map(command => this.normalizeCommand(command)));
         },
         error: () => {
           this.loadStarted = false;
@@ -89,5 +120,35 @@ export class CommandCatalogService {
     }
 
     return categories;
+  }
+
+  private normalizeCommand(command: RawCommandCatalogEntry): CommandCatalogEntry {
+    return {
+      canonicalName: command.canonicalName,
+      aliases: command.aliases ?? [],
+      category: this.normalizeCategory(command.category),
+      usage: command.usage,
+      description: command.description,
+      godOnly: command.godOnly,
+      showInHelp: command.showInHelp,
+      dispatchMode: this.normalizeDispatchMode(command.dispatchMode),
+    };
+  }
+
+  private normalizeDispatchMode(dispatchMode: string | null | undefined): CommandDispatchMode {
+    return dispatchMode === COMMAND_DISPATCH_MODES.NATURAL_LANGUAGE
+      ? COMMAND_DISPATCH_MODES.NATURAL_LANGUAGE
+      : COMMAND_DISPATCH_MODES.DIRECT;
+  }
+
+  private normalizeCategory(category: string | null | undefined): CommandHelpCategory {
+    const normalized = category?.trim() ?? '';
+    if (!normalized) {
+      return COMMAND_HELP_CATEGORIES.EXPLORATION;
+    }
+
+    const knownCategory = Object.values(COMMAND_HELP_CATEGORIES).find(value => value === normalized);
+
+    return knownCategory ?? normalized;
   }
 }

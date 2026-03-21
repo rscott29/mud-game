@@ -1,8 +1,11 @@
 import { Injectable, inject } from '@angular/core';
 
 import {
+  GAME_MESSAGE_TYPES,
   GameMessage,
   ItemDto,
+  TERMINAL_MESSAGE_CLASSES,
+  type TerminalMessageClass,
   WhoPlayerDto,
 } from '../models/game-message';
 import { escapeHtml, renderMarkup } from '../utils/html';
@@ -10,15 +13,9 @@ import { CommandCatalogService } from './command-catalog.service';
 import { SkillDto } from './skill-progression.service';
 
 export interface FormattedMessage {
-  cssClass: string;
+  cssClass: TerminalMessageClass;
   html: string;
 }
-
-export type MessageAction =
-  | { type: 'display'; message: FormattedMessage }
-  | { type: 'skip' }
-  | { type: 'character_creation' }
-  | { type: 'class_progression' };
 
 @Injectable({ providedIn: 'root' })
 export class MessageFormatterService {
@@ -28,152 +25,9 @@ export class MessageFormatterService {
     this.commandCatalog.load();
   }
 
-  format(msg: GameMessage): MessageAction {
-    const type = msg.type ?? 'NARRATIVE';
-
-    switch (type) {
-      case 'WELCOME':
-        return {
-          type: 'display',
-          message: { cssClass: 'WELCOME', html: this.formatRoom(msg) },
-        };
-
-      case 'ROOM_UPDATE':
-        return {
-          type: 'display',
-          message: { cssClass: 'ROOM_UPDATE', html: this.formatRoom(msg) },
-        };
-
-      case 'ROOM_REFRESH':
-        return {
-          type: 'display',
-          message: { cssClass: 'ROOM_REFRESH', html: this.formatRoom(msg) },
-        };
-
-      case 'AUTH_PROMPT':
-        return {
-          type: 'display',
-          message: {
-            cssClass: 'AUTH_PROMPT',
-            html: this.formatPrompt(msg.message ?? ''),
-          },
-        };
-
-      case 'CHAT_ROOM':
-      case 'CHAT_WORLD':
-      case 'CHAT_DM':
-        return {
-          type: 'display',
-          message: { cssClass: type, html: this.formatChat(msg) },
-        };
-
-      case 'WHO_LIST':
-        return {
-          type: 'display',
-          message: {
-            cssClass: 'WHO_LIST',
-            html: this.formatWho(msg.whoPlayers ?? []),
-          },
-        };
-
-      case 'INVENTORY_UPDATE':
-        return {
-          type: 'display',
-          message: {
-            cssClass: 'INVENTORY_UPDATE',
-            html: this.formatInventory(msg.inventory ?? []),
-          },
-        };
-
-      case 'HELP':
-        return {
-          type: 'display',
-          message: {
-            cssClass: 'HELP',
-            html: this.formatHelp((msg.message ?? '').trim().toLowerCase() === 'god'),
-          },
-        };
-
-      case 'STAT_UPDATE':
-        return { type: 'skip' };
-
-      case 'CLASS_PROGRESSION':
-        return { type: 'class_progression' };
-
-      case 'CHARACTER_CREATION':
-        return { type: 'character_creation' };
-
-      case 'NARRATIVE':
-        return {
-          type: 'display',
-          message: {
-            cssClass: 'NARRATIVE',
-            html: this.formatInlineNarrative(msg.message ?? ''),
-          },
-        };
-
-      case 'ROOM_ACTION':
-        return {
-          type: 'display',
-          message: {
-            cssClass: 'ROOM_ACTION',
-            html: this.wrapInlineNarrative(
-              this.formatInlineEventContent('Traveler', msg.message ?? '', 'term-inline-event--player-action')
-            ),
-          },
-        };
-
-      case 'AMBIENT_EVENT':
-        return {
-          type: 'display',
-          message: {
-            cssClass: 'AMBIENT_EVENT',
-            html: this.formatNarrative('Whispers', msg.message ?? ''),
-          },
-        };
-
-      case 'COMPANION_DIALOGUE':
-        return {
-          type: 'display',
-          message: {
-            cssClass: 'COMPANION_DIALOGUE',
-            html: this.formatNarrative('Companion voice', msg.message ?? ''),
-          },
-        };
-
-      default:
-        return {
-          type: 'display',
-          message: {
-            cssClass: type,
-            html: this.formatNarrative(type, msg.message ?? JSON.stringify(msg)),
-          },
-        };
-    }
-  }
-
-  getStateChanges(msg: GameMessage): { clearMessages?: boolean; passwordMode?: boolean } | null {
-    const type = msg.type ?? 'NARRATIVE';
-
-    if (type === 'WELCOME') {
-      return { clearMessages: true, passwordMode: false };
-    }
-
-    if (type === 'AUTH_PROMPT') {
-      const clearMessages = (msg.message ?? '').toLowerCase().includes('username');
-      return { clearMessages, passwordMode: msg.mask === true };
-    }
-
-    if (type === 'CHARACTER_CREATION') {
-      return { clearMessages: true, passwordMode: false };
-    }
-
-    return null;
-  }
-
   formatSystem(text: string): FormattedMessage {
     return {
-      cssClass: 'SYSTEM',
+      cssClass: TERMINAL_MESSAGE_CLASSES.SYSTEM,
       html: `
         <div class="term-inline term-inline--system">
           <span class="term-tag">realm</span>
@@ -183,18 +37,100 @@ export class MessageFormatterService {
     };
   }
 
+  formatRoomDisplay(msg: GameMessage): FormattedMessage {
+    return {
+      cssClass: msg.type ?? GAME_MESSAGE_TYPES.ROOM_UPDATE,
+      html: this.renderRoom(msg),
+    };
+  }
+
+  formatAuthPrompt(message: string): FormattedMessage {
+    return {
+      cssClass: TERMINAL_MESSAGE_CLASSES.AUTH_PROMPT,
+      html: this.renderPrompt(message),
+    };
+  }
+
+  formatChatMessage(msg: GameMessage): FormattedMessage {
+    return {
+      cssClass: msg.type ?? GAME_MESSAGE_TYPES.CHAT_ROOM,
+      html: this.renderChat(msg),
+    };
+  }
+
+  formatWhoList(players: WhoPlayerDto[]): FormattedMessage {
+    return {
+      cssClass: TERMINAL_MESSAGE_CLASSES.WHO_LIST,
+      html: this.renderWho(players),
+    };
+  }
+
+  formatInventoryUpdate(items: ItemDto[]): FormattedMessage {
+    return {
+      cssClass: TERMINAL_MESSAGE_CLASSES.INVENTORY_UPDATE,
+      html: this.renderInventory(items),
+    };
+  }
+
+  formatHelpCard(isGod: boolean): FormattedMessage {
+    return {
+      cssClass: TERMINAL_MESSAGE_CLASSES.HELP,
+      html: this.renderHelp(isGod),
+    };
+  }
+
+  formatNarrativeInlineMessage(message: string): FormattedMessage {
+    return {
+      cssClass: TERMINAL_MESSAGE_CLASSES.NARRATIVE,
+      html: this.renderInlineNarrative(message),
+    };
+  }
+
+  formatRoomActionMessage(message: string): FormattedMessage {
+    return {
+      cssClass: TERMINAL_MESSAGE_CLASSES.ROOM_ACTION,
+      html: this.wrapInlineNarrative(
+        this.formatInlineEventContent('Traveler', message, 'term-inline-event--player-action')
+      ),
+    };
+  }
+
+  formatAmbientEventMessage(message: string): FormattedMessage {
+    return {
+      cssClass: TERMINAL_MESSAGE_CLASSES.AMBIENT_EVENT,
+      html: this.renderNarrative('Whispers', message),
+    };
+  }
+
+  formatCompanionDialogueMessage(message: string): FormattedMessage {
+    return {
+      cssClass: TERMINAL_MESSAGE_CLASSES.COMPANION_DIALOGUE,
+      html: this.renderNarrative('Companion voice', message),
+    };
+  }
+
+  formatFallbackMessage(label: TerminalMessageClass, message: string): FormattedMessage {
+    return {
+      cssClass: label,
+      html: this.renderNarrative(label, message),
+    };
+  }
+
   formatRoomInlineFragment(msg: GameMessage): string {
     if ((msg.message ?? '').trim() === '') {
       return '';
     }
 
     switch (msg.type) {
-      case 'ROOM_ACTION':
+      case GAME_MESSAGE_TYPES.ROOM_ACTION:
         return this.formatInlineEventContent(
           'Traveler',
           msg.message ?? '',
           'term-inline-event--player-action'
         );
+      case GAME_MESSAGE_TYPES.AMBIENT_EVENT:
+      case GAME_MESSAGE_TYPES.COMPANION_DIALOGUE:
+        return renderMarkup(msg.message ?? '');
       default:
         return msg.message ?? '';
     }
@@ -202,7 +138,7 @@ export class MessageFormatterService {
 
   formatClassProgressionLoading(characterClass: string): FormattedMessage {
     return this.notice(
-      'CLASS_PROGRESSION',
+      TERMINAL_MESSAGE_CLASSES.CLASS_PROGRESSION,
       'Unfurling the skill ledger',
       `Drawing the ${escapeHtml(this.formatClassName(characterClass))} arts into the ledger...`
     );
@@ -210,7 +146,7 @@ export class MessageFormatterService {
 
   formatClassProgressionError(characterClass: string): FormattedMessage {
     return this.notice(
-      'ERROR',
+      TERMINAL_MESSAGE_CLASSES.ERROR,
       'The skill ledger is quiet',
       `The ${escapeHtml(this.formatClassName(characterClass))} arts could not be drawn into view just now.`
     );
@@ -231,7 +167,7 @@ export class MessageFormatterService {
     const progressPercent = skills.length === 0 ? 0 : Math.round((unlocked.length / skills.length) * 100);
 
     return {
-      cssClass: 'CLASS_PROGRESSION',
+      cssClass: TERMINAL_MESSAGE_CLASSES.CLASS_PROGRESSION,
       html: `
         <section class="term-card term-card--progression">
           <div class="term-card__header">
@@ -269,7 +205,7 @@ export class MessageFormatterService {
     };
   }
 
-  private formatPrompt(message: string): string {
+  private renderPrompt(message: string): string {
     return `
       <section class="term-card term-card--prompt">
         <div class="term-card__header">
@@ -283,7 +219,7 @@ export class MessageFormatterService {
     `;
   }
 
-  private formatNarrative(label: string, message: string): string {
+  private renderNarrative(label: string, message: string): string {
     return `
       <section class="term-card term-card--narrative">
         <div class="term-card__header">
@@ -297,7 +233,7 @@ export class MessageFormatterService {
     `;
   }
 
-  private formatInlineNarrative(message: string): string {
+  private renderInlineNarrative(message: string): string {
     return this.wrapInlineNarrative(renderMarkup(message));
   }
 
@@ -318,11 +254,11 @@ export class MessageFormatterService {
     `;
   }
 
-  private formatChat(msg: GameMessage): string {
-    const type = msg.type ?? 'CHAT_ROOM';
+  private renderChat(msg: GameMessage): string {
+    const type = msg.type ?? GAME_MESSAGE_TYPES.CHAT_ROOM;
     const label =
-      type === 'CHAT_ROOM' ? 'hall' :
-      type === 'CHAT_WORLD' ? 'realm' :
+      type === GAME_MESSAGE_TYPES.CHAT_ROOM ? 'hall' :
+      type === GAME_MESSAGE_TYPES.CHAT_WORLD ? 'realm' :
       'whisper';
 
     return `
@@ -334,10 +270,10 @@ export class MessageFormatterService {
     `;
   }
 
-  private formatRoom(msg: GameMessage): string {
+  private renderRoom(msg: GameMessage): string {
     const room = msg.room;
     if (!room) {
-      return this.formatNarrative(msg.type ?? 'NARRATIVE', msg.message ?? '');
+      return this.renderNarrative(msg.type ?? GAME_MESSAGE_TYPES.NARRATIVE, msg.message ?? '');
     }
 
     const fullMessage = msg.message ?? '';
@@ -378,7 +314,7 @@ export class MessageFormatterService {
     `;
   }
 
-  private formatInventory(items: ItemDto[]): string {
+  private renderInventory(items: ItemDto[]): string {
     return `
       <section class="term-card term-card--inventory">
         <div class="term-card__header">
@@ -410,7 +346,7 @@ export class MessageFormatterService {
     `;
   }
 
-  private formatWho(players: WhoPlayerDto[]): string {
+  private renderWho(players: WhoPlayerDto[]): string {
     return `
       <section class="term-card term-card--who">
         <div class="term-card__header">
@@ -443,7 +379,7 @@ export class MessageFormatterService {
     `;
   }
 
-  private formatHelp(isGod: boolean): string {
+  private renderHelp(isGod: boolean): string {
     const categories = this.commandCatalog.helpCategories(isGod);
 
     return `
@@ -555,7 +491,7 @@ export class MessageFormatterService {
     `;
   }
 
-  private notice(cssClass: string, title: string, body: string): FormattedMessage {
+  private notice(cssClass: TerminalMessageClass, title: string, body: string): FormattedMessage {
     return {
       cssClass,
       html: `
@@ -578,9 +514,9 @@ export class MessageFormatterService {
 
   private roomEyebrow(type?: string): string {
     switch (type) {
-      case 'WELCOME':
+      case GAME_MESSAGE_TYPES.WELCOME:
         return 'The road opens';
-      case 'ROOM_REFRESH':
+      case GAME_MESSAGE_TYPES.ROOM_REFRESH:
         return 'You look around';
       default:
         return 'You arrive';
