@@ -10,6 +10,7 @@ import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -45,7 +46,8 @@ public class AiIntentResolver {
                     .call()
                     .entity(CommandRequest.class);
 
-            // Normalize the AI response: canonicalize commands, clean args
+            // Normalize the AI response: canonicalize commands, but leave
+            // command-specific argument cleanup to the command layer.
             result = normalizeResolved(result, rawInput);
             log.debug("AI resolved '{}' -> normalized command='{}' args={}", rawInput, result.getCommand(), result.getArgs());
             return result;
@@ -56,8 +58,8 @@ public class AiIntentResolver {
     }
 
     /**
-     * Normalizes AI output: canonicalizes command aliases and filters out
-     * unnecessary prepositions/articles from args (e.g., "up", "the").
+     * Normalizes AI output by canonicalizing command aliases while preserving
+     * argument text for command-level parsers and validators.
      */
     private CommandRequest normalizeResolved(CommandRequest aiResult, String rawInput) {
         if (aiResult == null) {
@@ -75,21 +77,15 @@ public class AiIntentResolver {
             canonicalCommand = command.toLowerCase();
         }
 
-        // Clean up args: filter out prepositions/articles that the AI might include
-        // Note: keep "to" as it's used in give X to Y syntax
-        List<String> args = aiResult.getArgs();
-        if (args != null && !args.isEmpty()) {
-            final String[] stopWords = {"up", "the", "a", "an", "towards", "of", "at"};
-            args = args.stream()
-                    .filter(arg -> arg != null && !arg.isBlank())
-                    .map(String::toLowerCase)
-                    .filter(arg -> !java.util.Arrays.asList(stopWords).contains(arg))
-                    .toList();
-        }
+        List<String> args = aiResult.getArgs() != null
+                ? aiResult.getArgs().stream()
+                .filter(arg -> arg != null && !arg.isBlank())
+                .toList()
+                : List.of();
 
         CommandRequest normalized = new CommandRequest();
         normalized.setCommand(canonicalCommand);
-        normalized.setArgs(args != null ? args : List.of());
+        normalized.setArgs(args);
         return normalized;
     }
 
@@ -116,10 +112,18 @@ public class AiIntentResolver {
     }
 
     private CommandRequest fallback(String rawInput) {
-        String[] parts = rawInput.trim().split("\\s+", 2);
+        List<String> tokens = Arrays.stream(rawInput.trim().split("\\s+"))
+                .filter(token -> !token.isBlank())
+                .toList();
         CommandRequest req = new CommandRequest();
-        req.setCommand(parts[0].toLowerCase());
-        req.setArgs(parts.length > 1 ? List.of(parts[1]) : List.of());
+        if (tokens.isEmpty()) {
+            req.setCommand("");
+            req.setArgs(List.of());
+            return req;
+        }
+
+        req.setCommand(tokens.get(0).toLowerCase());
+        req.setArgs(tokens.size() > 1 ? tokens.subList(1, tokens.size()) : List.of());
         return req;
     }
 }

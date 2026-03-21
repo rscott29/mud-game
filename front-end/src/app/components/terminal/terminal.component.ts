@@ -106,7 +106,12 @@ export class TerminalComponent {
     if (!stats) {
       return 'Awaiting profile';
     }
-    return `Level ${stats.level}${stats.maxLevel > 0 ? ` / ${stats.maxLevel}` : ''}`;
+
+    if (stats.isGod || stats.maxLevel <= 0 || stats.level > stats.maxLevel) {
+      return `Level ${stats.level}`;
+    }
+
+    return `Level ${stats.level} / ${stats.maxLevel}`;
   });
 
   readonly hudHealth = computed(() => this.formatResource('HP', this.playerStats()?.health, this.playerStats()?.maxHealth));
@@ -383,7 +388,7 @@ export class TerminalComponent {
         room: source.room,
         roomType: source.type,
       };
-      return updated;
+      return this.moveMessageToEnd(updated, targetIndex);
     });
   }
 
@@ -445,8 +450,19 @@ export class TerminalComponent {
         html: formatted.message.html,
         roomMessage: mergedSource.message ?? '',
       };
-      return updated;
+      return this.moveMessageToEnd(updated, targetIndex);
     });
+  }
+
+  private moveMessageToEnd(list: DisplayMessage[], index: number): DisplayMessage[] {
+    if (index < 0 || index >= list.length || index === list.length - 1) {
+      return list;
+    }
+
+    const updated = [...list];
+    const [entry] = updated.splice(index, 1);
+    updated.push(entry);
+    return updated;
   }
 
   private joinRoomMessages(existing?: string, incoming?: string): string {

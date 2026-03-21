@@ -332,7 +332,7 @@
 }
 
 .msg.SENT {
-  align-self: flex-start;
+  align-self: flex-end;
   width: auto;
   max-width: min(100%, 560px);
   border-color: rgba(183, 200, 161, 0.22);

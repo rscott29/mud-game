@@ -247,14 +247,22 @@ public final class CommandRegistry {
                 .build());
 
         commands.add(CommandDefinition.builder(GO)
-                .aliases("go", "move")
+                .aliases("go", "move",
+                        "north", "n",
+                        "south", "s",
+                        "east", "e",
+                        "west", "w",
+                        "up", "u",
+                        "down", "d")
                 .category(EXPLORATION)
                 .usage("go <direction>")
                 .description("Move in a direction (n/s/e/w/u/d)")
                 .creator(ctx -> {
-                    Direction dir = Direction.fromString(ctx.firstArg());
+                    String directionInput = ctx.hasNoArgs() ? ctx.rawCommand() : ctx.firstArg();
+                    Direction dir = Direction.fromString(directionInput);
                     if (dir == null) {
-                        return new UnknownCommand("go " + ctx.firstArg());
+                        String attemptedDirection = ctx.hasNoArgs() ? directionInput : ctx.firstArg();
+                        return new UnknownCommand("go " + attemptedDirection);
                     }
                     return new MoveCommand(dir, ctx.deps().taskScheduler(), ctx.deps().worldBroadcaster(), ctx.deps().sessionManager(),
                             ctx.deps().questService(), ctx.deps().levelingService(), ctx.deps().worldService(), ctx.deps().ambientEventService());

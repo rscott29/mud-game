@@ -1,6 +1,7 @@
 package com.scott.tech.mud.mud_game.auth;
 
 import com.scott.tech.mud.mud_game.command.core.CommandResult;
+import com.scott.tech.mud.mud_game.config.CharacterCreationOptionsRegistry;
 import com.scott.tech.mud.mud_game.config.CharacterClassStatsRegistry;
 import com.scott.tech.mud.mud_game.config.ExperienceTableService;
 import com.scott.tech.mud.mud_game.config.Messages;
@@ -48,6 +49,7 @@ public class LoginHandler {
     private final PlayerProfileService playerProfileService;
     private final InventoryService inventoryService;
     private final com.scott.tech.mud.mud_game.persistence.service.DiscoveredExitService discoveredExitService;
+    private final CharacterCreationOptionsRegistry characterCreationOptions;
     private final CharacterClassStatsRegistry classStatsRegistry;
     private final ExperienceTableService xpTables;
     private final PlayerStateCache stateCache;
@@ -61,6 +63,7 @@ public class LoginHandler {
                         PlayerProfileService playerProfileService,
                         InventoryService inventoryService,
                         com.scott.tech.mud.mud_game.persistence.service.DiscoveredExitService discoveredExitService,
+                        CharacterCreationOptionsRegistry characterCreationOptions,
                         CharacterClassStatsRegistry classStatsRegistry,
                         ExperienceTableService xpTables,
                         PlayerStateCache stateCache,
@@ -73,6 +76,7 @@ public class LoginHandler {
         this.playerProfileService  = playerProfileService;
         this.inventoryService      = inventoryService;
         this.discoveredExitService = discoveredExitService;
+        this.characterCreationOptions = characterCreationOptions;
         this.classStatsRegistry    = classStatsRegistry;
         this.xpTables              = xpTables;
         this.stateCache            = stateCache;
@@ -209,7 +213,7 @@ public class LoginHandler {
             session.transition(SessionState.AWAITING_RACE_CLASS);
             return CommandResult.of(GameResponse.characterCreation(
                 "race_class",
-                java.util.List.of("Human", "Elf", "Dwarf", "Halfling", "Orc", "Dragonborn", "Tiefling"),
+                characterCreationOptions.raceNames(),
                 classStatsRegistry.classNames(),
                 null
             ));
@@ -244,11 +248,8 @@ public class LoginHandler {
         String race = parts[0];
         String characterClass = parts[1];
         
-        // Validate race (Human, Elf, Dwarf, Halfling, Orc, etc.)
-        java.util.Set<String> validRaces = java.util.Set.of(
-            "human", "elf", "dwarf", "halfling", "orc", "dragonborn", "tiefling"
-        );
-        if (!validRaces.contains(race.toLowerCase())) {
+        var resolvedRace = characterCreationOptions.findRace(race);
+        if (resolvedRace.isEmpty()) {
             return prompt(Messages.get("auth.error.race_invalid"), false);
         }
         
@@ -260,7 +261,7 @@ public class LoginHandler {
         }
         
         // Store temporarily in player object
-        session.getPlayer().setRace(capitalize(race));
+        session.getPlayer().setRace(resolvedRace.get().name());
         session.getPlayer().setCharacterClass(classStats.get().name());
         setStats(session.getPlayer(), classStats.get().maxHealth(), classStats.get().maxMana(), classStats.get().maxMovement());
         
@@ -269,12 +270,7 @@ public class LoginHandler {
             "pronouns",
             null,
             null,
-            java.util.List.of(
-                new GameResponse.PronounOption("He/Him/His", "he", "him", "his"),
-                new GameResponse.PronounOption("She/Her/Her", "she", "her", "her"),
-                new GameResponse.PronounOption("They/Them/Their", "they", "them", "their"),
-                new GameResponse.PronounOption("Ze/Zir/Zir", "ze", "zir", "zir")
-            )
+            characterCreationOptions.pronounOptions()
         ));
     }
 
@@ -285,36 +281,15 @@ public class LoginHandler {
             return prompt(Messages.get("auth.error.pronouns_blank"), false);
         }
         
-        // Parse input format: "subject/object/possessive" or just common sets
-        // Support shortcuts: "he", "she", "they", "ze", etc.
-        String lower = input.toLowerCase().trim();
-        String subject, object, possessive;
-        
-        if (lower.matches("he|him|his")) {
-            subject = "he"; object = "him"; possessive = "his";
-        } else if (lower.matches("she|her|hers")) {
-            subject = "she"; object = "her"; possessive = "her";
-        } else if (lower.matches("they|them|their|theirs")) {
-            subject = "they"; object = "them"; possessive = "their";
-        } else if (lower.matches("ze|zir|zirs")) {
-            subject = "ze"; object = "zir"; possessive = "zir";
-        } else if (input.contains("/")) {
-            // Custom format: "subject/object/possessive"
-            String[] parts = input.split("/");
-            if (parts.length < 3) {
-                return prompt(Messages.get("auth.error.pronouns_format"), false);
-            }
-            subject = parts[0].trim().toLowerCase();
-            object = parts[1].trim().toLowerCase();
-            possessive = parts[2].trim().toLowerCase();
-        } else {
+        var selection = characterCreationOptions.resolvePronouns(input);
+        if (selection.isEmpty()) {
             return prompt(Messages.get("auth.error.pronouns_format"), false);
         }
         
         // Store temporarily in player object
-        session.getPlayer().setPronounsSubject(subject);
-        session.getPlayer().setPronounsObject(object);
-        session.getPlayer().setPronounsPossessive(possessive);
+        session.getPlayer().setPronounsSubject(selection.get().subject());
+        session.getPlayer().setPronounsObject(selection.get().object());
+        session.getPlayer().setPronounsPossessive(selection.get().possessive());
         
         session.transition(SessionState.AWAITING_DESCRIPTION);
         return CommandResult.of(GameResponse.characterCreation(

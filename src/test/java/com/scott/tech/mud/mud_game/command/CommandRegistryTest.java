@@ -64,4 +64,11 @@ class CommandRegistryTest {
         assertThat(talk.dispatchMode()).isEqualTo(CommandMetadata.DispatchMode.NATURAL_LANGUAGE);
         assertThat(who.dispatchMode()).isEqualTo(CommandMetadata.DispatchMode.DIRECT);
     }
+
+    @Test
+    void directionAliasesCanonicalizeToGo() {
+        assertThat(CommandRegistry.canonicalize("up")).isEqualTo(CommandRegistry.GO);
+        assertThat(CommandRegistry.canonicalize("u")).isEqualTo(CommandRegistry.GO);
+        assertThat(CommandRegistry.canonicalize("north")).isEqualTo(CommandRegistry.GO);
+    }
 }

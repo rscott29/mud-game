@@ -1,0 +1,45 @@
+{
+  "races": [
+    { "id": "human", "name": "Human", "aliases": ["human"] },
+    { "id": "elf", "name": "Elf", "aliases": ["elf"] },
+    { "id": "dwarf", "name": "Dwarf", "aliases": ["dwarf"] },
+    { "id": "halfling", "name": "Halfling", "aliases": ["halfling"] },
+    { "id": "orc", "name": "Orc", "aliases": ["orc"] },
+    { "id": "dragonborn", "name": "Dragonborn", "aliases": ["dragonborn"] },
+    { "id": "tiefling", "name": "Tiefling", "aliases": ["tiefling"] }
+  ],
+  "pronouns": [
+    {
+      "id": "he_him",
+      "label": "He/Him/His",
+      "subject": "he",
+      "object": "him",
+      "possessive": "his",
+      "aliases": ["he", "him", "his", "he/him", "he/him/his"]
+    },
+    {
+      "id": "she_her",
+      "label": "She/Her/Her",
+      "subject": "she",
+      "object": "her",
+      "possessive": "her",
+      "aliases": ["she", "her", "hers", "she/her", "she/her/her"]
+    },
+    {
+      "id": "they_them",
+      "label": "They/Them/Their",
+      "subject": "they",
+      "object": "them",
+      "possessive": "their",
+      "aliases": ["they", "them", "their", "theirs", "they/them", "they/them/their"]
+    },
+    {
+      "id": "ze_zir",
+      "label": "Ze/Zir/Zir",
+      "subject": "ze",
+      "object": "zir",
+      "possessive": "zir",
+      "aliases": ["ze", "zir", "zirs", "ze/zir", "ze/zir/zir"]
+    }
+  ]
+}

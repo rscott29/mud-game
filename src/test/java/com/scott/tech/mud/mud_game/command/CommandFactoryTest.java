@@ -166,6 +166,12 @@ class CommandFactoryTest {
     }
 
     @Test
+    void upDirectionAlias_createsMoveCommand() {
+        GameCommand command = factory.create(request("up", List.of()));
+        assertThat(command).isInstanceOf(MoveCommand.class);
+    }
+
+    @Test
     void dmCommand_usesFirstArgAsTargetAndJoinsRemainingAsMessage() {
         GameCommand command = factory.create(request("/dm", List.of("Bob", "hello", "there")));
         assertThat(command).isInstanceOf(DirectMessageCommand.class);

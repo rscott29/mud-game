@@ -2,7 +2,7 @@ import { signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { Subject, of } from 'rxjs';
 
-import { GameMessage, ConnectionStatus } from '../../models/game-message';
+import { GameMessage, ConnectionStatus, PlayerStatsDto } from '../../models/game-message';
 import {
   CommandCatalogEntry,
   CommandCatalogService,
@@ -17,7 +17,7 @@ class MockGameSocketService {
   readonly messages$ = new Subject<GameMessage>();
   readonly systemMessages$ = new Subject<string>();
   readonly status = signal<ConnectionStatus>('connected');
-  readonly playerStats = signal(null);
+  readonly playerStats = signal<PlayerStatsDto | null>(null);
   readonly sent: string[] = [];
 
   connect(): void {}
@@ -44,7 +44,7 @@ class MockCommandCatalogService {
   private readonly commands: CommandCatalogEntry[] = [
     {
       canonicalName: 'go',
-      aliases: ['go', 'move'],
+      aliases: ['go', 'move', 'north', 'n', 'south', 's', 'east', 'e', 'west', 'w', 'up', 'u', 'down', 'd'],
       category: 'Exploration',
       usage: 'go <direction>',
       description: 'Move in a direction (n/s/e/w/u/d)',
@@ -157,6 +157,19 @@ describe('TerminalComponent', () => {
     });
   });
 
+  it('sends "up" as a direct command payload instead of natural language', () => {
+    const fixture = TestBed.createComponent(TerminalComponent);
+    const component = fixture.componentInstance;
+
+    component.inputValue.set('up');
+    component.send();
+
+    expect(socket.sent.length).toBe(1);
+    expect(JSON.parse(socket.sent[0])).toEqual({
+      command: 'up',
+    });
+  });
+
   it('sends "spawn item_ale_mug" as a direct command payload', () => {
     const fixture = TestBed.createComponent(TerminalComponent);
     const component = fixture.componentInstance;
@@ -239,6 +252,55 @@ describe('TerminalComponent', () => {
     expect(component.messages()[0].cssClass).toBe('AUTH_PROMPT');
     expect(component.messages()[0].html).toContain('term-card--prompt');
     expect(component.messages()[0].html).toContain('Welcome to the MUD!<br>Enter your username:');
+  });
+
+  it('shows god levels above the normal cap without a confusing max-level suffix', () => {
+    const fixture = TestBed.createComponent(TerminalComponent);
+    const component = fixture.componentInstance;
+
+    socket.playerStats.set({
+      health: 999,
+      maxHealth: 999,
+      mana: 999,
+      maxMana: 999,
+      movement: 999,
+      maxMovement: 999,
+      level: 100,
+      maxLevel: 70,
+      xpProgress: 0,
+      xpForNextLevel: 0,
+      totalXp: 105,
+      isGod: true,
+      characterClass: 'mage',
+    });
+
+    expect(component.levelLabel()).toBe('Level 100');
+  });
+
+  it('hides total xp in the header for god accounts', () => {
+    const fixture = TestBed.createComponent(TerminalComponent);
+
+    socket.playerStats.set({
+      health: 999,
+      maxHealth: 999,
+      mana: 999,
+      maxMana: 999,
+      movement: 999,
+      maxMovement: 999,
+      level: 100,
+      maxLevel: 70,
+      xpProgress: 0,
+      xpForNextLevel: 0,
+      totalXp: 105,
+      isGod: true,
+      characterClass: 'mage',
+    });
+
+    fixture.detectChanges();
+
+    const text = fixture.nativeElement.textContent ?? '';
+    expect(text).toContain('GOD');
+    expect(text).not.toContain('Total XP 105');
   });
 
   it('merges same-room updates into the existing room card', () => {
@@ -409,6 +471,42 @@ describe('TerminalComponent', () => {
     expect(component.messages()[0].html).toContain('term-inline-event--player-action');
     expect(component.messages()[0].html).toContain('Traveler');
     expect(component.messages()[0].html).toContain('Quentor arrives from the east.');
+  });
+
+  it('moves the active room card back to the bottom when it receives updates after inventory', () => {
+    const fixture = TestBed.createComponent(TerminalComponent);
+    const component = fixture.componentInstance;
+
+    const room = {
+      id: 'town_square',
+      name: 'Town Square',
+      description: 'A lively square.',
+      exits: ['north'],
+      items: [],
+      npcs: [],
+      players: [],
+    };
+
+    socket.messages$.next({ type: 'ROOM_UPDATE', message: 'You arrive.', room });
+    socket.messages$.next({
+      type: 'INVENTORY_UPDATE',
+      inventory: [
+        {
+          id: 'item_lantern',
+          name: 'Lantern',
+          description: 'A warm copper lantern.',
+          rarity: 'common',
+          equipped: false,
+        },
+      ],
+    });
+    socket.messages$.next({ type: 'ROOM_ACTION', message: 'Quentor arrives from the east.' });
+
+    expect(component.messages().length).toBe(2);
+    expect(component.messages()[0].cssClass).toBe('INVENTORY_UPDATE');
+    expect(component.messages()[1].cssClass).toBe('ROOM_UPDATE');
+    expect(component.messages()[1].html).toContain('You arrive.');
+    expect(component.messages()[1].html).toContain('Quentor arrives from the east.');
   });
 
   it('renders help from the command catalog instead of hardcoded frontend lists', () => {
