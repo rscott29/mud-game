@@ -37,9 +37,9 @@ class AiIntentResolverTest {
         when(requestSpec.call()).thenReturn(callSpec);
 
         room = new Room(
-                "room",
-                "Room",
-                "A test room.",
+                "test_room",
+                "Test Room",
+                "A plain room.",
                 new EnumMap<>(Direction.class),
                 List.of(),
                 List.of()
@@ -47,7 +47,35 @@ class AiIntentResolverTest {
     }
 
     @Test
-    void resolve_preservesDirectionArgsProducedByAi() {
+    void canonicalizesResolvedAliasesWithoutStrippingCommandSpecificArgs() {
+        CommandRequest aiResponse = new CommandRequest();
+        aiResponse.setCommand("get");
+        aiResponse.setArgs(List.of("the", "lantern"));
+        when(callSpec.entity(CommandRequest.class)).thenReturn(aiResponse);
+
+        AiIntentResolver resolver = new AiIntentResolver(builder);
+        CommandRequest result = resolver.resolve("pick up the lantern", room);
+
+        assertThat(result.getCommand()).isEqualTo("take");
+        assertThat(result.getArgs()).containsExactly("the", "lantern");
+    }
+
+    @Test
+    void canonicalizesDirectionAliasesThroughTheRegistry() {
+        CommandRequest aiResponse = new CommandRequest();
+        aiResponse.setCommand("north");
+        aiResponse.setArgs(List.of());
+        when(callSpec.entity(CommandRequest.class)).thenReturn(aiResponse);
+
+        AiIntentResolver resolver = new AiIntentResolver(builder);
+        CommandRequest result = resolver.resolve("head north", room);
+
+        assertThat(result.getCommand()).isEqualTo("go");
+        assertThat(result.getArgs()).isEmpty();
+    }
+
+    @Test
+    void resolvePreservesDirectionArgsProducedByAi() {
         CommandRequest aiResponse = new CommandRequest();
         aiResponse.setCommand("go");
         aiResponse.setArgs(List.of("up"));
@@ -61,7 +89,18 @@ class AiIntentResolverTest {
     }
 
     @Test
-    void fallback_splitsRemainingWordsIntoSeparateArgs() {
+    void fallbackUsesTheSameTokenShapeAsDirectCommandInput() {
+        when(callSpec.entity(CommandRequest.class)).thenThrow(new RuntimeException("resolver unavailable"));
+
+        AiIntentResolver resolver = new AiIntentResolver(builder);
+        CommandRequest result = resolver.resolve("look at the dog", room);
+
+        assertThat(result.getCommand()).isEqualTo("look");
+        assertThat(result.getArgs()).containsExactly("at", "the", "dog");
+    }
+
+    @Test
+    void fallbackPreservesMultiWordDirectionArgs() {
         when(callSpec.entity(CommandRequest.class)).thenThrow(new RuntimeException("AI unavailable"));
 
         AiIntentResolver resolver = new AiIntentResolver(builder);

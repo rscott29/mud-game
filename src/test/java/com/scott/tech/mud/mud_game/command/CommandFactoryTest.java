@@ -46,7 +46,6 @@ import com.scott.tech.mud.mud_game.websocket.WorldBroadcaster;
 import com.scott.tech.mud.mud_game.world.WorldService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.scheduling.TaskScheduler;
 
 import java.util.List;
@@ -60,7 +59,6 @@ class CommandFactoryTest {
 
     private TaskScheduler taskScheduler;
     private WorldBroadcaster worldBroadcaster;
-    private ChatClient.Builder chatClientBuilder;
     private GameSessionManager sessionManager;
     private InventoryService inventoryService;
     private DiscoveredExitService discoveredExitService;
@@ -93,7 +91,6 @@ class CommandFactoryTest {
     void setUp() {
         taskScheduler = mock(TaskScheduler.class);
         worldBroadcaster = mock(WorldBroadcaster.class);
-        chatClientBuilder = mock(ChatClient.Builder.class);
         sessionManager = mock(GameSessionManager.class);
         inventoryService = mock(InventoryService.class);
         discoveredExitService = mock(DiscoveredExitService.class);
@@ -120,11 +117,7 @@ class CommandFactoryTest {
         questService = mock(QuestService.class);
         worldService = mock(WorldService.class);
         ambientEventService = mock(AmbientEventService.class);
-
-        ChatClient chatClient = mock(ChatClient.class);
-        when(chatClientBuilder.build()).thenReturn(chatClient);
-
-        factory = new CommandFactory(taskScheduler, worldBroadcaster, chatClientBuilder, sessionManager,
+        factory = new CommandFactory(taskScheduler, worldBroadcaster, sessionManager,
                 inventoryService, discoveredExitService, pickupValidator, pickupService, dropValidator, dropService,
                 equipValidator, equipService,
                 attackValidator, combatService, combatState, combatLoopScheduler,
@@ -168,6 +161,12 @@ class CommandFactoryTest {
     @Test
     void upDirectionAlias_createsMoveCommand() {
         GameCommand command = factory.create(request("up", List.of()));
+        assertThat(command).isInstanceOf(MoveCommand.class);
+    }
+
+    @Test
+    void fullDirectionAlias_createsMoveCommand() {
+        GameCommand command = factory.create(request("north", List.of()));
         assertThat(command).isInstanceOf(MoveCommand.class);
     }
 

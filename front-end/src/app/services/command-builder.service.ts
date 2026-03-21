@@ -1,5 +1,5 @@
 import { Injectable, inject } from '@angular/core';
-import { CommandCatalogService } from './command-catalog.service';
+import { COMMAND_DISPATCH_MODES, CommandCatalogService } from './command-catalog.service';
 
 export interface CommandPayload {
   /** JSON string to send over the socket */
@@ -56,7 +56,7 @@ export class CommandBuilderService {
     const cmd = first.toLowerCase();
     const knownCommand = this.commandCatalog.findByAlias(cmd);
 
-    if (knownCommand?.dispatchMode === 'NATURAL_LANGUAGE') {
+    if (knownCommand?.dispatchMode === COMMAND_DISPATCH_MODES.NATURAL_LANGUAGE) {
       return {
         payload: JSON.stringify({ input: raw }),
         echo: raw,

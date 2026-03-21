@@ -5,17 +5,17 @@
       <span class="terminal-brand__title">The Obsidian Kingdom</span>
     </div>
 
-    <div class="terminal-status" [ngClass]="statusClass()">
+    <div class="terminal-status" [ngClass]="view.statusClass()">
       <span class="terminal-status__dot"></span>
-      <span>{{ statusLabel() }}</span>
+      <span>{{ view.statusLabel() }}</span>
     </div>
   </header>
 
   <section class="terminal-hud">
-    @if (playerStats(); as stats) {
+    @if (view.playerStats(); as stats) {
       <div class="hud-profile">
-        <div class="hud-profile__eyebrow">{{ classLabel() || 'Adventurer' }}</div>
-        <div class="hud-profile__title">{{ levelLabel() }}</div>
+        <div class="hud-profile__eyebrow">{{ view.classLabel() || 'Adventurer' }}</div>
+        <div class="hud-profile__title">{{ view.levelLabel() }}</div>
         <div class="hud-profile__meta">
           @if (!stats.isGod) {
             <span>Total XP {{ stats.totalXp }}</span>
@@ -27,18 +27,18 @@
       </div>
 
       <div class="hud-metrics">
-        <span class="hud-chip hud-chip--hp">{{ hudHealth() }}</span>
-        <span class="hud-chip hud-chip--mp">{{ hudMana() }}</span>
-        <span class="hud-chip hud-chip--mv">{{ hudMovement() }}</span>
+        <span class="hud-chip hud-chip--hp">{{ view.hudHealth() }}</span>
+        <span class="hud-chip hud-chip--mp">{{ view.hudMana() }}</span>
+        <span class="hud-chip hud-chip--mv">{{ view.hudMovement() }}</span>
       </div>
 
       <div class="hud-xp">
         <div class="hud-xp__meta">
           <span>Progress</span>
-          <span>{{ xpLabel() }}</span>
+          <span>{{ view.xpLabel() }}</span>
         </div>
         <div class="hud-xp__bar">
-          <div class="hud-xp__fill" [style.width.%]="xpPercent()"></div>
+          <div class="hud-xp__fill" [style.width.%]="view.xpPercent()"></div>
         </div>
       </div>
     } @else {
@@ -48,39 +48,39 @@
     }
 
     <div class="hud-zoom">
-      <button type="button" class="hud-zoom__btn" (click)="decreaseZoom()" aria-label="Decrease zoom">-</button>
-      <span class="hud-zoom__value">{{ zoomLevel() }}%</span>
-      <button type="button" class="hud-zoom__btn" (click)="increaseZoom()" aria-label="Increase zoom">+</button>
+      <button type="button" class="hud-zoom__btn" (click)="view.decreaseZoom()" aria-label="Decrease zoom">-</button>
+      <span class="hud-zoom__value">{{ view.zoomLevel() }}%</span>
+      <button type="button" class="hud-zoom__btn" (click)="view.increaseZoom()" aria-label="Increase zoom">+</button>
     </div>
   </section>
 
   <div #logEl class="log">
-    @for (msg of messages(); track msg.id) {
+    @for (msg of view.messages(); track msg.id) {
       <div class="msg" [ngClass]="msg.cssClass" [innerHTML]="msg.html | safeHtml"></div>
     }
 
-    @if (characterCreationData()) {
+    @if (view.characterCreationData()) {
       <app-character-creation
-        [data]="characterCreationData()!"
-        (selectionComplete)="onCharacterCreationComplete($event)"
+        [data]="view.characterCreationData()!"
+        (selectionComplete)="input.completeCharacterCreation($event)"
       />
     }
   </div>
 
-  <div class="input-bar" [class.hidden]="characterCreationData() !== null">
-    <span class="prompt-glyph">{{ promptLabel() }}</span>
+  <div class="input-bar" [class.hidden]="view.characterCreationData() !== null">
+    <span class="prompt-glyph">{{ view.promptLabel() }}</span>
     <input
       class="cmd-input"
-      [type]="inputType()"
-      [placeholder]="placeholder()"
-      [ngModel]="inputValue()"
-      (ngModelChange)="inputValue.set($event)"
-      (keydown.enter)="onEnter()"
+      [type]="view.inputType()"
+      [placeholder]="view.placeholder()"
+      [ngModel]="input.inputValue()"
+      (ngModelChange)="input.inputValue.set($event)"
+      (keydown.enter)="input.send()"
       autocomplete="off"
       autocapitalize="off"
       spellcheck="false"
       autofocus
     />
-    <button type="button" class="send-btn" (click)="send()">Send</button>
+    <button type="button" class="send-btn" (click)="input.send()">Send</button>
   </div>
 </div>

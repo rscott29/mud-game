@@ -12,18 +12,14 @@ import com.scott.tech.mud.mud_game.command.drop.DropService;
 import com.scott.tech.mud.mud_game.command.drop.DropValidator;
 import com.scott.tech.mud.mud_game.command.equip.EquipService;
 import com.scott.tech.mud.mud_game.command.equip.EquipValidator;
-import com.scott.tech.mud.mud_game.command.move.MoveCommand;
 import com.scott.tech.mud.mud_game.command.pickup.PickupService;
 import com.scott.tech.mud.mud_game.command.pickup.PickupValidator;
-import com.scott.tech.mud.mud_game.command.social.SocialAction;
-import com.scott.tech.mud.mud_game.command.social.SocialCommand;
 import com.scott.tech.mud.mud_game.command.social.SocialService;
 import com.scott.tech.mud.mud_game.command.social.SocialValidator;
 import com.scott.tech.mud.mud_game.command.talk.TalkService;
 import com.scott.tech.mud.mud_game.command.talk.TalkValidator;
 import com.scott.tech.mud.mud_game.command.unknown.UnknownCommand;
 import com.scott.tech.mud.mud_game.dto.CommandRequest;
-import com.scott.tech.mud.mud_game.model.Direction;
 import com.scott.tech.mud.mud_game.persistence.cache.PlayerStateCache;
 import com.scott.tech.mud.mud_game.persistence.service.DiscoveredExitService;
 import com.scott.tech.mud.mud_game.persistence.service.InventoryService;
@@ -34,7 +30,6 @@ import com.scott.tech.mud.mud_game.service.LevelingService;
 import com.scott.tech.mud.mud_game.world.WorldService;
 import com.scott.tech.mud.mud_game.session.GameSessionManager;
 import com.scott.tech.mud.mud_game.websocket.WorldBroadcaster;
-import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.stereotype.Component;
 
@@ -56,7 +51,7 @@ public class CommandFactory {
     private final CommandDependencies deps;
 
     public CommandFactory(TaskScheduler taskScheduler, WorldBroadcaster worldBroadcaster,
-                          ChatClient.Builder chatClientBuilder, GameSessionManager sessionManager,
+                          GameSessionManager sessionManager,
                           InventoryService inventoryService,
                           DiscoveredExitService discoveredExitService,
                           PickupValidator pickupValidator,
@@ -78,7 +73,6 @@ public class CommandFactory {
         this.deps = new CommandDependencies(
                 taskScheduler,
                 worldBroadcaster,
-                chatClientBuilder.build(),
                 sessionManager,
                 inventoryService,
                 discoveredExitService,
@@ -117,32 +111,10 @@ public class CommandFactory {
         String cmd = CommandRegistry.canonicalize(raw);
         List<String> args = request.getArgs() != null ? request.getArgs() : List.of();
 
-        // Build context for creator
         CommandCreator.CommandContext ctx = new CommandCreator.CommandContext(raw, args, deps);
-
-        // Try registered command creators first
         var creator = CommandRegistry.getCreator(cmd);
         if (creator.isPresent()) {
             return creator.get().create(ctx);
-        }
-
-        // Check for built-in social actions (wave, smile, nod, etc.)
-        var socialAction = SocialAction.find(cmd);
-        if (socialAction.isPresent()) {
-            return new SocialCommand(
-                    socialAction.get(),
-                    ctx.joinedArgs(),
-                    deps.sessionManager(),
-                    deps.socialValidator(),
-                    deps.socialService()
-            );
-        }
-
-        // Try direct direction input (n/s/e/w/u/d or full names)
-        Direction dir = Direction.fromString(raw.toLowerCase());
-        if (dir != null) {
-            return new MoveCommand(dir, deps.taskScheduler(), deps.worldBroadcaster(), deps.sessionManager(),
-                    deps.questService(), deps.levelingService(), deps.worldService(), deps.ambientEventService());
         }
 
         return new UnknownCommand(raw);

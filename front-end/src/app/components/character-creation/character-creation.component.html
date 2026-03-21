@@ -1,4 +1,4 @@
-@if (data.step === 'race_class') {
+@if (data.step === steps.RACE_CLASS) {
   <div class="creation-container">
     <h2 class="title">Character Creation</h2>
     <p class="subtitle">Choose your race and class</p>
@@ -48,7 +48,7 @@
   </div>
 }
 
-@if (data.step === 'pronouns') {
+@if (data.step === steps.PRONOUNS) {
   <div class="creation-container">
     <h2 class="title">Character Creation</h2>
     <p class="subtitle">Choose your preferred pronouns</p>
@@ -87,7 +87,7 @@
   </div>
 }
 
-@if (data.step === 'description') {
+@if (data.step === steps.DESCRIPTION) {
   <div class="creation-container">
     <h2 class="title">Character Creation</h2>
     <p class="subtitle">Describe your character (optional)</p>

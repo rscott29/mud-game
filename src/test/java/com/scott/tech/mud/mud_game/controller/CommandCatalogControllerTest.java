@@ -18,6 +18,9 @@ class CommandCatalogControllerTest {
         assertThat(response.getBody().commands())
                 .extracting(CommandCatalogController.CommandView::canonicalName)
                 .contains("look", "who", "dance", "wave");
+        assertThat(response.getBody().commands())
+                .extracting(CommandCatalogController.CommandView::canonicalName)
+                .doesNotHaveDuplicates();
     }
 
     @Test
@@ -36,5 +39,17 @@ class CommandCatalogControllerTest {
 
         assertThat(look.dispatchMode()).isEqualTo("NATURAL_LANGUAGE");
         assertThat(who.dispatchMode()).isEqualTo("DIRECT");
+    }
+
+    @Test
+    void exposesDirectionAliasesThroughTheUnifiedCatalog() {
+        ResponseEntity<CommandCatalogController.CommandCatalogResponse> response = controller.getCommandCatalog();
+
+        CommandCatalogController.CommandView go = response.getBody().commands().stream()
+                .filter(command -> command.canonicalName().equals("go"))
+                .findFirst()
+                .orElseThrow();
+
+        assertThat(go.aliases()).contains("north", "n");
     }
 }

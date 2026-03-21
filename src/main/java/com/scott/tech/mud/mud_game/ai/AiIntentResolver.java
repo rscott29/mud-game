@@ -58,8 +58,8 @@ public class AiIntentResolver {
     }
 
     /**
-     * Normalizes AI output by canonicalizing command aliases while preserving
-     * argument text for command-level parsers and validators.
+     * Normalizes AI output by canonicalizing command aliases while leaving
+     * command-specific argument cleanup to the command layer.
      */
     private CommandRequest normalizeResolved(CommandRequest aiResult, String rawInput) {
         if (aiResult == null) {
@@ -71,7 +71,6 @@ public class AiIntentResolver {
             return fallback(rawInput);
         }
 
-        // Canonicalize the command (pick -> take, head -> go, etc.)
         String canonicalCommand = CommandRegistry.canonicalize(command.trim().toLowerCase());
         if (canonicalCommand.isEmpty()) {
             canonicalCommand = command.toLowerCase();
@@ -80,6 +79,7 @@ public class AiIntentResolver {
         List<String> args = aiResult.getArgs() != null
                 ? aiResult.getArgs().stream()
                 .filter(arg -> arg != null && !arg.isBlank())
+                .map(String::trim)
                 .toList()
                 : List.of();
 
@@ -95,8 +95,8 @@ public class AiIntentResolver {
                 .collect(Collectors.joining(", "));
 
         String items = room.getItems().isEmpty() ? "none" : room.getItems().stream()
-                .map(i -> i.getName() + " (keywords: " + String.join(", ", i.getKeywords()) + 
-                         "; description: " + i.getDescription() + ")")
+                .map(i -> i.getName() + " (keywords: " + String.join(", ", i.getKeywords())
+                        + "; description: " + i.getDescription() + ")")
                 .collect(Collectors.joining("; "));
 
         String npcs = room.getNpcs().isEmpty() ? "none" : room.getNpcs().stream()
@@ -112,18 +112,18 @@ public class AiIntentResolver {
     }
 
     private CommandRequest fallback(String rawInput) {
-        List<String> tokens = Arrays.stream(rawInput.trim().split("\\s+"))
-                .filter(token -> !token.isBlank())
-                .toList();
-        CommandRequest req = new CommandRequest();
-        if (tokens.isEmpty()) {
-            req.setCommand("");
-            req.setArgs(List.of());
-            return req;
+        String trimmed = rawInput == null ? "" : rawInput.trim();
+        if (trimmed.isEmpty()) {
+            CommandRequest empty = new CommandRequest();
+            empty.setCommand("");
+            empty.setArgs(List.of());
+            return empty;
         }
 
-        req.setCommand(tokens.get(0).toLowerCase());
-        req.setArgs(tokens.size() > 1 ? tokens.subList(1, tokens.size()) : List.of());
+        String[] parts = trimmed.split("\\s+");
+        CommandRequest req = new CommandRequest();
+        req.setCommand(parts[0].toLowerCase());
+        req.setArgs(parts.length > 1 ? Arrays.stream(parts).skip(1).toList() : List.of());
         return req;
     }
 }

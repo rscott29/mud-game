@@ -27,7 +27,6 @@ import com.scott.tech.mud.mud_game.service.LevelingService;
 import com.scott.tech.mud.mud_game.world.WorldService;
 import com.scott.tech.mud.mud_game.session.GameSessionManager;
 import com.scott.tech.mud.mud_game.websocket.WorldBroadcaster;
-import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.scheduling.TaskScheduler;
 
 /**
@@ -37,7 +36,6 @@ import org.springframework.scheduling.TaskScheduler;
 public record CommandDependencies(
         TaskScheduler taskScheduler,
         WorldBroadcaster worldBroadcaster,
-        ChatClient chatClient,
         GameSessionManager sessionManager,
         InventoryService inventoryService,
         DiscoveredExitService discoveredExitService,

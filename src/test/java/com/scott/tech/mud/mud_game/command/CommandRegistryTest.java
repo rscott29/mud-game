@@ -66,9 +66,19 @@ class CommandRegistryTest {
     }
 
     @Test
-    void directionAliasesCanonicalizeToGo() {
+    void directionAliasesCanonicalizeIntoGo() {
         assertThat(CommandRegistry.canonicalize("up")).isEqualTo(CommandRegistry.GO);
         assertThat(CommandRegistry.canonicalize("u")).isEqualTo(CommandRegistry.GO);
+        assertThat(CommandRegistry.canonicalize("n")).isEqualTo(CommandRegistry.GO);
         assertThat(CommandRegistry.canonicalize("north")).isEqualTo(CommandRegistry.GO);
+    }
+
+    @Test
+    void builtInSocialsAreRegisteredLikeNormalCommands() {
+        CommandMetadata wave = CommandRegistry.getMetadata("wave").orElseThrow();
+
+        assertThat(wave.category().getDisplayName()).isEqualTo("Social");
+        assertThat(wave.dispatchMode()).isEqualTo(CommandMetadata.DispatchMode.DIRECT);
+        assertThat(CommandRegistry.getCreator("wave")).isPresent();
     }
 }

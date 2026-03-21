@@ -17,6 +17,7 @@ import com.scott.tech.mud.mud_game.command.quest.GiveCommand;
 import com.scott.tech.mud.mud_game.command.quest.QuestCommand;
 import com.scott.tech.mud.mud_game.command.skills.SkillsCommand;
 import com.scott.tech.mud.mud_game.command.social.SocialAction;
+import com.scott.tech.mud.mud_game.command.social.SocialCommand;
 import com.scott.tech.mud.mud_game.command.talk.TalkCommand;
 import com.scott.tech.mud.mud_game.command.unknown.UnknownCommand;
 import com.scott.tech.mud.mud_game.command.who.WhoCommand;
@@ -59,7 +60,7 @@ public final class CommandRegistry {
     public static final String EQUIP = "equip";
     public static final String ATTACK = "attack";
     public static final String BIND = "bind";
-    public static final String INVENTORY = "inventory";;
+    public static final String INVENTORY = "inventory";
     public static final String INVESTIGATE = "investigate";
     public static final String SKILLS = "skills";
     public static final String EMOTE = "emote";
@@ -177,18 +178,6 @@ public final class CommandRegistry {
             }
         }
 
-        // Add social actions summary
-        sb.append("\nBuilt-in social actions (type directly, with optional target):\n");
-        sb.append("  ")
-                .append(SocialAction.ordered().stream()
-                        .map(SocialAction::name)
-                        .collect(Collectors.joining(", ")))
-                .append("\n");
-        sb.append("  Examples: wave, wave Bob, smile Alice, nod\n");
-        sb.append("\nFreeform emotes:\n");
-        sb.append("  /em <action>           - Custom emote (auto-detects player names)\n");
-        sb.append("  Examples: /em stretches, /em high-fives Bob\n");
-
         return sb.toString();
     }
 
@@ -216,12 +205,6 @@ public final class CommandRegistry {
             sb.append("\n");
         }
 
-        // Add social actions for AI
-        sb.append("\nSocial actions (built-in emotes):\n");
-        for (SocialAction action : SocialAction.ordered()) {
-            sb.append(String.format("  %-22s - %s%n", action.usage(), action.helpDescription()));
-        }
-
         return sb.toString();
     }
 
@@ -247,22 +230,14 @@ public final class CommandRegistry {
                 .build());
 
         commands.add(CommandDefinition.builder(GO)
-                .aliases("go", "move",
-                        "north", "n",
-                        "south", "s",
-                        "east", "e",
-                        "west", "w",
-                        "up", "u",
-                        "down", "d")
+                .aliases(goAliases())
                 .category(EXPLORATION)
                 .usage("go <direction>")
                 .description("Move in a direction (n/s/e/w/u/d)")
                 .creator(ctx -> {
-                    String directionInput = ctx.hasNoArgs() ? ctx.rawCommand() : ctx.firstArg();
-                    Direction dir = Direction.fromString(directionInput);
+                    Direction dir = Direction.fromString(ctx.hasNoArgs() ? ctx.rawCommand() : ctx.firstArg());
                     if (dir == null) {
-                        String attemptedDirection = ctx.hasNoArgs() ? directionInput : ctx.firstArg();
-                        return new UnknownCommand("go " + attemptedDirection);
+                        return new UnknownCommand(ctx.hasNoArgs() ? ctx.rawCommand() : "go " + ctx.firstArg());
                     }
                     return new MoveCommand(dir, ctx.deps().taskScheduler(), ctx.deps().worldBroadcaster(), ctx.deps().sessionManager(),
                             ctx.deps().questService(), ctx.deps().levelingService(), ctx.deps().worldService(), ctx.deps().ambientEventService());
@@ -411,6 +386,8 @@ public final class CommandRegistry {
                 .description("Custom emote (e.g., /em dances, /em waves at Bob)")
                 .creator(ctx -> new EmoteCommand(ctx.joinedArgs(), ctx.deps().sessionManager()))
                 .build());
+
+        commands.addAll(buildSocialDefinitions());
 
         // Session commands
         commands.add(CommandDefinition.builder(HELP)
@@ -566,6 +543,42 @@ public final class CommandRegistry {
                 .build());
 
         return List.copyOf(commands);
+    }
+
+    private static List<String> goAliases() {
+        List<String> aliases = new ArrayList<>();
+        aliases.add("go");
+        aliases.add("move");
+
+        for (Direction direction : Direction.values()) {
+            String word = direction.name().toLowerCase(Locale.ROOT);
+            aliases.add(word);
+            aliases.add(word.substring(0, 1));
+        }
+
+        return List.copyOf(aliases);
+    }
+
+    private static List<CommandDefinition> buildSocialDefinitions() {
+        return SocialAction.ordered().stream()
+                .map(CommandRegistry::socialDefinition)
+                .toList();
+    }
+
+    private static CommandDefinition socialDefinition(SocialAction action) {
+        return CommandDefinition.builder(action.name())
+                .aliases(action.aliases())
+                .category(CommandCategory.EMOTE)
+                .usage(action.usage())
+                .description(action.helpDescription())
+                .creator(ctx -> new SocialCommand(
+                        action,
+                        ctx.joinedArgs(),
+                        ctx.deps().sessionManager(),
+                        ctx.deps().socialValidator(),
+                        ctx.deps().socialService()
+                ))
+                .build();
     }
 
     private static Map<String, String> buildAliasMap() {

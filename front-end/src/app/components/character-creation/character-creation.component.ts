@@ -1,19 +1,13 @@
 import { Component, EventEmitter, Input, Output, signal } from '@angular/core';
 import { NgClass } from '@angular/common';
+import {
+  CHARACTER_CREATION_STEPS,
+  type CharacterCreationDto,
+  type PronounOptionDto,
+} from '../../models/game-message';
 
-export interface CharacterCreationData {
-  step: 'race_class' | 'pronouns' | 'description';
-  races?: string[];
-  classes?: string[];
-  pronounOptions?: PronounOption[];
-}
-
-export interface PronounOption {
-  label: string;
-  subject: string;
-  object: string;
-  possessive: string;
-}
+export type CharacterCreationData = CharacterCreationDto;
+export type PronounOption = PronounOptionDto;
 
 @Component({
   selector: 'app-character-creation',
@@ -26,6 +20,7 @@ export class CharacterCreationComponent {
   @Input() data!: CharacterCreationData;
   @Output() selectionComplete = new EventEmitter<string>();
 
+  readonly steps = CHARACTER_CREATION_STEPS;
   selectedRace = signal<string | null>(null);
   selectedClass = signal<string | null>(null);
   description = signal<string>('');

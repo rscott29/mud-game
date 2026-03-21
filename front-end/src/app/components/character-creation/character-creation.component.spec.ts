@@ -1,4 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { CHARACTER_CREATION_STEPS } from '../../models/game-message';
 import { CharacterCreationComponent } from './character-creation.component';
 
 describe('CharacterCreationComponent', () => {
@@ -13,7 +14,7 @@ describe('CharacterCreationComponent', () => {
     fixture = TestBed.createComponent(CharacterCreationComponent);
     component = fixture.componentInstance;
     component.data = {
-      step: 'race_class',
+      step: CHARACTER_CREATION_STEPS.RACE_CLASS,
       races: ['Human', 'Elf'],
       classes: ['Warrior', 'Mage']
     };

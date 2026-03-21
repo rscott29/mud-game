@@ -2,11 +2,20 @@ import { signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { Subject, of } from 'rxjs';
 
-import { GameMessage, ConnectionStatus, PlayerStatsDto } from '../../models/game-message';
 import {
-  CommandCatalogEntry,
+  CONNECTION_STATUSES,
+  type ConnectionStatus,
+  GAME_MESSAGE_TYPES,
+  type GameMessage,
+  type PlayerStatsDto,
+  TERMINAL_MESSAGE_CLASSES,
+} from '../../models/game-message';
+import {
+  COMMAND_DISPATCH_MODES,
+  COMMAND_HELP_CATEGORIES,
+  type CommandCatalogEntry,
   CommandCatalogService,
-  HelpCategory,
+  type HelpCategory,
 } from '../../services/command-catalog.service';
 import { GameSocketService } from '../../services/game-socket.service';
 import { SkillProgressionService } from '../../services/skill-progression.service';
@@ -16,7 +25,7 @@ import { TerminalComponent } from './terminal.component';
 class MockGameSocketService {
   readonly messages$ = new Subject<GameMessage>();
   readonly systemMessages$ = new Subject<string>();
-  readonly status = signal<ConnectionStatus>('connected');
+  readonly status = signal<ConnectionStatus>(CONNECTION_STATUSES.CONNECTED);
   readonly playerStats = signal<PlayerStatsDto | null>(null);
   readonly sent: string[] = [];
 
@@ -45,52 +54,52 @@ class MockCommandCatalogService {
     {
       canonicalName: 'go',
       aliases: ['go', 'move', 'north', 'n', 'south', 's', 'east', 'e', 'west', 'w', 'up', 'u', 'down', 'd'],
-      category: 'Exploration',
+      category: COMMAND_HELP_CATEGORIES.EXPLORATION,
       usage: 'go <direction>',
       description: 'Move in a direction (n/s/e/w/u/d)',
       godOnly: false,
       showInHelp: true,
-      dispatchMode: 'DIRECT',
+      dispatchMode: COMMAND_DISPATCH_MODES.DIRECT,
     },
     {
       canonicalName: 'look',
       aliases: ['look', 'l', 'examine', 'x'],
-      category: 'Exploration',
+      category: COMMAND_HELP_CATEGORIES.EXPLORATION,
       usage: 'look [target]',
       description: 'Describe surroundings or examine something',
       godOnly: false,
       showInHelp: true,
-      dispatchMode: 'NATURAL_LANGUAGE',
+      dispatchMode: COMMAND_DISPATCH_MODES.NATURAL_LANGUAGE,
     },
     {
       canonicalName: 'spawn',
       aliases: ['spawn'],
-      category: 'God',
+      category: COMMAND_HELP_CATEGORIES.GOD,
       usage: 'spawn <item> [inv]',
       description: 'Spawn an item by ID',
       godOnly: true,
       showInHelp: true,
-      dispatchMode: 'DIRECT',
+      dispatchMode: COMMAND_DISPATCH_MODES.DIRECT,
     },
     {
       canonicalName: 'teleport',
       aliases: ['teleport', 'tp', 'warp', 'goto', 'telport', 'teleprot'],
-      category: 'God',
+      category: COMMAND_HELP_CATEGORIES.GOD,
       usage: 'teleport <target>',
       description: 'Teleport to a player or NPC',
       godOnly: true,
       showInHelp: true,
-      dispatchMode: 'DIRECT',
+      dispatchMode: COMMAND_DISPATCH_MODES.DIRECT,
     },
     {
       canonicalName: 'dance',
       aliases: ['dance', 'boogie'],
-      category: 'Social',
+      category: COMMAND_HELP_CATEGORIES.SOCIAL,
       usage: 'dance [target]',
       description: 'Dance on your own or with someone.',
       godOnly: false,
       showInHelp: true,
-      dispatchMode: 'DIRECT',
+      dispatchMode: COMMAND_DISPATCH_MODES.DIRECT,
     },
   ];
 
@@ -147,8 +156,8 @@ describe('TerminalComponent', () => {
     const fixture = TestBed.createComponent(TerminalComponent);
     const component = fixture.componentInstance;
 
-    component.inputValue.set('go north');
-    component.send();
+    component.input.inputValue.set('go north');
+    component.input.send();
 
     expect(socket.sent.length).toBe(1);
     expect(JSON.parse(socket.sent[0])).toEqual({
@@ -161,8 +170,8 @@ describe('TerminalComponent', () => {
     const fixture = TestBed.createComponent(TerminalComponent);
     const component = fixture.componentInstance;
 
-    component.inputValue.set('up');
-    component.send();
+    component.input.inputValue.set('up');
+    component.input.send();
 
     expect(socket.sent.length).toBe(1);
     expect(JSON.parse(socket.sent[0])).toEqual({
@@ -174,8 +183,8 @@ describe('TerminalComponent', () => {
     const fixture = TestBed.createComponent(TerminalComponent);
     const component = fixture.componentInstance;
 
-    component.inputValue.set('spawn item_ale_mug');
-    component.send();
+    component.input.inputValue.set('spawn item_ale_mug');
+    component.input.send();
 
     expect(socket.sent.length).toBe(1);
     expect(JSON.parse(socket.sent[0])).toEqual({
@@ -188,8 +197,8 @@ describe('TerminalComponent', () => {
     const fixture = TestBed.createComponent(TerminalComponent);
     const component = fixture.componentInstance;
 
-    component.inputValue.set('telport npc_dog_obi');
-    component.send();
+    component.input.inputValue.set('telport npc_dog_obi');
+    component.input.send();
 
     expect(socket.sent.length).toBe(1);
     expect(JSON.parse(socket.sent[0])).toEqual({
@@ -202,8 +211,8 @@ describe('TerminalComponent', () => {
     const fixture = TestBed.createComponent(TerminalComponent);
     const component = fixture.componentInstance;
 
-    component.inputValue.set('dance around happily');
-    component.send();
+    component.input.inputValue.set('dance around happily');
+    component.input.send();
 
     expect(socket.sent.length).toBe(1);
     expect(JSON.parse(socket.sent[0])).toEqual({
@@ -216,8 +225,8 @@ describe('TerminalComponent', () => {
     const fixture = TestBed.createComponent(TerminalComponent);
     const component = fixture.componentInstance;
 
-    component.inputValue.set('look at the old fountain');
-    component.send();
+    component.input.inputValue.set('look at the old fountain');
+    component.input.send();
 
     expect(socket.sent.length).toBe(1);
     expect(JSON.parse(socket.sent[0])).toEqual({
@@ -229,14 +238,14 @@ describe('TerminalComponent', () => {
     const fixture = TestBed.createComponent(TerminalComponent);
     const component = fixture.componentInstance;
 
-    socket.messages$.next({ type: 'NARRATIVE', message: 'First voice.' });
-    socket.messages$.next({ type: 'NARRATIVE', message: 'Second voice.' });
+    socket.messages$.next({ type: GAME_MESSAGE_TYPES.NARRATIVE, message: 'First voice.' });
+    socket.messages$.next({ type: GAME_MESSAGE_TYPES.NARRATIVE, message: 'Second voice.' });
 
-    expect(component.messages().map(message => message.cssClass)).toEqual([
-      'NARRATIVE',
-      'NARRATIVE',
+    expect(component.view.messages().map(message => message.cssClass)).toEqual([
+      TERMINAL_MESSAGE_CLASSES.NARRATIVE,
+      TERMINAL_MESSAGE_CLASSES.NARRATIVE,
     ]);
-    expect(component.messages().length).toBe(2);
+    expect(component.view.messages().length).toBe(2);
   });
 
   it('renders auth prompts as a full prompt card with preserved line breaks', () => {
@@ -244,14 +253,14 @@ describe('TerminalComponent', () => {
     const component = fixture.componentInstance;
 
     socket.messages$.next({
-      type: 'AUTH_PROMPT',
+      type: GAME_MESSAGE_TYPES.AUTH_PROMPT,
       message: 'Welcome to the MUD!\nEnter your username:',
     });
 
-    expect(component.messages()).toHaveLength(1);
-    expect(component.messages()[0].cssClass).toBe('AUTH_PROMPT');
-    expect(component.messages()[0].html).toContain('term-card--prompt');
-    expect(component.messages()[0].html).toContain('Welcome to the MUD!<br>Enter your username:');
+    expect(component.view.messages()).toHaveLength(1);
+    expect(component.view.messages()[0].cssClass).toBe(TERMINAL_MESSAGE_CLASSES.AUTH_PROMPT);
+    expect(component.view.messages()[0].html).toContain('term-card--prompt');
+    expect(component.view.messages()[0].html).toContain('Welcome to the MUD!<br>Enter your username:');
   });
 
   it('shows god levels above the normal cap without a confusing max-level suffix', () => {
@@ -274,7 +283,7 @@ describe('TerminalComponent', () => {
       characterClass: 'mage',
     });
 
-    expect(component.levelLabel()).toBe('Level 100');
+    expect(component.view.levelLabel()).toBe('Level 100');
   });
 
   it('hides total xp in the header for god accounts', () => {
@@ -317,13 +326,13 @@ describe('TerminalComponent', () => {
       players: [],
     };
 
-    socket.messages$.next({ type: 'ROOM_UPDATE', message: 'A dog barks.', room });
-    socket.messages$.next({ type: 'ROOM_UPDATE', message: 'A bard sings.', room });
+    socket.messages$.next({ type: GAME_MESSAGE_TYPES.ROOM_UPDATE, message: 'A dog barks.', room });
+    socket.messages$.next({ type: GAME_MESSAGE_TYPES.ROOM_UPDATE, message: 'A bard sings.', room });
 
-    expect(component.messages().length).toBe(1);
-    expect(component.messages()[0].cssClass).toBe('ROOM_UPDATE');
-    expect(component.messages()[0].html).toContain('A dog barks.');
-    expect(component.messages()[0].html).toContain('A bard sings.');
+    expect(component.view.messages().length).toBe(1);
+    expect(component.view.messages()[0].cssClass).toBe(TERMINAL_MESSAGE_CLASSES.ROOM_UPDATE);
+    expect(component.view.messages()[0].html).toContain('A dog barks.');
+    expect(component.view.messages()[0].html).toContain('A bard sings.');
   });
 
   it('creates a new room card when the player enters a different room', () => {
@@ -349,12 +358,12 @@ describe('TerminalComponent', () => {
       players: [],
     };
 
-    socket.messages$.next({ type: 'ROOM_UPDATE', message: 'You arrive.', room: townSquare });
-    socket.messages$.next({ type: 'ROOM_UPDATE', message: 'A raven watches.', room: forestEdge });
+    socket.messages$.next({ type: GAME_MESSAGE_TYPES.ROOM_UPDATE, message: 'You arrive.', room: townSquare });
+    socket.messages$.next({ type: GAME_MESSAGE_TYPES.ROOM_UPDATE, message: 'A raven watches.', room: forestEdge });
 
-    expect(component.messages().length).toBe(2);
-    expect(component.messages()[0].html).toContain('Town Square');
-    expect(component.messages()[1].html).toContain('Forest Edge');
+    expect(component.view.messages().length).toBe(2);
+    expect(component.view.messages()[0].html).toContain('Town Square');
+    expect(component.view.messages()[1].html).toContain('Forest Edge');
   });
 
   it('does not show a redundant room badge when no other players are present', () => {
@@ -371,10 +380,10 @@ describe('TerminalComponent', () => {
       players: [],
     };
 
-    socket.messages$.next({ type: 'ROOM_UPDATE', message: 'You arrive.', room });
+    socket.messages$.next({ type: GAME_MESSAGE_TYPES.ROOM_UPDATE, message: 'You arrive.', room });
 
-    expect(component.messages()).toHaveLength(1);
-    expect(component.messages()[0].html).not.toContain('term-badge');
+    expect(component.view.messages()).toHaveLength(1);
+    expect(component.view.messages()[0].html).not.toContain('term-badge');
   });
 
   it('does not show a redundant room badge when other players are present', () => {
@@ -391,13 +400,13 @@ describe('TerminalComponent', () => {
       players: ['Quentor', 'Mira'],
     };
 
-    socket.messages$.next({ type: 'ROOM_UPDATE', message: 'You arrive.', room });
+    socket.messages$.next({ type: GAME_MESSAGE_TYPES.ROOM_UPDATE, message: 'You arrive.', room });
 
-    expect(component.messages()).toHaveLength(1);
-    expect(component.messages()[0].html).not.toContain('term-badge');
-    expect(component.messages()[0].html).toContain('Travelers');
-    expect(component.messages()[0].html).toContain('Quentor');
-    expect(component.messages()[0].html).toContain('Mira');
+    expect(component.view.messages()).toHaveLength(1);
+    expect(component.view.messages()[0].html).not.toContain('term-badge');
+    expect(component.view.messages()[0].html).toContain('Travelers');
+    expect(component.view.messages()[0].html).toContain('Quentor');
+    expect(component.view.messages()[0].html).toContain('Mira');
   });
 
   it('creates a fresh room card when look refreshes the current room', () => {
@@ -414,16 +423,16 @@ describe('TerminalComponent', () => {
       players: [],
     };
 
-    socket.messages$.next({ type: 'ROOM_UPDATE', message: 'You arrive.', room });
-    socket.messages$.next({ type: 'ROOM_ACTION', message: 'Quentor arrives from the east.' });
-    socket.messages$.next({ type: 'ROOM_REFRESH', message: 'You take a slower look around.', room });
+    socket.messages$.next({ type: GAME_MESSAGE_TYPES.ROOM_UPDATE, message: 'You arrive.', room });
+    socket.messages$.next({ type: GAME_MESSAGE_TYPES.ROOM_ACTION, message: 'Quentor arrives from the east.' });
+    socket.messages$.next({ type: GAME_MESSAGE_TYPES.ROOM_REFRESH, message: 'You take a slower look around.', room });
 
-    expect(component.messages().length).toBe(2);
-    expect(component.messages()[0].html).toContain('Quentor arrives from the east.');
-    expect(component.messages()[1].cssClass).toBe('ROOM_REFRESH');
-    expect(component.messages()[1].html).toContain('You look around');
-    expect(component.messages()[1].html).toContain('You take a slower look around.');
-    expect(component.messages()[1].html).not.toContain('Quentor arrives from the east.');
+    expect(component.view.messages().length).toBe(2);
+    expect(component.view.messages()[0].html).toContain('Quentor arrives from the east.');
+    expect(component.view.messages()[1].cssClass).toBe(TERMINAL_MESSAGE_CLASSES.ROOM_REFRESH);
+    expect(component.view.messages()[1].html).toContain('You look around');
+    expect(component.view.messages()[1].html).toContain('You take a slower look around.');
+    expect(component.view.messages()[1].html).not.toContain('Quentor arrives from the east.');
   });
 
   it('folds room-scoped narrative messages into the active room card', () => {
@@ -440,13 +449,13 @@ describe('TerminalComponent', () => {
       players: [],
     };
 
-    socket.messages$.next({ type: 'ROOM_UPDATE', message: 'You arrive.', room });
-    socket.messages$.next({ type: 'NARRATIVE', message: 'Quentor arrives from the east.' });
+    socket.messages$.next({ type: GAME_MESSAGE_TYPES.ROOM_UPDATE, message: 'You arrive.', room });
+    socket.messages$.next({ type: GAME_MESSAGE_TYPES.NARRATIVE, message: 'Quentor arrives from the east.' });
 
-    expect(component.messages().length).toBe(1);
-    expect(component.messages()[0].cssClass).toBe('ROOM_UPDATE');
-    expect(component.messages()[0].html).toContain('You arrive.');
-    expect(component.messages()[0].html).toContain('Quentor arrives from the east.');
+    expect(component.view.messages().length).toBe(1);
+    expect(component.view.messages()[0].cssClass).toBe(TERMINAL_MESSAGE_CLASSES.ROOM_UPDATE);
+    expect(component.view.messages()[0].html).toContain('You arrive.');
+    expect(component.view.messages()[0].html).toContain('Quentor arrives from the east.');
   });
 
   it('folds room action messages into the active room card with distinct styling', () => {
@@ -463,14 +472,14 @@ describe('TerminalComponent', () => {
       players: [],
     };
 
-    socket.messages$.next({ type: 'ROOM_UPDATE', message: 'You arrive.', room });
-    socket.messages$.next({ type: 'ROOM_ACTION', message: 'Quentor arrives from the east.' });
+    socket.messages$.next({ type: GAME_MESSAGE_TYPES.ROOM_UPDATE, message: 'You arrive.', room });
+    socket.messages$.next({ type: GAME_MESSAGE_TYPES.ROOM_ACTION, message: 'Quentor arrives from the east.' });
 
-    expect(component.messages().length).toBe(1);
-    expect(component.messages()[0].cssClass).toBe('ROOM_UPDATE');
-    expect(component.messages()[0].html).toContain('term-inline-event--player-action');
-    expect(component.messages()[0].html).toContain('Traveler');
-    expect(component.messages()[0].html).toContain('Quentor arrives from the east.');
+    expect(component.view.messages().length).toBe(1);
+    expect(component.view.messages()[0].cssClass).toBe(TERMINAL_MESSAGE_CLASSES.ROOM_UPDATE);
+    expect(component.view.messages()[0].html).toContain('term-inline-event--player-action');
+    expect(component.view.messages()[0].html).toContain('Traveler');
+    expect(component.view.messages()[0].html).toContain('Quentor arrives from the east.');
   });
 
   it('moves the active room card back to the bottom when it receives updates after inventory', () => {
@@ -487,9 +496,9 @@ describe('TerminalComponent', () => {
       players: [],
     };
 
-    socket.messages$.next({ type: 'ROOM_UPDATE', message: 'You arrive.', room });
+    socket.messages$.next({ type: GAME_MESSAGE_TYPES.ROOM_UPDATE, message: 'You arrive.', room });
     socket.messages$.next({
-      type: 'INVENTORY_UPDATE',
+      type: GAME_MESSAGE_TYPES.INVENTORY_UPDATE,
       inventory: [
         {
           id: 'item_lantern',
@@ -500,27 +509,27 @@ describe('TerminalComponent', () => {
         },
       ],
     });
-    socket.messages$.next({ type: 'ROOM_ACTION', message: 'Quentor arrives from the east.' });
+    socket.messages$.next({ type: GAME_MESSAGE_TYPES.ROOM_ACTION, message: 'Quentor arrives from the east.' });
 
-    expect(component.messages().length).toBe(2);
-    expect(component.messages()[0].cssClass).toBe('INVENTORY_UPDATE');
-    expect(component.messages()[1].cssClass).toBe('ROOM_UPDATE');
-    expect(component.messages()[1].html).toContain('You arrive.');
-    expect(component.messages()[1].html).toContain('Quentor arrives from the east.');
+    expect(component.view.messages().length).toBe(2);
+    expect(component.view.messages()[0].cssClass).toBe(TERMINAL_MESSAGE_CLASSES.INVENTORY_UPDATE);
+    expect(component.view.messages()[1].cssClass).toBe(TERMINAL_MESSAGE_CLASSES.ROOM_UPDATE);
+    expect(component.view.messages()[1].html).toContain('You arrive.');
+    expect(component.view.messages()[1].html).toContain('Quentor arrives from the east.');
   });
 
   it('renders help from the command catalog instead of hardcoded frontend lists', () => {
     const fixture = TestBed.createComponent(TerminalComponent);
     const component = fixture.componentInstance;
 
-    socket.messages$.next({ type: 'HELP', message: '' });
+    socket.messages$.next({ type: GAME_MESSAGE_TYPES.HELP, message: '' });
 
-    expect(component.messages()).toHaveLength(1);
-    expect(component.messages()[0].cssClass).toBe('HELP');
-    expect(component.messages()[0].html).toContain("Traveler's handbook");
-    expect(component.messages()[0].html).toContain('Exploration');
-    expect(component.messages()[0].html).toContain('look [target]');
-    expect(component.messages()[0].html).toContain('Describe surroundings or examine something');
-    expect(component.messages()[0].html).not.toContain('spawn &lt;item&gt; [inv]');
+    expect(component.view.messages()).toHaveLength(1);
+    expect(component.view.messages()[0].cssClass).toBe(TERMINAL_MESSAGE_CLASSES.HELP);
+    expect(component.view.messages()[0].html).toContain("Traveler's handbook");
+    expect(component.view.messages()[0].html).toContain('Exploration');
+    expect(component.view.messages()[0].html).toContain('look [target]');
+    expect(component.view.messages()[0].html).toContain('Describe surroundings or examine something');
+    expect(component.view.messages()[0].html).not.toContain('spawn &lt;item&gt; [inv]');
   });
 });
