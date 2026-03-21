@@ -16,9 +16,14 @@ const DIRECT_COMMANDS = new Set([
   'summon', 'call',
   'kick', 'remove', 'boot',
   'setlevel', 'setlvl', 'level',
+  'resetquest', 'resetq', 'questreset',
   'help', '?',
   'logout', 'logoff', 'quit', 'exit',
   'who',
+  // Quest commands
+  'give', 'hand', 'offer', 'present',
+  'accept',
+  'quest', 'quests',
   // Social action emotes
   'wave', 'smile', 'nod', 'bow', 'wink', 'hug', 'laugh', 'cheer', 'dance', 'applaud', 'salute',
   // Custom emote

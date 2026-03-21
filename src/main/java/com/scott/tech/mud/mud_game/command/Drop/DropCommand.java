@@ -7,11 +7,13 @@ import com.scott.tech.mud.mud_game.command.room.RoomAction;
 import com.scott.tech.mud.mud_game.config.Messages;
 import com.scott.tech.mud.mud_game.dto.GameResponse;
 import com.scott.tech.mud.mud_game.model.Item;
+import com.scott.tech.mud.mud_game.model.Room;
 import com.scott.tech.mud.mud_game.session.GameSession;
-
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * Drops an item from the player's inventory into their current room.
@@ -62,11 +64,24 @@ public class DropCommand implements GameCommand {
                 .map(i -> GameResponse.ItemView.from(i, equippedWeaponId))
                 .toList();
 
+        // Build inventory item IDs to exclude from room view
+        Set<String> inventoryItemIds = session.getPlayer().getInventory().stream()
+                .map(Item::getId)
+                .collect(Collectors.toSet());
+
+        Room room = session.getCurrentRoom();
         String playerName = session.getPlayer().getName();
+        GameResponse response = GameResponse.roomUpdate(
+                room,
+                Messages.fmt("command.drop.success", "item", item.getName()),
+                List.of(),
+                session.getDiscoveredHiddenExits(room.getId()),
+                inventoryItemIds
+        ).withInventory(views);
+
         return CommandResult.withAction(
                 RoomAction.inCurrentRoom(Messages.fmt("action.drop", "player", playerName, "item", item.getName())),
-                GameResponse.message(Messages.fmt("command.drop.success", "item", item.getName()))
-                        .withInventory(views)
+                response
         );
     }
 

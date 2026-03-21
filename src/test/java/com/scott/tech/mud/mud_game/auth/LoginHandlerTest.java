@@ -14,6 +14,7 @@ import com.scott.tech.mud.mud_game.persistence.service.DiscoveredExitService;
 import com.scott.tech.mud.mud_game.persistence.service.InventoryService;
 import com.scott.tech.mud.mud_game.persistence.service.PlayerProfileService;
 import com.scott.tech.mud.mud_game.config.ExperienceTableService;
+import com.scott.tech.mud.mud_game.quest.QuestService;
 import com.scott.tech.mud.mud_game.session.DisconnectGracePeriodService;
 import com.scott.tech.mud.mud_game.session.GameSession;
 import com.scott.tech.mud.mud_game.session.GameSessionManager;
@@ -50,6 +51,7 @@ class LoginHandlerTest {
     private PlayerStateCache stateCache;
     private DisconnectGracePeriodService disconnectGracePeriod;
     private ExperienceTableService xpTables;
+    private QuestService questService;
     private LoginHandler loginHandler;
     private WorldService worldService;
     private Room startRoom;
@@ -68,6 +70,7 @@ class LoginHandlerTest {
         stateCache = mock(PlayerStateCache.class);
         disconnectGracePeriod = mock(DisconnectGracePeriodService.class);
         xpTables = mock(ExperienceTableService.class);
+        questService = mock(QuestService.class);
         worldService = mock(WorldService.class);
         when(inventoryService.loadInventory(anyString(), any())).thenReturn(List.of());
         when(discoveredExitService.loadExits(anyString())).thenReturn(Map.of());
@@ -84,7 +87,7 @@ class LoginHandlerTest {
         loginHandler = new LoginHandler(
                 accountStore, sessionManager, worldBroadcaster, reconnectTokenStore, playerProfileService,
                 inventoryService, discoveredExitService, classStatsRegistry, xpTables, stateCache,
-                disconnectGracePeriod);
+                disconnectGracePeriod, questService);
     }
 
     @Test
@@ -158,7 +161,7 @@ class LoginHandlerTest {
 
         verify(worldBroadcaster).broadcastToRoom(
                 eq("tavern"),
-                argThat(r -> r.type() == GameResponse.Type.MESSAGE && r.message().contains("Alice")),
+                argThat(r -> r.type() == GameResponse.Type.ROOM_ACTION && r.message().contains("Alice")),
                 eq("s1"));
     }
 
@@ -283,7 +286,10 @@ class LoginHandlerTest {
                 List.of("iron_sword"),
                 "iron_sword",
                 "town_square",
-                java.time.Instant.now()
+                java.time.Instant.now(),
+                List.of(),
+                List.of(),
+                List.of()
         ));
         when(worldService.getItemById("iron_sword")).thenReturn(sword);
         when(sessionManager.getSessionsInRoom("tavern")).thenReturn(List.of(session));

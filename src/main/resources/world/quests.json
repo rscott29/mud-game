@@ -1,0 +1,403 @@
+[
+    {
+        "id": "quest_loyalty",
+        "name": "The Path of Loyalty",
+        "description": "A lost traveler cries for help in the Deep Forest. Wolves have caught their scent. Will you stay and protect them, or leave them to their fate?",
+        "giver": "npc_lost_traveler",
+        "startDialogue": [
+            "The traveler's eyes widen with terror as howls echo through the trees.",
+            "\"They've found me again! Please — I can't outrun them! Will you help me?\"",
+            "<br><em>Two wolves emerge from the shadows, fangs bared...</em>"
+        ],
+        "prerequisites": {
+            "minLevel": 1,
+            "completedQuests": [],
+            "requiredItems": []
+        },
+        "objectives": [
+            {
+                "id": "obj_defend_traveler",
+                "type": "DEFEND",
+                "description": "Protect the Lost Traveler from wolves",
+                "target": "npc_lost_traveler",
+                "spawnNpcs": [
+                    "npc_forest_wolf",
+                    "npc_forest_wolf"
+                ],
+                "defeatCount": 2,
+                "failOnTargetDeath": false
+            }
+        ],
+        "rewards": {
+            "items": [
+                "item_tag_shard_paw"
+            ],
+            "xp": 50
+        },
+        "completionDialogue": [
+            "The traveler sinks to their knees, trembling but alive.",
+            "\"You... you stayed. You could have run, but you stayed.\"",
+            "They press something small and brass into your hand.",
+            "\"My grandmother gave me this. Said it was part of something greater. I think... I think it was meant for someone like you.\"",
+            "<br><em>You receive the <strong>Paw Shard</strong> — the mark of true loyalty.</em>"
+        ],
+        "completionEffects": {
+            "updateNpcDescriptions": [
+                {
+                    "npcId": "npc_lost_traveler",
+                    "newDescription": "The traveler stands a little taller now, no longer lost. Their eyes are calm and full of quiet gratitude. <br><br><em>\"You came when no one else would. I won't forget that.\"</em>",
+                    "originalDescription": "A weary figure huddles against a tree, their traveling cloak torn and muddy. They look utterly exhausted, eyes darting nervously at every forest sound. When they notice you, relief floods their face. <br><br><em>\"Please — I've been lost for days. I can't find my way back to town.\"</em>"
+                }
+            ]
+        }
+    },
+  {
+  "id": "quest_courage",
+  "name": "The Heart's Courage",
+  "description": "At the forest's edge, a wounded pilgrim lies bleeding beneath the trees. Most would pass them by. Few would choose to help.",
+  "giver": "npc_wounded_pilgrim",
+  "startDialogue": [
+    "The pilgrim lies slumped against the roots of an old tree, one hand pressed to the blood soaking through their robes.",
+    "They look up as you approach, their face pale but their eyes strangely steady.",
+    "\"Most travelers step over the wounded,\" they murmur. \"It is easier that way.\"",
+    "Their gaze lingers on you for a moment.",
+    "\"I ask nothing of strangers. But if you carry a healing potion... I would not refuse your kindness.\"",
+    "\"If you choose to walk on, I will not curse you. Many already have.\"",
+    "<br><em>The pilgrim lowers their eyes, calm in a way that feels almost unsettling.</em>"
+  ],
+  "prerequisites": {
+    "minLevel": 1,
+    "completedQuests": [],
+    "requiredItems": []
+  },
+  "objectives": [
+    {
+      "id": "obj_deliver_potion",
+      "type": "DELIVER_ITEM",
+      "description": "Give a Health Potion to the Wounded Pilgrim",
+      "target": "npc_wounded_pilgrim",
+      "itemId": "item_health_potion",
+      "consumeItem": true,
+      "onComplete": {
+        "startFollowing": "npc_wounded_pilgrim",
+        "dialogue": [
+          "The pilgrim drinks deeply. Color returns to their cheeks, though their expression remains distant, as if listening to something beyond the trees.",
+          "They rise slowly to their feet, steadier now.",
+          "\"You did not walk past,\" they say softly. \"That is rarer than you know.\"",
+          "For the first time, they glance south, toward a curtain of tangled vines stirring in a wind you cannot feel.",
+          "\"There is a cave beyond the forest edge — an old sacred place I was journeying to before I was struck down.\"",
+          "\"Walk with me through the darkness within. At its heart, I can offer you something precious.\"",
+          "The pilgrim pauses, then adds in a quieter voice:",
+          "\"If the cave permits it.\"",
+          "<br><em>The pilgrim begins to follow you. Find the hidden cave entrance to the <strong>south</strong>.</em>"
+        ]
+      }
+    },
+    {
+      "id": "obj_enter_cave",
+      "type": "VISIT",
+      "description": "Find the hidden cave entrance south of the forest edge",
+      "target": "cave_entrance",
+      "onComplete": {
+        "dialogue": [
+          "The vines part with a dry whisper, revealing a black opening in the earth.",
+          "The cave mouth yawns wide, breathing cold air that smells of damp stone and something far older.",
+          "The pilgrim stops beside you, their face unreadable in the gloom.",
+          "\"This place remembers those who walk its paths.\"",
+          "Their eyes drift into the darkness ahead.",
+          "\"Five passages lie between here and the heart of the cave. Choose carefully.\"",
+          "\"The cave was built to test those who enter. Not all who choose a path are allowed to leave.\"",
+          "They rest a hand against the stone wall.",
+          "\"One more warning... this place drains the spirit. Your wounds will not mend naturally while within.\"",
+          "\"But ancient pilgrims left mercy behind them. Look for glowing moss upon the walls — it still carries a little life.\"",
+          "Their voice lowers to almost a whisper.",
+          "\"Choose poorly, and the cave will remember.\"",
+          "<br><em>Proceed <strong>south</strong> into the darkness. Choose your directions carefully.</em>"
+        ]
+      }
+    },
+    {
+      "id": "obj_reach_heart",
+      "type": "VISIT",
+      "description": "Navigate the dark passages to reach the Heart of the Cave",
+      "target": "cave_heart",
+      "onComplete": {
+        "stopFollowing": "npc_wounded_pilgrim",
+        "addItems": [
+          "item_tag_shard_heart"
+        ],
+        "dialogue": [
+          "The tunnel opens suddenly into a vast chamber lined with crystal and pale stone.",
+          "Light spills down from a crack high above, scattering into a hundred shifting colors across the walls.",
+          "The silence here is absolute — deep enough to feel unnatural.",
+          "At the center of the chamber stands a small altar worn smooth by time.",
+          "The pilgrim walks to it slowly and kneels, bowing their head.",
+          "For a long moment, they say nothing.",
+          "Then they rise and turn to face you, the strange light catching in their eyes.",
+          "\"This cave was never meant to test strength,\" they say.",
+          "\"Many warriors have entered these tunnels. Most never pass the first trial.\"",
+          "They look back toward the darkness behind you.",
+          "\"The cave watches who you choose to be before you even step inside.\"",
+          "Reaching to the altar, the pilgrim lifts a crystal shard glowing like a warm ember beneath the rainbow light.",
+          "They place it carefully in your hand.",
+          "\"The Heart Shard.\"",
+          "\"A gift for those who prove that courage is not the absence of fear...\"",
+          "A faint, knowing smile touches their lips.",
+          "\"...but kindness in spite of it.\"",
+          "<br><em>You receive the <strong>Heart Shard</strong> — the mark of true courage.</em>"
+        ]
+      }
+    }
+  ],
+  "rewards": {
+    "items": [],
+    "xp": 75
+  },
+  "completionDialogue": [
+    "The pilgrim studies you in silence for a moment, as though weighing something unseen.",
+    "At last, they incline their head.",
+    "\"Few pilgrims ever reach this chamber,\" they say. \"Not because the paths are hard... but because most travelers never stop to help.\"",
+    "They step back toward the altar, the crystals casting broken light across their robes.",
+    "\"Our roads part here. There is an exit above that leads once more to the forest.\"",
+    "\"Go with a braver heart than the one you carried in.\"",
+    "<br><em>Quest complete! The pilgrim remains at the Heart of the Cave, watching in silence.</em>"
+  ],
+  "completionEffects": {
+      "updateNpcDescriptions": [
+          {
+              "npcId": "npc_wounded_pilgrim",
+              "newDescription": "The pilgrim stands beside the altar, robes clean and posture steady. Their wound has healed. They watch you with calm, knowing eyes. <br><br><em>\"The cave remembers your courage, traveler. As do I.\"</em>",
+              "originalDescription": "A pilgrim in simple robes lies propped against a rock, one hand pressed against a bloody wound in their side. Their face is pale but their eyes are calm. <br><br><em>\"Fear not for me, traveler. The wound looks worse than it is. But... I could use aid, if you're willing to offer it.\"</em>"
+          }
+      ],
+      "resetDiscoveredExits": [
+          {
+              "roomId": "forest_edge",
+              "direction": "SOUTH"
+          }
+      ]
+  }
+},
+    {
+        "id": "quest_joy",
+        "name": "Simple Joys",
+        "description": "A child in the town square has lost their favorite ball somewhere in the market. Help them find it!",
+        "giver": "npc_joyful_child",
+        "startDialogue": [
+            "The child bounces on their heels, eyes bright with hope.",
+            "\"My ball! My lucky ball! I lost it somewhere in the market and now I can't find it!\"",
+            "They grab your hand. \"Will you help me look? Please please please?\"",
+            "<br><em>The child's enthusiasm is infectious.</em>"
+        ],
+        "prerequisites": {
+            "minLevel": 1,
+            "completedQuests": [],
+            "requiredItems": []
+        },
+        "objectives": [
+            {
+                "id": "obj_find_ball_1",
+                "type": "COLLECT",
+                "description": "Find the child's ball in the market",
+                "itemId": "item_childs_ball"
+            },
+            {
+                "id": "obj_return_ball_1",
+                "type": "DELIVER_ITEM",
+                "description": "Return the ball to the Joyful Child",
+                "target": "npc_joyful_child",
+                "itemId": "item_childs_ball",
+                "consumeItem": false,
+                "requiresPrevious": true,
+                "onComplete": {
+                    "relocateItem": {
+                        "itemId": "item_childs_ball",
+                        "targetRooms": [
+                            "tavern",
+                            "alchemist",
+                            "east_road",
+                            "forest_edge",
+                            "blacksmith",
+                            "training_yard"
+                        ]
+                    },
+                    "dialogue": [
+                        "The child catches the ball and squeals with delight. \"Watch me throw it! I can throw SO far!\"<br>They hurl the ball with all their might. It bounces once, twice—",
+                        "<em>A golden blur streaks past you. Obi snatches the ball mid-bounce and bolts!</em><br>\"NOOOO! The doggy took my ball!\"<br><em>You'll have to find it again...</em>"
+                    ]
+                }
+            },
+            {
+                "id": "obj_find_ball_2",
+                "type": "COLLECT",
+                "description": "Find the ball that Obi ran off with",
+                "itemId": "item_childs_ball",
+                "requiresPrevious": true
+            },
+            {
+                "id": "obj_return_ball_2",
+                "type": "DELIVER_ITEM",
+                "description": "Return the ball to the Joyful Child (again)",
+                "target": "npc_joyful_child",
+                "itemId": "item_childs_ball",
+                "consumeItem": false,
+                "requiresPrevious": true,
+                "onComplete": {
+                    "relocateItem": {
+                        "itemId": "item_childs_ball",
+                        "targetRooms": [
+                            "market",
+                            "tavern_loft",
+                            "deep_forest",
+                            "forest_fork",
+                            "training_yard"
+                        ]
+                    },
+                    "dialogue": [
+                        "\"You found it again! You're the BEST!\"<br>The child winds up for another throw. \"This time I'll throw it even HIGHER!\"<br>The ball soars into the air—",
+                        "<em>Obi appears out of nowhere, leaps impossibly high, and catches it!</em><br>\"That doggy is SO FAST!\" The child stomps their foot. \"Get it back! Please please please!\"<br><em>Obi has escaped with the ball once more...</em>"
+                    ]
+                }
+            },
+            {
+                "id": "obj_find_ball_3",
+                "type": "COLLECT",
+                "description": "Track down the ball one more time",
+                "itemId": "item_childs_ball",
+                "requiresPrevious": true
+            },
+            {
+                "id": "obj_return_ball_3",
+                "type": "DELIVER_ITEM",
+                "description": "Return the ball to the Joyful Child (surely the last time)",
+                "target": "npc_joyful_child",
+                "itemId": "item_childs_ball",
+                "consumeItem": true,
+                "requiresPrevious": true
+            }
+        ],
+        "rewards": {
+            "items": [
+                "item_tag_shard_ball"
+            ],
+            "xp": 30
+        },
+        "completionDialogue": [
+            "The child hugs the ball tight to their chest, finally keeping it close.",
+            "\"I won't throw it this time,\" they whisper. \"I promise.\"",
+            "Obi trots over and sits at the child's feet, tail wagging hopefully.",
+            "The child giggles. \"Okay, MAYBE I'll throw it for the doggy later. But not now!\"",
+            "They look up at you with shining eyes.",
+            "\"You're the best ball-finder ever. Grandma said I'd know when to give this away.\"",
+            "They press a worn brass fragment into your palm.",
+            "\"She said heroes need to remember how to play. You played with me three whole times!\"",
+            "<br><em>You receive the <strong>Ball Shard</strong> — the mark of simple joy.</em>"
+        ],
+        "completionEffects": {
+            "updateNpcDescriptions": [
+                {
+                    "npcId": "npc_joyful_child",
+                    "newDescription": "The child sits happily on the fountain's edge, hugging their ball close. Obi dozes at their feet, tail occasionally thumping the cobblestones. <br><br><em>\"Hi again! Obi and me are best friends now. He only steals the ball SOMETIMES.\"</em>",
+                    "originalDescription": "A young child sits on the fountain's edge, swinging their legs and humming a cheerful tune. A worn leather ball rests in their lap, and they keep glancing around as if looking for someone to play with. <br><br><em>\"Hey! You look fun! Wanna play catch? Please please please?\"</em>"
+                }
+            ]
+        }
+    },
+    {
+        "id": "quest_purpose",
+        "name": "The Compass Points True",
+        "description": "A blind guide at the forest fork speaks in riddles of loyalty, courage, purpose, and joy. Perhaps they can reveal the path to the hidden grove.",
+        "giver": "npc_blind_guide",
+        "startDialogue": [
+            "The guide turns toward you, milky eyes somehow seeing.",
+            "\"Seeker,\" they say. \"You have gathered the fragments, but do you understand their meaning?\"",
+            "They tap their staff against the earth.",
+            "\"Tell me — what lesson does each symbol teach? Answer truly, and the path will open.\"",
+            "<br><em>The guide awaits your response.</em>"
+        ],
+        "prerequisites": {
+            "minLevel": 1,
+            "completedQuests": [
+                "quest_loyalty",
+                "quest_courage",
+                "quest_joy"
+            ],
+            "requiredItems": [
+                "item_tag_shard_paw",
+                "item_tag_shard_heart",
+                "item_tag_shard_ball"
+            ]
+        },
+        "objectives": [
+            {
+                "id": "obj_answer_riddle",
+                "type": "DIALOGUE_CHOICE",
+                "description": "Answer the Blind Guide's question",
+                "target": "npc_blind_guide",
+                "dialogue": {
+                    "question": "What do the paw, the heart, and the ball teach us?",
+                    "choices": [
+                        {
+                            "text": "The paw teaches loyalty — to stand with those who need us.",
+                            "correct": true,
+                            "response": "\"Yes,\" the guide nods slowly. \"And the heart?\""
+                        },
+                        {
+                            "text": "They teach power and strength.",
+                            "correct": false,
+                            "response": "The guide shakes their head sadly. \"You have gathered the shards but learned nothing from them. Return when you understand.\""
+                        },
+                        {
+                            "text": "I don't know.",
+                            "correct": false,
+                            "response": "\"Then you are not yet ready.\" The guide falls silent."
+                        }
+                    ],
+                    "followUp": {
+                        "question": "And what of the heart and the ball?",
+                        "choices": [
+                            {
+                                "text": "The heart teaches courage — to help even when it costs us. The ball teaches joy — to remember what makes life worth living.",
+                                "correct": true,
+                                "response": "The guide smiles. \"Now you understand.\""
+                            },
+                            {
+                                "text": "They teach us to fight and win.",
+                                "correct": false,
+                                "response": "\"No. You mistake the symbols for trophies. They are lessons, not prizes.\""
+                            }
+                        ]
+                    }
+                }
+            }
+        ],
+        "rewards": {
+            "items": [
+                "item_tag_shard_compass"
+            ],
+            "xp": 75
+        },
+        "completionDialogue": [
+            "The guide rises slowly, staff clicking against stone.",
+            "\"You have learned what many never do. Loyalty. Courage. Joy. Purpose.\"",
+            "They gesture toward the undergrowth to the east.",
+            "\"The path to the grove is open to you now. Seek the ancient oak — and claim what was always meant to be yours.\"",
+            "From their robes, they produce the final fragment.",
+            "<br><em>You receive the <strong>Compass Shard</strong> — the mark of true purpose.</em>",
+            "<br><em>A hidden path to the <strong>east</strong> reveals itself through the brush.</em>"
+        ],
+        "completionEffects": {
+            "revealHiddenExit": {
+                "roomId": "forest_fork",
+                "direction": "EAST"
+            },
+            "updateNpcDescriptions": [
+                {
+                    "npcId": "npc_blind_guide",
+                    "newDescription": "The guide sits peacefully at the fork, their staff resting across their knees. A faint smile plays at the corners of their mouth. <br><br><em>\"The path is open, seeker. You have found your purpose.\"</em>",
+                    "originalDescription": "An elderly figure sits cross-legged at the fork in the path, a worn walking staff across their knees. Their eyes are milky and sightless, yet they turn unerringly toward you as you approach. <br><br><em>\"Lost?\"</em> they ask with a knowing smile. <em>\"Many are. The forest tests those who seek its heart. But those who follow loyalty's path always find their way.\"</em>"
+                }
+            ]
+        }
+    }
+]

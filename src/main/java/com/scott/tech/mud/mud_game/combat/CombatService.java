@@ -2,7 +2,9 @@ package com.scott.tech.mud.mud_game.combat;
 
 import com.scott.tech.mud.mud_game.model.Npc;
 import com.scott.tech.mud.mud_game.model.Player;
+import com.scott.tech.mud.mud_game.quest.QuestService;
 import com.scott.tech.mud.mud_game.session.GameSession;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
 import java.util.concurrent.ThreadLocalRandom;
@@ -21,13 +23,16 @@ public class CombatService {
     private final CombatState combatState;
     private final CombatStatsResolver statsResolver;
     private final CombatNarrator narrator;
+    private final QuestService questService;
 
     public CombatService(CombatState combatState,
                          CombatStatsResolver statsResolver,
-                         CombatNarrator narrator) {
+                         CombatNarrator narrator,
+                         @Lazy QuestService questService) {
         this.combatState = combatState;
         this.statsResolver = statsResolver;
         this.narrator = narrator;
+        this.questService = questService;
     }
 
     public record AttackResult(
@@ -77,6 +82,18 @@ public class CombatService {
                 );
                 if (xpGained > 0) {
                     message.append(narrator.xpGained(xpGained));
+                }
+
+                // Check for quest progress on defeating this NPC
+                if (questService != null) {
+                    var questResult = questService.onDefeatNpc(player, target);
+                    if (questResult.isPresent()) {
+                        var result = questResult.get();
+                        String questMessage = result.message();
+                        if (questMessage != null && !questMessage.isBlank()) {
+                            message.append("\n\n").append(questMessage);
+                        }
+                    }
                 }
 
                 combatState.endCombatForTarget(target);

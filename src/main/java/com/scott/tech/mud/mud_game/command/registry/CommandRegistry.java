@@ -12,12 +12,16 @@ import com.scott.tech.mud.mud_game.command.look.LookCommand;
 import com.scott.tech.mud.mud_game.command.logout.LogoutCommand;
 import com.scott.tech.mud.mud_game.command.move.MoveCommand;
 import com.scott.tech.mud.mud_game.command.pickup.PickupCommand;
+import com.scott.tech.mud.mud_game.command.quest.AcceptCommand;
+import com.scott.tech.mud.mud_game.command.quest.GiveCommand;
+import com.scott.tech.mud.mud_game.command.quest.QuestCommand;
 import com.scott.tech.mud.mud_game.command.skills.SkillsCommand;
 import com.scott.tech.mud.mud_game.command.talk.TalkCommand;
 import com.scott.tech.mud.mud_game.command.unknown.UnknownCommand;
 import com.scott.tech.mud.mud_game.command.who.WhoCommand;
 import com.scott.tech.mud.mud_game.command.admin.DeleteInventoryItemCommand;
 import com.scott.tech.mud.mud_game.command.admin.KickCommand;
+import com.scott.tech.mud.mud_game.command.admin.ResetQuestCommand;
 import com.scott.tech.mud.mud_game.command.admin.SetLevelCommand;
 import com.scott.tech.mud.mud_game.command.admin.SpawnCommand;
 import com.scott.tech.mud.mud_game.command.admin.SummonCommand;
@@ -58,6 +62,9 @@ public final class CommandRegistry {
     public static final String INVESTIGATE = "investigate";
     public static final String SKILLS = "skills";
     public static final String EMOTE = "emote";
+    public static final String QUEST = "quest";
+    public static final String ACCEPT = "accept";
+    public static final String GIVE = "give";
     // God commands
     public static final String SPAWN = "spawn";
     public static final String DELETE_ITEM = "deleteitem";
@@ -65,6 +72,7 @@ public final class CommandRegistry {
     public static final String SUMMON = "summon";
     public static final String KICK = "kick";
     public static final String SET_LEVEL = "setlevel";
+    public static final String RESET_QUEST = "resetquest";
 
     private static final List<CommandDefinition> ALL_DEFINITIONS = buildDefinitions();
     private static final List<CommandMetadata> ALL_COMMANDS = ALL_DEFINITIONS.stream()
@@ -229,7 +237,8 @@ public final class CommandRegistry {
                 .description("Describe surroundings or examine something")
                 .creator(ctx -> new LookCommand(
                         ctx.hasNoArgs() ? null : ctx.joinedArgs(),
-                        ctx.deps().sessionManager()
+                        ctx.deps().sessionManager(),
+                        ctx.deps().questService()
                 ))
                 .build());
 
@@ -243,7 +252,8 @@ public final class CommandRegistry {
                     if (dir == null) {
                         return new UnknownCommand("go " + ctx.firstArg());
                     }
-                    return new MoveCommand(dir, ctx.deps().taskScheduler(), ctx.deps().worldBroadcaster(), ctx.deps().sessionManager());
+                    return new MoveCommand(dir, ctx.deps().taskScheduler(), ctx.deps().worldBroadcaster(), ctx.deps().sessionManager(),
+                            ctx.deps().questService(), ctx.deps().levelingService(), ctx.deps().worldService(), ctx.deps().ambientEventService());
                 })
                 .build());
 
@@ -272,7 +282,8 @@ public final class CommandRegistry {
                 .creator(ctx -> new TalkCommand(
                         ctx.hasNoArgs() ? null : ctx.joinedArgs(),
                         ctx.deps().talkValidator(),
-                        ctx.deps().talkService()
+                        ctx.deps().talkService(),
+                        ctx.deps().questService()
                 ))
                 .build());
 
@@ -284,7 +295,8 @@ public final class CommandRegistry {
                 .creator(ctx -> new PickupCommand(
                         ctx.hasNoArgs() ? null : ctx.joinedArgs(),
                         ctx.deps().pickupValidator(),
-                        ctx.deps().pickupService()
+                        ctx.deps().pickupService(),
+                        ctx.deps().questService()
                 ))
                 .build());
 
@@ -483,6 +495,57 @@ public final class CommandRegistry {
                         ctx.deps().levelingService(),
                         ctx.deps().playerProfileService(),
                         ctx.deps().stateCache()
+                ))
+                .build());
+
+        commands.add(CommandDefinition.builder(RESET_QUEST)
+                .aliases("resetquest", "resetq", "questreset")
+                .category(GOD)
+                .usage("resetquest [player] <questId>")
+                .description("Reset a quest's completion status for testing")
+                .godOnly()
+                .creator(ctx -> new ResetQuestCommand(
+                        ctx.joinedArgs(),
+                        ctx.deps().sessionManager(),
+                        ctx.deps().questService(),
+                        ctx.deps().playerProfileService(),
+                        ctx.deps().stateCache(),
+                        ctx.deps().discoveredExitService(),
+                        ctx.deps().inventoryService(),
+                        ctx.deps().worldService()
+                ))
+                .build());
+
+        // Quest commands
+        commands.add(CommandDefinition.builder(QUEST)
+                .aliases("quest", "quests", "journal", "log", "questlog")
+                .category(INTERACTION)
+                .usage("quest")
+                .description("View your active quests")
+                .creator(ctx -> new QuestCommand(ctx.deps().questService()))
+                .build());
+
+        commands.add(CommandDefinition.builder(ACCEPT)
+                .aliases("accept", "start")
+                .category(INTERACTION)
+                .usage("accept [quest/npc]")
+                .description("Accept a quest from an NPC")
+                .creator(ctx -> new AcceptCommand(
+                        ctx.hasNoArgs() ? null : ctx.joinedArgs(),
+                        ctx.deps().questService()
+                ))
+                .build());
+
+        commands.add(CommandDefinition.builder(GIVE)
+                .aliases("give", "hand", "offer", "present")
+                .category(INTERACTION)
+                .usage("give <item> to <npc>")
+                .description("Give an item to an NPC")
+                .creator(ctx -> new GiveCommand(
+                        ctx.hasNoArgs() ? null : ctx.joinedArgs(),
+                        ctx.deps().questService(),
+                        ctx.deps().levelingService(),
+                        ctx.deps().worldService()
                 ))
                 .build());
 

@@ -5,6 +5,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.scott.tech.mud.mud_game.model.Item;
 import com.scott.tech.mud.mud_game.model.Player;
+import com.scott.tech.mud.mud_game.quest.PlayerQuestState;
+import com.scott.tech.mud.mud_game.session.GameSession;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -14,6 +16,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -49,12 +52,28 @@ public class PlayerStateCache {
     }
 
     /**
-     * Cache a player's current state. Writes to temp file immediately.
+     * Cache a player's current state including followers. Writes to temp file immediately.
      */
-    public void cache(Player player) {
+    public void cache(GameSession session) {
+        Player player = session.getPlayer();
         if (player == null || player.getName() == null) return;
         
         String key = player.getName().toLowerCase();
+        
+        // Capture following NPCs
+        List<String> followingNpcIds = new ArrayList<>(session.getFollowingNpcs());
+        
+        // Serialize quest state
+        List<CachedActiveQuest> cachedQuests = new ArrayList<>();
+        for (PlayerQuestState.ActiveQuest aq : player.getQuestState().getActiveQuests()) {
+            cachedQuests.add(new CachedActiveQuest(
+                    aq.getQuestId(),
+                    aq.getCurrentObjectiveId(),
+                    aq.getObjectiveProgress(),
+                    aq.getDialogueStage()));
+        }
+        List<String> completedQuests = new ArrayList<>(player.getQuestState().getCompletedQuests());
+        
         CachedPlayerState state = new CachedPlayerState(
                 player.getName(),
                 player.getCurrentRoomId(),
@@ -76,7 +95,10 @@ public class PlayerStateCache {
                 player.getInventory().stream().map(Item::getId).toList(),
                 player.getEquippedWeaponId(),
                 player.getRecallRoomId(),
-                Instant.now()
+                Instant.now(),
+                cachedQuests,
+                completedQuests,
+                followingNpcIds
         );
         
         cache.put(key, state);
@@ -176,6 +198,19 @@ public class PlayerStateCache {
             List<String> inventoryItemIds,
             String equippedWeaponId,
             String recallRoomId,
-            Instant cachedAt
+            Instant cachedAt,
+            List<CachedActiveQuest> activeQuests,
+            List<String> completedQuests,
+            List<String> followingNpcIds
+    ) {}
+    
+    /**
+     * Serializable active quest state.
+     */
+    public record CachedActiveQuest(
+            String questId,
+            String currentObjectiveId,
+            int objectiveProgress,
+            int dialogueStage
     ) {}
 }

@@ -59,7 +59,7 @@ public class DeleteInventoryItemCommand implements GameCommand {
                 .toList();
 
         return CommandResult.of(
-            GameResponse.message(Messages.fmt("command.deleteitem.success", "item", item.getName()))
+            GameResponse.narrative(Messages.fmt("command.deleteitem.success", "item", item.getName()))
                         .withInventory(views));
     }
 

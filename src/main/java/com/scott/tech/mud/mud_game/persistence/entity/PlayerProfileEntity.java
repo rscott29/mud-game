@@ -75,6 +75,9 @@ public class PlayerProfileEntity {
     @Column(name = "experience", nullable = false)
     private int experience = 0;
 
+    @Column(name = "completed_quests", columnDefinition = "TEXT")
+    private String completedQuests;
+
     @Column(name = "last_seen_at", nullable = false)
     private Instant lastSeenAt;
 
@@ -105,6 +108,7 @@ public class PlayerProfileEntity {
     public String  getEquippedWeaponId()  { return equippedWeaponId; }
     public String  getRecallRoomId()      { return recallRoomId; }
     public int     getExperience()        { return experience; }
+    public String  getCompletedQuests()   { return completedQuests; }
     public Instant getLastSeenAt()        { return lastSeenAt; }
 
     public void setCurrentRoomId(String currentRoomId)    { this.currentRoomId = currentRoomId; }
@@ -125,5 +129,6 @@ public class PlayerProfileEntity {
     public void setEquippedWeaponId(String equippedWeaponId) { this.equippedWeaponId = equippedWeaponId; }
     public void setRecallRoomId(String recallRoomId)     { this.recallRoomId = recallRoomId; }
     public void setExperience(int experience)            { this.experience = experience; }
+    public void setCompletedQuests(String completedQuests) { this.completedQuests = completedQuests; }
     public void setLastSeenAt(Instant lastSeenAt)         { this.lastSeenAt = lastSeenAt; }
 }

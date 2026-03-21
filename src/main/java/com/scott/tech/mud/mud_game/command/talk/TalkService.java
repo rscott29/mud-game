@@ -28,29 +28,41 @@ public class TalkService {
         this.chatClient = chatClient;
     }
 
-    public GameResponse buildResponse(GameSession session, Npc npc) {
+    /**
+     * Build dialogue text for talking to an NPC.
+     * Returns the raw dialogue string (for embedding in room updates).
+     */
+    public String buildDialogue(GameSession session, Npc npc) {
         String playerName = session.getPlayer().getName();
 
         if (!npc.isSentient()) {
-            return nonSentientResponse(npc, playerName);
+            return nonSentientDialogue(npc, playerName);
         }
 
-        return sentientResponse(npc, playerName);
+        return sentientDialogue(npc, playerName);
     }
 
-    private GameResponse nonSentientResponse(Npc npc, String playerName) {
+    /**
+     * @deprecated Use buildDialogue() instead for consistent room-based output.
+     */
+    @Deprecated
+    public GameResponse buildResponse(GameSession session, Npc npc) {
+        return GameResponse.narrative(buildDialogue(session, npc));
+    }
+
+    private String nonSentientDialogue(Npc npc, String playerName) {
         List<String> templates = npc.getTalkTemplates();
         if (templates.isEmpty()) {
-            return GameResponse.message(Messages.fmt("command.talk.npc_no_speech", "npc", npc.getName()));
+            return Messages.fmt("command.talk.npc_no_speech", "npc", npc.getName());
         }
 
         String template = templates.get(ThreadLocalRandom.current().nextInt(templates.size()));
-        return GameResponse.message(template
+        return template
                 .replace("{name}", npc.getName())
-                .replace("{player}", playerName));
+                .replace("{player}", playerName);
     }
 
-    private GameResponse sentientResponse(Npc npc, String playerName) {
+    private String sentientDialogue(Npc npc, String playerName) {
         String personalityLine = (npc.getPersonality() != null && !npc.getPersonality().isBlank())
                 ? "Personality: " + npc.getPersonality()
                 : "";
@@ -65,9 +77,9 @@ public class TalkService {
                     .user(Messages.fmt("command.talk.sentient_user_message", "player", playerName))
                     .call()
                     .content();
-            return GameResponse.message(npc.getName() + ": \"" + response.trim() + "\"");
+            return npc.getName() + ": \"" + response.trim() + "\"";
         } catch (Exception e) {
-            return GameResponse.message(Messages.fmt("command.talk.npc_speech_failed", "npc", npc.getName()));
+            return Messages.fmt("command.talk.npc_speech_failed", "npc", npc.getName());
         }
     }
 }

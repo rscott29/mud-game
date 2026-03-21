@@ -21,7 +21,10 @@ import com.scott.tech.mud.mud_game.persistence.cache.PlayerStateCache;
 import com.scott.tech.mud.mud_game.persistence.service.DiscoveredExitService;
 import com.scott.tech.mud.mud_game.persistence.service.InventoryService;
 import com.scott.tech.mud.mud_game.persistence.service.PlayerProfileService;
+import com.scott.tech.mud.mud_game.quest.QuestService;
+import com.scott.tech.mud.mud_game.service.AmbientEventService;
 import com.scott.tech.mud.mud_game.service.LevelingService;
+import com.scott.tech.mud.mud_game.world.WorldService;
 import com.scott.tech.mud.mud_game.session.GameSessionManager;
 import com.scott.tech.mud.mud_game.websocket.WorldBroadcaster;
 import org.springframework.ai.chat.client.ChatClient;
@@ -57,6 +60,9 @@ public record CommandDependencies(
         ExperienceTableService xpTables,
         LevelingService levelingService,
         PlayerProfileService playerProfileService,
-        PlayerStateCache stateCache
+        PlayerStateCache stateCache,
+        QuestService questService,
+        WorldService worldService,
+        AmbientEventService ambientEventService
 ) {
 }

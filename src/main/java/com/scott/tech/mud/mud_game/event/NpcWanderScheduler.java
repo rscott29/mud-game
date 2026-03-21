@@ -147,7 +147,7 @@ public class NpcWanderScheduler {
 
         // Broadcast departure before moving so the NPC is still in the room
         String departureMsg = formatDeparture(npc, dir);
-        if (departureMsg != null) broadcaster.broadcastToRoom(currentRoomId, GameResponse.message(departureMsg));
+        if (departureMsg != null) broadcaster.broadcastToRoom(currentRoomId, GameResponse.narrative(departureMsg));
 
         // Move
         worldService.moveNpc(npcId, currentRoomId, targetId);
@@ -157,7 +157,7 @@ public class NpcWanderScheduler {
         // Broadcast arrival after moving so a quick "look" shows the NPC in the new room
         Direction fromDir = dir != null ? dir.opposite() : null;
         String arrivalMsg = formatArrival(npc, fromDir);
-        if (arrivalMsg != null) broadcaster.broadcastToRoom(targetId, GameResponse.message(arrivalMsg));
+        if (arrivalMsg != null) broadcaster.broadcastToRoom(targetId, GameResponse.narrative(arrivalMsg));
     }
 
     /**

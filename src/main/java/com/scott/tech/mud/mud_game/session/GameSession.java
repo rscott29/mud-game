@@ -10,6 +10,7 @@ import com.scott.tech.mud.mud_game.world.WorldService;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
@@ -32,6 +33,8 @@ public class GameSession {
     private String pendingUsername;
     /** Hidden exits the player has discovered, keyed by room id. */
     private final Map<String, Set<Direction>> discoveredExits = new HashMap<>();
+    /** NPC IDs currently following this player. */
+    private final Set<String> followingNpcs = new HashSet<>();
 
     public GameSession(String sessionId, Player player, WorldService worldService) {
         this.sessionId    = sessionId;
@@ -86,6 +89,15 @@ public class GameSession {
         return discoveredExits.computeIfAbsent(roomId, k -> EnumSet.noneOf(Direction.class)).add(dir);
     }
 
+    /** Removes a previously discovered exit from memory. */
+    public boolean removeDiscoveredExit(String roomId, Direction dir) {
+        Set<Direction> set = discoveredExits.get(roomId);
+        if (set == null) {
+            return false;
+        }
+        return set.remove(dir);
+    }
+
     /** Bulk-restores persisted discovered exits at login. */
     public void restoreDiscoveredExits(java.util.Map<String, Set<Direction>> saved) {
         if (saved == null || saved.isEmpty()) {
@@ -99,5 +111,49 @@ public class GameSession {
                     .computeIfAbsent(roomId, k -> EnumSet.noneOf(Direction.class))
                     .add(dir));
         });
+    }
+
+    // ----- following NPCs -----
+
+    public Set<String> getFollowingNpcs() {
+        return Collections.unmodifiableSet(followingNpcs);
+    }
+
+    public boolean addFollower(String npcId) {
+        return followingNpcs.add(npcId);
+    }
+
+    public boolean removeFollower(String npcId) {
+        return followingNpcs.remove(npcId);
+    }
+
+    public boolean isFollowing(String npcId) {
+        return followingNpcs.contains(npcId);
+    }
+
+    public void clearFollowers() {
+        followingNpcs.clear();
+    }
+
+    /** Bulk-restores persisted followers at login, moving them to the player's room. */
+    public void restoreFollowers(java.util.Collection<String> npcIds) {
+        if (npcIds == null || npcIds.isEmpty()) {
+            return;
+        }
+        
+        Room playerRoom = getCurrentRoom();
+        String playerRoomId = player.getCurrentRoomId();
+        
+        for (String npcId : npcIds) {
+            followingNpcs.add(npcId);
+            
+            // Find the NPC's current room and move them to the player's room
+            if (playerRoom != null) {
+                String npcRoomId = worldService.getNpcRoomId(npcId);
+                if (npcRoomId != null && !npcRoomId.equals(playerRoomId)) {
+                    worldService.moveNpc(npcId, npcRoomId, playerRoomId);
+                }
+            }
+        }
     }
 }

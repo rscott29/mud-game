@@ -7,23 +7,35 @@ import com.scott.tech.mud.mud_game.config.Messages;
 import com.scott.tech.mud.mud_game.dto.GameResponse;
 import com.scott.tech.mud.mud_game.model.Item;
 import com.scott.tech.mud.mud_game.model.Room;
+import com.scott.tech.mud.mud_game.quest.QuestService;
 import com.scott.tech.mud.mud_game.session.GameSession;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 public class PickupCommand implements GameCommand {
 
     private final String target;
     private final PickupValidator pickupValidator;
     private final PickupService pickupService;
+    private final QuestService questService;
 
     public PickupCommand(String target,
                          PickupValidator pickupValidator,
                          PickupService pickupService) {
+        this(target, pickupValidator, pickupService, null);
+    }
+
+    public PickupCommand(String target,
+                         PickupValidator pickupValidator,
+                         PickupService pickupService,
+                         QuestService questService) {
         this.target = stripArticle(target);
         this.pickupValidator = pickupValidator;
         this.pickupService = pickupService;
+        this.questService = questService;
     }
 
     @Override
@@ -58,11 +70,37 @@ public class PickupCommand implements GameCommand {
                 .map(i -> GameResponse.ItemView.from(i, equippedWeaponId))
                 .toList();
 
+        // Build inventory item IDs to exclude from room view
+        Set<String> inventoryItemIds = session.getPlayer().getInventory().stream()
+                .map(Item::getId)
+                .collect(Collectors.toSet());
+
         String playerName = session.getPlayer().getName();
+        String message = Messages.fmt("command.pickup.success", "item", item.getName());
+        
+        // Check for quest progress on collecting this item
+        if (questService != null) {
+            var questResult = questService.onCollectItem(session.getPlayer(), item);
+            if (questResult.isPresent()) {
+                var result = questResult.get();
+                String questMessage = result.message();
+                if (questMessage != null && !questMessage.isBlank()) {
+                    message += "<br><br>" + questMessage;
+                }
+            }
+        }
+
+        GameResponse response = GameResponse.roomUpdate(
+                room,
+                message,
+                List.of(),
+                session.getDiscoveredHiddenExits(room.getId()),
+                inventoryItemIds
+        ).withInventory(views);
+        
         return CommandResult.withAction(
                 RoomAction.inCurrentRoom(Messages.fmt("action.pickup", "player", playerName, "item", item.getName())),
-                GameResponse.message(Messages.fmt("command.pickup.success", "item", item.getName()))
-                        .withInventory(views)
+                response
         );
     }
 

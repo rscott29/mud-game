@@ -1,32 +1,84 @@
-<div class="status-bar" [ngClass]="statusClass()">
-  ●&nbsp;{{ statusLabel() }}
-</div>
+<div class="terminal-shell">
+  <header class="terminal-header">
+    <div class="terminal-brand">
+      <span class="terminal-brand__eyebrow">Wayfarer's Log</span>
+      <span class="terminal-brand__title">Lantern Ledger</span>
+    </div>
 
-<div #logEl class="log">
-  @if (characterCreationData()) {
-    <app-character-creation
-      [data]="characterCreationData()!"
-      (selectionComplete)="onCharacterCreationComplete($event)"
-    />
-  } @else {
-    @for (msg of messages(); track msg.id) {
-      <div class="msg" [class]="msg.cssClass" [innerHTML]="msg.html | safeHtml"></div>
+    <div class="terminal-status" [ngClass]="statusClass()">
+      <span class="terminal-status__dot"></span>
+      <span>{{ statusLabel() }}</span>
+    </div>
+  </header>
+
+  <section class="terminal-hud">
+    @if (playerStats(); as stats) {
+      <div class="hud-profile">
+        <div class="hud-profile__eyebrow">{{ classLabel() || 'Adventurer' }}</div>
+        <div class="hud-profile__title">{{ levelLabel() }}</div>
+        <div class="hud-profile__meta">
+          <span>Total XP {{ stats.totalXp }}</span>
+          @if (stats.isGod) {
+            <span class="hud-chip hud-chip--god">GOD</span>
+          }
+        </div>
+      </div>
+
+      <div class="hud-metrics">
+        <span class="hud-chip hud-chip--hp">{{ hudHealth() }}</span>
+        <span class="hud-chip hud-chip--mp">{{ hudMana() }}</span>
+        <span class="hud-chip hud-chip--mv">{{ hudMovement() }}</span>
+      </div>
+
+      <div class="hud-xp">
+        <div class="hud-xp__meta">
+          <span>Progress</span>
+          <span>{{ xpLabel() }}</span>
+        </div>
+        <div class="hud-xp__bar">
+          <div class="hud-xp__fill" [style.width.%]="xpPercent()"></div>
+        </div>
+      </div>
+    } @else {
+      <div class="hud-empty">
+        Sign in to wake your traveler record, then guide the tale from this console.
+      </div>
     }
-  }
-</div>
 
-<div class="input-bar" [class.hidden]="characterCreationData() !== null">
-  <input
-    class="cmd-input"
-    [type]="inputType()"
-    [placeholder]="placeholder()"
-    [ngModel]="inputValue()"
-    (ngModelChange)="inputValue.set($event)"
-    (keydown.enter)="onEnter()"
-    autocomplete="off"
-    autocapitalize="off"
-    spellcheck="false"
-    autofocus
-  />
-  <button type="button" class="send-btn" (click)="send()">Send</button>
+    <div class="hud-zoom">
+      <button type="button" class="hud-zoom__btn" (click)="decreaseZoom()" aria-label="Decrease zoom">-</button>
+      <span class="hud-zoom__value">{{ zoomLevel() }}%</span>
+      <button type="button" class="hud-zoom__btn" (click)="increaseZoom()" aria-label="Increase zoom">+</button>
+    </div>
+  </section>
+
+  <div #logEl class="log">
+    @for (msg of messages(); track msg.id) {
+      <div class="msg" [ngClass]="msg.cssClass" [innerHTML]="msg.html | safeHtml"></div>
+    }
+
+    @if (characterCreationData()) {
+      <app-character-creation
+        [data]="characterCreationData()!"
+        (selectionComplete)="onCharacterCreationComplete($event)"
+      />
+    }
+  </div>
+
+  <div class="input-bar" [class.hidden]="characterCreationData() !== null">
+    <span class="prompt-glyph">{{ promptLabel() }}</span>
+    <input
+      class="cmd-input"
+      [type]="inputType()"
+      [placeholder]="placeholder()"
+      [ngModel]="inputValue()"
+      (ngModelChange)="inputValue.set($event)"
+      (keydown.enter)="onEnter()"
+      autocomplete="off"
+      autocapitalize="off"
+      spellcheck="false"
+      autofocus
+    />
+    <button type="button" class="send-btn" (click)="send()">Send</button>
+  </div>
 </div>

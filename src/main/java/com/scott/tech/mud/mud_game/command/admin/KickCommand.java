@@ -61,7 +61,7 @@ public class KickCommand implements GameCommand {
         // Broadcast to room that the player has been kicked (exclude the target since they're about to disconnect)
         worldBroadcaster.broadcastToRoom(
                 targetRoomId,
-                GameResponse.message(Messages.fmt("command.kick.broadcast_removal", 
+                GameResponse.roomAction(Messages.fmt("command.kick.broadcast_removal", 
                         "player", targetName, "god", godName)),
                 targetSessionId);
 
@@ -78,10 +78,10 @@ public class KickCommand implements GameCommand {
         // Now close the target's WebSocket
         worldBroadcaster.kickSession(
                 targetSessionId,
-                GameResponse.message(Messages.fmt("command.kick.player_message", "god", godName)));
+                GameResponse.narrative(Messages.fmt("command.kick.player_message", "god", godName)));
 
         return CommandResult.of(
-                GameResponse.message(Messages.fmt("command.kick.god_confirm", "player", targetName))
+                GameResponse.narrative(Messages.fmt("command.kick.god_confirm", "player", targetName))
         );
     }
 }

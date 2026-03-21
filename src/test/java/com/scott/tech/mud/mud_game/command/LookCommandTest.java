@@ -74,13 +74,13 @@ class LookCommandTest {
     @Test
     void noTarget_returnsRoomUpdate() {
         CommandResult result = new LookCommand(null, sessionManager).execute(session);
-        assertThat(singleResponse(result).type()).isEqualTo(GameResponse.Type.ROOM_UPDATE);
+        assertThat(singleResponse(result).type()).isEqualTo(GameResponse.Type.ROOM_REFRESH);
     }
 
     @Test
     void blankTarget_returnsRoomUpdate() {
         CommandResult result = new LookCommand("   ", sessionManager).execute(session);
-        assertThat(singleResponse(result).type()).isEqualTo(GameResponse.Type.ROOM_UPDATE);
+        assertThat(singleResponse(result).type()).isEqualTo(GameResponse.Type.ROOM_REFRESH);
     }
 
     // ── NPC resolution ───────────────────────────────────────────────────────
@@ -91,7 +91,7 @@ class LookCommandTest {
     void npcKeyword_resolvesToNpcDescription(String input) {
         CommandResult result = new LookCommand(input, sessionManager).execute(session);
         GameResponse response = singleResponse(result);
-        assertThat(response.type()).isEqualTo(GameResponse.Type.MESSAGE);
+        assertThat(response.type()).isEqualTo(GameResponse.Type.NARRATIVE);
         assertThat(response.message()).contains("Obi").contains("Labrador");
     }
 
@@ -103,7 +103,7 @@ class LookCommandTest {
     void itemKeyword_resolvesToItemDescription(String input) {
         CommandResult result = new LookCommand(input, sessionManager).execute(session);
         GameResponse response = singleResponse(result);
-        assertThat(response.type()).isEqualTo(GameResponse.Type.MESSAGE);
+        assertThat(response.type()).isEqualTo(GameResponse.Type.NARRATIVE);
         assertThat(response.message()).contains("Fountain").contains("burbling");
     }
 
@@ -114,7 +114,7 @@ class LookCommandTest {
     void exits_keyword_listsDirections(String input) {
         CommandResult result = new LookCommand(input, sessionManager).execute(session);
         GameResponse response = singleResponse(result);
-        assertThat(response.type()).isEqualTo(GameResponse.Type.MESSAGE);
+        assertThat(response.type()).isEqualTo(GameResponse.Type.NARRATIVE);
         assertThat(response.message()).contains("north").contains("south");
     }
 

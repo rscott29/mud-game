@@ -120,13 +120,13 @@ public class CombatLoopScheduler {
             String roomId = session.getPlayer().getCurrentRoomId();
             Npc target = encounter.getTarget();
             broadcaster.sendToSession(sessionId,
-                    GameResponse.message(result.message()).withPlayerStats(session.getPlayer(), levelingService.getXpTables()));
+                    GameResponse.narrative(result.message()).withPlayerStats(session.getPlayer(), levelingService.getXpTables()));
 
             String actionKey = result.playerDefeated()
                     ? "action.combat.npc_defeats"
                     : "action.combat.npc_attacks";
             broadcaster.broadcastToRoom(roomId,
-                    GameResponse.message(Messages.fmt(actionKey,
+                    GameResponse.narrative(Messages.fmt(actionKey,
                             "npc", target.getName(),
                             "player", session.getPlayer().getName())),
                     sessionId);
@@ -174,12 +174,12 @@ public class CombatLoopScheduler {
                 
                 // Send combat result first (with accurate XP progress)
                 broadcaster.sendToSession(sessionId,
-                        GameResponse.message(result.message()).withPlayerStats(session.getPlayer(), levelingService.getXpTables()));
+                        GameResponse.narrative(result.message()).withPlayerStats(session.getPlayer(), levelingService.getXpTables()));
                 
                 // If leveled up, send level up message and broadcast to world
                 if (xpResult.leveledUp()) {
                     broadcaster.sendToSession(sessionId,
-                            GameResponse.message(xpResult.levelUpMessage()).withPlayerStats(session.getPlayer(), levelingService.getXpTables()));
+                            GameResponse.narrative(xpResult.levelUpMessage()).withPlayerStats(session.getPlayer(), levelingService.getXpTables()));
 
                     List<String> unlockedSkills = levelingService.getNewlyUnlockedSkillNames(
                             session.getPlayer(),
@@ -188,25 +188,25 @@ public class CombatLoopScheduler {
                     );
                     for (String skillName : unlockedSkills) {
                         broadcaster.sendToSession(sessionId,
-                                GameResponse.message(Messages.fmt("skill.unlock", "skill", skillName)));
+                                GameResponse.narrative(Messages.fmt("skill.unlock", "skill", skillName)));
                     }
                     
                     // Broadcast level up to the world so they can celebrate!
                     String worldMsg = Messages.fmt("level.up.world",
                             "name", session.getPlayer().getName(),
                             "level", String.valueOf(xpResult.newLevel()));
-                    broadcaster.broadcastToAll(GameResponse.message(worldMsg));
+                    broadcaster.broadcastToAll(GameResponse.narrative(worldMsg));
                 }
             } else {
                 broadcaster.sendToSession(sessionId,
-                        GameResponse.message(result.message()).withPlayerStats(session.getPlayer(), levelingService.getXpTables()));
+                        GameResponse.narrative(result.message()).withPlayerStats(session.getPlayer(), levelingService.getXpTables()));
             }
 
             String actionMsg = result.targetDefeated()
                     ? Messages.fmt("action.combat.defeat", "player", session.getPlayer().getName(), "npc", encounter.getTarget().getName())
                     : Messages.fmt("action.combat.attack", "player", session.getPlayer().getName(), "npc", encounter.getTarget().getName());
             broadcaster.broadcastToRoom(session.getPlayer().getCurrentRoomId(),
-                    GameResponse.message(actionMsg),
+                    GameResponse.narrative(actionMsg),
                     sessionId);
 
             if (result.targetDefeated()) {

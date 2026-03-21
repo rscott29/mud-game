@@ -3,6 +3,7 @@ package com.scott.tech.mud.mud_game.combat;
 import com.scott.tech.mud.mud_game.config.SkillTableService;
 import com.scott.tech.mud.mud_game.model.Npc;
 import com.scott.tech.mud.mud_game.model.Player;
+import com.scott.tech.mud.mud_game.quest.QuestService;
 import com.scott.tech.mud.mud_game.session.GameSession;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -28,10 +29,13 @@ class CombatServiceTest {
         when(skillTableService.getPassiveBonuses(anyString(), anyInt()))
                 .thenReturn(SkillTableService.PassiveBonuses.ZERO);
 
+        QuestService questService = mock(QuestService.class);
+
         combatService = new CombatService(
                 combatState,
                 new CombatStatsResolver(skillTableService),
-                new CombatNarrator()
+                new CombatNarrator(),
+                questService
         );
     }
 

@@ -79,14 +79,14 @@ class SetLevelCommandTest {
         assertThat(god.getMovement()).isEqualTo(god.getMaxMovement());
 
         verify(worldBroadcaster).sendToSession(eq("hero-ws"), argThat(response ->
-                response.type() == GameResponse.Type.MESSAGE
+                response.type() == GameResponse.Type.NARRATIVE
                         && response.playerStats() != null
                         && response.playerStats().level() == 5
                         && response.message() != null
                         && response.message().contains("LEVEL UP!")
         ));
         verify(worldBroadcaster).broadcastToAll(argThat(response ->
-                response.type() == GameResponse.Type.MESSAGE
+                response.type() == GameResponse.Type.NARRATIVE
                         && response.message() != null
                         && response.message().contains("Level 5")
         ));

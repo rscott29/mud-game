@@ -61,12 +61,12 @@ class SummonCommandTest {
         // Verify broadcasts: "summoned away" to old room, "appears" to new room
         verify(broadcaster).broadcastToRoom(
             org.mockito.ArgumentMatchers.eq("distant_room"),
-            org.mockito.ArgumentMatchers.any(GameResponse.class),
+            org.mockito.ArgumentMatchers.argThat(response -> response.type() == GameResponse.Type.ROOM_ACTION),
             org.mockito.ArgumentMatchers.eq("target-ws"));
 
         verify(broadcaster).broadcastToRoom(
             org.mockito.ArgumentMatchers.eq("god_room"),
-            org.mockito.ArgumentMatchers.any(GameResponse.class),
+            org.mockito.ArgumentMatchers.argThat(response -> response.type() == GameResponse.Type.ROOM_ACTION),
             org.mockito.ArgumentMatchers.eq("admin-ws"));
     }
 

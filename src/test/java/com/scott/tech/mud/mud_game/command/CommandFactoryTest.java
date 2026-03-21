@@ -40,7 +40,10 @@ import com.scott.tech.mud.mud_game.persistence.service.PlayerProfileService;
 import com.scott.tech.mud.mud_game.service.LevelingService;
 import com.scott.tech.mud.mud_game.session.GameSession;
 import com.scott.tech.mud.mud_game.session.GameSessionManager;
+import com.scott.tech.mud.mud_game.quest.QuestService;
+import com.scott.tech.mud.mud_game.service.AmbientEventService;
 import com.scott.tech.mud.mud_game.websocket.WorldBroadcaster;
+import com.scott.tech.mud.mud_game.world.WorldService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.ai.chat.client.ChatClient;
@@ -81,6 +84,9 @@ class CommandFactoryTest {
     private LevelingService levelingService;
     private PlayerProfileService playerProfileService;
     private PlayerStateCache stateCache;
+    private QuestService questService;
+    private WorldService worldService;
+    private AmbientEventService ambientEventService;
     private CommandFactory factory;
 
     @BeforeEach
@@ -111,6 +117,9 @@ class CommandFactoryTest {
         levelingService = mock(LevelingService.class);
         playerProfileService = mock(PlayerProfileService.class);
         stateCache = mock(PlayerStateCache.class);
+        questService = mock(QuestService.class);
+        worldService = mock(WorldService.class);
+        ambientEventService = mock(AmbientEventService.class);
 
         ChatClient chatClient = mock(ChatClient.class);
         when(chatClientBuilder.build()).thenReturn(chatClient);
@@ -120,7 +129,8 @@ class CommandFactoryTest {
                 equipValidator, equipService,
                 attackValidator, combatService, combatState, combatLoopScheduler,
                 talkValidator, talkService, socialValidator, socialService,
-                accountStore, reconnectTokenStore, xpTables, levelingService, playerProfileService, stateCache);
+                accountStore, reconnectTokenStore, xpTables, levelingService, playerProfileService, stateCache,
+                questService, worldService, ambientEventService);
     }
 
     @Test

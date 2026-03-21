@@ -39,4 +39,10 @@ public class DiscoveredExitService {
         }
         return result;
     }
+
+    /** Removes a previously discovered exit from persistence. */
+    public void removeExit(String username, String roomId, Direction direction) {
+        DiscoveredExitEntity.Key key = new DiscoveredExitEntity.Key(username.toLowerCase(), roomId, direction);
+        repository.deleteById(key);
+    }
 }

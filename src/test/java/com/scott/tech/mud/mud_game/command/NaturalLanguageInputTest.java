@@ -17,6 +17,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.ValueSource;
+import org.junit.jupiter.api.Test;
 
 import java.util.EnumMap;
 import java.util.List;
@@ -108,7 +109,7 @@ class NaturalLanguageInputTest {
             Arguments.of("at Obi",      "Obi"),
             Arguments.of("the Dog",     "Obi"),
             // AI produces multi-token args that CommandFactory joined
-            Arguments.of("at the Dog",  "Obi")
+            Arguments.of("at the Dog",  "Obi")  
         );
     }
 
@@ -117,7 +118,7 @@ class NaturalLanguageInputTest {
     void look_npcInputVariants_allResolve(String joinedArgs, String expectedNpcName) {
         CommandResult result = new LookCommand(joinedArgs, sessionManager).execute(session);
         GameResponse response = singleResponse(result);
-        assertThat(response.type()).isEqualTo(GameResponse.Type.MESSAGE);
+        assertThat(response.type()).isEqualTo(GameResponse.Type.NARRATIVE);
         assertThat(response.message()).contains(expectedNpcName);
     }
 
@@ -146,8 +147,15 @@ class NaturalLanguageInputTest {
     void look_itemInputVariants_allResolve(String joinedArgs, String expectedItemName) {
         CommandResult result = new LookCommand(joinedArgs, sessionManager).execute(session);
         GameResponse response = singleResponse(result);
-        assertThat(response.type()).isEqualTo(GameResponse.Type.MESSAGE);
+        assertThat(response.type()).isEqualTo(GameResponse.Type.NARRATIVE);
         assertThat(response.message()).contains(expectedItemName);
+    }
+
+    @Test
+    void look_withoutTarget_refreshesCurrentRoomSnapshot() {
+        CommandResult result = new LookCommand("", sessionManager).execute(session);
+        GameResponse response = singleResponse(result);
+        assertThat(response.type()).isEqualTo(GameResponse.Type.ROOM_REFRESH);
     }
 
     // ── TalkCommand: NPC targets the AI might produce ─────────────────────────
@@ -166,7 +174,7 @@ class NaturalLanguageInputTest {
         // ChatClient is never called for non-sentient Obi, pass null safely
         CommandResult result = new TalkCommand(joinedArgs, null).execute(session);
         GameResponse response = singleResponse(result);
-        assertThat(response.type()).isEqualTo(GameResponse.Type.MESSAGE);
+        assertThat(response.type()).isEqualTo(GameResponse.Type.ROOM_UPDATE);
         // Template is "Obi wags at {player}." — confirms correct NPC was found
         assertThat(response.message()).contains("Obi");
     }

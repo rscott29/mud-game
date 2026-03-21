@@ -27,7 +27,7 @@ public class SocialService {
 
         return CommandResult.withAction(
                 RoomAction.inCurrentRoom(roomMsg),
-                GameResponse.message(selfMsg)
+                GameResponse.narrative(selfMsg)
         );
     }
 
@@ -37,7 +37,7 @@ public class SocialService {
 
         return CommandResult.withAction(
                 RoomAction.inCurrentRoom(roomMsg),
-                GameResponse.message(selfMsg)
+                GameResponse.narrative(selfMsg)
         );
     }
 
@@ -49,7 +49,7 @@ public class SocialService {
 
         return CommandResult.withAction(
                 RoomAction.withTarget(roomMsg, targetSession.getSessionId(), targetMsg),
-                GameResponse.message(selfMsg)
+                GameResponse.narrative(selfMsg)
         );
     }
 }

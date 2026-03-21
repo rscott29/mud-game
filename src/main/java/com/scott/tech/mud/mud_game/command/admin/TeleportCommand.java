@@ -61,19 +61,19 @@ public class TeleportCommand implements GameCommand {
         if (movedRooms) {
             worldBroadcaster.broadcastToRoom(
                     fromRoomId,
-                    GameResponse.message(Messages.fmt("command.teleport.broadcast_vanish", "player", playerName)),
+                    GameResponse.roomAction(Messages.fmt("command.teleport.broadcast_vanish", "player", playerName)),
                     wsSessionId);
 
             session.getPlayer().setCurrentRoomId(destination.getId());
 
             worldBroadcaster.broadcastToRoom(
                     destination.getId(),
-                    GameResponse.message(Messages.fmt("command.teleport.broadcast_appear", "player", playerName)),
+                    GameResponse.roomAction(Messages.fmt("command.teleport.broadcast_appear", "player", playerName)),
                     wsSessionId);
             } else if (target.kind == TargetKind.PLAYER) {
                 worldBroadcaster.broadcastToRoom(
                     destination.getId(),
-                    GameResponse.message(Messages.fmt("command.teleport.broadcast_blink", "player", playerName, "target", target.displayName)),
+                    GameResponse.roomAction(Messages.fmt("command.teleport.broadcast_blink", "player", playerName, "target", target.displayName)),
                     wsSessionId);
         }
 

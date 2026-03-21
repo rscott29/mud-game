@@ -121,7 +121,7 @@ public class SetLevelCommand implements GameCommand {
             String levelUpBroadcast = Messages.fmt(worldMessageKey,
                     "name", targetName,
                     "level", String.valueOf(newLevel));
-            worldBroadcaster.broadcastToAll(GameResponse.message(levelUpBroadcast));
+            worldBroadcaster.broadcastToAll(GameResponse.narrative(levelUpBroadcast));
         }
 
         // Notify the god who executed the command
@@ -135,12 +135,12 @@ public class SetLevelCommand implements GameCommand {
             String targetMessage = Messages.fmt("command.setlevel.target_notify",
                     "level", String.valueOf(newLevel));
             worldBroadcaster.sendToSession(targetSession.getSessionId(),
-                    GameResponse.message(targetMessage));
+                    GameResponse.narrative(targetMessage));
         }
 
         if (levelUpMessage.isPresent()) {
             worldBroadcaster.sendToSession(targetSession.getSessionId(),
-                    GameResponse.message(levelUpMessage.get()).withPlayerStats(targetPlayer, xpTables));
+                    GameResponse.narrative(levelUpMessage.get()).withPlayerStats(targetPlayer, xpTables));
         } else {
             worldBroadcaster.sendToSession(targetSession.getSessionId(),
                     GameResponse.playerStatsUpdate(targetPlayer, xpTables));
@@ -148,9 +148,9 @@ public class SetLevelCommand implements GameCommand {
 
         for (String skillName : unlockedSkills) {
             worldBroadcaster.sendToSession(targetSession.getSessionId(),
-                    GameResponse.message(Messages.fmt("skill.unlock", "skill", skillName)));
+                    GameResponse.narrative(Messages.fmt("skill.unlock", "skill", skillName)));
         }
 
-        return CommandResult.of(GameResponse.message(message));
+        return CommandResult.of(GameResponse.narrative(message));
     }
 }

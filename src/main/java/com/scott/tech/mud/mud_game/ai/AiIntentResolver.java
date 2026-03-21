@@ -76,9 +76,10 @@ public class AiIntentResolver {
         }
 
         // Clean up args: filter out prepositions/articles that the AI might include
+        // Note: keep "to" as it's used in give X to Y syntax
         List<String> args = aiResult.getArgs();
         if (args != null && !args.isEmpty()) {
-            final String[] stopWords = {"up", "the", "a", "an", "to", "towards", "of", "at"};
+            final String[] stopWords = {"up", "the", "a", "an", "towards", "of", "at"};
             args = args.stream()
                     .filter(arg -> arg != null && !arg.isBlank())
                     .map(String::toLowerCase)

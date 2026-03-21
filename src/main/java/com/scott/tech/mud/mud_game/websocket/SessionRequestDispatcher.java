@@ -81,12 +81,12 @@ public class SessionRequestDispatcher {
         if (input.equals("yes") || input.equals("y")) {
             reconnectTokenStore.revokeForUser(gameSession.getPlayer().getName().toLowerCase());
             return CommandResult.disconnect(
-                    GameResponse.message(Messages.fmt("command.logout.goodbye",
+                    GameResponse.narrative(Messages.fmt("command.logout.goodbye",
                             "player", gameSession.getPlayer().getName())));
         }
         if (input.equals("no") || input.equals("n")) {
             gameSession.transition(SessionState.PLAYING);
-            return CommandResult.of(GameResponse.message(Messages.get("command.logout.cancelled")));
+            return CommandResult.of(GameResponse.narrative(Messages.get("command.logout.cancelled")));
         }
         return CommandResult.of(
                 GameResponse.authPrompt(Messages.get("command.logout.reconfirm"), false));

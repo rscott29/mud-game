@@ -76,6 +76,12 @@ public class PlayerProfileService {
             if (p.getRecallRoomId() != null && !p.getRecallRoomId().isBlank()) {
                 player.setRecallRoomId(p.getRecallRoomId());
             }
+            // Restore completed quests
+            if (p.getCompletedQuests() != null && !p.getCompletedQuests().isBlank()) {
+                for (String questId : p.getCompletedQuests().split(",")) {
+                    player.getQuestState().restoreCompletedQuest(questId.trim());
+                }
+            }
         });
     }
 
@@ -150,6 +156,9 @@ public class PlayerProfileService {
         profile.setEquippedWeaponId(player.getEquippedWeaponId());
         profile.setRecallRoomId(player.getRecallRoomId());
         profile.setExperience(player.getExperience());
+        // Save completed quests as comma-separated string
+        var completedQuests = player.getQuestState().getCompletedQuests();
+        profile.setCompletedQuests(completedQuests.isEmpty() ? null : String.join(",", completedQuests));
         profile.setLastSeenAt(Instant.now());
         profileRepository.save(profile);
         log.debug("Saved full profile for '{}': room='{}' hp={}/{} mp={}/{} mv={}/{} xp={}",
@@ -200,8 +209,25 @@ public class PlayerProfileService {
         profile.setEquippedWeaponId(state.equippedWeaponId());
         profile.setRecallRoomId(state.recallRoomId());
         profile.setExperience(state.experience());
+        // Save completed quests as comma-separated string
+        var completedQuests = state.completedQuests();
+        profile.setCompletedQuests(completedQuests == null || completedQuests.isEmpty() ? null : String.join(",", completedQuests));
         profile.setLastSeenAt(state.cachedAt());
         profileRepository.save(profile);
         log.debug("Saved profile from cache for '{}': room='{}'", key, state.currentRoomId());
+    }
+
+    /**
+     * Updates the completed quests field in the database for a player.
+     * Call this after resetting a quest to persist the change.
+     */
+    public void updateCompletedQuests(String username, java.util.Set<String> completedQuests) {
+        String key = username.toLowerCase();
+        profileRepository.findById(key).ifPresent(profile -> {
+            profile.setCompletedQuests(completedQuests.isEmpty() ? null : String.join(",", completedQuests));
+            profile.setLastSeenAt(Instant.now());
+            profileRepository.save(profile);
+            log.debug("Updated completed quests for '{}': {}", key, completedQuests);
+        });
     }
 }

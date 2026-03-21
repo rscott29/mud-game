@@ -66,11 +66,15 @@ class PlayerRespawnServiceTest {
 
         verify(broadcaster).broadcastToRoom(
                 eq("wilds"),
-                argThat(gameResponse -> gameResponse.message().contains("dissolves")),
+                argThat(gameResponse ->
+                        gameResponse.type() == GameResponse.Type.ROOM_ACTION
+                                && gameResponse.message().contains("dissolves")),
                 eq("session-1"));
         verify(broadcaster).broadcastToRoom(
                 eq("town_square"),
-                argThat(gameResponse -> gameResponse.message().contains("staggers")),
+                argThat(gameResponse ->
+                        gameResponse.type() == GameResponse.Type.ROOM_ACTION
+                                && gameResponse.message().contains("staggers")),
                 eq("session-1"));
     }
 }

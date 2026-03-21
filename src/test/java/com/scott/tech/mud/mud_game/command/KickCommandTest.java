@@ -54,7 +54,7 @@ class KickCommandTest {
         verify(broadcaster).kickSession(
             org.mockito.ArgumentMatchers.eq("intruder-ws"),
             org.mockito.ArgumentMatchers.argThat(response ->
-                response.type() == GameResponse.Type.MESSAGE && response.message() != null
+                response.type() == GameResponse.Type.NARRATIVE && response.message() != null
             )
         );
 
@@ -62,7 +62,7 @@ class KickCommandTest {
         verify(broadcaster).broadcastToRoom(
             org.mockito.ArgumentMatchers.eq("room1"),
             org.mockito.ArgumentMatchers.argThat(r ->
-                r.type() == GameResponse.Type.MESSAGE &&
+                r.type() == GameResponse.Type.ROOM_ACTION &&
                     r.message() != null &&
                     (r.message().contains("Intruder") && r.message().contains("removed"))
             ),

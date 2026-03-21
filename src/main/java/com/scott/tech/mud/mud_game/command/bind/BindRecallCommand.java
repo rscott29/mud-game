@@ -20,7 +20,7 @@ public class BindRecallCommand implements GameCommand {
         session.getPlayer().setRecallRoomId(room.getId());
         return CommandResult.withAction(
                 RoomAction.inCurrentRoom(Messages.fmt("action.bind", "player", session.getPlayer().getName())),
-                GameResponse.message(Messages.fmt("command.bind.success", "room", room.getName()))
+                GameResponse.narrative(Messages.fmt("command.bind.success", "room", room.getName()))
         );
     }
 }

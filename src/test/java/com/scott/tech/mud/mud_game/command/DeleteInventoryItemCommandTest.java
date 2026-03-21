@@ -37,7 +37,7 @@ class DeleteInventoryItemCommandTest {
         assertThat(player.getInventory()).isEmpty();
         assertThat(player.getEquippedWeaponId()).isNull();
         assertThat(result.getResponses()).hasSize(1);
-        assertThat(result.getResponses().get(0).type()).isEqualTo(GameResponse.Type.MESSAGE);
+        assertThat(result.getResponses().get(0).type()).isEqualTo(GameResponse.Type.NARRATIVE);
         assertThat(result.getResponses().get(0).message()).contains("Deleted Iron Sword");
         verify(inventoryService).saveInventory("admin", player.getInventory());
     }

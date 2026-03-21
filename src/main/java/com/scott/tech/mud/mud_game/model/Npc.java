@@ -159,6 +159,22 @@ public class Npc {
             .allMatch(searchableText::contains);
     }
 
+    /**
+     * Returns a new Npc instance with the specified description, preserving all other fields.
+     */
+    public Npc withDescription(String newDescription) {
+        return new Npc(
+                this.id, this.name, newDescription, this.keywords,
+                this.pronoun, this.possessive,
+                this.wanderMinSeconds, this.wanderMaxSeconds,
+                this.wanderDepartureTemplates, this.wanderArrivalTemplates,
+                this.wanderPath, this.interactTemplates,
+                this.sentient, this.talkTemplates, this.personality,
+                this.combatTarget, this.respawns, this.maxHealth, this.level, this.xpReward,
+                this.minDamage, this.maxDamage, this.playerDeathEnabled
+        );
+    }
+
     private String normalizeForMatch(String value) {
         if (value == null) {
             return "";

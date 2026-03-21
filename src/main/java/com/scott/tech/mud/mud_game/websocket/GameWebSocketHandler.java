@@ -111,7 +111,7 @@ public class GameWebSocketHandler extends TextWebSocketHandler {
                             // Send personalized message to target player if specified
                             if (action.targetSessionId() != null && action.targetMessage() != null) {
                                 broadcaster.sendToSession(action.targetSessionId(),
-                                        GameResponse.message(action.targetMessage()));
+                                        GameResponse.roomAction(action.targetMessage()));
                             }
 
                             // Broadcast to room, excluding both the acting player and the target
@@ -119,13 +119,13 @@ public class GameWebSocketHandler extends TextWebSocketHandler {
                                 String sid = session.getSessionId();
                                 if (sid.equals(wsSession.getId())) return;
                                 if (sid.equals(action.targetSessionId())) return;
-                                broadcaster.sendToSession(sid, GameResponse.message(action.message()));
+                                broadcaster.sendToSession(sid, GameResponse.roomAction(action.message()));
                             });
                         }
 
                         // Cache player state after every command when playing (survives dev restarts)
                         if (gameSession.getState() == SessionState.PLAYING) {
-                            stateCache.cache(gameSession.getPlayer());
+                            stateCache.cache(gameSession);
                         }
 
                         if (result.isShouldDisconnect()) {
@@ -161,7 +161,7 @@ public class GameWebSocketHandler extends TextWebSocketHandler {
                 disconnectGracePeriod.scheduleDisconnectBroadcast(playerName, () -> {
                     broadcaster.broadcastToRoom(
                             roomId,
-                            GameResponse.message(Messages.fmt("event.player.left_world", "player", playerName)),
+                            GameResponse.roomAction(Messages.fmt("event.player.left_world", "player", playerName)),
                             wsSession.getId());
                 });
             }
