@@ -3,39 +3,39 @@
 :root {
   color-scheme: dark;
 
-  --terminal-accent: #b7c8a1;
-  --terminal-accent-soft: #e7ddbf;
-  --terminal-info: #9eb3ca;
-  --terminal-warning: #d6b173;
-  --terminal-danger: #c38b7f;
-  --terminal-text: #f3ead9;
-  --terminal-muted: #b8ab95;
-  --terminal-border: rgba(214, 177, 115, 0.16);
-  --terminal-panel: rgba(24, 18, 14, 0.9);
-  --terminal-shadow: rgba(0, 0, 0, 0.45);
+  --terminal-accent: #c2cedd;
+  --terminal-accent-soft: #ecd7a3;
+  --terminal-info: #86a2c7;
+  --terminal-warning: #d4ad61;
+  --terminal-danger: #b77a74;
+  --terminal-text: #f3ede4;
+  --terminal-muted: #aaa295;
+  --terminal-border: rgba(212, 173, 97, 0.16);
+  --terminal-panel: rgba(14, 14, 18, 0.92);
+  --terminal-shadow: rgba(0, 0, 0, 0.62);
   --font-display: 'Iowan Old Style', 'Palatino Linotype', 'Book Antiqua', Georgia, serif;
 
   /* Compatibility tokens for existing component styles. */
-  --accent-blue: #9eb3ca;
-  --accent-blue-lt: #d6e1ed;
-  --accent-purple: #a99cc0;
-  --accent-purple-lt: #d8cfe7;
-  --accent-teal: #b7c8a1;
-  --accent-green: #b9d2ac;
-  --accent-orange: #d6b173;
-  --accent-red: #c38b7f;
-  --accent-red-lt: #d8a59c;
-  --accent-gold: #e0c38c;
+  --accent-blue: #86a2c7;
+  --accent-blue-lt: #d6e1f0;
+  --accent-purple: #8d84ac;
+  --accent-purple-lt: #d6cde5;
+  --accent-teal: #c2cedd;
+  --accent-green: #b6c6ad;
+  --accent-orange: #d4ad61;
+  --accent-red: #b77a74;
+  --accent-red-lt: #d6a39a;
+  --accent-gold: #dfbf79;
 
-  --bg-body: #15100d;
-  --bg-surface: #211914;
-  --bg-deep: #0f0b09;
-  --bg-error: #321917;
-  --bg-sent: #1b1c14;
-  --bg-chat-room: #18150f;
-  --bg-chat-world: #16151b;
-  --bg-chat-dm: #221713;
-  --bg-who: #171412;
+  --bg-body: #09090b;
+  --bg-surface: #111115;
+  --bg-deep: #040406;
+  --bg-error: #261113;
+  --bg-sent: #131416;
+  --bg-chat-room: #121216;
+  --bg-chat-world: #0f1118;
+  --bg-chat-dm: #181115;
+  --bg-who: #111116;
 
   --text-primary: var(--terminal-text);
   --text-muted: var(--terminal-muted);
@@ -70,10 +70,10 @@ html, body {
 
 body {
   background:
-    radial-gradient(circle at top left, rgba(214, 177, 115, 0.1), transparent 30%),
-    radial-gradient(circle at top right, rgba(158, 179, 202, 0.08), transparent 28%),
-    radial-gradient(circle at bottom center, rgba(183, 200, 161, 0.05), transparent 32%),
-    linear-gradient(180deg, #1b1511 0%, #0c0908 100%);
+    radial-gradient(circle at top left, rgba(212, 173, 97, 0.12), transparent 28%),
+    radial-gradient(circle at top right, rgba(134, 162, 199, 0.1), transparent 26%),
+    radial-gradient(circle at bottom center, rgba(141, 132, 172, 0.08), transparent 30%),
+    linear-gradient(180deg, #131317 0%, #050507 100%);
   color: var(--terminal-text);
   font-family: var(--font-mono);
 }

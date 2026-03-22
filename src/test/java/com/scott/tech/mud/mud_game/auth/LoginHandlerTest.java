@@ -2,6 +2,7 @@ package com.scott.tech.mud.mud_game.auth;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.scott.tech.mud.mud_game.command.core.CommandResult;
+import com.scott.tech.mud.mud_game.config.AuthUiRegistry;
 import com.scott.tech.mud.mud_game.config.CharacterCreationOptionsRegistry;
 import com.scott.tech.mud.mud_game.config.CharacterClassStatsRegistry;
 import com.scott.tech.mud.mud_game.dto.GameResponse;
@@ -49,6 +50,7 @@ class LoginHandlerTest {
     private PlayerProfileService playerProfileService;
     private InventoryService inventoryService;
     private DiscoveredExitService discoveredExitService;
+    private AuthUiRegistry authUiRegistry;
     private CharacterCreationOptionsRegistry characterCreationOptions;
     private CharacterClassStatsRegistry classStatsRegistry;
     private PlayerStateCache stateCache;
@@ -69,6 +71,7 @@ class LoginHandlerTest {
         playerProfileService = mock(PlayerProfileService.class);
         inventoryService = mock(InventoryService.class);
         discoveredExitService = mock(DiscoveredExitService.class);
+        authUiRegistry = new AuthUiRegistry(new ObjectMapper());
         characterCreationOptions = new CharacterCreationOptionsRegistry(new ObjectMapper());
         classStatsRegistry = mock(CharacterClassStatsRegistry.class);
         stateCache = mock(PlayerStateCache.class);
@@ -90,7 +93,7 @@ class LoginHandlerTest {
 
         loginHandler = new LoginHandler(
                 accountStore, sessionManager, worldBroadcaster, reconnectTokenStore, playerProfileService,
-                inventoryService, discoveredExitService, characterCreationOptions, classStatsRegistry, xpTables, stateCache,
+                inventoryService, discoveredExitService, authUiRegistry, characterCreationOptions, classStatsRegistry, xpTables, stateCache,
                 disconnectGracePeriod, questService);
     }
 
@@ -102,8 +105,9 @@ class LoginHandlerTest {
         GameResponse response = result.getResponses().get(0);
         assertThat(response.type()).isEqualTo(GameResponse.Type.AUTH_PROMPT);
         assertThat(response.mask()).isFalse();
-        assertThat(response.message()).contains("Welcome to the MUD");
+        assertThat(response.message()).contains("/' .,,,,  ./");
         assertThat(response.message()).contains("Enter your username");
+        assertThat(response.message()).doesNotContain("THE OBSIDIAN KINGDOM");
     }
 
     @Test

@@ -53,13 +53,17 @@ describe('TerminalPresenterService', () => {
     const presenter = TestBed.inject(TerminalPresenterService);
 
     expect(presenter.inputType()).toBe('text');
-    expect(presenter.promptLabel()).toBe('cmd');
+    expect(presenter.promptLabel()).toBe('name');
+    expect(presenter.placeholder()).toBe('Username');
+    expect(presenter.hudEmptyMessage()).toBe('Sign in to begin or continue your adventure.');
+    expect(presenter.isAuthScreen()).toBe(true);
 
     store.passwordMode.set(true);
 
     expect(presenter.inputType()).toBe('password');
     expect(presenter.promptLabel()).toBe('pass');
-    expect(presenter.placeholder()).toBe('Whisper your password...');
+    expect(presenter.placeholder()).toBe('Password');
+    expect(presenter.hudEmptyMessage()).toBe('Enter your password to continue.');
   });
 
   it('maps connection status into labels and classes', () => {
@@ -102,6 +106,9 @@ describe('TerminalPresenterService', () => {
     });
 
     expect(presenter.classLabel()).toBe('Dark Mage');
+    expect(presenter.promptLabel()).toBe('cmd');
+    expect(presenter.placeholder()).toBe('Speak a command...');
+    expect(presenter.isAuthScreen()).toBe(false);
     expect(presenter.levelLabel()).toBe('Level 3 / 10');
     expect(presenter.hudHealth()).toBe('HP 12/20');
     expect(presenter.hudMana()).toBe('MP 7/10');

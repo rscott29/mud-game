@@ -19,11 +19,26 @@ export class TerminalPresenterService {
   readonly playerStats = this.socketService.playerStats;
   readonly characterCreationData = this.store.characterCreationData;
   readonly zoomLevel = this.zoomService.zoomLevel;
+  readonly isAuthenticated = computed(() => this.playerStats() !== null);
+  readonly isAuthScreen = computed(() => !this.isAuthenticated() && this.characterCreationData() === null);
 
   readonly inputType = computed(() => (this.store.passwordMode() ? 'password' : 'text'));
-  readonly promptLabel = computed(() => (this.store.passwordMode() ? 'pass' : 'cmd'));
-  readonly placeholder = computed(() =>
-    this.store.passwordMode() ? 'Whisper your password...' : 'Speak a command...'
+  readonly promptLabel = computed(() => {
+    if (this.store.passwordMode()) {
+      return 'pass';
+    }
+    return this.isAuthenticated() ? 'cmd' : 'name';
+  });
+  readonly placeholder = computed(() => {
+    if (this.store.passwordMode()) {
+      return 'Password';
+    }
+    return this.isAuthenticated() ? 'Speak a command...' : 'Username';
+  });
+  readonly hudEmptyMessage = computed(() =>
+    this.store.passwordMode()
+      ? 'Enter your password to continue.'
+      : 'Sign in to begin or continue your adventure.'
   );
   readonly statusLabel = computed(() => {
     switch (this.socketService.status()) {

@@ -13,9 +13,10 @@ app-terminal {
     border: 1px solid var(--terminal-border);
     border-radius: 24px;
     background:
-      radial-gradient(circle at top left, rgba(214, 177, 115, 0.1), transparent 38%),
-      radial-gradient(circle at top right, rgba(158, 179, 202, 0.09), transparent 34%),
-      linear-gradient(180deg, rgba(28, 20, 16, 0.98), rgba(13, 10, 9, 0.97));
+      radial-gradient(circle at top left, rgba(212, 173, 97, 0.09), transparent 36%),
+      radial-gradient(circle at top right, rgba(134, 162, 199, 0.1), transparent 32%),
+      radial-gradient(circle at bottom center, rgba(141, 132, 172, 0.06), transparent 34%),
+      linear-gradient(180deg, rgba(18, 18, 23, 0.98), rgba(6, 6, 9, 0.98));
     box-shadow:
       0 30px 60px var(--terminal-shadow),
       inset 0 0 0 1px rgba(255, 255, 255, 0.03);
@@ -51,7 +52,7 @@ app-terminal {
     gap: 16px;
     padding: 18px 22px 12px;
     border-bottom: 1px solid rgba(214, 177, 115, 0.14);
-    background: linear-gradient(180deg, rgba(42, 30, 24, 0.88), rgba(23, 17, 14, 0.8));
+    background: linear-gradient(180deg, rgba(24, 24, 30, 0.92), rgba(14, 14, 18, 0.84));
   }
 
   .terminal-brand {
@@ -135,7 +136,7 @@ app-terminal {
     align-items: center;
     padding: 14px 22px 16px;
     border-bottom: 1px solid rgba(214, 177, 115, 0.11);
-    background: linear-gradient(180deg, rgba(20, 15, 12, 0.92), rgba(14, 11, 9, 0.82));
+    background: linear-gradient(180deg, rgba(17, 17, 21, 0.92), rgba(10, 10, 13, 0.84));
   }
 
   .hud-profile {
@@ -180,7 +181,7 @@ app-terminal {
     padding: 7px 10px;
     border: 1px solid rgba(214, 177, 115, 0.14);
     border-radius: 999px;
-    background: rgba(31, 23, 18, 0.9);
+    background: rgba(18, 18, 24, 0.92);
     color: var(--terminal-text);
     font-size: 0.8em;
     letter-spacing: 0.08em;
@@ -226,20 +227,32 @@ app-terminal {
     height: 12px;
     border: 1px solid rgba(214, 177, 115, 0.16);
     border-radius: 999px;
-    background: rgba(17, 13, 11, 0.92);
+    background: rgba(10, 10, 14, 0.94);
   }
 
   .hud-xp__fill {
     height: 100%;
     min-width: 6px;
     border-radius: inherit;
-    background: linear-gradient(90deg, rgba(183, 200, 161, 0.75), rgba(214, 177, 115, 0.9));
+    background: linear-gradient(90deg, rgba(134, 162, 199, 0.72), rgba(212, 173, 97, 0.92));
     box-shadow: 0 0 16px rgba(214, 177, 115, 0.2);
   }
 
   .hud-empty {
     color: var(--terminal-muted);
     font-size: 0.9em;
+  }
+
+  .terminal-hud--auth {
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 18px;
+  }
+
+  .terminal-hud--auth .hud-empty {
+    max-width: 46rem;
+    color: var(--terminal-text);
+    font-size: 0.96em;
+    line-height: 1.6;
   }
 
   .hud-zoom {
@@ -256,7 +269,7 @@ app-terminal {
     height: 34px;
     border: 1px solid rgba(214, 177, 115, 0.18);
     border-radius: 10px;
-    background: rgba(28, 21, 17, 0.88);
+    background: rgba(16, 16, 21, 0.9);
     color: var(--terminal-text);
     font: inherit;
     cursor: pointer;
@@ -266,7 +279,7 @@ app-terminal {
   .hud-zoom__btn:hover {
     transform: translateY(-1px);
     border-color: rgba(183, 200, 161, 0.3);
-    background: rgba(41, 31, 25, 0.94);
+    background: rgba(24, 24, 30, 0.96);
   }
 
   .hud-zoom__value {
@@ -285,11 +298,16 @@ app-terminal {
     gap: 14px;
   }
 
+  .log--auth {
+    padding-top: clamp(28px, 6vh, 72px);
+    padding-bottom: clamp(40px, 9vh, 110px);
+  }
+
   .msg {
     width: min(100%, 1040px);
     border: 1px solid rgba(214, 177, 115, 0.12);
     border-radius: 18px;
-    background: rgba(25, 18, 14, 0.84);
+    background: rgba(15, 15, 20, 0.88);
     box-shadow:
       0 18px 40px rgba(0, 0, 0, 0.18),
       inset 0 1px 0 rgba(255, 255, 255, 0.02);
@@ -315,19 +333,26 @@ app-terminal {
   .msg.HELP,
   .msg.CLASS_PROGRESSION {
     border-color: rgba(158, 179, 202, 0.18);
-    background: rgba(22, 19, 21, 0.84);
+    background: rgba(17, 17, 24, 0.88);
   }
 
   .msg.CHAT_ROOM,
   .msg.CHAT_WORLD,
   .msg.CHAT_DM {
     border-radius: 14px;
-    background: rgba(24, 18, 15, 0.76);
+    background: rgba(14, 14, 19, 0.8);
   }
 
   .msg.AUTH_PROMPT {
     border-color: rgba(214, 177, 115, 0.18);
-    background: rgba(27, 20, 16, 0.88);
+    background:
+      radial-gradient(circle at top left, rgba(212, 173, 97, 0.06), transparent 34%),
+      radial-gradient(circle at top right, rgba(134, 162, 199, 0.06), transparent 30%),
+      rgba(14, 14, 18, 0.92);
+  }
+
+  .log--auth .msg.AUTH_PROMPT {
+    width: min(100%, 1320px);
   }
 
   .msg.SENT {
@@ -335,7 +360,7 @@ app-terminal {
     width: auto;
     max-width: min(100%, 560px);
     border-color: rgba(183, 200, 161, 0.22);
-    background: rgba(31, 24, 17, 0.88);
+    background: rgba(18, 18, 23, 0.9);
     padding: 10px 14px;
   }
 
@@ -348,7 +373,7 @@ app-terminal {
 
   .msg.ERROR {
     border-color: rgba(255, 111, 111, 0.26);
-    background: rgba(38, 14, 14, 0.84);
+    background: rgba(31, 12, 15, 0.88);
   }
 
   .input-bar {
@@ -358,7 +383,7 @@ app-terminal {
     align-items: center;
     padding: 16px 22px 20px;
     border-top: 1px solid rgba(214, 177, 115, 0.12);
-    background: linear-gradient(180deg, rgba(23, 17, 13, 0.88), rgba(13, 10, 9, 0.98));
+    background: linear-gradient(180deg, rgba(17, 17, 21, 0.9), rgba(8, 8, 11, 0.98));
   }
 
   .input-bar.hidden {
@@ -373,7 +398,7 @@ app-terminal {
     padding: 10px 12px;
     border: 1px solid rgba(214, 177, 115, 0.16);
     border-radius: 12px;
-    background: rgba(31, 23, 18, 0.9);
+    background: rgba(16, 16, 20, 0.94);
     color: var(--terminal-warning);
     font-size: 0.76em;
     font-weight: 700;
@@ -387,7 +412,7 @@ app-terminal {
     padding: 12px 14px;
     border: 1px solid rgba(214, 177, 115, 0.14);
     border-radius: 12px;
-    background: rgba(14, 10, 9, 0.96);
+    background: rgba(9, 9, 12, 0.97);
     color: var(--terminal-text);
     font: inherit;
     outline: none;
@@ -397,7 +422,7 @@ app-terminal {
   .cmd-input:focus {
     border-color: rgba(183, 200, 161, 0.28);
     box-shadow: 0 0 0 4px rgba(183, 200, 161, 0.08);
-    background: rgba(19, 14, 12, 0.98);
+    background: rgba(13, 13, 17, 0.98);
   }
 
   .cmd-input::placeholder {

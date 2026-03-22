@@ -16,6 +16,7 @@ import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.function.Supplier;
 
 @Component
 public class WsMessageSender {
@@ -51,6 +52,23 @@ public class WsMessageSender {
 
     public void clearSessionGuard(String wsSessionId) {
         sessionLocks.remove(wsSessionId);
+    }
+
+    public void withSessionGuard(String wsSessionId, Runnable action) {
+        withSessionGuard(wsSessionId, () -> {
+            action.run();
+            return null;
+        });
+    }
+
+    public <T> T withSessionGuard(String wsSessionId, Supplier<T> action) {
+        ReentrantLock lock = sessionLocks.computeIfAbsent(wsSessionId, ignored -> new ReentrantLock());
+        lock.lock();
+        try {
+            return action.get();
+        } finally {
+            lock.unlock();
+        }
     }
 
     private void sendResponses(WebSocketSession wsSession, List<GameResponse> responses) {

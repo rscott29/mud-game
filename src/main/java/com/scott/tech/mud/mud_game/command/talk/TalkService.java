@@ -3,8 +3,8 @@ package com.scott.tech.mud.mud_game.command.talk;
 import com.scott.tech.mud.mud_game.config.Messages;
 import com.scott.tech.mud.mud_game.model.Npc;
 import com.scott.tech.mud.mud_game.session.GameSession;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.ai.chat.client.ChatClient;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -27,10 +27,6 @@ public class TalkService {
         this.chatClient = chatClient;
     }
 
-    /**
-     * Build dialogue text for talking to an NPC.
-     * Returns the raw dialogue string (for embedding in room updates).
-     */
     public String buildDialogue(GameSession session, Npc npc) {
         String playerName = session.getPlayer().getName();
 

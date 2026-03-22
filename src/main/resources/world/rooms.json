@@ -4,7 +4,7 @@
     {
       "id": "town_square",
       "name": "Town Square",
-      "description": "A weathered cobblestone plaza at the heart of a small town. A handsome young Labrador with mischief in his eyes notices you and wags his tail. A fountain burbles in the center, and a wooden signpost points in all directions.",
+      "description": "A weathered cobblestone plaza at the heart of a small town. A fountain burbles in the center, and a wooden signpost points in all directions.",
       "exits": {
         "NORTH": "tavern",
         "SOUTH": "market",

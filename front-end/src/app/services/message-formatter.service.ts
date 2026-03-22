@@ -206,17 +206,43 @@ export class MessageFormatterService {
   }
 
   private renderPrompt(message: string): string {
+    const authScreen = this.parseAuthWelcome(message);
+    if (authScreen) {
+      return `
+        <section class="term-card term-card--prompt term-card--prompt-auth">
+          <div class="term-auth-layout">
+            <pre class="term-copy term-copy--preformatted term-auth-banner">${escapeHtml(authScreen.banner)}</pre>
+            <div class="term-auth-sidebar">
+              <div class="term-auth-kicker">Sign in</div>
+              <div class="term-auth-prompt">${escapeHtml(authScreen.prompt)}</div>
+              <div class="term-auth-note">New usernames will guide you through creating a character.</div>
+            </div>
+          </div>
+        </section>
+      `;
+    }
+
     return `
       <section class="term-card term-card--prompt">
-        <div class="term-card__header">
-          <div>
-            <div class="term-card__eyebrow">Wayfarer entry</div>
-            <h2 class="term-card__title">The gatehouse asks</h2>
-          </div>
-        </div>
-        <div class="term-copy term-copy--preformatted">${this.formatPlainText(message)}</div>
+        <pre class="term-copy term-copy--preformatted">${this.formatPlainText(message)}</pre>
       </section>
     `;
+  }
+
+  private parseAuthWelcome(message: string): { banner: string; prompt: string } | null {
+    const normalized = message.replace(/\r\n/g, '\n').trimEnd();
+    const segments = normalized.split(/\n{2,}/).filter(segment => segment.trim() !== '');
+    if (segments.length < 2) {
+      return null;
+    }
+
+    const prompt = segments.at(-1)?.trim() ?? '';
+    const banner = segments.slice(0, -1).join('\n\n').replace(/\n+$/, '');
+    if (!banner || !prompt) {
+      return null;
+    }
+
+    return { banner, prompt };
   }
 
   private renderNarrative(label: string, message: string): string {
@@ -238,7 +264,7 @@ export class MessageFormatterService {
   }
 
   private formatPlainText(message: string): string {
-    return escapeHtml(message).replace(/\r?\n/g, '<br>');
+    return escapeHtml(message);
   }
 
   private wrapInlineNarrative(content: string): string {

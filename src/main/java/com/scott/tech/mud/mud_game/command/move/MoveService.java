@@ -223,7 +223,7 @@ public class MoveService {
         taskScheduler.schedule(
                 () -> sessionManager.get(wsSessionId)
                         .filter(session -> roomId.equals(session.getPlayer().getCurrentRoomId()))
-                        .ifPresent(session -> worldBroadcaster.sendToSession(wsSessionId, response)),
+                        .ifPresent(session -> worldBroadcaster.sendRoomFlavorToSession(wsSessionId, response)),
                 Instant.now().plusMillis(delayMs)
         );
     }
