@@ -1,5 +1,6 @@
 package com.scott.tech.mud.mud_game.websocket;
 
+import com.scott.tech.mud.mud_game.combat.CombatState;
 import com.scott.tech.mud.mud_game.dto.GameResponse;
 import com.scott.tech.mud.mud_game.session.GameSessionManager;
 import org.springframework.stereotype.Component;
@@ -22,10 +23,14 @@ public class WorldBroadcaster {
     private final Map<String, WebSocketSession> wsSessions = new ConcurrentHashMap<>();
     private final GameSessionManager sessionManager;
     private final WsMessageSender messageSender;
+    private final CombatState combatState;
 
-    public WorldBroadcaster(GameSessionManager sessionManager, WsMessageSender messageSender) {
+    public WorldBroadcaster(GameSessionManager sessionManager,
+                            WsMessageSender messageSender,
+                            CombatState combatState) {
         this.sessionManager = sessionManager;
         this.messageSender = messageSender;
+        this.combatState = combatState;
     }
 
     public void register(String wsSessionId, WebSocketSession wsSession) {
@@ -46,10 +51,7 @@ public class WorldBroadcaster {
     public void broadcastToRoom(String roomId, GameResponse response, String excludeSessionId) {
         sessionManager.getSessionsInRoom(roomId).forEach(session -> {
             if (session.getSessionId().equals(excludeSessionId)) return;
-            WebSocketSession ws = wsSessions.get(session.getSessionId());
-            if (ws != null) {
-                messageSender.sendUnmodified(ws, response);
-            }
+            sendRoomBroadcastToSession(session.getSessionId(), response);
         });
     }
 
@@ -71,6 +73,36 @@ public class WorldBroadcaster {
         }
     }
 
+    /**
+     * Sends a room-scoped broadcast to a single player, suppressing it while they are in combat.
+     * Broadcast-style room actions should use this instead of {@link #sendToSession(String, GameResponse)}.
+     */
+    public void sendRoomBroadcastToSession(String wsSessionId, GameResponse response) {
+        if (shouldSuppressForCombat(wsSessionId, response)) {
+            return;
+        }
+
+        WebSocketSession ws = wsSessions.get(wsSessionId);
+        if (ws != null) {
+            messageSender.sendUnmodified(ws, response);
+        }
+    }
+
+    /**
+     * Sends room flavor to a single player and suppresses it while they are in combat.
+     * This preserves normal session-aware formatting for same-room updates.
+     */
+    public void sendRoomFlavorToSession(String wsSessionId, GameResponse response) {
+        if (shouldSuppressForCombat(wsSessionId, response)) {
+            return;
+        }
+
+        WebSocketSession ws = wsSessions.get(wsSessionId);
+        if (ws != null) {
+            messageSender.send(ws, response);
+        }
+    }
+
     /** Send a message and forcefully close a player's WebSocket session. */
     public void kickSession(String wsSessionId, GameResponse kickMessage) {
         WebSocketSession ws = wsSessions.get(wsSessionId);
@@ -82,5 +114,16 @@ public class WorldBroadcaster {
                 // Log silently if already closed
             }
         }
+    }
+
+    private boolean shouldSuppressForCombat(String wsSessionId, GameResponse response) {
+        if (wsSessionId == null || response == null || !combatState.isInCombat(wsSessionId)) {
+            return false;
+        }
+
+        return switch (response.type()) {
+            case ROOM_ACTION, NARRATIVE, AMBIENT_EVENT, COMPANION_DIALOGUE -> true;
+            default -> false;
+        };
     }
 }

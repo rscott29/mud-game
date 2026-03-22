@@ -1,6 +1,7 @@
 package com.scott.tech.mud.mud_game.auth;
 
 import com.scott.tech.mud.mud_game.command.core.CommandResult;
+import com.scott.tech.mud.mud_game.config.AuthUiRegistry;
 import com.scott.tech.mud.mud_game.config.CharacterCreationOptionsRegistry;
 import com.scott.tech.mud.mud_game.config.CharacterClassStatsRegistry;
 import com.scott.tech.mud.mud_game.config.ExperienceTableService;
@@ -49,6 +50,7 @@ public class LoginHandler {
     private final PlayerProfileService playerProfileService;
     private final InventoryService inventoryService;
     private final com.scott.tech.mud.mud_game.persistence.service.DiscoveredExitService discoveredExitService;
+    private final AuthUiRegistry authUiRegistry;
     private final CharacterCreationOptionsRegistry characterCreationOptions;
     private final CharacterClassStatsRegistry classStatsRegistry;
     private final ExperienceTableService xpTables;
@@ -63,6 +65,7 @@ public class LoginHandler {
                         PlayerProfileService playerProfileService,
                         InventoryService inventoryService,
                         com.scott.tech.mud.mud_game.persistence.service.DiscoveredExitService discoveredExitService,
+                        AuthUiRegistry authUiRegistry,
                         CharacterCreationOptionsRegistry characterCreationOptions,
                         CharacterClassStatsRegistry classStatsRegistry,
                         ExperienceTableService xpTables,
@@ -76,6 +79,7 @@ public class LoginHandler {
         this.playerProfileService  = playerProfileService;
         this.inventoryService      = inventoryService;
         this.discoveredExitService = discoveredExitService;
+        this.authUiRegistry       = authUiRegistry;
         this.characterCreationOptions = characterCreationOptions;
         this.classStatsRegistry    = classStatsRegistry;
         this.xpTables              = xpTables;
@@ -90,7 +94,7 @@ public class LoginHandler {
     public CommandResult onConnect() {
         return CommandResult.of(
             GameResponse.authPrompt(
-                Messages.get("auth.banner") + "\n" + Messages.get("auth.prompt.enter_username"), false));
+                authUiRegistry.banner() + "\n\n" + Messages.get("auth.prompt.enter_username"), false));
     }
 
     /** Routes raw player input to the correct handler based on the session's login state. */

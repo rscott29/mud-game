@@ -260,7 +260,41 @@ describe('TerminalComponent', () => {
     expect(component.view.messages()).toHaveLength(1);
     expect(component.view.messages()[0].cssClass).toBe(TERMINAL_MESSAGE_CLASSES.AUTH_PROMPT);
     expect(component.view.messages()[0].html).toContain('term-card--prompt');
-    expect(component.view.messages()[0].html).toContain('Welcome to the MUD!<br>Enter your username:');
+    expect(component.view.messages()[0].html).toContain('<pre class="term-copy term-copy--preformatted">');
+    expect(component.view.messages()[0].html).toContain('Welcome to the MUD!\nEnter your username:');
+    expect(component.view.messages()[0].html).not.toContain('Wayfarer entry');
+    expect(component.view.messages()[0].html).not.toContain('The gatehouse asks');
+  });
+
+  it('renders the banner-style auth welcome as a fuller sign-in layout', () => {
+    const fixture = TestBed.createComponent(TerminalComponent);
+    const component = fixture.componentInstance;
+
+    socket.messages$.next({
+      type: GAME_MESSAGE_TYPES.AUTH_PROMPT,
+      message: '      /\\\\\n /  \\\\\n\nEnter your username:',
+    });
+
+    expect(component.view.messages()).toHaveLength(1);
+    expect(component.view.messages()[0].html).toContain('term-card--prompt-auth');
+    expect(component.view.messages()[0].html).toContain('term-auth-kicker');
+    expect(component.view.messages()[0].html).toContain('Sign in');
+    expect(component.view.messages()[0].html).toContain('New usernames will guide you through creating a character.');
+    expect(component.view.messages()[0].html).toContain('      /\\\\');
+  });
+
+  it('preserves leading spaces in auth banner art', () => {
+    const fixture = TestBed.createComponent(TerminalComponent);
+    const component = fixture.componentInstance;
+
+    socket.messages$.next({
+      type: GAME_MESSAGE_TYPES.AUTH_PROMPT,
+      message: '  /\\\\\n /  \\\\',
+    });
+
+    expect(component.view.messages()).toHaveLength(1);
+    expect(component.view.messages()[0].html).toContain('  /\\\\');
+    expect(component.view.messages()[0].html).toContain('\n /  \\\\');
   });
 
   it('shows god levels above the normal cap without a confusing max-level suffix', () => {
@@ -310,6 +344,20 @@ describe('TerminalComponent', () => {
     const text = fixture.nativeElement.textContent ?? '';
     expect(text).toContain('GOD');
     expect(text).not.toContain('Total XP 105');
+  });
+
+  it('uses auth-focused shell copy before the player is signed in', () => {
+    const fixture = TestBed.createComponent(TerminalComponent);
+    const component = fixture.componentInstance;
+
+    fixture.detectChanges();
+
+    expect(component.view.promptLabel()).toBe('name');
+    expect(component.view.placeholder()).toBe('Username');
+    expect(component.view.isAuthScreen()).toBe(true);
+
+    const text = fixture.nativeElement.textContent ?? '';
+    expect(text).toContain('Sign in to begin or continue your adventure.');
   });
 
   it('merges same-room updates into the existing room card', () => {

@@ -98,7 +98,7 @@ class MoveServiceTest {
         scheduledCalls.forEach(call -> call.task().run());
 
         ArgumentCaptor<GameResponse> responses = ArgumentCaptor.forClass(GameResponse.class);
-        verify(broadcaster, times(3)).sendToSession(eq("session-1"), responses.capture());
+        verify(broadcaster, times(3)).sendRoomFlavorToSession(eq("session-1"), responses.capture());
         assertThat(responses.getAllValues())
                 .extracting(GameResponse::message)
                 .containsExactlyInAnyOrder(
@@ -161,7 +161,7 @@ class MoveServiceTest {
 
         scheduledCalls.forEach(call -> call.task().run());
 
-        verify(broadcaster, never()).sendToSession(anyString(), any(GameResponse.class));
+        verify(broadcaster, never()).sendRoomFlavorToSession(anyString(), any(GameResponse.class));
     }
 
     @Test

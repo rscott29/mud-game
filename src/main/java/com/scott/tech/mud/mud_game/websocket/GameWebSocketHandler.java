@@ -96,45 +96,47 @@ public class GameWebSocketHandler extends TextWebSocketHandler {
     protected void handleTextMessage(@NonNull WebSocketSession wsSession, @NonNull TextMessage message) {
         sessionManager.get(wsSession.getId()).ifPresentOrElse(
                 gameSession -> {
-                    try {
-                        CommandRequest request = objectMapper.readValue(message.getPayload(), CommandRequest.class);
-                        CommandResult result = requestDispatcher.dispatch(wsSession, gameSession, request);
-                        messageSender.send(wsSession, result);
+                    messageSender.withSessionGuard(wsSession.getId(), () -> {
+                        try {
+                            CommandRequest request = objectMapper.readValue(message.getPayload(), CommandRequest.class);
+                            CommandResult result = requestDispatcher.dispatch(wsSession, gameSession, request);
+                            messageSender.send(wsSession, result);
 
-                        // Broadcast room action to other players if present
-                        if (result.getRoomAction() != null) {
-                            var action = result.getRoomAction();
-                            String roomId = action.roomId() != null
-                                    ? action.roomId()
-                                    : gameSession.getPlayer().getCurrentRoomId();
+                            // Broadcast room action to other players if present
+                            if (result.getRoomAction() != null) {
+                                var action = result.getRoomAction();
+                                String roomId = action.roomId() != null
+                                        ? action.roomId()
+                                        : gameSession.getPlayer().getCurrentRoomId();
 
-                            // Send personalized message to target player if specified
-                            if (action.targetSessionId() != null && action.targetMessage() != null) {
-                                broadcaster.sendToSession(action.targetSessionId(),
-                                        GameResponse.roomAction(action.targetMessage()));
+                                // Send personalized message to target player if specified
+                                if (action.targetSessionId() != null && action.targetMessage() != null) {
+                                    broadcaster.sendRoomBroadcastToSession(action.targetSessionId(),
+                                            GameResponse.roomAction(action.targetMessage()));
+                                }
+
+                                // Broadcast to room, excluding both the acting player and the target
+                                sessionManager.getSessionsInRoom(roomId).forEach(session -> {
+                                    String sid = session.getSessionId();
+                                    if (sid.equals(wsSession.getId())) return;
+                                    if (sid.equals(action.targetSessionId())) return;
+                                    broadcaster.sendRoomBroadcastToSession(sid, GameResponse.roomAction(action.message()));
+                                });
                             }
 
-                            // Broadcast to room, excluding both the acting player and the target
-                            sessionManager.getSessionsInRoom(roomId).forEach(session -> {
-                                String sid = session.getSessionId();
-                                if (sid.equals(wsSession.getId())) return;
-                                if (sid.equals(action.targetSessionId())) return;
-                                broadcaster.sendToSession(sid, GameResponse.roomAction(action.message()));
-                            });
-                        }
+                            // Cache player state after every command when playing (survives dev restarts)
+                            if (gameSession.getState() == SessionState.PLAYING) {
+                                stateCache.cache(gameSession);
+                            }
 
-                        // Cache player state after every command when playing (survives dev restarts)
-                        if (gameSession.getState() == SessionState.PLAYING) {
-                            stateCache.cache(gameSession);
+                            if (result.isShouldDisconnect()) {
+                                wsSession.close(CloseStatus.NORMAL);
+                            }
+                        } catch (Exception e) {
+                            CommandResult errorResult = wsExceptionHandler.handle(e, wsSession.getId());
+                            messageSender.send(wsSession, errorResult);
                         }
-
-                        if (result.isShouldDisconnect()) {
-                            wsSession.close(CloseStatus.NORMAL);
-                        }
-                    } catch (Exception e) {
-                        CommandResult errorResult = wsExceptionHandler.handle(e, wsSession.getId());
-                        messageSender.send(wsSession, errorResult);
-                    }
+                    });
                 },
                 () -> messageSender.send(wsSession, GameResponse.error(Messages.get("error.session_not_found")))
         );
