@@ -10,7 +10,7 @@ class CommandCatalogControllerTest {
     private final CommandCatalogController controller = new CommandCatalogController();
 
     @Test
-    void returnsCommandsAndBuiltInSocialActions() {
+    void returnsCommandsAndDataDrivenSocialActions() {
         ResponseEntity<CommandCatalogController.CommandCatalogResponse> response = controller.getCommandCatalog();
 
         assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();

@@ -13,6 +13,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * Represents one connected player's session.
@@ -35,6 +36,8 @@ public class GameSession {
     private final Map<String, Set<Direction>> discoveredExits = new HashMap<>();
     /** NPC IDs currently following this player. */
     private final Set<String> followingNpcs = new HashSet<>();
+    /** Monotonic counter used to invalidate delayed room-flavor messages after the player acts again. */
+    private final AtomicLong actionRevision = new AtomicLong();
 
     public GameSession(String sessionId, Player player, WorldService worldService) {
         this.sessionId    = sessionId;
@@ -72,6 +75,12 @@ public class GameSession {
     public WorldService getWorldService(){ return worldService; }
     public String getPendingUsername()   { return pendingUsername; }
     public void setPendingUsername(String u) { this.pendingUsername = u; }
+    public long getActionRevision()      { return actionRevision.get(); }
+
+    /** Records that the player has taken another in-game action. */
+    public long recordPlayerAction() {
+        return actionRevision.incrementAndGet();
+    }
 
     // ----- discovered hidden exits -----
 

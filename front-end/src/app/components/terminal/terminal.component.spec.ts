@@ -95,7 +95,7 @@ class MockCommandCatalogService {
       canonicalName: 'dance',
       aliases: ['dance', 'boogie'],
       category: COMMAND_HELP_CATEGORIES.SOCIAL,
-      usage: 'dance [target]',
+      usage: 'dance [target|self]',
       description: 'Dance on your own or with someone.',
       godOnly: false,
       showInHelp: true,
@@ -128,10 +128,16 @@ class MockCommandCatalogService {
       category.entries.push({
         cmd: command.usage,
         desc: command.description,
+        aliasesText: undefined,
+        example: command.canonicalName === 'go' ? 'n' : command.canonicalName === 'look' ? 'look fountain' : undefined,
       });
     }
 
     return categories;
+  }
+
+  helpTips(): string[] {
+    return ['Use n, s, e, w, u, and d for quick travel.'];
   }
 }
 
@@ -530,6 +536,30 @@ describe('TerminalComponent', () => {
     expect(component.view.messages()[0].html).toContain('Quentor arrives from the east.');
   });
 
+  it('folds social actions into the active room card with a social highlight', () => {
+    const fixture = TestBed.createComponent(TerminalComponent);
+    const component = fixture.componentInstance;
+
+    const room = {
+      id: 'town_square',
+      name: 'Town Square',
+      description: 'A lively square.',
+      exits: ['north'],
+      items: [],
+      npcs: [],
+      players: [],
+    };
+
+    socket.messages$.next({ type: GAME_MESSAGE_TYPES.ROOM_UPDATE, message: 'You arrive.', room });
+    socket.messages$.next({ type: GAME_MESSAGE_TYPES.SOCIAL_ACTION, message: 'You dance.' });
+
+    expect(component.view.messages().length).toBe(1);
+    expect(component.view.messages()[0].cssClass).toBe(TERMINAL_MESSAGE_CLASSES.ROOM_UPDATE);
+    expect(component.view.messages()[0].html).toContain('term-inline-event--social-action');
+    expect(component.view.messages()[0].html).toContain('Social');
+    expect(component.view.messages()[0].html).toContain('You dance.');
+  });
+
   it('moves the active room card back to the bottom when it receives updates after inventory', () => {
     const fixture = TestBed.createComponent(TerminalComponent);
     const component = fixture.componentInstance;
@@ -575,9 +605,12 @@ describe('TerminalComponent', () => {
     expect(component.view.messages()).toHaveLength(1);
     expect(component.view.messages()[0].cssClass).toBe(TERMINAL_MESSAGE_CLASSES.HELP);
     expect(component.view.messages()[0].html).toContain("Traveler's handbook");
+    expect(component.view.messages()[0].html).toContain('term-help__body');
     expect(component.view.messages()[0].html).toContain('Exploration');
     expect(component.view.messages()[0].html).toContain('look [target]');
     expect(component.view.messages()[0].html).toContain('Describe surroundings or examine something');
+    expect(component.view.messages()[0].html).toContain('Try: look fountain');
+    expect(component.view.messages()[0].html).toContain('Use n, s, e, w, u, and d for quick travel.');
     expect(component.view.messages()[0].html).not.toContain('spawn &lt;item&gt; [inv]');
   });
 });

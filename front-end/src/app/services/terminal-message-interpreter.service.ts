@@ -11,6 +11,11 @@ export type TerminalMessageInterpretation =
       message: FormattedMessage;
     }
   | {
+      kind: 'help';
+      stateChanges: TerminalStateChanges | null;
+      isGod: boolean;
+    }
+  | {
       kind: 'room_display';
       stateChanges: TerminalStateChanges | null;
       source: GameMessage;
@@ -82,9 +87,9 @@ export class TerminalMessageInterpreterService {
 
       case GAME_MESSAGE_TYPES.HELP:
         return {
-          kind: 'display',
+          kind: 'help',
           stateChanges,
-          message: this.formatter.formatHelpCard((message.message ?? '').trim().toLowerCase() === 'god'),
+          isGod: (message.message ?? '').trim().toLowerCase() === 'god',
         };
 
       case GAME_MESSAGE_TYPES.STAT_UPDATE:
@@ -116,6 +121,15 @@ export class TerminalMessageInterpreterService {
           source: message,
           inlineFragment: this.formatter.formatRoomInlineFragment(message),
           fallback: this.formatter.formatRoomActionMessage(message.message ?? ''),
+        };
+
+      case GAME_MESSAGE_TYPES.SOCIAL_ACTION:
+        return {
+          kind: 'room_inline',
+          stateChanges,
+          source: message,
+          inlineFragment: this.formatter.formatRoomInlineFragment(message),
+          fallback: this.formatter.formatSocialActionMessage(message.message ?? ''),
         };
 
       case GAME_MESSAGE_TYPES.AMBIENT_EVENT:

@@ -240,7 +240,8 @@ public final class CommandRegistry {
                         return new UnknownCommand(ctx.hasNoArgs() ? ctx.rawCommand() : "go " + ctx.firstArg());
                     }
                     return new MoveCommand(dir, ctx.deps().taskScheduler(), ctx.deps().worldBroadcaster(), ctx.deps().sessionManager(),
-                            ctx.deps().questService(), ctx.deps().levelingService(), ctx.deps().worldService(), ctx.deps().ambientEventService());
+                            ctx.deps().questService(), ctx.deps().levelingService(), ctx.deps().worldService(),
+                            ctx.deps().ambientEventService(), ctx.deps().aiTextPolisher());
                 })
                 .build());
 
@@ -384,7 +385,11 @@ public final class CommandRegistry {
                 .category(CommandCategory.EMOTE)
                 .usage("/em <action>")
                 .description("Custom emote (e.g., /em dances, /em waves at Bob)")
-                .creator(ctx -> new EmoteCommand(ctx.joinedArgs(), ctx.deps().sessionManager()))
+                .creator(ctx -> new EmoteCommand(
+                        ctx.joinedArgs(),
+                        ctx.deps().sessionManager(),
+                        ctx.deps().emotePerspectiveResolver()
+                ))
                 .build());
 
         commands.addAll(buildSocialDefinitions());

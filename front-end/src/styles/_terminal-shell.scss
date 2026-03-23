@@ -321,6 +321,7 @@ app-terminal {
 
   .msg.NARRATIVE,
   .msg.ROOM_ACTION,
+  .msg.SOCIAL_ACTION,
   .msg.AMBIENT_EVENT,
   .msg.COMPANION_DIALOGUE {
     border-color: rgba(214, 177, 115, 0.12);
@@ -334,6 +335,10 @@ app-terminal {
   .msg.CLASS_PROGRESSION {
     border-color: rgba(158, 179, 202, 0.18);
     background: rgba(17, 17, 24, 0.88);
+  }
+
+  .msg.HELP {
+    width: min(100%, 1320px);
   }
 
   .msg.CHAT_ROOM,

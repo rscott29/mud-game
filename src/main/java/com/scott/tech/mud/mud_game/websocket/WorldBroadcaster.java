@@ -122,7 +122,7 @@ public class WorldBroadcaster {
         }
 
         return switch (response.type()) {
-            case ROOM_ACTION, NARRATIVE, AMBIENT_EVENT, COMPANION_DIALOGUE -> true;
+            case ROOM_ACTION, SOCIAL_ACTION, NARRATIVE, AMBIENT_EVENT, COMPANION_DIALOGUE -> true;
             default -> false;
         };
     }

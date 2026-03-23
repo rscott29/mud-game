@@ -32,6 +32,8 @@ public class Npc {
     private final List<String> talkTemplates;
     /** Optional personality hint injected into the AI system prompt for sentient NPCs. */
     private final String personality;
+    /** If true, AI-polished dialogue and room text should lean a little more playful/funny. */
+    private final boolean humorous;
 
     // Combat-related fields
     /** Whether this NPC can be targeted in combat (e.g., training dummies, enemies). */
@@ -66,6 +68,7 @@ public class Npc {
                 wanderDepartureTemplates, wanderArrivalTemplates,
                 wanderPath, interactTemplates,
                 sentient, talkTemplates, personality,
+                false,
                 combatTarget, respawns, maxHealth, 1, xpReward,
                 minDamage, maxDamage, playerDeathEnabled
         );
@@ -77,6 +80,50 @@ public class Npc {
                List<String> wanderDepartureTemplates, List<String> wanderArrivalTemplates,
                List<String> wanderPath, List<String> interactTemplates,
                boolean sentient, List<String> talkTemplates, String personality,
+               boolean humorous,
+               boolean combatTarget, boolean respawns, int maxHealth, int xpReward,
+               int minDamage, int maxDamage, boolean playerDeathEnabled) {
+        this(
+                id, name, description, keywords,
+                pronoun, possessive,
+                wanderMinSeconds, wanderMaxSeconds,
+                wanderDepartureTemplates, wanderArrivalTemplates,
+                wanderPath, interactTemplates,
+                sentient, talkTemplates, personality,
+                humorous,
+                combatTarget, respawns, maxHealth, 1, xpReward,
+                minDamage, maxDamage, playerDeathEnabled
+        );
+    }
+
+    public Npc(String id, String name, String description, List<String> keywords,
+               String pronoun, String possessive,
+               long wanderMinSeconds, long wanderMaxSeconds,
+               List<String> wanderDepartureTemplates, List<String> wanderArrivalTemplates,
+               List<String> wanderPath, List<String> interactTemplates,
+               boolean sentient, List<String> talkTemplates, String personality,
+               boolean combatTarget, boolean respawns, int maxHealth, int level, int xpReward,
+               int minDamage, int maxDamage, boolean playerDeathEnabled) {
+        this(
+                id, name, description, keywords,
+                pronoun, possessive,
+                wanderMinSeconds, wanderMaxSeconds,
+                wanderDepartureTemplates, wanderArrivalTemplates,
+                wanderPath, interactTemplates,
+                sentient, talkTemplates, personality,
+                false,
+                combatTarget, respawns, maxHealth, level, xpReward,
+                minDamage, maxDamage, playerDeathEnabled
+        );
+    }
+
+    public Npc(String id, String name, String description, List<String> keywords,
+               String pronoun, String possessive,
+               long wanderMinSeconds, long wanderMaxSeconds,
+               List<String> wanderDepartureTemplates, List<String> wanderArrivalTemplates,
+               List<String> wanderPath, List<String> interactTemplates,
+               boolean sentient, List<String> talkTemplates, String personality,
+               boolean humorous,
                boolean combatTarget, boolean respawns, int maxHealth, int level, int xpReward,
                int minDamage, int maxDamage, boolean playerDeathEnabled) {
         this.id                       = id;
@@ -94,6 +141,7 @@ public class Npc {
         this.sentient                 = sentient;
         this.talkTemplates            = talkTemplates            != null ? talkTemplates            : List.of();
         this.personality              = personality;
+        this.humorous                 = humorous;
         this.combatTarget             = combatTarget;
         this.respawns                 = respawns;
         this.maxHealth                = maxHealth;
@@ -119,6 +167,7 @@ public class Npc {
     public boolean isSentient()                       { return sentient; }
     public List<String> getTalkTemplates()            { return talkTemplates; }
     public String getPersonality()                    { return personality; }
+    public boolean isHumorous()                       { return humorous; }
     public boolean doesWander()                       { return wanderMinSeconds > 0; }
     public boolean hasPath()                          { return !wanderPath.isEmpty(); }
 
@@ -169,7 +218,7 @@ public class Npc {
                 this.wanderMinSeconds, this.wanderMaxSeconds,
                 this.wanderDepartureTemplates, this.wanderArrivalTemplates,
                 this.wanderPath, this.interactTemplates,
-                this.sentient, this.talkTemplates, this.personality,
+                this.sentient, this.talkTemplates, this.personality, this.humorous,
                 this.combatTarget, this.respawns, this.maxHealth, this.level, this.xpReward,
                 this.minDamage, this.maxDamage, this.playerDeathEnabled
         );

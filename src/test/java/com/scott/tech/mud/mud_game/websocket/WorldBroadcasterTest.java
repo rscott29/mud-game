@@ -60,6 +60,23 @@ class WorldBroadcasterTest {
         verify(sender, never()).send(any(WebSocketSession.class), any(GameResponse.class));
     }
 
+    @Test
+    void sendRoomBroadcastToSession_skipsSocialActionsWhenPlayerIsInCombat() {
+        GameSessionManager sessionManager = new GameSessionManager();
+        WsMessageSender sender = mock(WsMessageSender.class);
+        CombatState combatState = mock(CombatState.class);
+        WorldBroadcaster broadcaster = new WorldBroadcaster(sessionManager, sender, combatState);
+
+        WebSocketSession ws = mock(WebSocketSession.class);
+        broadcaster.register("session-1", ws);
+
+        when(combatState.isInCombat("session-1")).thenReturn(true);
+
+        broadcaster.sendRoomBroadcastToSession("session-1", GameResponse.socialAction("Axi dances."));
+
+        verify(sender, never()).sendUnmodified(any(WebSocketSession.class), any(GameResponse.class));
+    }
+
     private static void registerPlayingSession(GameSessionManager sessionManager,
                                                String sessionId,
                                                String playerName,

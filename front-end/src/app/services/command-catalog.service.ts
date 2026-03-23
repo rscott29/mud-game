@@ -48,7 +48,14 @@ interface RawCommandCatalogEntry {
 
 export interface HelpCategory {
   title: CommandHelpCategory;
-  entries: Array<{ cmd: string; desc: string }>;
+  entries: HelpEntry[];
+}
+
+export interface HelpEntry {
+  cmd: string;
+  desc: string;
+  aliasesText?: string;
+  example?: string;
 }
 
 interface CommandCatalogResponse {
@@ -116,10 +123,29 @@ export class CommandCatalogService {
       category.entries.push({
         cmd: command.usage,
         desc: command.description,
+        aliasesText: this.aliasSummary(command),
+        example: this.helpExample(command),
       });
     }
 
     return categories;
+  }
+
+  helpTips(): string[] {
+    this.load();
+
+    const tips: string[] = [];
+    if (this.findByAlias('n') && this.findByAlias('u')) {
+      tips.push('Use n, s, e, w, u, and d for quick travel.');
+    }
+    if (this.findByAlias('l')) {
+      tips.push('Look supports shortcuts like l and x, and plain language works for contextual actions.');
+    }
+    if (this.findByAlias('wave')) {
+      tips.push('Social actions support self-targets: wave self, wave me, or wave at Mira.');
+    }
+
+    return tips;
   }
 
   private normalizeCommand(command: RawCommandCatalogEntry): CommandCatalogEntry {
@@ -133,6 +159,76 @@ export class CommandCatalogService {
       showInHelp: command.showInHelp,
       dispatchMode: this.normalizeDispatchMode(command.dispatchMode),
     };
+  }
+
+  private aliasSummary(command: CommandCatalogEntry): string | undefined {
+    const usageToken = (command.usage.trim().split(/\s+/)[0] ?? '').toLowerCase();
+    const usageBare = usageToken.replace(/^\//, '');
+    const filtered = new Map<string, string>();
+
+    for (const alias of command.aliases) {
+      const normalized = alias.trim().toLowerCase();
+      const bare = normalized.replace(/^\//, '');
+      if (!bare || bare === usageBare) {
+        continue;
+      }
+
+      const existing = filtered.get(bare);
+      if (!existing || (existing.startsWith('/') && !normalized.startsWith('/'))) {
+        filtered.set(bare, normalized);
+      }
+    }
+
+    const aliases = [...filtered.values()];
+    if (aliases.length === 0) {
+      return undefined;
+    }
+    if (aliases.length <= 6) {
+      return aliases.join(', ');
+    }
+
+    return `${aliases.slice(0, 6).join(', ')} +${aliases.length - 6} more`;
+  }
+
+  private helpExample(command: CommandCatalogEntry): string | undefined {
+    const usageToken = (command.usage.trim().split(/\s+/)[0] ?? '').replace(/^\//, '');
+
+    switch (command.canonicalName) {
+      case 'go':
+        return 'n';
+      case 'look':
+        return 'look fountain';
+      case 'talk':
+        return 'talk pilgrim';
+      case 'take':
+        return 'take lantern';
+      case 'drop':
+        return 'drop lantern';
+      case 'equip':
+        return 'equip iron sword';
+      case 'attack':
+        return 'attack wolf';
+      case 'world':
+        return '/world anyone near the market?';
+      case 'dm':
+        return '/dm Mira meet me at the gate';
+      case 'emote':
+        return '/em smiles warmly';
+      case 'quest':
+        return 'quest';
+      case 'give':
+        return 'give bread to pilgrim';
+      case 'skills':
+        return 'skills';
+      default:
+        if (command.category === COMMAND_HELP_CATEGORIES.SOCIAL && command.usage.includes('[target|self]')) {
+          return `${usageToken} self`;
+        }
+        if (usageToken === 'say') {
+          return 'say hello there';
+        }
+        return undefined;
+    }
   }
 
   private normalizeDispatchMode(dispatchMode: string | null | undefined): CommandDispatchMode {

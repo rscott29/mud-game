@@ -7,8 +7,11 @@ import com.scott.tech.mud.mud_game.model.Room;
 import com.scott.tech.mud.mud_game.session.GameSession;
 import org.springframework.stereotype.Service;
 
+import java.util.Arrays;
+import java.util.Locale;
 import java.util.Optional;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 @Service
 public class TalkValidator {
@@ -23,7 +26,7 @@ public class TalkValidator {
         }
 
         Room room = session.getCurrentRoom();
-        Optional<Npc> match = room.findNpcByKeyword(normalizedTarget);
+        Optional<Npc> match = findNpcForTalk(room, normalizedTarget);
         if (match.isEmpty()) {
             return TalkValidationResult.deny(GameResponse.error(
                     Messages.fmt("command.talk.npc_not_found", "target", normalizedTarget)));
@@ -46,5 +49,56 @@ public class TalkValidator {
 
         normalized = normalized.trim().toLowerCase();
         return normalized.isBlank() ? null : normalized;
+    }
+
+    private Optional<Npc> findNpcForTalk(Room room, String normalizedTarget) {
+        Optional<Npc> exactMatch = room.getNpcs().stream()
+                .filter(npc -> hasExactTalkMatch(npc, normalizedTarget))
+                .findFirst();
+        if (exactMatch.isPresent()) {
+            return exactMatch;
+        }
+
+        return room.getNpcs().stream()
+                .filter(npc -> hasLooseTalkMatch(npc, normalizedTarget))
+                .findFirst();
+    }
+
+    private boolean hasExactTalkMatch(Npc npc, String normalizedTarget) {
+        if (normalizeForMatch(npc.getId()).equals(normalizedTarget)) {
+            return true;
+        }
+        if (normalizeForMatch(npc.getName()).equals(normalizedTarget)) {
+            return true;
+        }
+
+        return npc.getKeywords().stream()
+                .map(this::normalizeForMatch)
+                .anyMatch(normalizedTarget::equals);
+    }
+
+    private boolean hasLooseTalkMatch(Npc npc, String normalizedTarget) {
+        String searchableText = buildSearchableText(npc);
+        return Arrays.stream(normalizedTarget.split("\\s+"))
+                .allMatch(searchableText::contains);
+    }
+
+    private String buildSearchableText(Npc npc) {
+        String normalizedName = normalizeForMatch(npc.getName());
+        String normalizedKeywords = npc.getKeywords().stream()
+                .map(this::normalizeForMatch)
+                .collect(Collectors.joining(" "));
+        return (normalizedName + " " + normalizedKeywords).trim();
+    }
+
+    private String normalizeForMatch(String value) {
+        if (value == null) {
+            return "";
+        }
+
+        return value.toLowerCase(Locale.ROOT)
+                .replaceAll("[^a-z0-9\\s]", "")
+                .replaceAll("\\s+", " ")
+                .trim();
     }
 }

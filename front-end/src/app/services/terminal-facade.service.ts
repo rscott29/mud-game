@@ -39,6 +39,9 @@ export class TerminalFacade {
       case 'display':
         this.store.addDisplayMessage(interpretation.message);
         break;
+      case 'help':
+        this.store.addHelpMessage(interpretation.isGod);
+        break;
       case 'room_display':
         this.store.upsertRoomMessage(interpretation.source);
         break;

@@ -80,4 +80,57 @@ describe('CommandCatalogService', () => {
     expect(chant?.dispatchMode).toBe(COMMAND_DISPATCH_MODES.DIRECT);
     expect(categories[0].title).toBe('Mystic');
   });
+
+  it('surfaces alias summaries, examples, and quick tips for help rendering', () => {
+    service.load();
+
+    const request = httpMock.expectOne('/api/commands');
+    request.flush({
+      commands: [
+        {
+          canonicalName: 'look',
+          aliases: ['look', 'l', 'examine', 'x'],
+          category: 'Exploration',
+          usage: 'look [target]',
+          description: 'Describe surroundings or examine something',
+          godOnly: false,
+          showInHelp: true,
+          dispatchMode: 'NATURAL_LANGUAGE',
+        },
+        {
+          canonicalName: 'go',
+          aliases: ['go', 'move', 'north', 'n', 'south', 's', 'east', 'e', 'west', 'w', 'up', 'u', 'down', 'd'],
+          category: 'Exploration',
+          usage: 'go <direction>',
+          description: 'Move in a direction (n/s/e/w/u/d)',
+          godOnly: false,
+          showInHelp: true,
+          dispatchMode: 'DIRECT',
+        },
+        {
+          canonicalName: 'wave',
+          aliases: ['wave', 'wav'],
+          category: 'Social',
+          usage: 'wave [target|self]',
+          description: 'Wave to someone or simply wave.',
+          godOnly: false,
+          showInHelp: true,
+          dispatchMode: 'DIRECT',
+        },
+      ],
+    });
+
+    const categories = service.helpCategories(false);
+    const tips = service.helpTips();
+    const look = categories[0].entries.find(entry => entry.cmd === 'look [target]');
+    const go = categories[0].entries.find(entry => entry.cmd === 'go <direction>');
+    const social = categories[1].entries.find(entry => entry.cmd === 'wave [target|self]');
+
+    expect(look?.aliasesText).toBe('l, examine, x');
+    expect(look?.example).toBe('look fountain');
+    expect(go?.aliasesText).toContain('move');
+    expect(go?.example).toBe('n');
+    expect(social?.example).toBe('wave self');
+    expect(tips).toContain('Use n, s, e, w, u, and d for quick travel.');
+  });
 });

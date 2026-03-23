@@ -42,6 +42,7 @@ public record GameResponse(
         CLASS_PROGRESSION,
         NARRATIVE,
         ROOM_ACTION,
+        SOCIAL_ACTION,
         AMBIENT_EVENT,
         COMPANION_DIALOGUE
     }
@@ -85,6 +86,10 @@ public record GameResponse(
 
     public static GameResponse roomAction(String message) {
         return new GameResponse(Type.ROOM_ACTION, message, null);
+    }
+
+    public static GameResponse socialAction(String message) {
+        return new GameResponse(Type.SOCIAL_ACTION, message, null);
     }
 
     public static GameResponse ambientEvent(String message) {

@@ -1,5 +1,6 @@
 package com.scott.tech.mud.mud_game.command.move;
 
+import com.scott.tech.mud.mud_game.ai.AiTextPolisher;
 import com.scott.tech.mud.mud_game.command.core.CommandResult;
 import com.scott.tech.mud.mud_game.command.core.GameCommand;
 import com.scott.tech.mud.mud_game.config.Messages;
@@ -39,9 +40,11 @@ public class MoveCommand implements GameCommand {
                        QuestService questService,
                        LevelingService levelingService,
                        WorldService worldService,
-                       AmbientEventService ambientEventService) {
+                       AmbientEventService ambientEventService,
+                       AiTextPolisher textPolisher) {
         this(direction, new MoveValidator(), 
-                new MoveService(taskScheduler, worldBroadcaster, sessionManager, levelingService, ambientEventService, worldService),
+                new MoveService(taskScheduler, worldBroadcaster, sessionManager, levelingService,
+                        ambientEventService, worldService, textPolisher),
                 questService, levelingService, worldService);
     }
 

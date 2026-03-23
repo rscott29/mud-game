@@ -95,6 +95,15 @@ export class MessageFormatterService {
     };
   }
 
+  formatSocialActionMessage(message: string): FormattedMessage {
+    return {
+      cssClass: TERMINAL_MESSAGE_CLASSES.SOCIAL_ACTION,
+      html: this.wrapInlineNarrative(
+        this.formatInlineEventContent('Social', message, 'term-inline-event--social-action')
+      ),
+    };
+  }
+
   formatAmbientEventMessage(message: string): FormattedMessage {
     return {
       cssClass: TERMINAL_MESSAGE_CLASSES.AMBIENT_EVENT,
@@ -127,6 +136,12 @@ export class MessageFormatterService {
           'Traveler',
           msg.message ?? '',
           'term-inline-event--player-action'
+        );
+      case GAME_MESSAGE_TYPES.SOCIAL_ACTION:
+        return this.formatInlineEventContent(
+          'Social',
+          msg.message ?? '',
+          'term-inline-event--social-action'
         );
       case GAME_MESSAGE_TYPES.AMBIENT_EVENT:
       case GAME_MESSAGE_TYPES.COMPANION_DIALOGUE:
@@ -407,6 +422,7 @@ export class MessageFormatterService {
 
   private renderHelp(isGod: boolean): string {
     const categories = this.commandCatalog.helpCategories(isGod);
+    const tips = this.commandCatalog.helpTips();
 
     return `
       <section class="term-card term-card--help">
@@ -417,24 +433,35 @@ export class MessageFormatterService {
           </div>
           <span class="term-badge">${isGod ? "warden's sight" : "traveler's sight"}</span>
         </div>
-        <div class="term-columns">
-          ${categories.length === 0 ? `
-            <div class="term-empty">Command reference is still loading.</div>
-          ` : categories.map(category => `
-            <section class="term-section">
-              <div class="term-section__title">${escapeHtml(category.title)}</div>
-              <div class="term-kv-list">
-                ${category.entries.map(entry => `
-                  <div class="term-kv">
-                    <div class="term-kv__key">${escapeHtml(entry.cmd)}</div>
-                    <div class="term-kv__value">${escapeHtml(entry.desc)}</div>
-                  </div>
+        <div class="term-help">
+          <div class="term-help__body">
+            ${categories.length === 0 ? `
+              <div class="term-empty">Command reference is still loading.</div>
+            ` : `
+              <div class="term-columns">
+                ${categories.map(category => `
+                  <section class="term-section">
+                    <div class="term-section__title">${escapeHtml(category.title)}</div>
+                    <div class="term-kv-list">
+                      ${category.entries.map(entry => `
+                        <div class="term-kv">
+                          <div class="term-kv__key">${escapeHtml(entry.cmd)}</div>
+                          <div class="term-kv__value">${escapeHtml(entry.desc)}</div>
+                          ${entry.aliasesText ? `<div class="term-copy term-copy--muted">Also: ${escapeHtml(entry.aliasesText)}</div>` : ''}
+                          ${entry.example ? `<div class="term-copy term-copy--muted">Try: ${escapeHtml(entry.example)}</div>` : ''}
+                        </div>
+                      `).join('')}
+                    </div>
+                  </section>
                 `).join('')}
               </div>
-            </section>
-          `).join('')}
+            `}
+          </div>
+          <div class="term-footnote term-help__footer">
+            Natural language still works. Plain speech is welcome when a formal command feels clumsy.
+            ${tips.length > 0 ? `<br>${escapeHtml(tips.join(' '))}` : ''}
+          </div>
         </div>
-        <div class="term-footnote">Natural language still works. Plain speech is welcome when a formal command feels clumsy.</div>
       </section>
     `;
   }

@@ -21,6 +21,7 @@
     "keywords": ["obi", "dog", "labrador", "lab", "puppy", "hound"],
     "pronoun": "he",
     "possessive": "his",
+    "humorous": true,
     "talkTemplates": [
       "Obi stares at you with his head tilted to one side, clearly delighted by the attention.",
       "Obi responds to your words with a single, very decisive bark.",

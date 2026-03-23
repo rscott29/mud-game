@@ -1,0 +1,172 @@
+{
+  "actions": [
+    {
+      "name": "wave",
+      "aliases": ["wave", "wav"],
+      "helpDescription": "Wave to someone or simply wave.",
+      "selfMessage": "You wave.",
+      "roomMessage": "{actor} waves.",
+      "targetedSelf": "You wave at {target}.",
+      "targetedRoom": "{actor} waves at {target}.",
+      "targetedTarget": "{actor} waves at you.",
+      "selfTargetSelf": "You wave at yourself.",
+      "selfTargetRoom": "{actor} waves at {actorReflexive}."
+    },
+    {
+      "name": "smile",
+      "aliases": ["smile", "grin"],
+      "helpDescription": "Smile warmly, with or without a target.",
+      "selfMessage": "You smile.",
+      "roomMessage": "{actor} smiles.",
+      "targetedSelf": "You smile at {target}.",
+      "targetedRoom": "{actor} smiles at {target}.",
+      "targetedTarget": "{actor} smiles at you.",
+      "selfTargetSelf": "You smile at yourself.",
+      "selfTargetRoom": "{actor} smiles at {actorReflexive}."
+    },
+    {
+      "name": "nod",
+      "aliases": ["nod"],
+      "helpDescription": "Offer a quick nod of acknowledgment.",
+      "selfMessage": "You nod.",
+      "roomMessage": "{actor} nods.",
+      "targetedSelf": "You nod at {target}.",
+      "targetedRoom": "{actor} nods at {target}.",
+      "targetedTarget": "{actor} nods at you.",
+      "selfTargetSelf": "You nod at yourself.",
+      "selfTargetRoom": "{actor} nods at {actorReflexive}."
+    },
+    {
+      "name": "bow",
+      "aliases": ["bow"],
+      "helpDescription": "Bow gracefully.",
+      "selfMessage": "You bow gracefully.",
+      "roomMessage": "{actor} bows gracefully.",
+      "targetedSelf": "You bow to {target}.",
+      "targetedRoom": "{actor} bows to {target}.",
+      "targetedTarget": "{actor} bows to you.",
+      "selfTargetSelf": "You bow to yourself.",
+      "selfTargetRoom": "{actor} bows to {actorReflexive}."
+    },
+    {
+      "name": "wink",
+      "aliases": ["wink"],
+      "helpDescription": "Give a playful wink.",
+      "selfMessage": "You wink.",
+      "roomMessage": "{actor} winks.",
+      "targetedSelf": "You wink at {target}.",
+      "targetedRoom": "{actor} winks at {target}.",
+      "targetedTarget": "{actor} winks at you.",
+      "selfTargetSelf": "You wink at yourself.",
+      "selfTargetRoom": "{actor} winks at {actorReflexive}."
+    },
+    {
+      "name": "hug",
+      "aliases": ["hug", "embrace"],
+      "helpDescription": "Offer a hug.",
+      "selfMessage": "You hug yourself.",
+      "roomMessage": "{actor} hugs {actorReflexive}.",
+      "targetedSelf": "You hug {target}.",
+      "targetedRoom": "{actor} hugs {target}.",
+      "targetedTarget": "{actor} hugs you.",
+      "selfTargetSelf": "You hug yourself.",
+      "selfTargetRoom": "{actor} hugs {actorReflexive}."
+    },
+    {
+      "name": "sigh",
+      "aliases": ["sigh"],
+      "helpDescription": "Let out a weary sigh.",
+      "selfMessage": "You sigh.",
+      "roomMessage": "{actor} sighs.",
+      "targetedSelf": "You sigh at {target}.",
+      "targetedRoom": "{actor} sighs at {target}.",
+      "targetedTarget": "{actor} sighs at you.",
+      "selfTargetSelf": "You sigh at yourself.",
+      "selfTargetRoom": "{actor} sighs at {actorReflexive}."
+    },
+    {
+      "name": "shrug",
+      "aliases": ["shrug"],
+      "helpDescription": "Shrug in uncertainty.",
+      "selfMessage": "You shrug.",
+      "roomMessage": "{actor} shrugs.",
+      "targetedSelf": "You shrug at {target}.",
+      "targetedRoom": "{actor} shrugs at {target}.",
+      "targetedTarget": "{actor} shrugs at you.",
+      "selfTargetSelf": "You shrug at yourself.",
+      "selfTargetRoom": "{actor} shrugs at {actorReflexive}."
+    },
+    {
+      "name": "laugh",
+      "aliases": ["laugh", "lol", "lmao"],
+      "helpDescription": "Laugh aloud.",
+      "selfMessage": "You laugh.",
+      "roomMessage": "{actor} laughs.",
+      "targetedSelf": "You laugh at {target}.",
+      "targetedRoom": "{actor} laughs at {target}.",
+      "targetedTarget": "{actor} laughs at you.",
+      "selfTargetSelf": "You laugh at yourself.",
+      "selfTargetRoom": "{actor} laughs at {actorReflexive}."
+    },
+    {
+      "name": "cheer",
+      "aliases": ["cheer"],
+      "helpDescription": "Celebrate loudly.",
+      "selfMessage": "You cheer!",
+      "roomMessage": "{actor} cheers!",
+      "targetedSelf": "You cheer for {target}!",
+      "targetedRoom": "{actor} cheers for {target}!",
+      "targetedTarget": "{actor} cheers for you!",
+      "selfTargetSelf": "You cheer for yourself!",
+      "selfTargetRoom": "{actor} cheers for {actorReflexive}!"
+    },
+    {
+      "name": "dance",
+      "aliases": ["dance", "boogie"],
+      "helpDescription": "Dance on your own or with someone.",
+      "selfMessage": "You dance.",
+      "roomMessage": "{actor} dances.",
+      "targetedSelf": "You dance with {target}.",
+      "targetedRoom": "{actor} dances with {target}.",
+      "targetedTarget": "{actor} dances with you.",
+      "selfTargetSelf": "You dance with yourself.",
+      "selfTargetRoom": "{actor} dances with {actorReflexive}."
+    },
+    {
+      "name": "think",
+      "aliases": ["think", "ponder"],
+      "helpDescription": "Look thoughtful.",
+      "selfMessage": "You think deeply.",
+      "roomMessage": "{actor} thinks deeply.",
+      "targetedSelf": "You think about {target}.",
+      "targetedRoom": "{actor} thinks about {target}.",
+      "targetedTarget": "{actor} thinks about you.",
+      "selfTargetSelf": "You think about yourself.",
+      "selfTargetRoom": "{actor} thinks about {actorReflexive}."
+    },
+    {
+      "name": "applaud",
+      "aliases": ["applaud", "clap"],
+      "helpDescription": "Offer applause.",
+      "selfMessage": "You applaud.",
+      "roomMessage": "{actor} applauds.",
+      "targetedSelf": "You applaud {target}.",
+      "targetedRoom": "{actor} applauds {target}.",
+      "targetedTarget": "{actor} applauds you.",
+      "selfTargetSelf": "You applaud yourself.",
+      "selfTargetRoom": "{actor} applauds {actorReflexive}."
+    },
+    {
+      "name": "salute",
+      "aliases": ["salute"],
+      "helpDescription": "Give a formal salute.",
+      "selfMessage": "You salute.",
+      "roomMessage": "{actor} salutes.",
+      "targetedSelf": "You salute {target}.",
+      "targetedRoom": "{actor} salutes {target}.",
+      "targetedTarget": "{actor} salutes you.",
+      "selfTargetSelf": "You salute yourself.",
+      "selfTargetRoom": "{actor} salutes {actorReflexive}."
+    }
+  ]
+}

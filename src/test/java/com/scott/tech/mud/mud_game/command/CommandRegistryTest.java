@@ -74,7 +74,7 @@ class CommandRegistryTest {
     }
 
     @Test
-    void builtInSocialsAreRegisteredLikeNormalCommands() {
+    void dataDrivenSocialsAreRegisteredLikeNormalCommands() {
         CommandMetadata wave = CommandRegistry.getMetadata("wave").orElseThrow();
 
         assertThat(wave.category().getDisplayName()).isEqualTo("Social");

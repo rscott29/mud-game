@@ -61,6 +61,31 @@
   font-size: 0.9em;
 }
 
+.term-card--help {
+  gap: 14px;
+  max-height: min(68vh, 44rem);
+}
+
+.term-help {
+  display: grid;
+  grid-template-rows: minmax(0, 1fr) auto;
+  gap: 12px;
+  min-height: 0;
+}
+
+.term-help__body {
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding-right: 6px;
+  scrollbar-gutter: stable;
+}
+
+.term-help__footer {
+  padding-top: 10px;
+  border-top: 1px solid rgba(214, 177, 115, 0.12);
+}
+
 .term-copy--preformatted {
   display: block;
   max-width: 100%;
@@ -217,10 +242,39 @@
   line-height: 1.5;
 }
 
+.term-inline-event--social-action {
+  padding: 7px 11px;
+  border: 1px solid rgba(212, 173, 97, 0.24);
+  border-radius: 12px;
+  background:
+    linear-gradient(135deg, rgba(212, 173, 97, 0.16), rgba(183, 200, 161, 0.08)),
+    rgba(19, 16, 12, 0.88);
+  color: #f4e5c4;
+  font-style: normal;
+  line-height: 1.5;
+  box-shadow:
+    0 8px 24px rgba(0, 0, 0, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.03);
+}
+
+.term-inline-event--social-action .term-inline-event__label {
+  color: #f0ca83;
+}
+
+.term-inline-event--social-action .term-inline-event__text {
+  color: #f7eddc;
+}
+
 .term-columns {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   gap: 14px;
+}
+
+.term-card--help .term-columns {
+  display: block;
+  columns: 18rem;
+  column-gap: 14px;
 }
 
 .term-section {
@@ -411,6 +465,29 @@
   font-size: 0.9em;
 }
 
+.term-card--help .term-section {
+  display: inline-flex;
+  width: 100%;
+  margin: 0 0 14px;
+  gap: 10px;
+  padding: 12px 13px;
+  break-inside: avoid;
+  page-break-inside: avoid;
+}
+
+.term-card--help .term-kv-list {
+  gap: 10px;
+}
+
+.term-card--help .term-kv {
+  gap: 4px;
+}
+
+.term-card--help .term-kv__value,
+.term-card--help .term-copy--muted {
+  font-size: 0.86em;
+}
+
 .term-footnote {
   color: var(--terminal-muted);
   font-size: 0.82em;
@@ -519,6 +596,14 @@
 @media (max-width: 640px) {
   .term-card {
     padding: 16px;
+  }
+
+  .term-card--help {
+    max-height: min(62vh, 36rem);
+  }
+
+  .term-card--help .term-columns {
+    columns: 1;
   }
 
   .term-card--prompt-auth {

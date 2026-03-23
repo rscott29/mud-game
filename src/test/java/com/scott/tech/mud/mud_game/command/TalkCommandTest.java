@@ -119,6 +119,42 @@ class TalkCommandTest {
     }
 
     @Test
+    void exactNpcTargetBeatsDescriptionOnlyCollisionInSameRoom() {
+        Npc child = new Npc(
+                "child",
+                "Joyful Child",
+                "A cheerful child who keeps talking about Obi the dog.",
+                List.of("child", "kid"),
+                "they",
+                "their",
+                0,
+                0,
+                List.of(),
+                List.of(),
+                List.of(),
+                List.of(),
+                false,
+                List.of("The child responds instead."),
+                null,
+                false,
+                false,
+                0,
+                0,
+                0,
+                0,
+                true
+        );
+        Npc obi = nonSentientNpc("obi", List.of("Obi gives {player} a decisive bark."));
+        setRoom(List.of(child, obi));
+
+        CommandResult result = new TalkCommand("obi", chatClient).execute(session);
+
+        assertThat(singleResponse(result).message())
+                .contains("Obi gives Adventurer a decisive bark.")
+                .doesNotContain("The child responds instead.");
+    }
+
+    @Test
     void nonSentient_noTemplates_returnsFallbackProse() {
         Npc silent = nonSentientNpc("rock", List.of());
         setRoom(List.of(silent));

@@ -2,6 +2,7 @@ package com.scott.tech.mud.mud_game.command;
 
 import com.scott.tech.mud.mud_game.auth.AccountStore;
 import com.scott.tech.mud.mud_game.auth.ReconnectTokenStore;
+import com.scott.tech.mud.mud_game.ai.AiTextPolisher;
 import com.scott.tech.mud.mud_game.combat.CombatLoopScheduler;
 import com.scott.tech.mud.mud_game.combat.CombatService;
 import com.scott.tech.mud.mud_game.combat.CombatState;
@@ -16,6 +17,7 @@ import com.scott.tech.mud.mud_game.command.core.CommandResult;
 import com.scott.tech.mud.mud_game.command.core.GameCommand;
 import com.scott.tech.mud.mud_game.command.drop.DropService;
 import com.scott.tech.mud.mud_game.command.drop.DropValidator;
+import com.scott.tech.mud.mud_game.command.emote.EmotePerspectiveResolver;
 import com.scott.tech.mud.mud_game.command.equip.EquipService;
 import com.scott.tech.mud.mud_game.command.equip.EquipValidator;
 import com.scott.tech.mud.mud_game.command.look.LookCommand;
@@ -66,6 +68,8 @@ class CommandFactoryTest {
     private PickupService pickupService;
     private DropValidator dropValidator;
     private DropService dropService;
+    private AiTextPolisher aiTextPolisher;
+    private EmotePerspectiveResolver emotePerspectiveResolver;
     private EquipValidator equipValidator;
     private EquipService equipService;
     private AttackValidator attackValidator;
@@ -98,6 +102,8 @@ class CommandFactoryTest {
         pickupService = mock(PickupService.class);
         dropValidator = mock(DropValidator.class);
         dropService = mock(DropService.class);
+        aiTextPolisher = mock(AiTextPolisher.class);
+        emotePerspectiveResolver = mock(EmotePerspectiveResolver.class);
         equipValidator = mock(EquipValidator.class);
         equipService = mock(EquipService.class);
         attackValidator = mock(AttackValidator.class);
@@ -119,6 +125,8 @@ class CommandFactoryTest {
         ambientEventService = mock(AmbientEventService.class);
         factory = new CommandFactory(taskScheduler, worldBroadcaster, sessionManager,
                 inventoryService, discoveredExitService, pickupValidator, pickupService, dropValidator, dropService,
+                aiTextPolisher,
+                emotePerspectiveResolver,
                 equipValidator, equipService,
                 attackValidator, combatService, combatState, combatLoopScheduler,
                 talkValidator, talkService, socialValidator, socialService,
