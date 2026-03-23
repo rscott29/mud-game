@@ -34,6 +34,7 @@ public class GameEngine {
         if (session.getState() != SessionState.PLAYING) {
             return CommandResult.of(GameResponse.error(Messages.get("error.session_not_active")));
         }
+        session.recordPlayerAction();
         GameCommand command = commandFactory.create(request);
         return command.execute(session);
     }

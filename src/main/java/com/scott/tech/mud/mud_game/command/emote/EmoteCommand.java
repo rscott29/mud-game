@@ -31,12 +31,19 @@ import java.util.regex.Pattern;
  */
 public class EmoteCommand implements GameCommand {
 
+    static final String SELF_TOKEN = "<<SELF>>";
+    static final String TARGET_TOKEN = "<<TARGET>>";
+
     private final String emoteText;
     private final GameSessionManager sessionManager;
+    private final EmotePerspectiveResolver perspectiveResolver;
 
-    public EmoteCommand(String emoteText, GameSessionManager sessionManager) {
+    public EmoteCommand(String emoteText,
+                        GameSessionManager sessionManager,
+                        EmotePerspectiveResolver perspectiveResolver) {
         this.emoteText = emoteText == null ? "" : emoteText.trim();
         this.sessionManager = sessionManager;
+        this.perspectiveResolver = perspectiveResolver;
     }
 
     @Override
@@ -50,18 +57,23 @@ public class EmoteCommand implements GameCommand {
         String playerName = session.getPlayer().getName();
         String roomId = session.getPlayer().getCurrentRoomId();
         Pronouns pronouns = session.getPlayer().getPronouns();
+        String reflexive = pronouns == null || pronouns.reflexive() == null || pronouns.reflexive().isBlank()
+                ? "themselves"
+                : pronouns.reflexive();
 
         String normalizedEmote = normalize(emoteText);
 
         // Self-target handling first
         Matcher selfMatcher = wholeWordMatcher(playerName, normalizedEmote);
         if (selfMatcher.find()) {
-            String othersMessage = playerName + " " + selfMatcher.replaceFirst(pronouns.reflexive());
-            String selfMessage = "You " + selfMatcher.replaceFirst("yourself");
+            EmotePerspectiveResolver.Perspective perspective =
+                    perspectiveResolver.resolve(selfMatcher.replaceFirst(SELF_TOKEN));
+            String othersMessage = playerName + " " + perspective.thirdPerson().replace(SELF_TOKEN, reflexive);
+            String selfMessage = "You " + perspective.secondPerson().replace(SELF_TOKEN, "yourself");
 
             return CommandResult.withAction(
-                    RoomAction.inCurrentRoom(othersMessage),
-                    GameResponse.narrative(selfMessage)
+                    RoomAction.inCurrentRoom(othersMessage, GameResponse.Type.SOCIAL_ACTION),
+                    GameResponse.socialAction(selfMessage)
             );
         }
 
@@ -75,28 +87,32 @@ public class EmoteCommand implements GameCommand {
             Matcher matcher = wholeWordMatcher(targetName, normalizedEmote);
 
             if (matcher.find()) {
-                String messageForOthers = playerName + " " + matcher.replaceFirst(targetName);
-                String messageForTarget = playerName + " " + matcher.replaceFirst("you");
-                String messageForSelf = "You " + matcher.replaceFirst(targetName);
+                EmotePerspectiveResolver.Perspective perspective =
+                        perspectiveResolver.resolve(matcher.replaceFirst(TARGET_TOKEN));
+                String messageForOthers = playerName + " " + perspective.thirdPerson().replace(TARGET_TOKEN, targetName);
+                String messageForTarget = playerName + " " + perspective.thirdPerson().replace(TARGET_TOKEN, "you");
+                String messageForSelf = "You " + perspective.secondPerson().replace(TARGET_TOKEN, targetName);
 
                 return CommandResult.withAction(
                         RoomAction.withTarget(
                                 messageForOthers,
                                 other.getSessionId(),
-                                messageForTarget
+                                messageForTarget,
+                                GameResponse.Type.SOCIAL_ACTION
                         ),
-                        GameResponse.narrative(messageForSelf)
+                        GameResponse.socialAction(messageForSelf)
                 );
             }
         }
 
         // No target found - normal room emote
-        String roomMessage = playerName + " " + normalizedEmote;
-        String selfMessage = "You " + normalizedEmote;
+        EmotePerspectiveResolver.Perspective perspective = perspectiveResolver.resolve(normalizedEmote);
+        String roomMessage = playerName + " " + perspective.thirdPerson();
+        String selfMessage = "You " + perspective.secondPerson();
 
         return CommandResult.withAction(
-                RoomAction.inCurrentRoom(roomMessage),
-                GameResponse.narrative(selfMessage)
+                RoomAction.inCurrentRoom(roomMessage, GameResponse.Type.SOCIAL_ACTION),
+                GameResponse.socialAction(selfMessage)
         );
     }
 

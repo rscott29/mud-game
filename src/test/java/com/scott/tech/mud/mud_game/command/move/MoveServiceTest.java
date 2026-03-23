@@ -1,5 +1,7 @@
 package com.scott.tech.mud.mud_game.command.move;
 
+import com.scott.tech.mud.mud_game.ai.AiTextPolisher;
+import com.scott.tech.mud.mud_game.config.Messages;
 import com.scott.tech.mud.mud_game.dto.GameResponse;
 import com.scott.tech.mud.mud_game.model.Direction;
 import com.scott.tech.mud.mud_game.model.Npc;
@@ -38,6 +40,150 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 class MoveServiceTest {
+
+    @Test
+    void buildResult_usesTextPolisherForMovementAndNpcInteractionTemplates() {
+        TaskScheduler taskScheduler = mock(TaskScheduler.class);
+        WorldBroadcaster broadcaster = mock(WorldBroadcaster.class);
+        LevelingService levelingService = mock(LevelingService.class);
+        AmbientEventService ambientEventService = mock(AmbientEventService.class);
+        WorldService worldService = mock(WorldService.class);
+        GameSessionManager sessionManager = new GameSessionManager();
+        AiTextPolisher textPolisher = mock(AiTextPolisher.class);
+
+        when(ambientEventService.getRandomAmbientEvent(anyString())).thenReturn(Optional.empty());
+        when(ambientEventService.getRandomCompanionDialogue(any(), anyString())).thenReturn(Optional.empty());
+        when(textPolisher.polish(Messages.get("command.move.departure"), AiTextPolisher.Style.ROOM_EVENT))
+                .thenReturn("{player} slips {direction} like a shadow.");
+        when(textPolisher.polish(Messages.get("command.move.arrival"), AiTextPolisher.Style.ROOM_EVENT))
+                .thenReturn("{player} emerges from the {direction}.");
+        when(textPolisher.polish(
+                "Mira studies {player} carefully.",
+                AiTextPolisher.Style.ROOM_EVENT,
+                AiTextPolisher.Tone.DEFAULT
+        ))
+                .thenReturn("Mira gives {player} a long, thoughtful look.");
+
+        List<ScheduledCall> scheduledCalls = new ArrayList<>();
+        doAnswer(invocation -> {
+            scheduledCalls.add(new ScheduledCall(invocation.getArgument(0), invocation.getArgument(1)));
+            return new NoOpScheduledFuture();
+        }).when(taskScheduler).schedule(any(Runnable.class), any(Instant.class));
+
+        Room startRoom = new Room("start", "Trail", "A dusty trail.", exits(Direction.NORTH, "grove"), List.of(), List.of());
+        Room nextRoom = new Room(
+                "grove",
+                "Whispering Grove",
+                "Trees lean close here.",
+                new EnumMap<>(Direction.class),
+                List.of(),
+                List.of(npcWithInteraction("npc_1", "Mira", "Mira studies {player} carefully."))
+        );
+
+        when(worldService.getRoom("start")).thenReturn(startRoom);
+        when(worldService.getRoom("grove")).thenReturn(nextRoom);
+
+        Player player = new Player("p1", "Hero", "start");
+        GameSession session = new GameSession("session-1", player, worldService);
+        session.transition(SessionState.PLAYING);
+        sessionManager.register(session);
+
+        MoveService service = new MoveService(
+                taskScheduler,
+                broadcaster,
+                sessionManager,
+                levelingService,
+                ambientEventService,
+                worldService,
+                textPolisher
+        );
+
+        service.buildResult(session, Direction.NORTH, MoveValidationResult.allow("grove", nextRoom));
+        scheduledCalls.forEach(call -> call.task().run());
+
+        ArgumentCaptor<GameResponse> roomBroadcasts = ArgumentCaptor.forClass(GameResponse.class);
+        verify(broadcaster, times(2)).broadcastToRoom(anyString(), roomBroadcasts.capture(), eq("session-1"));
+        assertThat(roomBroadcasts.getAllValues())
+                .extracting(GameResponse::message)
+                .containsExactlyInAnyOrder(
+                        "Hero slips north like a shadow.",
+                        "Hero emerges from the south."
+                );
+
+        ArgumentCaptor<GameResponse> flavorResponses = ArgumentCaptor.forClass(GameResponse.class);
+        verify(broadcaster).sendRoomFlavorToSession(eq("session-1"), flavorResponses.capture());
+        assertThat(flavorResponses.getValue().message()).isEqualTo("Mira gives Hero a long, thoughtful look.");
+    }
+
+    @Test
+    void buildResult_usesPlayfulToneForHumorousNpcInteractionTemplates() {
+        TaskScheduler taskScheduler = mock(TaskScheduler.class);
+        WorldBroadcaster broadcaster = mock(WorldBroadcaster.class);
+        LevelingService levelingService = mock(LevelingService.class);
+        AmbientEventService ambientEventService = mock(AmbientEventService.class);
+        WorldService worldService = mock(WorldService.class);
+        GameSessionManager sessionManager = new GameSessionManager();
+        AiTextPolisher textPolisher = mock(AiTextPolisher.class);
+
+        when(ambientEventService.getRandomAmbientEvent(anyString())).thenReturn(Optional.empty());
+        when(ambientEventService.getRandomCompanionDialogue(any(), anyString())).thenReturn(Optional.empty());
+        when(textPolisher.polish(Messages.get("command.move.departure"), AiTextPolisher.Style.ROOM_EVENT))
+                .thenReturn(Messages.get("command.move.departure"));
+        when(textPolisher.polish(Messages.get("command.move.arrival"), AiTextPolisher.Style.ROOM_EVENT))
+                .thenReturn(Messages.get("command.move.arrival"));
+        when(textPolisher.polish(
+                "Obi circles {player} with theatrical enthusiasm.",
+                AiTextPolisher.Style.ROOM_EVENT,
+                AiTextPolisher.Tone.PLAYFUL
+        ))
+                .thenReturn("Obi does a tiny victory lap around {player}.");
+
+        List<ScheduledCall> scheduledCalls = new ArrayList<>();
+        doAnswer(invocation -> {
+            scheduledCalls.add(new ScheduledCall(invocation.getArgument(0), invocation.getArgument(1)));
+            return new NoOpScheduledFuture();
+        }).when(taskScheduler).schedule(any(Runnable.class), any(Instant.class));
+
+        Room startRoom = new Room("start", "Trail", "A dusty trail.", exits(Direction.NORTH, "grove"), List.of(), List.of());
+        Room nextRoom = new Room(
+                "grove",
+                "Whispering Grove",
+                "Trees lean close here.",
+                new EnumMap<>(Direction.class),
+                List.of(),
+                List.of(npcWithInteraction("npc_obi", "Obi", "Obi circles {player} with theatrical enthusiasm.", true))
+        );
+
+        when(worldService.getRoom("start")).thenReturn(startRoom);
+        when(worldService.getRoom("grove")).thenReturn(nextRoom);
+
+        Player player = new Player("p1", "Hero", "start");
+        GameSession session = new GameSession("session-1", player, worldService);
+        session.transition(SessionState.PLAYING);
+        sessionManager.register(session);
+
+        MoveService service = new MoveService(
+                taskScheduler,
+                broadcaster,
+                sessionManager,
+                levelingService,
+                ambientEventService,
+                worldService,
+                textPolisher
+        );
+
+        service.buildResult(session, Direction.NORTH, MoveValidationResult.allow("grove", nextRoom));
+        scheduledCalls.forEach(call -> call.task().run());
+
+        ArgumentCaptor<GameResponse> flavorResponses = ArgumentCaptor.forClass(GameResponse.class);
+        verify(broadcaster).sendRoomFlavorToSession(eq("session-1"), flavorResponses.capture());
+        assertThat(flavorResponses.getValue().message()).isEqualTo("Obi does a tiny victory lap around Hero.");
+        verify(textPolisher).polish(
+                "Obi circles {player} with theatrical enthusiasm.",
+                AiTextPolisher.Style.ROOM_EVENT,
+                AiTextPolisher.Tone.PLAYFUL
+        );
+    }
 
     @Test
     void buildResult_staggersNpcInteractionMessages() {
@@ -165,6 +311,59 @@ class MoveServiceTest {
     }
 
     @Test
+    void delayedNpcMessagesAreDroppedAfterPlayerActsAgain() {
+        TaskScheduler taskScheduler = mock(TaskScheduler.class);
+        WorldBroadcaster broadcaster = mock(WorldBroadcaster.class);
+        LevelingService levelingService = mock(LevelingService.class);
+        AmbientEventService ambientEventService = mock(AmbientEventService.class);
+        WorldService worldService = mock(WorldService.class);
+        GameSessionManager sessionManager = new GameSessionManager();
+
+        when(ambientEventService.getRandomAmbientEvent(anyString())).thenReturn(Optional.empty());
+        when(ambientEventService.getRandomCompanionDialogue(any(), anyString())).thenReturn(Optional.empty());
+
+        List<ScheduledCall> scheduledCalls = new ArrayList<>();
+        doAnswer(invocation -> {
+            scheduledCalls.add(new ScheduledCall(invocation.getArgument(0), invocation.getArgument(1)));
+            return new NoOpScheduledFuture();
+        }).when(taskScheduler).schedule(any(Runnable.class), any(Instant.class));
+
+        Room startRoom = new Room("start", "Trail", "A dusty trail.", exits(Direction.NORTH, "grove"), List.of(), List.of());
+        Room nextRoom = new Room(
+                "grove",
+                "Whispering Grove",
+                "Trees lean close here.",
+                new EnumMap<>(Direction.class),
+                List.of(),
+                List.of(npcWithInteraction("npc_1", "Mira", "Mira studies {player} carefully."))
+        );
+
+        when(worldService.getRoom("start")).thenReturn(startRoom);
+        when(worldService.getRoom("grove")).thenReturn(nextRoom);
+
+        Player player = new Player("p1", "Hero", "start");
+        GameSession session = new GameSession("session-1", player, worldService);
+        session.transition(SessionState.PLAYING);
+        sessionManager.register(session);
+
+        MoveService service = new MoveService(
+                taskScheduler,
+                broadcaster,
+                sessionManager,
+                levelingService,
+                ambientEventService,
+                worldService
+        );
+
+        service.buildResult(session, Direction.NORTH, MoveValidationResult.allow("grove", nextRoom));
+        session.recordPlayerAction();
+
+        scheduledCalls.forEach(call -> call.task().run());
+
+        verify(broadcaster, never()).sendRoomFlavorToSession(anyString(), any(GameResponse.class));
+    }
+
+    @Test
     void buildResult_broadcastsPlayerMovementAsRoomAction() {
         TaskScheduler taskScheduler = mock(TaskScheduler.class);
         WorldBroadcaster broadcaster = mock(WorldBroadcaster.class);
@@ -213,6 +412,10 @@ class MoveServiceTest {
     }
 
     private static Npc npcWithInteraction(String id, String name, String interactTemplate) {
+        return npcWithInteraction(id, name, interactTemplate, false);
+    }
+
+    private static Npc npcWithInteraction(String id, String name, String interactTemplate, boolean humorous) {
         return new Npc(
                 id,
                 name,
@@ -229,6 +432,7 @@ class MoveServiceTest {
                 true,
                 List.of(),
                 null,
+                humorous,
                 false,
                 false,
                 0,

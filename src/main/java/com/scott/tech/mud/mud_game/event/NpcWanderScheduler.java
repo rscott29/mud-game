@@ -1,5 +1,6 @@
 package com.scott.tech.mud.mud_game.event;
 
+import com.scott.tech.mud.mud_game.ai.AiTextPolisher;
 import com.scott.tech.mud.mud_game.dto.GameResponse;
 import com.scott.tech.mud.mud_game.model.Direction;
 import com.scott.tech.mud.mud_game.model.Npc;
@@ -48,6 +49,7 @@ public class NpcWanderScheduler {
     private final WorldService worldService;
     private final WorldBroadcaster broadcaster;
     private final TaskScheduler taskScheduler;
+    private final AiTextPolisher textPolisher;
 
     /** Tracks the next path step index for each path-following NPC (keyed by npcId). */
     private final Map<String, AtomicInteger> pathIndices = new ConcurrentHashMap<>();
@@ -57,10 +59,12 @@ public class NpcWanderScheduler {
 
     public NpcWanderScheduler(WorldService worldService,
                                WorldBroadcaster broadcaster,
-                               TaskScheduler taskScheduler) {
+                               TaskScheduler taskScheduler,
+                               AiTextPolisher textPolisher) {
         this.worldService  = worldService;
         this.broadcaster   = broadcaster;
         this.taskScheduler = taskScheduler;
+        this.textPolisher  = textPolisher == null ? AiTextPolisher.noOp() : textPolisher;
     }
 
     @PostConstruct
@@ -177,8 +181,12 @@ public class NpcWanderScheduler {
         List<String> templates = npc.getWanderDepartureTemplates();
         if (templates.isEmpty()) return null;
         String tmpl = templates.get(ThreadLocalRandom.current().nextInt(templates.size()));
+        AiTextPolisher.Tone tone = npc.isHumorous()
+                ? AiTextPolisher.Tone.PLAYFUL
+                : AiTextPolisher.Tone.DEFAULT;
+        String polishedTemplate = textPolisher.polish(tmpl, AiTextPolisher.Style.ROOM_EVENT, tone);
         String dirStr = dir != null ? dir.name().toLowerCase() : "";
-        return tmpl
+        return polishedTemplate
                 .replace("{name}",    npc.getName())
                 .replace("{pronoun}", npc.getPossessive())
                 .replace("{dir}",     dirStr);
@@ -189,8 +197,12 @@ public class NpcWanderScheduler {
         List<String> templates = npc.getWanderArrivalTemplates();
         if (templates.isEmpty()) return null;
         String tmpl = templates.get(ThreadLocalRandom.current().nextInt(templates.size()));
+        AiTextPolisher.Tone tone = npc.isHumorous()
+                ? AiTextPolisher.Tone.PLAYFUL
+                : AiTextPolisher.Tone.DEFAULT;
+        String polishedTemplate = textPolisher.polish(tmpl, AiTextPolisher.Style.ROOM_EVENT, tone);
         String fromStr = fromDir != null ? fromDir.name().toLowerCase() : "somewhere";
-        return tmpl
+        return polishedTemplate
                 .replace("{name}", npc.getName())
                 .replace("{from}", fromStr);
     }

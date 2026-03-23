@@ -112,7 +112,7 @@ public class GameWebSocketHandler extends TextWebSocketHandler {
                                 // Send personalized message to target player if specified
                                 if (action.targetSessionId() != null && action.targetMessage() != null) {
                                     broadcaster.sendRoomBroadcastToSession(action.targetSessionId(),
-                                            GameResponse.roomAction(action.targetMessage()));
+                                            roomBroadcastResponse(action.responseType(), action.targetMessage()));
                                 }
 
                                 // Broadcast to room, excluding both the acting player and the target
@@ -120,7 +120,10 @@ public class GameWebSocketHandler extends TextWebSocketHandler {
                                     String sid = session.getSessionId();
                                     if (sid.equals(wsSession.getId())) return;
                                     if (sid.equals(action.targetSessionId())) return;
-                                    broadcaster.sendRoomBroadcastToSession(sid, GameResponse.roomAction(action.message()));
+                                    broadcaster.sendRoomBroadcastToSession(
+                                            sid,
+                                            roomBroadcastResponse(action.responseType(), action.message())
+                                    );
                                 });
                             }
 
@@ -175,5 +178,12 @@ public class GameWebSocketHandler extends TextWebSocketHandler {
     @Override
     public void handleTransportError(@NonNull WebSocketSession wsSession, @NonNull Throwable exception) {
         log.error("Transport error for session {}: {}", wsSession.getId(), exception.getMessage());
+    }
+
+    private GameResponse roomBroadcastResponse(GameResponse.Type responseType, String message) {
+        if (responseType == GameResponse.Type.SOCIAL_ACTION) {
+            return GameResponse.socialAction(message);
+        }
+        return GameResponse.roomAction(message);
     }
 }

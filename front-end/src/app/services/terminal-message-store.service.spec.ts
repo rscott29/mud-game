@@ -11,6 +11,10 @@ class MockCommandCatalogService {
   helpCategories(): [] {
     return [];
   }
+
+  helpTips(): [] {
+    return [];
+  }
 }
 
 describe('TerminalMessageStore', () => {
@@ -93,6 +97,34 @@ describe('TerminalMessageStore', () => {
     expect(store.messages()[0].html).toContain('Quentor arrives from the east.');
   });
 
+  it('appends social actions into the active room entry without losing their styling hook', () => {
+    const store = TestBed.inject(TerminalMessageStore);
+    const room = {
+      id: 'town_square',
+      name: 'Town Square',
+      description: 'A lively square.',
+      exits: ['north'],
+      items: [],
+      npcs: [],
+      players: [],
+    };
+
+    store.upsertRoomMessage({ type: GAME_MESSAGE_TYPES.ROOM_UPDATE, message: 'You arrive.', room });
+    store.appendToActiveRoomMessage(
+      { type: GAME_MESSAGE_TYPES.SOCIAL_ACTION, message: 'You dance.' },
+      '<span class="term-inline-event term-inline-event--social-action">You dance.</span>',
+      {
+        cssClass: TERMINAL_MESSAGE_CLASSES.SOCIAL_ACTION,
+        html: '<div>You dance.</div>',
+      }
+    );
+
+    expect(store.messages()).toHaveLength(1);
+    expect(store.messages()[0].html).toContain('You arrive.');
+    expect(store.messages()[0].html).toContain('term-inline-event--social-action');
+    expect(store.messages()[0].html).toContain('You dance.');
+  });
+
   it('moves the active room entry back to the bottom when it receives a later update', () => {
     const store = TestBed.inject(TerminalMessageStore);
     const room = {
@@ -123,5 +155,16 @@ describe('TerminalMessageStore', () => {
     expect(store.messages()[0].cssClass).toBe(TERMINAL_MESSAGE_CLASSES.INVENTORY_UPDATE);
     expect(store.messages()[1].cssClass).toBe(TERMINAL_MESSAGE_CLASSES.ROOM_UPDATE);
     expect(store.messages()[1].html).toContain('Quentor arrives from the east.');
+  });
+
+  it('stores help entries with enough context to rerender them later', () => {
+    const store = TestBed.inject(TerminalMessageStore);
+
+    store.addHelpMessage(true);
+
+    expect(store.messages()).toHaveLength(1);
+    expect(store.messages()[0].cssClass).toBe(TERMINAL_MESSAGE_CLASSES.HELP);
+    expect(store.messages()[0].helpIsGod).toBe(true);
+    expect(store.messages()[0].html).toContain("Traveler's handbook");
   });
 });

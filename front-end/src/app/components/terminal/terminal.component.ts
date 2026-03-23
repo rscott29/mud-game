@@ -10,6 +10,7 @@ import {
 import { FormsModule } from '@angular/forms';
 import { NgClass } from '@angular/common';
 
+import { TERMINAL_MESSAGE_CLASSES, type TerminalMessageClass } from '../../models/game-message';
 import { SafeHtmlPipe } from '../../pipes/safe-html.pipe';
 import { CharacterCreationComponent } from '../character-creation/character-creation.component';
 import { TerminalFacade } from '../../services/terminal-facade.service';
@@ -44,9 +45,9 @@ export class TerminalComponent {
 
   constructor() {
     effect(() => {
-      this.view.messages();
+      const lastMessageClass = this.view.messages().at(-1)?.cssClass;
       this.view.characterCreationData();
-      requestAnimationFrame(() => this.scrollToBottom());
+      requestAnimationFrame(() => this.scrollLatestIntoView(lastMessageClass));
     });
   }
 
@@ -59,11 +60,21 @@ export class TerminalComponent {
     this.facade.disconnect();
   }
 
-  private scrollToBottom(): void {
+  private scrollLatestIntoView(lastMessageClass?: TerminalMessageClass): void {
     const el = this.logEl?.nativeElement;
     if (!el) {
       return;
     }
+
+    if (lastMessageClass === TERMINAL_MESSAGE_CLASSES.HELP) {
+      const helpCards = el.querySelectorAll<HTMLDivElement>('.msg.HELP');
+      const latestHelpCard = helpCards.item(helpCards.length - 1);
+      if (latestHelpCard) {
+        el.scrollTop = Math.max(0, latestHelpCard.offsetTop - 12);
+        return;
+      }
+    }
+
     el.scrollTop = el.scrollHeight;
   }
 }

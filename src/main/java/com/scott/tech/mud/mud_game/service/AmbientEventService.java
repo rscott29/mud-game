@@ -2,8 +2,10 @@ package com.scott.tech.mud.mud_game.service;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.scott.tech.mud.mud_game.ai.AiTextPolisher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
 
@@ -32,11 +34,14 @@ public class AmbientEventService {
 
     private final Map<String, String> lastZoneEvent = new ConcurrentHashMap<>();
     private final Map<String, String> lastCompanionEvent = new ConcurrentHashMap<>();
+    private final AiTextPolisher textPolisher;
 
     private long delayMinMs = 1500;
     private long delayMaxMs = 3500;
 
-    public AmbientEventService(ObjectMapper objectMapper) {
+    @Autowired
+    public AmbientEventService(ObjectMapper objectMapper, AiTextPolisher textPolisher) {
+        this.textPolisher = textPolisher == null ? AiTextPolisher.noOp() : textPolisher;
         try {
             JsonNode root = objectMapper.readTree(
                     new ClassPathResource(AMBIENT_EVENTS_PATH).getInputStream());
@@ -65,14 +70,20 @@ public class AmbientEventService {
         if (shouldTrigger("uneasy")) {
             List<String> uneasy = events.get("uneasy");
             if (uneasy != null && !uneasy.isEmpty()) {
-                return Optional.of(randomFromAvoidRepeat(uneasy, zoneKey + ":uneasy", lastZoneEvent));
+                return Optional.of(textPolisher.polish(
+                        randomFromAvoidRepeat(uneasy, zoneKey + ":uneasy", lastZoneEvent),
+                        AiTextPolisher.Style.AMBIENT_EVENT
+                ));
             }
         }
 
         if (shouldTrigger("ambient")) {
             List<String> ambient = events.get("ambient");
             if (ambient != null && !ambient.isEmpty()) {
-                return Optional.of(randomFromAvoidRepeat(ambient, zoneKey + ":ambient", lastZoneEvent));
+                return Optional.of(textPolisher.polish(
+                        randomFromAvoidRepeat(ambient, zoneKey + ":ambient", lastZoneEvent),
+                        AiTextPolisher.Style.AMBIENT_EVENT
+                ));
             }
         }
 
@@ -108,7 +119,10 @@ public class AmbientEventService {
         }
 
         NpcLine chosen = randomNpcLineAvoidRepeat(eligible, zoneKey);
-        return Optional.of(new CompanionLine(chosen.npcId(), chosen.message()));
+        return Optional.of(new CompanionLine(
+                chosen.npcId(),
+                textPolisher.polish(chosen.message(), AiTextPolisher.Style.NPC_DIALOGUE)
+        ));
     }
 
     public long getRandomDelayMs() {

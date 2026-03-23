@@ -2,12 +2,14 @@ package com.scott.tech.mud.mud_game.command.registry;
 
 import com.scott.tech.mud.mud_game.auth.AccountStore;
 import com.scott.tech.mud.mud_game.auth.ReconnectTokenStore;
+import com.scott.tech.mud.mud_game.ai.AiTextPolisher;
 import com.scott.tech.mud.mud_game.combat.CombatLoopScheduler;
 import com.scott.tech.mud.mud_game.combat.CombatService;
 import com.scott.tech.mud.mud_game.combat.CombatState;
 import com.scott.tech.mud.mud_game.command.attack.AttackValidator;
 import com.scott.tech.mud.mud_game.command.drop.DropService;
 import com.scott.tech.mud.mud_game.command.drop.DropValidator;
+import com.scott.tech.mud.mud_game.command.emote.EmotePerspectiveResolver;
 import com.scott.tech.mud.mud_game.command.equip.EquipService;
 import com.scott.tech.mud.mud_game.command.equip.EquipValidator;
 import com.scott.tech.mud.mud_game.command.pickup.PickupService;
@@ -43,6 +45,8 @@ public record CommandDependencies(
         PickupService pickupService,
         DropValidator dropValidator,
         DropService dropService,
+        AiTextPolisher aiTextPolisher,
+        EmotePerspectiveResolver emotePerspectiveResolver,
         EquipValidator equipValidator,
         EquipService equipService,
         AttackValidator attackValidator,

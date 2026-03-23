@@ -1,4 +1,4 @@
-import { Injectable, inject, signal } from '@angular/core';
+import { Injectable, effect, inject, signal, untracked } from '@angular/core';
 
 import {
   CharacterCreationDto,
@@ -7,11 +7,13 @@ import {
   type TerminalMessageClass,
 } from '../models/game-message';
 import { FormattedMessage, MessageFormatterService } from './message-formatter.service';
+import { CommandCatalogService } from './command-catalog.service';
 
 export interface DisplayMessage {
   id: number;
   cssClass: TerminalMessageClass;
   html: string;
+  helpIsGod?: boolean;
   roomId?: string;
   roomMessage?: string;
   room?: GameMessage['room'];
@@ -26,6 +28,7 @@ export interface TerminalStateChanges {
 @Injectable()
 export class TerminalMessageStore {
   private readonly formatter = inject(MessageFormatterService);
+  private readonly commandCatalog = inject(CommandCatalogService);
 
   private nextId = 0;
   private activeRoomMessageId: number | null = null;
@@ -34,6 +37,14 @@ export class TerminalMessageStore {
   readonly messages = signal<DisplayMessage[]>([]);
   readonly passwordMode = signal(false);
   readonly characterCreationData = signal<CharacterCreationDto | null>(null);
+
+  constructor() {
+    effect(() => {
+      this.commandCatalog.helpCategories(false);
+      this.commandCatalog.helpCategories(true);
+      untracked(() => this.refreshHelpMessages());
+    });
+  }
 
   applyStateChanges(stateChanges: TerminalStateChanges | null): void {
     if (!stateChanges) {
@@ -59,6 +70,19 @@ export class TerminalMessageStore {
 
   addDisplayMessage(message: FormattedMessage): void {
     this.messages.update(list => [...list, { id: ++this.nextId, cssClass: message.cssClass, html: message.html }]);
+  }
+
+  addHelpMessage(isGod: boolean): void {
+    const formatted = this.formatter.formatHelpCard(isGod);
+    this.messages.update(list => [
+      ...list,
+      {
+        id: ++this.nextId,
+        cssClass: formatted.cssClass,
+        html: formatted.html,
+        helpIsGod: isGod,
+      },
+    ]);
   }
 
   upsertRoomMessage(source: GameMessage): void {
@@ -143,6 +167,27 @@ export class TerminalMessageStore {
     this.messages.set([]);
     this.activeRoomMessageId = null;
     this.activeRoomId = null;
+  }
+
+  private refreshHelpMessages(): void {
+    this.messages.update(list => {
+      let changed = false;
+      const updated = list.map(message => {
+        if (message.cssClass !== GAME_MESSAGE_TYPES.HELP || message.helpIsGod === undefined) {
+          return message;
+        }
+
+        changed = true;
+        const formatted = this.formatter.formatHelpCard(message.helpIsGod);
+        return {
+          ...message,
+          cssClass: formatted.cssClass,
+          html: formatted.html,
+        };
+      });
+
+      return changed ? updated : list;
+    });
   }
 
   private createRoomMessage(roomId: string, source: GameMessage): DisplayMessage {

@@ -54,6 +54,7 @@ class GameEngineTest {
         CommandResult actual = gameEngine.process(session, request);
 
         assertThat(actual).isSameAs(expected);
+        verify(session).recordPlayerAction();
         verify(commandFactory).create(request);
         verify(command).execute(session);
     }

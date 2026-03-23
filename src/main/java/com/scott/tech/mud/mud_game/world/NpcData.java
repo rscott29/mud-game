@@ -51,6 +51,8 @@ public class NpcData {
      * for sentient NPCs. Ignored when {@code sentient = false}.
      */
     private String personality;
+    /** If true, AI-polished lines for this NPC should lean a little more playful/funny. */
+    private boolean humorous = false;
 
     // Combat-related fields (for training dummies and future enemies)
     /** Whether this NPC can be targeted in combat. */
@@ -81,6 +83,7 @@ public class NpcData {
     public boolean isSentient()                    { return sentient; }
     public List<String> getTalkTemplates()         { return talkTemplates; }
     public String getPersonality()                 { return personality; }
+    public boolean isHumorous()                    { return humorous; }
     public boolean isCombatTarget()                { return combatTarget; }
     public boolean isRespawns()                    { return respawns; }
     public int getMaxHealth()                      { return maxHealth; }
@@ -101,6 +104,7 @@ public class NpcData {
     public void setSentient(boolean s)                     { this.sentient = s; }
     public void setTalkTemplates(List<String> t)           { this.talkTemplates = t != null ? t : List.of(); }
     public void setPersonality(String p)                   { this.personality = p; }
+    public void setHumorous(boolean humorous)              { this.humorous = humorous; }
     public void setCombatTarget(boolean c)                 { this.combatTarget = c; }
     public void setRespawns(boolean r)                     { this.respawns = r; }
     public void setMaxHealth(int h)                        { this.maxHealth = h; }

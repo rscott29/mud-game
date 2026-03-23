@@ -11,6 +11,10 @@ class MockCommandCatalogService {
   helpCategories(): [] {
     return [];
   }
+
+  helpTips(): [] {
+    return [];
+  }
 }
 
 describe('TerminalMessageInterpreterService', () => {
@@ -69,6 +73,21 @@ describe('TerminalMessageInterpreterService', () => {
     }
   });
 
+  it('turns help messages into a dedicated help interpretation', () => {
+    const interpreter = TestBed.inject(TerminalMessageInterpreterService);
+
+    const result = interpreter.interpret({
+      type: GAME_MESSAGE_TYPES.HELP,
+      message: 'god',
+    });
+
+    expect(result.kind).toBe('help');
+    if (result.kind === 'help') {
+      expect(result.isGod).toBe(true);
+      expect(result.stateChanges).toBeNull();
+    }
+  });
+
   it('turns room-scoped narrative into inline room content with a fallback', () => {
     const interpreter = TestBed.inject(TerminalMessageInterpreterService);
 
@@ -81,6 +100,22 @@ describe('TerminalMessageInterpreterService', () => {
     if (result.kind === 'room_inline') {
       expect(result.inlineFragment).toContain('Quentor arrives from the east.');
       expect(result.fallback.cssClass).toBe(TERMINAL_MESSAGE_CLASSES.NARRATIVE);
+    }
+  });
+
+  it('turns social actions into inline room content with a distinct fallback style', () => {
+    const interpreter = TestBed.inject(TerminalMessageInterpreterService);
+
+    const result = interpreter.interpret({
+      type: GAME_MESSAGE_TYPES.SOCIAL_ACTION,
+      message: 'You dance.',
+    });
+
+    expect(result.kind).toBe('room_inline');
+    if (result.kind === 'room_inline') {
+      expect(result.inlineFragment).toContain('term-inline-event--social-action');
+      expect(result.inlineFragment).toContain('Social');
+      expect(result.fallback.cssClass).toBe(TERMINAL_MESSAGE_CLASSES.SOCIAL_ACTION);
     }
   });
 

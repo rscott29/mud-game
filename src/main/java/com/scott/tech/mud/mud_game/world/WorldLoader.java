@@ -164,7 +164,7 @@ public class WorldLoader {
                     n.getPronoun(), n.getPossessive(),
                     minSec, maxSec, depTemplates, arrTemplates, pathList,
                     n.getInteractTemplates(),
-                    n.isSentient(), n.getTalkTemplates(), n.getPersonality(),
+                    n.isSentient(), n.getTalkTemplates(), n.getPersonality(), n.isHumorous(),
                     n.isCombatTarget(), n.isRespawns(), n.getMaxHealth(), n.getLevel(), n.getXpReward(),
                     n.getMinDamage(), n.getMaxDamage(), n.isPlayerDeathEnabled()
             );
