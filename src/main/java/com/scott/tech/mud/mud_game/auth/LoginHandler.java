@@ -5,6 +5,7 @@ import com.scott.tech.mud.mud_game.config.AuthUiRegistry;
 import com.scott.tech.mud.mud_game.config.CharacterCreationOptionsRegistry;
 import com.scott.tech.mud.mud_game.config.CharacterClassStatsRegistry;
 import com.scott.tech.mud.mud_game.config.ExperienceTableService;
+import com.scott.tech.mud.mud_game.config.GlobalSettingsRegistry;
 import com.scott.tech.mud.mud_game.config.Messages;
 import com.scott.tech.mud.mud_game.dto.GameResponse;
 import com.scott.tech.mud.mud_game.model.Player;
@@ -57,6 +58,7 @@ public class LoginHandler {
     private final PlayerStateCache stateCache;
     private final DisconnectGracePeriodService disconnectGracePeriod;
     private final com.scott.tech.mud.mud_game.quest.QuestService questService;
+    private final GlobalSettingsRegistry globalSettingsRegistry;
 
     public LoginHandler(AccountStore accountStore,
                         com.scott.tech.mud.mud_game.session.GameSessionManager sessionManager,
@@ -71,7 +73,8 @@ public class LoginHandler {
                         ExperienceTableService xpTables,
                         PlayerStateCache stateCache,
                         DisconnectGracePeriodService disconnectGracePeriod,
-                        com.scott.tech.mud.mud_game.quest.QuestService questService) {
+                        com.scott.tech.mud.mud_game.quest.QuestService questService,
+                        GlobalSettingsRegistry globalSettingsRegistry) {
         this.accountStore          = accountStore;
         this.sessionManager        = sessionManager;
         this.worldBroadcaster      = worldBroadcaster;
@@ -86,6 +89,7 @@ public class LoginHandler {
         this.stateCache            = stateCache;
         this.disconnectGracePeriod = disconnectGracePeriod;
         this.questService          = questService;
+        this.globalSettingsRegistry = globalSettingsRegistry;
     }
 
     // ── Entry point ───────────────────────────────────────────────────────────
@@ -158,16 +162,15 @@ public class LoginHandler {
             broadcastLogin(session);
             java.util.List<String> others = othersInRoom(session);
             String token = reconnectTokenStore.issue(username);
-            String equippedWeaponId = session.getPlayer().getEquippedWeaponId();
             java.util.List<com.scott.tech.mud.mud_game.dto.GameResponse.ItemView> invViews =
                 session.getPlayer().getInventory().stream()
-                    .map(item -> com.scott.tech.mud.mud_game.dto.GameResponse.ItemView.from(item, equippedWeaponId))
+                    .map(item -> com.scott.tech.mud.mud_game.dto.GameResponse.ItemView.from(item, session.getPlayer()))
                     .toList();
             java.util.Set<String> invIds = session.getPlayer().getInventory().stream()
                     .map(com.scott.tech.mud.mud_game.model.Item::getId)
                     .collect(java.util.stream.Collectors.toSet());
             return CommandResult.of(
-                GameResponse.welcome(session.getPlayer().getName(), session.getCurrentRoom(), others,
+                GameResponse.welcome(welcomeMessage(session.getPlayer().getName()), session.getCurrentRoom(), others,
                         session.getDiscoveredHiddenExits(session.getPlayer().getCurrentRoomId()), invIds)
                     .withInventory(invViews)
                     .withPlayerStats(session.getPlayer(), xpTables),
@@ -230,7 +233,7 @@ public class LoginHandler {
         String token = reconnectTokenStore.issue(username);
         return CommandResult.of(
             GameResponse.authPrompt(Messages.get("auth.message.character_created"), false),
-            GameResponse.welcome(session.getPlayer().getName(), session.getCurrentRoom(), others)
+            GameResponse.welcome(welcomeMessage(session.getPlayer().getName()), session.getCurrentRoom(), others)
                 .withInventory(java.util.List.of())
                 .withPlayerStats(session.getPlayer(), xpTables),
             GameResponse.sessionToken(token));
@@ -336,7 +339,7 @@ public class LoginHandler {
         String token = reconnectTokenStore.issue(username);
         return CommandResult.of(
             GameResponse.authPrompt(Messages.get("auth.message.character_created"), false),
-            GameResponse.welcome(session.getPlayer().getName(), session.getCurrentRoom(), others)
+            GameResponse.welcome(welcomeMessage(session.getPlayer().getName()), session.getCurrentRoom(), others)
                 .withInventory(java.util.List.of())
                 .withPlayerStats(session.getPlayer(), xpTables),
             GameResponse.sessionToken(token));
@@ -380,16 +383,15 @@ public class LoginHandler {
                 }
                 java.util.List<String> others = othersInRoom(session);
                 String newToken = reconnectTokenStore.issue(username);
-                String equippedWeaponId = session.getPlayer().getEquippedWeaponId();
                 java.util.List<com.scott.tech.mud.mud_game.dto.GameResponse.ItemView> invViews =
                     session.getPlayer().getInventory().stream()
-                        .map(item -> com.scott.tech.mud.mud_game.dto.GameResponse.ItemView.from(item, equippedWeaponId))
+                        .map(item -> com.scott.tech.mud.mud_game.dto.GameResponse.ItemView.from(item, session.getPlayer()))
                         .toList();
                 java.util.Set<String> invIds = session.getPlayer().getInventory().stream()
                         .map(com.scott.tech.mud.mud_game.model.Item::getId)
                         .collect(java.util.stream.Collectors.toSet());
                 return CommandResult.of(
-                    GameResponse.welcome(session.getPlayer().getName(), session.getCurrentRoom(), others,
+                    GameResponse.welcome(welcomeMessage(session.getPlayer().getName()), session.getCurrentRoom(), others,
                             session.getDiscoveredHiddenExits(session.getPlayer().getCurrentRoomId()), invIds)
                         .withInventory(invViews)
                         .withPlayerStats(session.getPlayer(), xpTables),
@@ -425,7 +427,11 @@ public class LoginHandler {
             session.getPlayer().setMovement(cached.movement());
             session.getPlayer().setMaxMovement(cached.maxMovement());
             session.getPlayer().setExperience(cached.experience());
-            session.getPlayer().setEquippedWeaponId(cached.equippedWeaponId());
+            if (cached.equippedItems() != null && !cached.equippedItems().isBlank()) {
+                session.getPlayer().setEquippedItemsSerialized(cached.equippedItems());
+            } else {
+                session.getPlayer().setEquippedWeaponId(cached.equippedWeaponId());
+            }
             if (cached.recallRoomId() != null && !cached.recallRoomId().isBlank()) {
                 session.getPlayer().setRecallRoomId(cached.recallRoomId());
             }
@@ -483,6 +489,14 @@ public class LoginHandler {
     private static String capitalize(String name) {
         if (name == null || name.isEmpty()) return name;
         return Character.toUpperCase(name.charAt(0)) + name.substring(1);
+    }
+
+    private String welcomeMessage(String playerName) {
+        return Messages.fmt(
+                "auth.message.world_welcome",
+                "world", globalSettingsRegistry.settings().title(),
+                "player", playerName
+        );
     }
 
     /** Broadcasts login arrival to everyone else in the room. */

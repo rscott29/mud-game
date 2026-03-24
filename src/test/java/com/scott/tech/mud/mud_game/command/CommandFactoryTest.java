@@ -4,12 +4,17 @@ import com.scott.tech.mud.mud_game.auth.AccountStore;
 import com.scott.tech.mud.mud_game.auth.ReconnectTokenStore;
 import com.scott.tech.mud.mud_game.ai.AiTextPolisher;
 import com.scott.tech.mud.mud_game.ai.PlayerTextModerator;
+import com.scott.tech.mud.mud_game.combat.CombatStatsResolver;
 import com.scott.tech.mud.mud_game.combat.CombatLoopScheduler;
 import com.scott.tech.mud.mud_game.combat.CombatService;
 import com.scott.tech.mud.mud_game.combat.CombatState;
+import com.scott.tech.mud.mud_game.combat.PlayerDeathService;
+import com.scott.tech.mud.mud_game.combat.PlayerRespawnService;
 import com.scott.tech.mud.mud_game.config.ExperienceTableService;
 import com.scott.tech.mud.mud_game.command.attack.AttackValidator;
 import com.scott.tech.mud.mud_game.command.admin.DeleteInventoryItemCommand;
+import com.scott.tech.mud.mud_game.command.admin.KickCommand;
+import com.scott.tech.mud.mud_game.command.admin.SmiteCommand;
 import com.scott.tech.mud.mud_game.command.admin.SpawnCommand;
 import com.scott.tech.mud.mud_game.command.admin.SetModeratorCommand;
 import com.scott.tech.mud.mud_game.command.admin.TeleportCommand;
@@ -20,13 +25,18 @@ import com.scott.tech.mud.mud_game.command.core.GameCommand;
 import com.scott.tech.mud.mud_game.command.drop.DropService;
 import com.scott.tech.mud.mud_game.command.drop.DropValidator;
 import com.scott.tech.mud.mud_game.command.emote.EmotePerspectiveResolver;
+import com.scott.tech.mud.mud_game.command.emote.EmoteCommand;
 import com.scott.tech.mud.mud_game.command.equip.EquipService;
+import com.scott.tech.mud.mud_game.command.equip.UnequipCommand;
 import com.scott.tech.mud.mud_game.command.equip.EquipValidator;
 import com.scott.tech.mud.mud_game.command.look.LookCommand;
+import com.scott.tech.mud.mud_game.command.me.MeCommand;
 import com.scott.tech.mud.mud_game.command.moderation.ModerationCommand;
 import com.scott.tech.mud.mud_game.command.move.MoveCommand;
 import com.scott.tech.mud.mud_game.command.pickup.PickupService;
 import com.scott.tech.mud.mud_game.command.pickup.PickupValidator;
+import com.scott.tech.mud.mud_game.command.recall.RecallCommand;
+import com.scott.tech.mud.mud_game.command.respawn.RespawnCommand;
 import com.scott.tech.mud.mud_game.command.registry.CommandFactory;
 import com.scott.tech.mud.mud_game.command.social.SocialCommand;
 import com.scott.tech.mud.mud_game.command.social.SocialService;
@@ -83,6 +93,8 @@ class CommandFactoryTest {
     private CombatService combatService;
     private CombatState combatState;
     private CombatLoopScheduler combatLoopScheduler;
+    private PlayerDeathService playerDeathService;
+    private PlayerRespawnService playerRespawnService;
     private TalkValidator talkValidator;
     private TalkService talkService;
     private SocialValidator socialValidator;
@@ -90,6 +102,7 @@ class CommandFactoryTest {
     private AccountStore accountStore;
     private ReconnectTokenStore reconnectTokenStore;
     private ExperienceTableService xpTables;
+    private CombatStatsResolver combatStatsResolver;
     private LevelingService levelingService;
     private WorldModerationPolicyService worldModerationPolicyService;
     private PlayerProfileService playerProfileService;
@@ -121,6 +134,8 @@ class CommandFactoryTest {
         combatService = mock(CombatService.class);
         combatState = mock(CombatState.class);
         combatLoopScheduler = mock(CombatLoopScheduler.class);
+        playerDeathService = mock(PlayerDeathService.class);
+        playerRespawnService = mock(PlayerRespawnService.class);
         talkValidator = mock(TalkValidator.class);
         talkService = mock(TalkService.class);
         socialValidator = mock(SocialValidator.class);
@@ -128,6 +143,7 @@ class CommandFactoryTest {
         accountStore = mock(AccountStore.class);
         reconnectTokenStore = mock(ReconnectTokenStore.class);
         xpTables = mock(ExperienceTableService.class);
+        combatStatsResolver = mock(CombatStatsResolver.class);
         levelingService = mock(LevelingService.class);
         worldModerationPolicyService = mock(WorldModerationPolicyService.class);
         playerProfileService = mock(PlayerProfileService.class);
@@ -141,9 +157,10 @@ class CommandFactoryTest {
                 playerTextModerator,
                 emotePerspectiveResolver,
                 equipValidator, equipService,
-                attackValidator, combatService, combatState, combatLoopScheduler,
+                attackValidator, combatService, combatState, combatLoopScheduler, playerDeathService, playerRespawnService,
                 talkValidator, talkService, socialValidator, socialService,
-                accountStore, reconnectTokenStore, xpTables, levelingService, worldModerationPolicyService,
+                accountStore, reconnectTokenStore, xpTables, combatStatsResolver,
+                levelingService, worldModerationPolicyService,
                 playerProfileService, stateCache,
                 questService, worldService, ambientEventService);
     }
@@ -269,6 +286,48 @@ class CommandFactoryTest {
     void moderationAlias_createsModerationCommand() {
         GameCommand command = factory.create(request("filter", List.of("allow", "adult")));
         assertThat(command).isInstanceOf(ModerationCommand.class);
+    }
+
+    @Test
+    void meAlias_createsMeCommand() {
+        GameCommand command = factory.create(request("me", List.of()));
+        assertThat(command).isInstanceOf(MeCommand.class);
+    }
+
+    @Test
+    void respawnAlias_createsRespawnCommand() {
+        GameCommand command = factory.create(request("revive", List.of()));
+        assertThat(command).isInstanceOf(RespawnCommand.class);
+    }
+
+    @Test
+    void recallAlias_createsRecallCommand() {
+        GameCommand command = factory.create(request("home", List.of()));
+        assertThat(command).isInstanceOf(RecallCommand.class);
+    }
+
+    @Test
+    void removeAlias_createsUnequipCommand() {
+        GameCommand command = factory.create(request("remove", List.of("sword")));
+        assertThat(command).isInstanceOf(UnequipCommand.class);
+    }
+
+    @Test
+    void slashMeAlias_stillCreatesEmoteCommand() {
+        GameCommand command = factory.create(request("/me", List.of("waves")));
+        assertThat(command).isInstanceOf(EmoteCommand.class);
+    }
+
+    @Test
+    void kickAlias_stillCreatesKickCommand() {
+        GameCommand command = factory.create(request("kick", List.of("Bob")));
+        assertThat(command).isInstanceOf(KickCommand.class);
+    }
+
+    @Test
+    void smiteAlias_createsSmiteCommand() {
+        GameCommand command = factory.create(request("smite", List.of("Bob")));
+        assertThat(command).isInstanceOf(SmiteCommand.class);
     }
 
     @Test

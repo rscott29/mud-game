@@ -36,6 +36,8 @@ public class ItemData {
     private List<TriggerData> triggers = List.of();
     /** Combat stats (optional, defaults to zeros). */
     private CombatStatsData combatStats;
+    /** Optional equipment slot for equippable items. */
+    private String equipmentSlot;
 
     public String getId()                          { return id; }
     public String getName()                        { return name; }
@@ -47,6 +49,7 @@ public class ItemData {
     public String getPrerequisiteFailMessage()     { return prerequisiteFailMessage; }
     public List<TriggerData> getTriggers()         { return triggers; }
     public CombatStatsData getCombatStats()        { return combatStats; }
+    public String getEquipmentSlot()               { return equipmentSlot; }
 
     public void setId(String id)                              { this.id = id; }
     public void setName(String name)                          { this.name = name; }
@@ -58,6 +61,7 @@ public class ItemData {
     public void setPrerequisiteFailMessage(String msg)           { this.prerequisiteFailMessage = msg; }
     public void setTriggers(List<TriggerData> triggers)          { this.triggers = triggers != null ? triggers : List.of(); }
     public void setCombatStats(CombatStatsData combatStats)      { this.combatStats = combatStats; }
+    public void setEquipmentSlot(String equipmentSlot)           { this.equipmentSlot = equipmentSlot; }
 
     /** Flat DTO for combat stats in items.json. */
     public static class CombatStatsData {

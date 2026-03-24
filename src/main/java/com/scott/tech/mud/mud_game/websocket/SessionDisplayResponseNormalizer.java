@@ -129,6 +129,7 @@ public class SessionDisplayResponseNormalizer {
                 next.inventory() != null ? next.inventory() : current.inventory(),
                 next.whoPlayers() != null ? next.whoPlayers() : current.whoPlayers(),
                 next.playerStats() != null ? next.playerStats() : current.playerStats(),
+                next.combatStats() != null ? next.combatStats() : current.combatStats(),
                 next.characterCreation() != null ? next.characterCreation() : current.characterCreation()
         );
     }
@@ -144,6 +145,7 @@ public class SessionDisplayResponseNormalizer {
                 source.inventory() != null ? source.inventory() : target.inventory(),
                 source.whoPlayers() != null ? source.whoPlayers() : target.whoPlayers(),
                 source.playerStats() != null ? source.playerStats() : target.playerStats(),
+                source.combatStats() != null ? source.combatStats() : target.combatStats(),
                 source.characterCreation() != null ? source.characterCreation() : target.characterCreation()
         );
     }

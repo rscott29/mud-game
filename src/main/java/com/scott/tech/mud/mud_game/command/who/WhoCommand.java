@@ -27,7 +27,8 @@ public class WhoCommand implements GameCommand {
                         s.getPlayer().getName(),
                         s.getPlayer().getLevel(),
                         s.getPlayer().getTitle(),
-                        s.getCurrentRoom().getName()))
+                        s.getCurrentRoom().getName(),
+                        s.getPlayer().isGod()))
                 .sorted(Comparator.comparing(GameResponse.WhoPlayerView::name, String.CASE_INSENSITIVE_ORDER))
                 .toList();
 

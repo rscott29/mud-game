@@ -2,7 +2,10 @@ package com.scott.tech.mud.mud_game.model;
 
 import com.scott.tech.mud.mud_game.quest.PlayerQuestState;
 
+import java.util.Collections;
+import java.util.EnumMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CopyOnWriteArrayList;
 
@@ -33,7 +36,7 @@ public class Player {
     private boolean god = false;
     private boolean moderator = false;
     private final List<Item> inventory = new CopyOnWriteArrayList<>();
-    private String equippedWeaponId = null;
+    private final Map<EquipmentSlot, String> equippedItemIds = new EnumMap<>(EquipmentSlot.class);
     private String recallRoomId;
     private ModerationPreferences moderationPreferences = ModerationPreferences.defaults();
     private final PlayerQuestState questState = new PlayerQuestState();
@@ -65,8 +68,10 @@ public class Player {
     public int getExperience()            { return experience; }
     public boolean isGod()                { return god; }
     public boolean isModerator()          { return moderator; }
+    public boolean isDead()               { return health <= 0; }
+    public boolean isAlive()              { return health > 0; }
     public List<Item> getInventory()      { return inventory; }
-    public String getEquippedWeaponId()   { return equippedWeaponId; }
+    public String getEquippedWeaponId()   { return equippedItemIds.get(EquipmentSlot.MAIN_WEAPON); }
     public String getRecallRoomId()       { return recallRoomId; }
     public ModerationPreferences getModerationPreferences() { return moderationPreferences; }
     public String getModerationFilters()  { return moderationPreferences.serialize(); }
@@ -92,7 +97,7 @@ public class Player {
     public void addExperience(int xp)                    { this.experience += xp; }
     public void setGod(boolean god)                      { this.god = god; }
     public void setModerator(boolean moderator)          { this.moderator = moderator; }
-    public void setEquippedWeaponId(String itemId)       { this.equippedWeaponId = itemId; }
+    public void setEquippedWeaponId(String itemId)       { setEquippedItemId(EquipmentSlot.MAIN_WEAPON, itemId); }
     public void setRecallRoomId(String recallRoomId)     { this.recallRoomId = recallRoomId; }
     public void setModerationPreferences(ModerationPreferences moderationPreferences) {
         this.moderationPreferences = moderationPreferences == null
@@ -105,10 +110,90 @@ public class Player {
 
     /** Returns the currently equipped weapon, if any and still in inventory. */
     public Optional<Item> getEquippedWeapon() {
-        if (equippedWeaponId == null) return Optional.empty();
+        return getEquippedItem(EquipmentSlot.MAIN_WEAPON);
+    }
+
+    public Optional<Item> getEquippedItem(EquipmentSlot slot) {
+        if (slot == null) {
+            return Optional.empty();
+        }
+
+        String equippedItemId = equippedItemIds.get(slot);
+        if (equippedItemId == null) {
+            return Optional.empty();
+        }
+
         return inventory.stream()
-                .filter(i -> i.getId().equals(equippedWeaponId))
+                .filter(item -> item.getId().equals(equippedItemId))
                 .findFirst();
+    }
+
+    public Optional<EquipmentSlot> getEquippedSlot(Item item) {
+        if (item == null) {
+            return Optional.empty();
+        }
+
+        return equippedItemIds.entrySet().stream()
+                .filter(entry -> item.getId().equals(entry.getValue()))
+                .map(Map.Entry::getKey)
+                .findFirst();
+    }
+
+    public Map<EquipmentSlot, String> getEquippedItemIds() {
+        Map<EquipmentSlot, String> snapshot = new EnumMap<>(EquipmentSlot.class);
+        snapshot.putAll(equippedItemIds);
+        return Collections.unmodifiableMap(snapshot);
+    }
+
+    public Map<EquipmentSlot, Item> getEquippedItems() {
+        Map<EquipmentSlot, Item> equippedItems = new EnumMap<>(EquipmentSlot.class);
+        for (EquipmentSlot slot : EquipmentSlot.values()) {
+            getEquippedItem(slot).ifPresent(item -> equippedItems.put(slot, item));
+        }
+        return Collections.unmodifiableMap(equippedItems);
+    }
+
+    public void setEquippedItemId(EquipmentSlot slot, String itemId) {
+        if (slot == null) {
+            return;
+        }
+        if (itemId == null || itemId.isBlank()) {
+            equippedItemIds.remove(slot);
+            return;
+        }
+        equippedItemIds.put(slot, itemId);
+    }
+
+    public String getEquippedItemsSerialized() {
+        return equippedItemIds.entrySet().stream()
+                .sorted(Map.Entry.comparingByKey())
+                .map(entry -> entry.getKey().id() + "=" + entry.getValue())
+                .reduce((left, right) -> left + ";" + right)
+                .orElse(null);
+    }
+
+    public void setEquippedItemsSerialized(String serialized) {
+        equippedItemIds.clear();
+        if (serialized == null || serialized.isBlank()) {
+            return;
+        }
+
+        for (String pair : serialized.split(";")) {
+            String trimmedPair = pair.trim();
+            if (trimmedPair.isEmpty()) {
+                continue;
+            }
+
+            int equalsIndex = trimmedPair.indexOf('=');
+            if (equalsIndex <= 0 || equalsIndex == trimmedPair.length() - 1) {
+                continue;
+            }
+
+            String slotValue = trimmedPair.substring(0, equalsIndex).trim();
+            String itemId = trimmedPair.substring(equalsIndex + 1).trim();
+            EquipmentSlot.fromString(slotValue)
+                    .ifPresent(slot -> setEquippedItemId(slot, itemId));
+        }
     }
 
     /** Replaces the entire inventory (used when loading from the database on login). */
@@ -132,21 +217,15 @@ public class Player {
 
     public boolean removeFromInventory(Item item) {
         boolean removed = inventory.remove(item);
-        if (removed && item != null && item.getId().equals(equippedWeaponId)) {
-            equippedWeaponId = null;
+        if (removed && item != null) {
+            equippedItemIds.entrySet().removeIf(entry -> item.getId().equals(entry.getValue()));
         }
         return removed;
     }
 
     public void clearMissingEquipment() {
-        if (equippedWeaponId == null) {
-            return;
-        }
-        boolean equippedStillHeld = inventory.stream()
-                .anyMatch(item -> item.getId().equals(equippedWeaponId));
-        if (!equippedStillHeld) {
-            equippedWeaponId = null;
-        }
+        equippedItemIds.entrySet().removeIf(entry -> inventory.stream()
+                .noneMatch(item -> item.getId().equals(entry.getValue())));
     }
 
     /** 

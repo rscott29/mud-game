@@ -4,10 +4,13 @@ import com.scott.tech.mud.mud_game.auth.AccountStore;
 import com.scott.tech.mud.mud_game.auth.ReconnectTokenStore;
 import com.scott.tech.mud.mud_game.ai.AiTextPolisher;
 import com.scott.tech.mud.mud_game.ai.PlayerTextModerator;
+import com.scott.tech.mud.mud_game.combat.CombatStatsResolver;
 import com.scott.tech.mud.mud_game.combat.CombatLoopScheduler;
 import com.scott.tech.mud.mud_game.config.ExperienceTableService;
 import com.scott.tech.mud.mud_game.combat.CombatService;
 import com.scott.tech.mud.mud_game.combat.CombatState;
+import com.scott.tech.mud.mud_game.combat.PlayerDeathService;
+import com.scott.tech.mud.mud_game.combat.PlayerRespawnService;
 import com.scott.tech.mud.mud_game.command.attack.AttackValidator;
 import com.scott.tech.mud.mud_game.command.core.GameCommand;
 import com.scott.tech.mud.mud_game.command.drop.DropService;
@@ -67,10 +70,13 @@ public class CommandFactory {
                           AttackValidator attackValidator, CombatService combatService,
                           CombatState combatState,
                           CombatLoopScheduler combatLoopScheduler,
+                          PlayerDeathService playerDeathService,
+                          PlayerRespawnService playerRespawnService,
                           TalkValidator talkValidator, TalkService talkService,
                           SocialValidator socialValidator, SocialService socialService,
                           AccountStore accountStore, ReconnectTokenStore reconnectTokenStore,
                           ExperienceTableService xpTables,
+                          CombatStatsResolver combatStatsResolver,
                           LevelingService levelingService,
                           WorldModerationPolicyService worldModerationPolicyService,
                           PlayerProfileService playerProfileService,
@@ -97,6 +103,8 @@ public class CommandFactory {
                 combatService,
                 combatState,
                 combatLoopScheduler,
+                playerDeathService,
+                playerRespawnService,
                 talkValidator,
                 talkService,
                 socialValidator,
@@ -104,6 +112,7 @@ public class CommandFactory {
                 accountStore,
                 reconnectTokenStore,
                 xpTables,
+                combatStatsResolver,
                 levelingService,
                 worldModerationPolicyService,
                 playerProfileService,

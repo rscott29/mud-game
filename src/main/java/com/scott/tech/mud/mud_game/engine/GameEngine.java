@@ -1,6 +1,7 @@
 package com.scott.tech.mud.mud_game.engine;
 
 import com.scott.tech.mud.mud_game.command.registry.CommandFactory;
+import com.scott.tech.mud.mud_game.command.registry.CommandRegistry;
 import com.scott.tech.mud.mud_game.command.core.CommandResult;
 import com.scott.tech.mud.mud_game.command.core.GameCommand;
 import com.scott.tech.mud.mud_game.config.Messages;
@@ -9,6 +10,8 @@ import com.scott.tech.mud.mud_game.dto.GameResponse;
 import com.scott.tech.mud.mud_game.model.SessionState;
 import com.scott.tech.mud.mud_game.session.GameSession;
 import org.springframework.stereotype.Service;
+
+import java.util.Set;
 
 /**
  * Central game loop.
@@ -20,6 +23,17 @@ import org.springframework.stereotype.Service;
  */
 @Service
 public class GameEngine {
+
+    private static final Set<String> DEAD_ALLOWED_COMMANDS = Set.of(
+            CommandRegistry.RESPAWN,
+            CommandRegistry.HELP,
+            CommandRegistry.LOOK,
+            CommandRegistry.WHO,
+            CommandRegistry.ME,
+            CommandRegistry.INVENTORY,
+            CommandRegistry.SKILLS,
+            CommandRegistry.LOGOUT
+    );
 
     private final CommandFactory commandFactory;
 
@@ -35,6 +49,12 @@ public class GameEngine {
             return CommandResult.of(GameResponse.error(Messages.get("error.session_not_active")));
         }
         session.recordPlayerAction();
+        if (session.getPlayer().isDead()) {
+            String canonical = request == null ? "" : CommandRegistry.canonicalize(request.getCommand());
+            if (!DEAD_ALLOWED_COMMANDS.contains(canonical)) {
+                return CommandResult.of(GameResponse.error(Messages.get("command.dead.blocked")));
+            }
+        }
         GameCommand command = commandFactory.create(request);
         return command.execute(session);
     }

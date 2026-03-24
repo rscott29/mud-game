@@ -23,6 +23,8 @@ public class GlobalSettingsRegistry {
     private static final String CONFIG_PATH = "world/global-settings.json";
     private static final String DEFAULT_TITLE = "MudGameUi";
     private static final String DEFAULT_FAVICON_PATH = "world/ui/favicon.svg";
+    private static final boolean DEFAULT_DEATH_ITEM_LOSS_ENABLED = true;
+    private static final int DEFAULT_CORPSE_PERSISTENCE_MINUTES = 30;
     private static final Path DEFAULT_RESOURCES_ROOT = Path.of("src", "main", "resources")
             .toAbsolutePath()
             .normalize();
@@ -80,11 +82,30 @@ public class GlobalSettingsRegistry {
 
         String title = hasText(file.title()) ? file.title().trim() : DEFAULT_TITLE;
         String faviconPath = hasText(file.faviconPath()) ? file.faviconPath().trim() : DEFAULT_FAVICON_PATH;
-        return new GlobalSettings(title, faviconPath);
+        DeathSettings deathSettings = normalizeDeath(file.death());
+        return new GlobalSettings(title, faviconPath, deathSettings);
+    }
+
+    private static DeathSettings normalizeDeath(DeathSettingsFile file) {
+        if (file == null) {
+            return deathDefaults();
+        }
+
+        boolean itemLossEnabled = file.itemLossEnabled() == null
+                ? DEFAULT_DEATH_ITEM_LOSS_ENABLED
+                : file.itemLossEnabled();
+        int corpsePersistenceMinutes = file.corpsePersistenceMinutes() == null
+                ? DEFAULT_CORPSE_PERSISTENCE_MINUTES
+                : Math.max(1, file.corpsePersistenceMinutes());
+        return new DeathSettings(itemLossEnabled, corpsePersistenceMinutes);
     }
 
     private static GlobalSettings defaults() {
-        return new GlobalSettings(DEFAULT_TITLE, DEFAULT_FAVICON_PATH);
+        return new GlobalSettings(DEFAULT_TITLE, DEFAULT_FAVICON_PATH, deathDefaults());
+    }
+
+    private static DeathSettings deathDefaults() {
+        return new DeathSettings(DEFAULT_DEATH_ITEM_LOSS_ENABLED, DEFAULT_CORPSE_PERSISTENCE_MINUTES);
     }
 
     private static boolean hasText(String value) {
@@ -108,9 +129,13 @@ public class GlobalSettingsRegistry {
         return resolvedPath;
     }
 
-    public record GlobalSettings(String title, String faviconPath) {}
+    public record GlobalSettings(String title, String faviconPath, DeathSettings death) {}
+
+    public record DeathSettings(boolean itemLossEnabled, int corpsePersistenceMinutes) {}
 
     public record FaviconAsset(byte[] bytes, MediaType mediaType) {}
 
-    public record GlobalSettingsFile(String title, String faviconPath) {}
+    public record GlobalSettingsFile(String title, String faviconPath, DeathSettingsFile death) {}
+
+    public record DeathSettingsFile(Boolean itemLossEnabled, Integer corpsePersistenceMinutes) {}
 }

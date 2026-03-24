@@ -5,6 +5,7 @@ import com.scott.tech.mud.mud_game.command.room.RoomAction;
 import com.scott.tech.mud.mud_game.config.Messages;
 import com.scott.tech.mud.mud_game.dto.GameResponse;
 import com.scott.tech.mud.mud_game.model.Direction;
+import com.scott.tech.mud.mud_game.model.EquipmentSlot;
 import com.scott.tech.mud.mud_game.model.Item;
 import com.scott.tech.mud.mud_game.model.Player;
 import com.scott.tech.mud.mud_game.model.Room;
@@ -95,10 +96,11 @@ public class LookService {
 
     private CommandResult itemResult(LookValidationResult validation, String playerName) {
         var item = validation.item();
+        String message = item.getName() + ": " + item.getDescription() + containerContentsSuffix(item);
         return CommandResult.withAction(
                 RoomAction.inCurrentRoom(
                         Messages.fmt("action.look.target", "player", playerName, "target", item.getName())),
-                GameResponse.narrative(item.getName() + ": " + item.getDescription())
+                GameResponse.narrative(message)
         );
     }
 
@@ -153,14 +155,29 @@ public class LookService {
         }
 
         // Show equipped gear
-        player.getEquippedWeapon().ifPresent(weapon -> {
+        if (!player.getEquippedItems().isEmpty()) {
             description.append("\n\n<b>Equipment:</b>\n");
-            description.append("  <span class='equipped-slot'>Weapon:</span> <span class='equipped-item rarity-")
-                    .append(weapon.getRarity().name().toLowerCase())
-                    .append("'>")
-                    .append(weapon.getName())
-                    .append("</span>");
-        });
+            boolean first = true;
+            for (EquipmentSlot slot : EquipmentSlot.values()) {
+                var equippedItem = player.getEquippedItem(slot);
+                if (equippedItem.isEmpty()) {
+                    continue;
+                }
+
+                if (!first) {
+                    description.append("\n");
+                }
+                Item item = equippedItem.get();
+                description.append("  <span class='equipped-slot'>")
+                        .append(slot.displayName())
+                        .append(":</span> <span class='equipped-item rarity-")
+                        .append(item.getRarity().name().toLowerCase())
+                        .append("'>")
+                        .append(item.getName())
+                        .append("</span>");
+                first = false;
+            }
+        }
 
         return description.toString();
     }
@@ -170,5 +187,24 @@ public class LookService {
                 .filter(session -> !session.getSessionId().equals(self.getSessionId()))
                 .map(session -> session.getPlayer().getName())
                 .toList();
+    }
+
+    private String containerContentsSuffix(Item item) {
+        if (!item.isContainer()) {
+            return "";
+        }
+
+        if (!item.hasContents()) {
+            return "<br><br>" + Messages.get("command.look.container_empty");
+        }
+
+        String contents = item.getContainedItems().stream()
+                .map(this::formatContainedItem)
+                .collect(Collectors.joining("<br>"));
+        return Messages.fmt("command.look.container_contents", "items", contents);
+    }
+
+    private String formatContainedItem(Item item) {
+        return "- <span class='rarity-" + item.getRarity().name().toLowerCase() + "'>" + item.getName() + "</span>";
     }
 }

@@ -352,6 +352,113 @@ describe('TerminalComponent', () => {
     expect(text).not.toContain('Total XP 105');
   });
 
+  it('renders the me command response as a character sheet card in the log', () => {
+    const fixture = TestBed.createComponent(TerminalComponent);
+
+    socket.messages$.next({
+      type: GAME_MESSAGE_TYPES.PLAYER_OVERVIEW,
+      message: 'Axi',
+      playerStats: {
+        health: 20,
+        maxHealth: 24,
+        mana: 10,
+        maxMana: 12,
+        movement: 12,
+        maxMovement: 14,
+        level: 4,
+        maxLevel: 10,
+        xpProgress: 40,
+        xpForNextLevel: 100,
+        totalXp: 340,
+        isGod: false,
+        characterClass: 'warrior',
+      },
+      combatStats: {
+        armor: 5,
+        minDamage: 6,
+        maxDamage: 10,
+        hitChance: 81,
+        critChance: 0,
+      },
+      inventory: [
+        {
+          id: 'item_iron_sword',
+          name: 'Iron Sword',
+          description: 'A sturdy sword.',
+          rarity: 'common',
+          equipped: true,
+          equippedSlot: 'Main weapon',
+        },
+        {
+          id: 'item_leather_shield',
+          name: 'Leather Shield',
+          description: 'A light shield.',
+          rarity: 'uncommon',
+          equipped: true,
+          equippedSlot: 'Off hand / shield',
+        },
+      ],
+    });
+
+    fixture.detectChanges();
+
+    const text = fixture.nativeElement.textContent ?? '';
+    expect(text).toContain('Character sheet');
+    expect(text).toContain('Axi');
+    expect(text).toContain('2/6 readied');
+    expect(text).toContain('Combat profile');
+    expect(text).toContain('Armor');
+    expect(text).toContain('5');
+    expect(text).toContain('Attack damage');
+    expect(text).toContain('6-10');
+    expect(text).toContain('Hit chance');
+    expect(text).toContain('81%');
+    expect(text).toContain('Critical hit');
+    expect(text).toContain('0%');
+    expect(text).toContain('Health');
+    expect(text).toContain('20/24');
+    expect(text).not.toContain('HP 20/24');
+    expect(text).toContain('Main weapon');
+    expect(text).toContain('Iron Sword');
+    expect(text).toContain('Off hand / shield');
+    expect(text).toContain('Leather Shield');
+    expect(text).toContain('Head');
+    expect(text).toContain('Empty');
+  });
+
+  it('renders god players in who with a distinct divine marker', () => {
+    const fixture = TestBed.createComponent(TerminalComponent);
+
+    socket.messages$.next({
+      type: GAME_MESSAGE_TYPES.WHO_LIST,
+      whoPlayers: [
+        {
+          name: 'Axi',
+          level: 7,
+          title: 'Forgewalker',
+          location: "Blacksmith's Forge",
+          isGod: false,
+        },
+        {
+          name: 'Zeal',
+          level: 100,
+          title: 'Worldshaper',
+          location: 'Star Sanctum',
+          isGod: true,
+        },
+      ],
+    });
+
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance.view.messages()).toHaveLength(1);
+    expect(fixture.componentInstance.view.messages()[0].cssClass).toBe(TERMINAL_MESSAGE_CLASSES.WHO_LIST);
+    expect(fixture.componentInstance.view.messages()[0].html).toContain('term-list__item--god');
+    expect(fixture.componentInstance.view.messages()[0].html).toContain('term-pill--god-presence');
+    expect(fixture.nativeElement.textContent ?? '').toContain('Divine');
+    expect(fixture.nativeElement.textContent ?? '').toContain('Zeal');
+  });
+
   it('uses auth-focused shell copy before the player is signed in', () => {
     const fixture = TestBed.createComponent(TerminalComponent);
     const component = fixture.componentInstance;

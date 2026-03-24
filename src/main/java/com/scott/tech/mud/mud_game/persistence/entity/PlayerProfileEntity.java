@@ -73,6 +73,9 @@ public class PlayerProfileEntity {
     @Column(name = "equipped_weapon_id", length = 100)
     private String equippedWeaponId;
 
+    @Column(name = "equipped_items", columnDefinition = "TEXT")
+    private String equippedItems;
+
     @Column(name = "recall_room_id", length = 100)
     private String recallRoomId;
 
@@ -111,6 +114,7 @@ public class PlayerProfileEntity {
     public int     getMovement()          { return movement; }
     public int     getMaxMovement()       { return maxMovement; }
     public String  getEquippedWeaponId()  { return equippedWeaponId; }
+    public String  getEquippedItems()     { return equippedItems; }
     public String  getRecallRoomId()      { return recallRoomId; }
     public int     getExperience()        { return experience; }
     public String  getCompletedQuests()   { return completedQuests; }
@@ -137,6 +141,7 @@ public class PlayerProfileEntity {
     public void setMovement(int movement)                { this.movement = movement; }
     public void setMaxMovement(int maxMovement)          { this.maxMovement = maxMovement; }
     public void setEquippedWeaponId(String equippedWeaponId) { this.equippedWeaponId = equippedWeaponId; }
+    public void setEquippedItems(String equippedItems)   { this.equippedItems = equippedItems; }
     public void setRecallRoomId(String recallRoomId)     { this.recallRoomId = recallRoomId; }
     public void setExperience(int experience)            { this.experience = experience; }
     public void setCompletedQuests(String completedQuests) { this.completedQuests = completedQuests; }

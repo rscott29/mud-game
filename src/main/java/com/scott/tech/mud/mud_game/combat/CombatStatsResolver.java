@@ -15,6 +15,7 @@ public class CombatStatsResolver {
     static final int BASE_PLAYER_MIN_DAMAGE = 2;
     static final int BASE_PLAYER_MAX_DAMAGE = 6;
     static final int BASE_HIT_CHANCE = 75;
+    static final int BASE_CRIT_CHANCE = 0;
     static final int MIN_HIT_CHANCE = 1;
     static final int MAX_HIT_CHANCE = 99;
 
@@ -28,6 +29,7 @@ public class CombatStatsResolver {
         int minDamage = BASE_PLAYER_MIN_DAMAGE;
         int maxDamage = BASE_PLAYER_MAX_DAMAGE;
         int hitChance = BASE_HIT_CHANCE;
+        int critChance = BASE_CRIT_CHANCE;
         int attackSpeed = 0;
         String attackVerb = null;
 
@@ -43,7 +45,7 @@ public class CombatStatsResolver {
             attackVerb = weaponStats.attackVerb();
         }
 
-        int armor = player.getInventory().stream()
+        int armor = player.getEquippedItems().values().stream()
                 .map(Item::getCombatStats)
                 .filter(stats -> stats.armor() > 0)
                 .mapToInt(Item.CombatStats::armor)
@@ -62,6 +64,7 @@ public class CombatStatsResolver {
                 minDamage,
                 maxDamage,
                 Math.max(MIN_HIT_CHANCE, Math.min(MAX_HIT_CHANCE, hitChance)),
+                Math.max(0, critChance),
                 attackSpeed,
                 armor,
                 attackVerb

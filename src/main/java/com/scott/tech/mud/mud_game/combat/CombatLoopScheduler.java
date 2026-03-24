@@ -15,6 +15,7 @@ import org.springframework.stereotype.Component;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ScheduledFuture;
 
@@ -27,7 +28,7 @@ public class CombatLoopScheduler {
     private final CombatService combatService;
     private final CombatState combatState;
     private final CombatTimingPolicy combatTimingPolicy;
-    private final PlayerRespawnService playerRespawnService;
+    private final PlayerDeathService playerDeathService;
     private final WorldBroadcaster broadcaster;
     private final GameSessionManager sessionManager;
     private final LevelingService levelingService;
@@ -38,7 +39,7 @@ public class CombatLoopScheduler {
                                CombatService combatService,
                                CombatState combatState,
                                CombatTimingPolicy combatTimingPolicy,
-                               PlayerRespawnService playerRespawnService,
+                               PlayerDeathService playerDeathService,
                                WorldBroadcaster broadcaster,
                                GameSessionManager sessionManager,
                                LevelingService levelingService) {
@@ -46,7 +47,7 @@ public class CombatLoopScheduler {
         this.combatService = combatService;
         this.combatState = combatState;
         this.combatTimingPolicy = combatTimingPolicy;
-        this.playerRespawnService = playerRespawnService;
+        this.playerDeathService = playerDeathService;
         this.broadcaster = broadcaster;
         this.sessionManager = sessionManager;
         this.levelingService = levelingService;
@@ -119,8 +120,15 @@ public class CombatLoopScheduler {
 
             String roomId = session.getPlayer().getCurrentRoomId();
             Npc target = encounter.getTarget();
-            broadcaster.sendToSession(sessionId,
-                    GameResponse.narrative(result.message()).withPlayerStats(session.getPlayer(), levelingService.getXpTables()));
+            String playerMessage = result.message();
+            if (result.playerDefeated()) {
+                PlayerDeathService.DeathOutcome deathOutcome = playerDeathService.handleDeath(session);
+                playerMessage = playerMessage + "<br><br>" + deathOutcome.promptHtml();
+            }
+                GameResponse playerResponse = result.playerDefeated()
+                    ? buildDeathRoomRefresh(session, playerMessage).withPlayerStats(session.getPlayer(), levelingService.getXpTables())
+                    : GameResponse.narrative(playerMessage).withPlayerStats(session.getPlayer(), levelingService.getXpTables());
+                broadcaster.sendToSession(sessionId, playerResponse);
 
             String actionKey = result.playerDefeated()
                     ? "action.combat.npc_defeats"
@@ -132,7 +140,6 @@ public class CombatLoopScheduler {
                     sessionId);
 
             if (result.playerDefeated()) {
-                broadcaster.sendToSession(sessionId, playerRespawnService.respawn(session));
                 stopCombatLoop(sessionId);
                 return;
             }
@@ -219,6 +226,21 @@ public class CombatLoopScheduler {
             combatState.endCombat(sessionId);
             stopCombatLoop(sessionId);
         }
+    }
+
+    private GameResponse buildDeathRoomRefresh(GameSession session, String message) {
+        List<String> others = sessionManager.getSessionsInRoom(session.getPlayer().getCurrentRoomId()).stream()
+                .filter(other -> !other.getSessionId().equals(session.getSessionId()))
+                .map(other -> other.getPlayer().getName())
+                .toList();
+
+        return GameResponse.roomRefresh(
+                session.getCurrentRoom(),
+                message,
+                others,
+                session.getDiscoveredHiddenExits(session.getCurrentRoom().getId()),
+                Set.of()
+        );
     }
 
     private void schedulePlayerTurn(String sessionId, GameSession session) {

@@ -29,7 +29,7 @@ public class PlayerRespawnService {
 
     public GameResponse respawn(GameSession session) {
         String fromRoomId = session.getPlayer().getCurrentRoomId();
-        Room destination = resolveRecallRoom(session);
+        Room destination = previewDestination(session);
         if (destination == null) {
             throw new IllegalStateException("No valid recall room is available for player " + session.getPlayer().getName());
         }
@@ -71,7 +71,51 @@ public class PlayerRespawnService {
                 .withPlayerStats(session.getPlayer(), xpTables);
     }
 
-    private Room resolveRecallRoom(GameSession session) {
+    public GameResponse recall(GameSession session) {
+        String fromRoomId = session.getPlayer().getCurrentRoomId();
+        Room destination = previewDestination(session);
+        if (destination == null) {
+            throw new IllegalStateException("No valid recall room is available for player " + session.getPlayer().getName());
+        }
+
+        if (destination.getId().equals(fromRoomId)) {
+            return GameResponse.narrative(
+                    Messages.fmt("command.recall.already_there", "room", destination.getName())
+            );
+        }
+
+        session.getPlayer().setCurrentRoomId(destination.getId());
+
+        worldBroadcaster.broadcastToRoom(
+                fromRoomId,
+                GameResponse.roomAction(Messages.fmt("action.recall.departure",
+                        "player", session.getPlayer().getName())),
+                session.getSessionId());
+        worldBroadcaster.broadcastToRoom(
+                destination.getId(),
+                GameResponse.roomAction(Messages.fmt("action.recall.arrival",
+                        "player", session.getPlayer().getName())),
+                session.getSessionId());
+
+        List<String> others = sessionManager.getSessionsInRoom(destination.getId()).stream()
+                .filter(other -> !other.getSessionId().equals(session.getSessionId()))
+                .map(other -> other.getPlayer().getName())
+                .toList();
+
+        Set<String> inventoryItemIds = session.getPlayer().getInventory().stream()
+                .map(Item::getId)
+                .collect(java.util.stream.Collectors.toSet());
+
+        return GameResponse.roomUpdate(
+                destination,
+                Messages.fmt("command.recall.success", "room", destination.getName()),
+                others,
+                session.getDiscoveredHiddenExits(destination.getId()),
+                inventoryItemIds
+        );
+    }
+
+    public Room previewDestination(GameSession session) {
         String recallRoomId = session.getPlayer().getRecallRoomId();
         Room recallRoom = recallRoomId != null ? session.getRoom(recallRoomId) : null;
         if (recallRoom != null) {

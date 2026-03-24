@@ -1,4 +1,4 @@
-import { Injectable, computed, inject } from '@angular/core';
+import { DestroyRef, Injectable, computed, inject, signal } from '@angular/core';
 
 import {
   CONNECTION_STATUSES,
@@ -14,11 +14,14 @@ export class TerminalPresenterService {
   private readonly socketService = inject(GameSocketService);
   private readonly store = inject(TerminalMessageStore);
   private readonly zoomService = inject(ZoomService);
+  private readonly destroyRef = inject(DestroyRef);
+  private readonly worldTitleState = signal(this.readDocumentTitle());
 
   readonly messages = this.store.messages;
   readonly playerStats = this.socketService.playerStats;
   readonly characterCreationData = this.store.characterCreationData;
   readonly zoomLevel = this.zoomService.zoomLevel;
+  readonly worldTitle = computed(() => this.worldTitleState());
   readonly isAuthenticated = computed(() => this.playerStats() !== null);
   readonly isAuthScreen = computed(() => !this.isAuthenticated() && this.characterCreationData() === null);
 
@@ -100,6 +103,29 @@ export class TerminalPresenterService {
     return `${stats.xpProgress} / ${stats.xpForNextLevel} XP`;
   });
 
+  constructor() {
+    if (typeof document === 'undefined' || typeof MutationObserver === 'undefined') {
+      return;
+    }
+
+    const titleElement = document.querySelector('title');
+    if (!titleElement) {
+      return;
+    }
+
+    const observer = new MutationObserver(() => {
+      this.worldTitleState.set(this.readDocumentTitle());
+    });
+
+    observer.observe(titleElement, {
+      childList: true,
+      characterData: true,
+      subtree: true,
+    });
+
+    this.destroyRef.onDestroy(() => observer.disconnect());
+  }
+
   decreaseZoom(): void {
     this.zoomService.decreaseZoom();
   }
@@ -127,9 +153,18 @@ export class TerminalPresenterService {
     }
 
     if (stats.isGod) {
-      return `${label} INF`;
+      return `${label} \u221E`;
     }
 
     return `${label} ${current(stats)}/${max(stats)}`;
+  }
+
+  private readDocumentTitle(): string {
+    if (typeof document === 'undefined') {
+      return 'MudGameUi';
+    }
+
+    const title = document.title?.trim();
+    return title || 'MudGameUi';
   }
 }

@@ -1,11 +1,15 @@
 package com.scott.tech.mud.mud_game.command.move;
 
 import com.scott.tech.mud.mud_game.ai.AiTextPolisher;
+import com.scott.tech.mud.mud_game.combat.PlayerDeathService;
+import com.scott.tech.mud.mud_game.config.ExperienceTableService;
 import com.scott.tech.mud.mud_game.config.Messages;
 import com.scott.tech.mud.mud_game.dto.GameResponse;
 import com.scott.tech.mud.mud_game.model.Direction;
+import com.scott.tech.mud.mud_game.model.Item;
 import com.scott.tech.mud.mud_game.model.Npc;
 import com.scott.tech.mud.mud_game.model.Player;
+import com.scott.tech.mud.mud_game.model.Rarity;
 import com.scott.tech.mud.mud_game.model.Room;
 import com.scott.tech.mud.mud_game.model.SessionState;
 import com.scott.tech.mud.mud_game.service.AmbientEventService;
@@ -29,7 +33,9 @@ import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doReturn;
@@ -403,6 +409,86 @@ class MoveServiceTest {
         assertThat(responses.getAllValues())
                 .extracting(GameResponse::type)
                 .containsOnly(GameResponse.Type.ROOM_ACTION);
+    }
+
+    @Test
+    void buildResult_whenDarkRoomDamageKillsPlayer_stopsMovementAndReturnsDeathPrompt() {
+        TaskScheduler taskScheduler = mock(TaskScheduler.class);
+        WorldBroadcaster broadcaster = mock(WorldBroadcaster.class);
+        LevelingService levelingService = mock(LevelingService.class);
+                ExperienceTableService xpTables = mock(ExperienceTableService.class);
+        AmbientEventService ambientEventService = mock(AmbientEventService.class);
+        WorldService worldService = mock(WorldService.class);
+        GameSessionManager sessionManager = new GameSessionManager();
+        PlayerDeathService playerDeathService = mock(PlayerDeathService.class);
+
+        doReturn(new NoOpScheduledFuture()).when(taskScheduler).schedule(any(Runnable.class), any(Instant.class));
+
+        Room startRoom = new Room("start", "Dark Passage", "desc", exits(Direction.NORTH, "grove"), List.of(), List.of());
+        startRoom.setDark(true);
+        startRoom.setSafeExit(Direction.SOUTH);
+        startRoom.setWrongExitDamage(5);
+
+        Room nextRoom = new Room("grove", "Whispering Grove", "Trees lean close here.", new EnumMap<>(Direction.class), List.of(), List.of());
+
+        when(worldService.getRoom("start")).thenReturn(startRoom);
+        when(worldService.getRoom("grove")).thenReturn(nextRoom);
+        when(levelingService.getXpTables()).thenReturn(xpTables);
+        when(xpTables.getMaxLevel(any())).thenReturn(70);
+        when(xpTables.getXpProgressInLevel(any(), anyInt(), anyInt())).thenReturn(0);
+        when(xpTables.getXpToNextLevel(any(), anyInt())).thenReturn(100);
+
+        Player player = new Player("p1", "Hero", "start");
+        player.setHealth(3);
+        GameSession session = new GameSession("session-1", player, worldService);
+        session.transition(SessionState.PLAYING);
+        sessionManager.register(session);
+
+        Item corpse = new Item("corpse_1", "Hero's corpse", "desc", List.of("corpse"), false, Rarity.COMMON);
+        startRoom.addItem(corpse);
+        when(playerDeathService.handleDeath(session)).thenReturn(
+                new PlayerDeathService.DeathOutcome(
+                        startRoom,
+                        corpse,
+                        List.of(),
+                        "<div class='combat-line respawn'>Type <strong>respawn</strong>.</div>"
+                )
+        );
+
+        MoveService service = new MoveService(
+                taskScheduler,
+                broadcaster,
+                sessionManager,
+                levelingService,
+                ambientEventService,
+                worldService,
+                AiTextPolisher.noOp(),
+                playerDeathService
+        );
+
+        var result = service.buildResult(session, Direction.NORTH, MoveValidationResult.allow("grove", nextRoom));
+
+        assertThat(player.getCurrentRoomId()).isEqualTo("start");
+        assertThat(player.getHealth()).isZero();
+        assertThat(result.getResponses()).hasSize(1);
+        assertThat(result.getResponses().get(0).type()).isEqualTo(GameResponse.Type.ROOM_REFRESH);
+        assertThat(result.getResponses().get(0).room()).isNotNull();
+        assertThat(result.getResponses().get(0).room().items())
+                .extracting(GameResponse.RoomItemView::name)
+                .containsExactly("Hero's corpse");
+        assertThat(result.getResponses().get(0).message())
+                .contains("slam into a wall")
+                .contains("You have been defeated")
+                .contains("respawn");
+
+        verify(playerDeathService).handleDeath(session);
+        verify(broadcaster).broadcastToRoom(
+                eq("start"),
+                argThat(response ->
+                        response.type() == GameResponse.Type.ROOM_ACTION
+                                && response.message().contains("Hero collapses")),
+                eq("session-1")
+        );
     }
 
     private static EnumMap<Direction, String> exits(Direction direction, String roomId) {

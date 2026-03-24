@@ -88,6 +88,58 @@ describe('TerminalMessageInterpreterService', () => {
     }
   });
 
+  it('renders player overview messages as a dedicated display card', () => {
+    const interpreter = TestBed.inject(TerminalMessageInterpreterService);
+
+    const result = interpreter.interpret({
+      type: GAME_MESSAGE_TYPES.PLAYER_OVERVIEW,
+      message: 'Axi',
+      playerStats: {
+        health: 20,
+        maxHealth: 24,
+        mana: 11,
+        maxMana: 15,
+        movement: 14,
+        maxMovement: 18,
+        level: 4,
+        maxLevel: 10,
+        xpProgress: 20,
+        xpForNextLevel: 100,
+        totalXp: 320,
+        isGod: false,
+        characterClass: 'mage',
+      },
+      combatStats: {
+        armor: 3,
+        minDamage: 4,
+        maxDamage: 8,
+        hitChance: 82,
+        critChance: 0,
+      },
+      inventory: [
+        {
+          id: 'item_practice_sword',
+          name: 'Practice Sword',
+          description: 'A training blade.',
+          rarity: 'common',
+          equipped: true,
+          equippedSlot: 'Main weapon',
+        },
+      ],
+    });
+
+    expect(result.kind).toBe('display');
+    if (result.kind === 'display') {
+      expect(result.message.cssClass).toBe(TERMINAL_MESSAGE_CLASSES.PLAYER_OVERVIEW);
+      expect(result.message.html).toContain('Character sheet');
+      expect(result.message.html).toContain('Axi');
+      expect(result.message.html).toContain('Combat profile');
+      expect(result.message.html).toContain('4-8');
+      expect(result.message.html).toContain('82%');
+      expect(result.message.html).toContain('Practice Sword');
+    }
+  });
+
   it('turns room-scoped narrative into inline room content with a fallback', () => {
     const interpreter = TestBed.inject(TerminalMessageInterpreterService);
 

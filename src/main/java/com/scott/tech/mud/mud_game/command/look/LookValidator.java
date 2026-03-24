@@ -29,6 +29,10 @@ public class LookValidator {
         }
 
         Room room = session.getCurrentRoom();
+        if (matchesCurrentRoom(room, normalizedTarget)) {
+            return LookValidationResult.room();
+        }
+
         if (normalizedTarget.equals("exits") || normalizedTarget.equals("exit")) {
             return LookValidationResult.exits();
         }
@@ -70,5 +74,29 @@ public class LookValidator {
 
         normalized = normalized.trim().toLowerCase();
         return normalized.isBlank() ? null : normalized;
+    }
+
+    private boolean matchesCurrentRoom(Room room, String normalizedTarget) {
+        if (room == null || normalizedTarget == null) {
+            return false;
+        }
+
+        return normalizedTarget.equals("around")
+                || normalizedTarget.equals("here")
+                || normalizedTarget.equals("room")
+                || normalizedTarget.equals(normalizeRoomText(room.getName()))
+                || normalizedTarget.equals(normalizeRoomText(room.getId()));
+    }
+
+    private String normalizeRoomText(String value) {
+        if (value == null) {
+            return "";
+        }
+
+        return value.toLowerCase()
+                .replace('_', ' ')
+                .replaceAll("[^a-z0-9\\s]", "")
+                .replaceAll("\\s+", " ")
+                .trim();
     }
 }

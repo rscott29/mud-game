@@ -3,6 +3,7 @@ package com.scott.tech.mud.mud_game.world;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.scott.tech.mud.mud_game.exception.WorldLoadException;
 import com.scott.tech.mud.mud_game.model.Direction;
+import com.scott.tech.mud.mud_game.model.EquipmentSlot;
 import com.scott.tech.mud.mud_game.model.Item;
 import com.scott.tech.mud.mud_game.model.Npc;
 import com.scott.tech.mud.mud_game.model.Room;
@@ -228,7 +229,8 @@ public class WorldLoader {
                     .toList();
             validateItemCombatConfig(i);
             Item.CombatStats combatStats = toCombatStats(i.getCombatStats());
-            if (map.put(i.getId(), new Item(i.getId(), i.getName(), i.getDescription(), i.getKeywords(), i.isTakeable(), i.getRarity(), i.getRequiredItemIds(), i.getPrerequisiteFailMessage(), triggers, combatStats)) != null) {
+            EquipmentSlot equipmentSlot = resolveEquipmentSlot(i);
+            if (map.put(i.getId(), new Item(i.getId(), i.getName(), i.getDescription(), i.getKeywords(), i.isTakeable(), i.getRarity(), i.getRequiredItemIds(), i.getPrerequisiteFailMessage(), triggers, combatStats, equipmentSlot)) != null) {
                 throw new WorldLoadException("Duplicate item id: " + i.getId());
             }
         }
@@ -272,6 +274,25 @@ public class WorldLoader {
         if (stats.getAttackSpeed() < -20 || stats.getAttackSpeed() > 20) {
             throw new WorldLoadException("Item '" + itemId + "' has attackSpeed outside -20..20");
         }
+        boolean hasCombatEffect = stats.getMinDamage() > 0
+                || stats.getMaxDamage() > 0
+                || stats.getHitChance() != 0
+                || stats.getAttackSpeed() != 0
+                || stats.getArmor() > 0
+                || (stats.getAttackVerb() != null && !stats.getAttackVerb().isBlank());
+        if (hasCombatEffect && EquipmentSlot.fromString(item.getEquipmentSlot()).isEmpty()) {
+            throw new WorldLoadException("Item '" + itemId + "' has combat stats but no equipmentSlot");
+        }
+    }
+
+    private static EquipmentSlot resolveEquipmentSlot(ItemData item) {
+        if (item.getEquipmentSlot() == null || item.getEquipmentSlot().isBlank()) {
+            return null;
+        }
+
+        return EquipmentSlot.fromString(item.getEquipmentSlot())
+                .orElseThrow(() -> new WorldLoadException(
+                        "Item '" + item.getId() + "' has invalid equipmentSlot '" + item.getEquipmentSlot() + "'"));
     }
 
     private static String resolveDefaultRecallRoomId(Map<String, Room> rooms, List<String> errors, String startRoomId) {

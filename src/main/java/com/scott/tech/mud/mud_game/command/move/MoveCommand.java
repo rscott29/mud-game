@@ -1,6 +1,7 @@
 package com.scott.tech.mud.mud_game.command.move;
 
 import com.scott.tech.mud.mud_game.ai.AiTextPolisher;
+import com.scott.tech.mud.mud_game.combat.PlayerDeathService;
 import com.scott.tech.mud.mud_game.command.core.CommandResult;
 import com.scott.tech.mud.mud_game.command.core.GameCommand;
 import com.scott.tech.mud.mud_game.config.Messages;
@@ -41,10 +42,11 @@ public class MoveCommand implements GameCommand {
                        LevelingService levelingService,
                        WorldService worldService,
                        AmbientEventService ambientEventService,
-                       AiTextPolisher textPolisher) {
+                       AiTextPolisher textPolisher,
+                       PlayerDeathService playerDeathService) {
         this(direction, new MoveValidator(), 
                 new MoveService(taskScheduler, worldBroadcaster, sessionManager, levelingService,
-                        ambientEventService, worldService, textPolisher),
+                        ambientEventService, worldService, textPolisher, playerDeathService),
                 questService, levelingService, worldService);
     }
 
@@ -66,6 +68,9 @@ public class MoveCommand implements GameCommand {
         }
 
         CommandResult moveResult = moveService.buildResult(session, direction, validation);
+        if (!validation.nextRoomId().equals(session.getPlayer().getCurrentRoomId())) {
+            return moveResult;
+        }
         
         // Check for VISIT quest objectives
         Player player = session.getPlayer();

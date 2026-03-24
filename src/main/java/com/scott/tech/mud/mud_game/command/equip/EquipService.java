@@ -10,22 +10,30 @@ import java.util.Optional;
 public class EquipService {
 
     /**
-     * Equips the given item as the player's weapon.
-     * Returns the previously equipped item, if any.
+     * Equips the given item into its declared slot.
+     * Returns the previously equipped item in that slot, if any.
      */
     public Optional<Item> equip(GameSession session, Item item) {
-        Optional<Item> previousWeapon = session.getPlayer().getEquippedWeapon();
-        session.getPlayer().setEquippedWeaponId(item.getId());
-        return previousWeapon;
+        if (item == null || item.getEquipmentSlot() == null) {
+            return Optional.empty();
+        }
+
+        Optional<Item> previousItem = session.getPlayer().getEquippedItem(item.getEquipmentSlot());
+        session.getPlayer().setEquippedItemId(item.getEquipmentSlot(), item.getId());
+        return previousItem;
     }
 
     /**
-     * Unequips the player's current weapon.
+     * Unequips whatever the player currently has in the given slot.
      * Returns the previously equipped item, if any.
      */
-    public Optional<Item> unequip(GameSession session) {
-        Optional<Item> previousWeapon = session.getPlayer().getEquippedWeapon();
-        session.getPlayer().setEquippedWeaponId(null);
-        return previousWeapon;
+    public Optional<Item> unequip(GameSession session, com.scott.tech.mud.mud_game.model.EquipmentSlot slot) {
+        if (slot == null) {
+            return Optional.empty();
+        }
+
+        Optional<Item> previousItem = session.getPlayer().getEquippedItem(slot);
+        session.getPlayer().setEquippedItemId(slot, null);
+        return previousItem;
     }
 }

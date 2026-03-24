@@ -58,9 +58,8 @@ class CommandRegistryTest {
         for (CommandMetadata metadata : CommandRegistry.getAllCommands()) {
             for (String alias : metadata.aliases()) {
                 String normalized = alias.toLowerCase(Locale.ROOT);
-                String withoutSlash = normalized.startsWith("/") ? normalized.substring(1) : normalized;
 
-                String previous = normalizedAliasToCanonical.putIfAbsent(withoutSlash, metadata.canonicalName());
+                String previous = normalizedAliasToCanonical.putIfAbsent(normalized, metadata.canonicalName());
                 if (previous != null) {
                     assertThat(previous)
                             .as("Alias '%s' should not map to multiple commands", alias)
@@ -87,6 +86,30 @@ class CommandRegistryTest {
         assertThat(CommandRegistry.canonicalize("u")).isEqualTo(CommandRegistry.GO);
         assertThat(CommandRegistry.canonicalize("n")).isEqualTo(CommandRegistry.GO);
         assertThat(CommandRegistry.canonicalize("north")).isEqualTo(CommandRegistry.GO);
+        assertThat(CommandRegistry.canonicalize("/north")).isEqualTo(CommandRegistry.GO);
+    }
+
+    @Test
+    void meAndSlashMeResolveToDifferentCommands() {
+        assertThat(CommandRegistry.canonicalize("me")).isEqualTo(CommandRegistry.ME);
+        assertThat(CommandRegistry.canonicalize("/me")).isEqualTo(CommandRegistry.EMOTE);
+    }
+
+    @Test
+    void removeCanonicalizesToUnequipWithoutAffectingKick() {
+        assertThat(CommandRegistry.canonicalize("remove")).isEqualTo(CommandRegistry.UNEQUIP);
+        assertThat(CommandRegistry.canonicalize("kick")).isEqualTo(CommandRegistry.KICK);
+    }
+
+    @Test
+    void smiteCanonicalizesToGodCommandWithoutAffectingAttackKillAlias() {
+        assertThat(CommandRegistry.canonicalize("smite")).isEqualTo(CommandRegistry.SMITE);
+        assertThat(CommandRegistry.canonicalize("kill")).isEqualTo(CommandRegistry.ATTACK);
+    }
+
+    @Test
+    void homeCanonicalizesToRecall() {
+        assertThat(CommandRegistry.canonicalize("home")).isEqualTo(CommandRegistry.RECALL);
     }
 
     @Test

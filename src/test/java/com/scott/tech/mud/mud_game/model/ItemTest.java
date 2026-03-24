@@ -51,4 +51,34 @@ class ItemTest {
         assertThat(item.matchesKeyword("obis sword")).isTrue();
         assertThat(item.matchesKeyword("long shiny")).isTrue();
     }
+
+    @Test
+    void containedItems_canBeResolvedByKeyword() {
+        Item sword = new Item(
+                "item_practice_sword",
+                "Practice Sword",
+                "A wooden training blade.",
+                List.of("practice sword", "sword"),
+                true,
+                Rarity.COMMON
+        );
+        Item corpse = new Item(
+                "corpse_hero",
+                "Hero's corpse",
+                "The remains of Hero lie here. Their belongings rest within.",
+                List.of("corpse", "hero corpse"),
+                false,
+                Rarity.COMMON,
+                List.of(),
+                null,
+                List.of(),
+                Item.CombatStats.NONE,
+                null,
+                true,
+                List.of(sword)
+        );
+
+        assertThat(corpse.findContainedItemByKeyword("practice sword")).contains(sword);
+        assertThat(corpse.findContainedItemByKeyword("sword")).contains(sword);
+    }
 }

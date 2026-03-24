@@ -5,6 +5,7 @@ import com.scott.tech.mud.mud_game.command.core.CommandResult;
 import com.scott.tech.mud.mud_game.config.AuthUiRegistry;
 import com.scott.tech.mud.mud_game.config.CharacterCreationOptionsRegistry;
 import com.scott.tech.mud.mud_game.config.CharacterClassStatsRegistry;
+import com.scott.tech.mud.mud_game.config.GlobalSettingsRegistry;
 import com.scott.tech.mud.mud_game.dto.GameResponse;
 import com.scott.tech.mud.mud_game.model.Direction;
 import com.scott.tech.mud.mud_game.model.Item;
@@ -57,6 +58,7 @@ class LoginHandlerTest {
     private DisconnectGracePeriodService disconnectGracePeriod;
     private ExperienceTableService xpTables;
     private QuestService questService;
+    private GlobalSettingsRegistry globalSettingsRegistry;
     private LoginHandler loginHandler;
     private WorldService worldService;
     private Room startRoom;
@@ -78,7 +80,14 @@ class LoginHandlerTest {
         disconnectGracePeriod = mock(DisconnectGracePeriodService.class);
         xpTables = mock(ExperienceTableService.class);
         questService = mock(QuestService.class);
+        globalSettingsRegistry = mock(GlobalSettingsRegistry.class);
         worldService = mock(WorldService.class);
+        when(globalSettingsRegistry.settings())
+                .thenReturn(new GlobalSettingsRegistry.GlobalSettings(
+                        "Obsidian Kingdom",
+                        "world/ui/obsidian-kingdom-favicon.ico",
+                        new GlobalSettingsRegistry.DeathSettings(true, 30)
+                ));
         when(inventoryService.loadInventory(anyString(), any())).thenReturn(List.of());
         when(discoveredExitService.loadExits(anyString())).thenReturn(Map.of());
 
@@ -94,7 +103,7 @@ class LoginHandlerTest {
         loginHandler = new LoginHandler(
                 accountStore, sessionManager, worldBroadcaster, reconnectTokenStore, playerProfileService,
                 inventoryService, discoveredExitService, authUiRegistry, characterCreationOptions, classStatsRegistry, xpTables, stateCache,
-                disconnectGracePeriod, questService);
+                disconnectGracePeriod, questService, globalSettingsRegistry);
     }
 
     @Test
@@ -164,6 +173,7 @@ class LoginHandlerTest {
         assertThat(session.getPlayer().getCurrentRoomId()).isEqualTo("tavern");
         assertThat(result.getResponses()).hasSize(2);
         assertThat(result.getResponses().get(0).type()).isEqualTo(GameResponse.Type.WELCOME);
+        assertThat(result.getResponses().get(0).message()).isEqualTo("Welcome to Obsidian Kingdom, Alice! Type 'help' for a list of commands.");
         assertThat(result.getResponses().get(1).type()).isEqualTo(GameResponse.Type.SESSION_TOKEN);
         assertThat(result.getResponses().get(1).token()).isEqualTo("token-123");
 
@@ -347,6 +357,7 @@ class LoginHandlerTest {
                 150,
                 List.of("iron_sword"),
                 "iron_sword",
+                "main_weapon=iron_sword",
                 "town_square",
                 java.time.Instant.now(),
                 List.of(),

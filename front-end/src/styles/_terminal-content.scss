@@ -206,6 +206,10 @@
   gap: 14px;
 }
 
+.term-card--player-overview {
+  gap: 14px;
+}
+
 .term-callout--moderation {
   border-color: rgba(183, 122, 116, 0.28);
   background:
@@ -384,6 +388,21 @@
   background: rgba(12, 12, 16, 0.88);
 }
 
+.term-list__item--god {
+  border-color: rgba(214, 177, 115, 0.22);
+  background:
+    radial-gradient(circle at top right, rgba(255, 241, 204, 0.08), transparent 34%),
+    linear-gradient(135deg, rgba(212, 173, 97, 0.1), rgba(134, 162, 199, 0.06)),
+    rgba(12, 12, 16, 0.92);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.03),
+    0 12px 28px rgba(0, 0, 0, 0.1);
+}
+
+.term-list__item--god .term-list__title {
+  color: #f1dfb7;
+}
+
 .term-list__item.is-locked {
   border-color: rgba(158, 179, 202, 0.12);
   background: rgba(17, 17, 24, 0.74);
@@ -444,6 +463,20 @@
   border-color: rgba(255, 190, 92, 0.24);
 }
 
+.term-pill--god-presence {
+  border-color: rgba(214, 177, 115, 0.28);
+  background:
+    linear-gradient(135deg, rgba(212, 173, 97, 0.18), rgba(134, 162, 199, 0.08)),
+    rgba(18, 18, 24, 0.96);
+  color: #f0d293;
+  box-shadow: 0 0 18px rgba(214, 177, 115, 0.1);
+}
+
+.term-pill--god-level {
+  border-color: rgba(214, 177, 115, 0.18);
+  color: #e8dcc2;
+}
+
 .term-meta-row {
   display: flex;
   align-items: center;
@@ -461,6 +494,23 @@
 .term-value {
   color: var(--terminal-text);
   font-size: 0.92em;
+}
+
+.term-value--infinite {
+  font-size: 0.98em;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.term-infinity {
+  display: inline-flex;
+  align-items: center;
+  font-family: 'Cambria Math', 'STIX Two Math', 'Segoe UI Symbol', var(--font-display);
+  font-size: 1.45em;
+  font-weight: 700;
+  line-height: 0.8;
+  letter-spacing: 0;
+  transform: translateY(0.08em);
 }
 
 .term-kv-list {
@@ -614,6 +664,52 @@
   text-transform: uppercase;
 }
 
+.term-profile-slots {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.term-profile-slot {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 12px 13px;
+  border: 1px solid rgba(214, 177, 115, 0.12);
+  border-radius: 12px;
+  background: rgba(12, 12, 16, 0.86);
+}
+
+.term-profile-slot.is-empty {
+  border-style: dashed;
+  border-color: rgba(196, 183, 162, 0.18);
+}
+
+.term-profile-slot__label {
+  color: var(--terminal-muted);
+  font-size: 0.68em;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.term-profile-slot__item {
+  color: var(--terminal-text);
+  font-weight: 700;
+  line-height: 1.45;
+}
+
+.term-profile-slot.is-empty .term-profile-slot__item {
+  color: rgba(196, 183, 162, 0.74);
+  font-weight: 500;
+}
+
+.term-profile-slot__meta {
+  color: var(--terminal-warning);
+  font-size: 0.72em;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
 @media (max-width: 640px) {
   .term-card {
     padding: 16px;
@@ -636,6 +732,10 @@
   .term-progress__meta {
     flex-direction: column;
     align-items: flex-start;
+  }
+
+  .term-profile-slots {
+    grid-template-columns: 1fr;
   }
 
   .term-auth-layout {

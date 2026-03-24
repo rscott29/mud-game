@@ -1,7 +1,9 @@
 package com.scott.tech.mud.mud_game.dto;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.scott.tech.mud.mud_game.combat.PlayerCombatStats;
 import com.scott.tech.mud.mud_game.model.Direction;
+import com.scott.tech.mud.mud_game.model.EquipmentSlot;
 import com.scott.tech.mud.mud_game.model.Item;
 import com.scott.tech.mud.mud_game.model.Npc;
 import com.scott.tech.mud.mud_game.model.Player;
@@ -22,6 +24,7 @@ public record GameResponse(
         List<ItemView> inventory,
         List<WhoPlayerView> whoPlayers,
         PlayerStatsView playerStats,
+        CombatStatsView combatStats,
         CharacterCreationData characterCreation
 ) {
     public enum Type {
@@ -36,6 +39,7 @@ public record GameResponse(
         WHO_LIST,
         SESSION_TOKEN,
         INVENTORY_UPDATE,
+        PLAYER_OVERVIEW,
         HELP,
         CHARACTER_CREATION,
         STAT_UPDATE,
@@ -50,33 +54,33 @@ public record GameResponse(
 
     // --- compact constructors for convenience defaults ---
     private GameResponse(Type type, String message, RoomView room) {
-        this(type, message, room, false, null, null, null, null, null, null);
+        this(type, message, room, false, null, null, null, null, null, null, null);
     }
 
     private GameResponse(Type type, String message, RoomView room, boolean mask) {
-        this(type, message, room, mask, null, null, null, null, null, null);
+        this(type, message, room, mask, null, null, null, null, null, null, null);
     }
 
     private GameResponse(Type type, String message, RoomView room, boolean mask, String from) {
-        this(type, message, room, mask, from, null, null, null, null, null);
+        this(type, message, room, mask, from, null, null, null, null, null, null);
     }
 
     // --- factory: returns a new instance with inventory attached ---
     public GameResponse withInventory(List<ItemView> items) {
-        return new GameResponse(type, message, room, mask, from, token, items, whoPlayers, playerStats, characterCreation);
+        return new GameResponse(type, message, room, mask, from, token, items, whoPlayers, playerStats, combatStats, characterCreation);
     }
 
     public GameResponse withAppendedMessage(String appendedMessage) {
         String newMessage = message == null ? appendedMessage : message + appendedMessage;
-        return new GameResponse(type, newMessage, room, mask, from, token, inventory, whoPlayers, playerStats, characterCreation);
+        return new GameResponse(type, newMessage, room, mask, from, token, inventory, whoPlayers, playerStats, combatStats, characterCreation);
     }
 
     public GameResponse withPlayerStats(Player player) {
-        return new GameResponse(type, message, room, mask, from, token, inventory, whoPlayers, PlayerStatsView.from(player), characterCreation);
+        return new GameResponse(type, message, room, mask, from, token, inventory, whoPlayers, PlayerStatsView.from(player), combatStats, characterCreation);
     }
 
     public GameResponse withPlayerStats(Player player, com.scott.tech.mud.mud_game.config.ExperienceTableService xpTables) {
-        return new GameResponse(type, message, room, mask, from, token, inventory, whoPlayers, PlayerStatsView.from(player, xpTables), characterCreation);
+        return new GameResponse(type, message, room, mask, from, token, inventory, whoPlayers, PlayerStatsView.from(player, xpTables), combatStats, characterCreation);
     }
 
     // ----- factory methods -----
@@ -150,22 +154,22 @@ public record GameResponse(
         return new GameResponse(Type.ROOM_REFRESH, message, RoomView.from(room, players, discoveredHiddenExits, excludeItemIds));
     }
 
-    public static GameResponse welcome(String playerName, Room room) {
-        return welcome(playerName, room, List.of(), Set.of());
+    public static GameResponse welcome(String message, Room room) {
+        return welcome(message, room, List.of(), Set.of());
     }
 
-    public static GameResponse welcome(String playerName, Room room, List<String> otherPlayers) {
-        return welcome(playerName, room, otherPlayers, Set.of());
+    public static GameResponse welcome(String message, Room room, List<String> otherPlayers) {
+        return welcome(message, room, otherPlayers, Set.of());
     }
 
-    public static GameResponse welcome(String playerName, Room room, List<String> otherPlayers, Set<Direction> discoveredHiddenExits) {
-        return welcome(playerName, room, otherPlayers, discoveredHiddenExits, Set.of());
+    public static GameResponse welcome(String message, Room room, List<String> otherPlayers, Set<Direction> discoveredHiddenExits) {
+        return welcome(message, room, otherPlayers, discoveredHiddenExits, Set.of());
     }
 
-    public static GameResponse welcome(String playerName, Room room, List<String> otherPlayers, Set<Direction> discoveredHiddenExits, Set<String> excludeItemIds) {
+    public static GameResponse welcome(String message, Room room, List<String> otherPlayers, Set<Direction> discoveredHiddenExits, Set<String> excludeItemIds) {
         return new GameResponse(
                 Type.WELCOME,
-                "Welcome to the MUD, " + playerName + "! Type 'help' for a list of commands.",
+                message,
                 RoomView.from(room, otherPlayers, discoveredHiddenExits, excludeItemIds)
         );
     }
@@ -189,27 +193,55 @@ public record GameResponse(
     }
 
     public static GameResponse sessionToken(String token) {
-        return new GameResponse(Type.SESSION_TOKEN, null, null, false, null, token, null, null, null, null);
+        return new GameResponse(Type.SESSION_TOKEN, null, null, false, null, token, null, null, null, null, null);
     }
 
     public static GameResponse inventoryUpdate(List<ItemView> items) {
-        return new GameResponse(Type.INVENTORY_UPDATE, null, null, false, null, null, items, null, null, null);
+        return new GameResponse(Type.INVENTORY_UPDATE, null, null, false, null, null, items, null, null, null, null);
+    }
+
+    public static GameResponse playerOverview(Player player) {
+        List<ItemView> items = player.getInventory().stream()
+                .map(item -> ItemView.from(item, player))
+                .toList();
+        return new GameResponse(Type.PLAYER_OVERVIEW, player.getName(), null, false, null, null,
+                items, null, PlayerStatsView.from(player), null, null);
+    }
+
+    public static GameResponse playerOverview(Player player, com.scott.tech.mud.mud_game.config.ExperienceTableService xpTables) {
+        List<ItemView> items = player.getInventory().stream()
+                .map(item -> ItemView.from(item, player))
+                .toList();
+        return new GameResponse(Type.PLAYER_OVERVIEW, player.getName(), null, false, null, null,
+                items, null, PlayerStatsView.from(player, xpTables), null, null);
+    }
+
+    public static GameResponse playerOverview(
+            Player player,
+            com.scott.tech.mud.mud_game.config.ExperienceTableService xpTables,
+            PlayerCombatStats combatStats
+    ) {
+        List<ItemView> items = player.getInventory().stream()
+                .map(item -> ItemView.from(item, player))
+                .toList();
+        return new GameResponse(Type.PLAYER_OVERVIEW, player.getName(), null, false, null, null,
+                items, null, PlayerStatsView.from(player, xpTables), CombatStatsView.from(combatStats), null);
     }
 
     public static GameResponse playerStatsUpdate(Player player) {
-        return new GameResponse(Type.STAT_UPDATE, null, null, false, null, null, null, null, PlayerStatsView.from(player), null);
+        return new GameResponse(Type.STAT_UPDATE, null, null, false, null, null, null, null, PlayerStatsView.from(player), null, null);
     }
 
     public static GameResponse playerStatsUpdate(Player player, com.scott.tech.mud.mud_game.config.ExperienceTableService xpTables) {
-        return new GameResponse(Type.STAT_UPDATE, null, null, false, null, null, null, null, PlayerStatsView.from(player, xpTables), null);
+        return new GameResponse(Type.STAT_UPDATE, null, null, false, null, null, null, null, PlayerStatsView.from(player, xpTables), null, null);
     }
 
     public static GameResponse whoList(List<WhoPlayerView> players) {
-        return new GameResponse(Type.WHO_LIST, null, null, false, null, null, null, players, null, null);
+        return new GameResponse(Type.WHO_LIST, null, null, false, null, null, null, players, null, null, null);
     }
 
     public static GameResponse characterCreation(String step, List<String> races, List<String> classes, List<PronounOption> pronounOptions) {
-        return new GameResponse(Type.CHARACTER_CREATION, null, null, false, null, null, null, null, null,
+        return new GameResponse(Type.CHARACTER_CREATION, null, null, false, null, null, null, null, null, null,
                 new CharacterCreationData(step, races, classes, pronounOptions));
     }
 
@@ -278,16 +310,19 @@ public record GameResponse(
         }
     }
 
-    public record ItemView(String id, String name, String description, String rarity, boolean equipped) {
+    public record ItemView(String id, String name, String description, String rarity, boolean equipped, String equippedSlot) {
         public static ItemView from(Item item) {
             return new ItemView(item.getId(), item.getName(), item.getDescription(),
-                    item.getRarity().name().toLowerCase(), false);
+                    item.getRarity().name().toLowerCase(), false, null);
         }
 
-        public static ItemView from(Item item, String equippedWeaponId) {
-            boolean isEquipped = item.getId().equals(equippedWeaponId);
+        public static ItemView from(Item item, Player player) {
+            var equippedSlot = player == null ? java.util.Optional.<EquipmentSlot>empty() : player.getEquippedSlot(item);
+            boolean isEquipped = equippedSlot.isPresent();
             return new ItemView(item.getId(), item.getName(), item.getDescription(),
-                    item.getRarity().name().toLowerCase(), isEquipped);
+                    item.getRarity().name().toLowerCase(),
+                    isEquipped,
+                    equippedSlot.map(EquipmentSlot::displayName).orElse(null));
         }
     }
 
@@ -355,7 +390,28 @@ public record GameResponse(
         }
     }
 
-    public record WhoPlayerView(String name, int level, String title, String location) {}
+    public record CombatStatsView(
+            int armor,
+            int minDamage,
+            int maxDamage,
+            int hitChance,
+            int critChance
+    ) {
+        public static CombatStatsView from(PlayerCombatStats combatStats) {
+            if (combatStats == null) {
+                return null;
+            }
+            return new CombatStatsView(
+                    combatStats.armor(),
+                    combatStats.minDamage(),
+                    combatStats.maxDamage(),
+                    combatStats.hitChance(),
+                    combatStats.critChance()
+            );
+        }
+    }
+
+    public record WhoPlayerView(String name, int level, String title, String location, boolean isGod) {}
 
     public record CharacterCreationData(String step, List<String> races, List<String> classes, List<PronounOption> pronounOptions) {}
 

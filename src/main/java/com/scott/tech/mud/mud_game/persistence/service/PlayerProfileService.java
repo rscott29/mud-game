@@ -72,7 +72,11 @@ public class PlayerProfileService {
             player.setMaxMana(p.getMaxMana());
             player.setMovement(p.getMovement());
             player.setMaxMovement(p.getMaxMovement());
-            player.setEquippedWeaponId(p.getEquippedWeaponId());
+            if (p.getEquippedItems() != null && !p.getEquippedItems().isBlank()) {
+                player.setEquippedItemsSerialized(p.getEquippedItems());
+            } else {
+                player.setEquippedWeaponId(p.getEquippedWeaponId());
+            }
             player.setExperience(p.getExperience());
             if (p.getRecallRoomId() != null && !p.getRecallRoomId().isBlank()) {
                 player.setRecallRoomId(p.getRecallRoomId());
@@ -156,6 +160,7 @@ public class PlayerProfileService {
         profile.setMovement(player.getMovement());
         profile.setMaxMovement(player.getMaxMovement());
         profile.setEquippedWeaponId(player.getEquippedWeaponId());
+        profile.setEquippedItems(player.getEquippedItemsSerialized());
         profile.setRecallRoomId(player.getRecallRoomId());
         profile.setExperience(player.getExperience());
         // Save completed quests as comma-separated string
@@ -210,6 +215,7 @@ public class PlayerProfileService {
         profile.setMovement(state.movement());
         profile.setMaxMovement(state.maxMovement());
         profile.setEquippedWeaponId(state.equippedWeaponId());
+        profile.setEquippedItems(state.equippedItems());
         profile.setRecallRoomId(state.recallRoomId());
         profile.setExperience(state.experience());
         // Save completed quests as comma-separated string

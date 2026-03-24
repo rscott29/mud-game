@@ -71,7 +71,7 @@ public class NpcWanderScheduler {
     void start() {
         worldService.getWanderingNpcs().forEach(npc -> {
             if (npc.hasPath()) {
-                pathIndices.put(npc.getId(), new AtomicInteger(0));
+                pathIndices.put(npc.getId(), new AtomicInteger(nextPathIndex(npc.getWanderPath(), worldService.getNpcRoomId(npc.getId()))));
             }
             long delayMs = randomDelay(npc);
             pendingFutures.put(npc.getId(),
@@ -123,7 +123,10 @@ public class NpcWanderScheduler {
 
         if (npc.hasPath()) {
             // Follow the defined patrol path cyclically
-            AtomicInteger idx = pathIndices.computeIfAbsent(npcId, k -> new AtomicInteger(0));
+            AtomicInteger idx = pathIndices.computeIfAbsent(
+                    npcId,
+                    k -> new AtomicInteger(nextPathIndex(npc.getWanderPath(), currentRoomId))
+            );
             List<String> path = npc.getWanderPath();
             targetId = path.get(idx.getAndIncrement() % path.size());
 
@@ -185,11 +188,10 @@ public class NpcWanderScheduler {
                 ? AiTextPolisher.Tone.PLAYFUL
                 : AiTextPolisher.Tone.DEFAULT;
         String polishedTemplate = textPolisher.polish(tmpl, AiTextPolisher.Style.ROOM_EVENT, tone);
-        String dirStr = dir != null ? dir.name().toLowerCase() : "";
-        return polishedTemplate
-                .replace("{name}",    npc.getName())
-                .replace("{pronoun}", npc.getPossessive())
-                .replace("{dir}",     dirStr);
+        if (dir == null) {
+            log.warn("NPC '{}' departure template had no resolvable direction; using directionless fallback text", npc.getId());
+        }
+        return renderDepartureTemplate(polishedTemplate, npc, dir);
     }
 
     /** Returns null if the NPC has no arrival templates defined. */
@@ -211,5 +213,49 @@ public class NpcWanderScheduler {
         long min = npc.getWanderMinSeconds() * 1000L;
         long max = npc.getWanderMaxSeconds() * 1000L;
         return ThreadLocalRandom.current().nextLong(min, max);
+    }
+
+    static int nextPathIndex(List<String> path, String currentRoomId) {
+        if (path == null || path.isEmpty() || currentRoomId == null || currentRoomId.isBlank()) {
+            return 0;
+        }
+
+        int currentIndex = path.indexOf(currentRoomId);
+        if (currentIndex < 0) {
+            return 0;
+        }
+
+        return (currentIndex + 1) % path.size();
+    }
+
+    static String renderDepartureTemplate(String template, Npc npc, Direction dir) {
+        String rendered = template
+                .replace("{name}", npc.getName())
+                .replace("{pronoun}", npc.getPossessive());
+
+        if (dir != null) {
+            return normalizeDirectionalGrammar(
+                    rendered.replace("{dir}", dir.name().toLowerCase())
+            );
+        }
+
+        return normalizeDirectionalGrammar(
+                rendered
+                .replaceAll("(?i)\\s+(?:off\\s+)?(?:to|into|in|toward|towards)\\s+the\\s+\\{dir\\}", "")
+                .replaceAll("(?i)\\s+(?:to|into|in|toward|towards)\\s+\\{dir\\}", "")
+                .replace("{dir}", "off")
+                .replaceAll("\\s+([,.;:!?])", "$1")
+                .replaceAll("\\s{2,}", " ")
+                .trim()
+        );
+    }
+
+    private static String normalizeDirectionalGrammar(String text) {
+        return text
+                .replaceAll("(?i)\\b(?:down|up|into|in|along|through) the (north|south|east|west|up|down)\\b", "to the $1")
+                .replaceAll("(?i)\\b(?:down|up|into|in|along|through) (north|south|east|west|up|down)\\b", "to the $1")
+                .replaceAll("\\s+([,.;:!?])", "$1")
+                .replaceAll("\\s{2,}", " ")
+                .trim();
     }
 }

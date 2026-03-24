@@ -69,7 +69,7 @@ public class EmotePerspectiveResolver {
                     .entity(Perspective.class);
 
             if (isUsable(aiPerspective, normalized)) {
-                return aiPerspective.normalized();
+                return aiPerspective.normalizedForPerspective();
             }
 
             log.debug("AI emote perspective unusable for '{}', falling back to rules", normalized);
@@ -228,6 +228,14 @@ public class EmotePerspectiveResolver {
     public record Perspective(String secondPerson, String thirdPerson) {
         Perspective normalized() {
             return new Perspective(secondPerson.trim(), thirdPerson.trim());
+        }
+
+        Perspective normalizedForPerspective() {
+            Perspective trimmed = normalized();
+            return new Perspective(
+                    toSecondPerson(trimmed.secondPerson()),
+                    toThirdPerson(trimmed.thirdPerson())
+            );
         }
     }
 }

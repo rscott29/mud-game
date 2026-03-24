@@ -3,6 +3,8 @@ package com.scott.tech.mud.mud_game.model;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
+import java.util.Optional;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 /** An interactable item that can inhabit a room.
  * {@code keywords} are the words a player can use to target this item with
@@ -38,28 +40,47 @@ public class Item {
     private final List<ItemTrigger> triggers;
     /** Combat stats for this item (damage, armor, etc.) */
     private final CombatStats combatStats;
+    /** Optional equipment slot for equippable items. */
+    private final EquipmentSlot equipmentSlot;
+    /** Whether this item can hold other items. */
+    private final boolean container;
+    /** Mutable contents for lootable containers such as corpses. */
+    private final List<Item> containedItems;
 
     public Item(String id, String name, String description, List<String> keywords, boolean takeable, Rarity rarity) {
-        this(id, name, description, keywords, takeable, rarity, List.of(), null, List.of(), CombatStats.NONE);
+        this(id, name, description, keywords, takeable, rarity, List.of(), null, List.of(), CombatStats.NONE, null, false, List.of());
     }
 
     public Item(String id, String name, String description, List<String> keywords, boolean takeable, Rarity rarity,
                 List<String> requiredItemIds) {
-        this(id, name, description, keywords, takeable, rarity, requiredItemIds, null, List.of(), CombatStats.NONE);
+        this(id, name, description, keywords, takeable, rarity, requiredItemIds, null, List.of(), CombatStats.NONE, null, false, List.of());
     }
 
     public Item(String id, String name, String description, List<String> keywords, boolean takeable, Rarity rarity,
                 List<String> requiredItemIds, String prerequisiteFailMessage) {
-        this(id, name, description, keywords, takeable, rarity, requiredItemIds, prerequisiteFailMessage, List.of(), CombatStats.NONE);
+        this(id, name, description, keywords, takeable, rarity, requiredItemIds, prerequisiteFailMessage, List.of(), CombatStats.NONE, null, false, List.of());
     }
 
     public Item(String id, String name, String description, List<String> keywords, boolean takeable, Rarity rarity,
                 List<String> requiredItemIds, String prerequisiteFailMessage, List<ItemTrigger> triggers) {
-        this(id, name, description, keywords, takeable, rarity, requiredItemIds, prerequisiteFailMessage, triggers, CombatStats.NONE);
+        this(id, name, description, keywords, takeable, rarity, requiredItemIds, prerequisiteFailMessage, triggers, CombatStats.NONE, null, false, List.of());
     }
 
     public Item(String id, String name, String description, List<String> keywords, boolean takeable, Rarity rarity,
                 List<String> requiredItemIds, String prerequisiteFailMessage, List<ItemTrigger> triggers, CombatStats combatStats) {
+        this(id, name, description, keywords, takeable, rarity, requiredItemIds, prerequisiteFailMessage, triggers, combatStats, null, false, List.of());
+    }
+
+    public Item(String id, String name, String description, List<String> keywords, boolean takeable, Rarity rarity,
+                List<String> requiredItemIds, String prerequisiteFailMessage, List<ItemTrigger> triggers,
+                CombatStats combatStats, EquipmentSlot equipmentSlot) {
+        this(id, name, description, keywords, takeable, rarity, requiredItemIds, prerequisiteFailMessage,
+                triggers, combatStats, equipmentSlot, false, List.of());
+    }
+
+    public Item(String id, String name, String description, List<String> keywords, boolean takeable, Rarity rarity,
+                List<String> requiredItemIds, String prerequisiteFailMessage, List<ItemTrigger> triggers,
+                CombatStats combatStats, EquipmentSlot equipmentSlot, boolean container, List<Item> containedItems) {
         this.id              = id;
         this.name            = name;
         this.description     = description;
@@ -70,6 +91,9 @@ public class Item {
         this.prerequisiteFailMessage = prerequisiteFailMessage;
         this.triggers        = triggers != null ? triggers : List.of();
         this.combatStats     = combatStats != null ? combatStats : CombatStats.NONE;
+        this.equipmentSlot   = equipmentSlot;
+        this.container       = container;
+        this.containedItems  = new CopyOnWriteArrayList<>(containedItems != null ? containedItems : List.of());
     }
 
     public String getId()                    { return id; }
@@ -82,13 +106,49 @@ public class Item {
     public String getPrerequisiteFailMessage()     { return prerequisiteFailMessage; }
     public List<ItemTrigger> getTriggers()         { return triggers; }
     public CombatStats getCombatStats()            { return combatStats; }
+    public EquipmentSlot getEquipmentSlot()        { return equipmentSlot; }
+    public boolean isEquippable()                  { return equipmentSlot != null; }
+    public boolean isContainer()                   { return container; }
+    public List<Item> getContainedItems()          { return List.copyOf(containedItems); }
+    public boolean hasContents()                   { return !containedItems.isEmpty(); }
+
+    public void addContainedItem(Item item) {
+        if (item == null) {
+            return;
+        }
+        boolean alreadyContained = containedItems.stream().anyMatch(existing -> existing.getId().equals(item.getId()));
+        if (!alreadyContained) {
+            containedItems.add(item);
+        }
+    }
+
+    public boolean removeContainedItem(Item item) {
+        return containedItems.remove(item);
+    }
+
+    public Optional<Item> findContainedItemByKeyword(String input) {
+        if (input == null) {
+            return Optional.empty();
+        }
+
+        Optional<Item> exactMatch = containedItems.stream()
+                .filter(item -> item.hasExactKeyword(input))
+                .findFirst();
+        if (exactMatch.isPresent()) {
+            return exactMatch;
+        }
+
+        return containedItems.stream()
+                .filter(item -> item.matchesKeyword(input))
+                .findFirst();
+    }
 
     /**
      * Returns a copy of this item with a new description.
      */
     public Item withDescription(String newDescription) {
         return new Item(id, name, newDescription, keywords, takeable, rarity,
-                requiredItemIds, prerequisiteFailMessage, triggers, combatStats);
+                requiredItemIds, prerequisiteFailMessage, triggers, combatStats, equipmentSlot, container, getContainedItems());
     }
 
     /**
