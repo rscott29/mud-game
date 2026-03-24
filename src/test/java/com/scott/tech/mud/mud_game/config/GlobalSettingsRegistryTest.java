@@ -2,6 +2,7 @@ package com.scott.tech.mud.mud_game.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.MediaType;
 
 import java.io.IOException;
@@ -37,18 +38,25 @@ class GlobalSettingsRegistryTest {
     }
 
     @Test
-    void fallsBackToDefaultsWhenGlobalSettingsFileIsMissing() throws IOException {
+    void fallsBackToPackagedDefaultsWhenLiveSourceFilesAreMissing() throws IOException {
         Path resourcesRoot = Files.createTempDirectory("global-settings-defaults");
-        Files.createDirectories(resourcesRoot.resolve("world/ui"));
-        Files.writeString(resourcesRoot.resolve("world/ui/favicon.svg"), "<svg>default</svg>");
+        ObjectMapper objectMapper = new ObjectMapper();
 
         GlobalSettingsRegistry.GlobalSettings settings =
-                GlobalSettingsRegistry.loadSettings(new ObjectMapper(), resourcesRoot);
+                GlobalSettingsRegistry.loadSettings(objectMapper, resourcesRoot);
         GlobalSettingsRegistry.FaviconAsset favicon =
-                GlobalSettingsRegistry.loadFavicon(new ObjectMapper(), resourcesRoot);
+                GlobalSettingsRegistry.loadFavicon(objectMapper, resourcesRoot);
+        GlobalSettingsRegistry.GlobalSettingsFile packagedSettings;
+        try (var inputStream = new ClassPathResource("world/global-settings.json").getInputStream()) {
+            packagedSettings = objectMapper.readValue(inputStream, GlobalSettingsRegistry.GlobalSettingsFile.class);
+        }
+        byte[] expectedFaviconBytes;
+        try (var inputStream = new ClassPathResource(packagedSettings.faviconPath()).getInputStream()) {
+            expectedFaviconBytes = inputStream.readAllBytes();
+        }
 
-        assertThat(settings.title()).isEqualTo("MudGameUi");
-        assertThat(settings.faviconPath()).isEqualTo("world/ui/favicon.svg");
-        assertThat(new String(favicon.bytes(), StandardCharsets.UTF_8)).isEqualTo("<svg>default</svg>");
+        assertThat(settings.title()).isEqualTo(packagedSettings.title());
+        assertThat(settings.faviconPath()).isEqualTo(packagedSettings.faviconPath());
+        assertThat(favicon.bytes()).isEqualTo(expectedFaviconBytes);
     }
 }
