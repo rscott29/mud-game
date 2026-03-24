@@ -81,11 +81,16 @@ public class LookValidator {
             return false;
         }
 
+        String normalizedRoomName = normalizeRoomText(room.getName());
+        String normalizedRoomId = normalizeRoomText(room.getId());
+        String rawRoomId = room.getId() == null ? "" : room.getId().trim().toLowerCase();
+
         return normalizedTarget.equals("around")
                 || normalizedTarget.equals("here")
                 || normalizedTarget.equals("room")
-                || normalizedTarget.equals(normalizeRoomText(room.getName()))
-                || normalizedTarget.equals(normalizeRoomText(room.getId()));
+                || normalizedTarget.equals(normalizedRoomName)
+                || normalizedTarget.equals(normalizedRoomId)
+                || normalizedTarget.equals(rawRoomId);
     }
 
     private String normalizeRoomText(String value) {
