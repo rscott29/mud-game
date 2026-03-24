@@ -38,6 +38,8 @@ public class GameSession {
     private final Set<String> followingNpcs = new HashSet<>();
     /** Monotonic counter used to invalidate delayed room-flavor messages after the player acts again. */
     private final AtomicLong actionRevision = new AtomicLong();
+    /** Monotonic counter used to invalidate stale inactivity timeout tasks after the player sends input again. */
+    private final AtomicLong activityRevision = new AtomicLong();
 
     public GameSession(String sessionId, Player player, WorldService worldService) {
         this.sessionId    = sessionId;
@@ -76,10 +78,16 @@ public class GameSession {
     public String getPendingUsername()   { return pendingUsername; }
     public void setPendingUsername(String u) { this.pendingUsername = u; }
     public long getActionRevision()      { return actionRevision.get(); }
+    public long getActivityRevision()    { return activityRevision.get(); }
 
     /** Records that the player has taken another in-game action. */
     public long recordPlayerAction() {
         return actionRevision.incrementAndGet();
+    }
+
+    /** Records any inbound player activity that should reset the idle timeout. */
+    public long recordActivity() {
+        return activityRevision.incrementAndGet();
     }
 
     // ----- discovered hidden exits -----

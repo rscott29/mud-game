@@ -29,6 +29,8 @@
 
   "event.player.entered_world"          : "{player} has entered the world.",
   "event.player.left_world"             : "{player} has left the world.",
+  "event.player.idle_timeout"           : "{player} has been disconnected due to inactivity.",
+  "session.inactivity.player_message"   : "You have been disconnected due to inactivity.",
 
   "command.move.cannot_go"              : "You can't go {direction} from here.",
   "command.move.missing_room"           : "That path leads nowhere (room '{roomId}' is missing).",
@@ -244,5 +246,7 @@
   "quest.give.no_reaction"              : "{npc} accepts the {item} but doesn't seem to need it for anything.",
 
   "config.auth.account.lock-duration-minutes" : "1",
-  "config.auth.account.max-attempts"          : "5"
+  "config.auth.account.max-attempts"          : "5",
+  "config.session.idle-timeout-minutes"       : "15",
+  "config.session.idle-timeout-close-delay-seconds" : "4"
 }

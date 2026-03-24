@@ -8,10 +8,20 @@ import com.scott.tech.mud.mud_game.session.GameSession;
 import com.scott.tech.mud.mud_game.session.GameSessionManager;
 import com.scott.tech.mud.mud_game.world.WorldService;
 import org.junit.jupiter.api.Test;
+import org.springframework.scheduling.TaskScheduler;
+import org.springframework.web.socket.CloseStatus;
 import org.springframework.web.socket.WebSocketSession;
 
+import java.time.Duration;
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.ScheduledFuture;
+
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -24,7 +34,8 @@ class WorldBroadcasterTest {
         GameSessionManager sessionManager = new GameSessionManager();
         WsMessageSender sender = mock(WsMessageSender.class);
         CombatState combatState = mock(CombatState.class);
-        WorldBroadcaster broadcaster = new WorldBroadcaster(sessionManager, sender, combatState);
+        TaskScheduler taskScheduler = mock(TaskScheduler.class);
+        WorldBroadcaster broadcaster = new WorldBroadcaster(sessionManager, sender, combatState, taskScheduler);
 
         registerPlayingSession(sessionManager, "session-1", "Hero", "square");
         registerPlayingSession(sessionManager, "session-2", "Watcher", "square");
@@ -48,7 +59,8 @@ class WorldBroadcasterTest {
         GameSessionManager sessionManager = new GameSessionManager();
         WsMessageSender sender = mock(WsMessageSender.class);
         CombatState combatState = mock(CombatState.class);
-        WorldBroadcaster broadcaster = new WorldBroadcaster(sessionManager, sender, combatState);
+        TaskScheduler taskScheduler = mock(TaskScheduler.class);
+        WorldBroadcaster broadcaster = new WorldBroadcaster(sessionManager, sender, combatState, taskScheduler);
 
         WebSocketSession ws = mock(WebSocketSession.class);
         broadcaster.register("session-1", ws);
@@ -65,7 +77,8 @@ class WorldBroadcasterTest {
         GameSessionManager sessionManager = new GameSessionManager();
         WsMessageSender sender = mock(WsMessageSender.class);
         CombatState combatState = mock(CombatState.class);
-        WorldBroadcaster broadcaster = new WorldBroadcaster(sessionManager, sender, combatState);
+        TaskScheduler taskScheduler = mock(TaskScheduler.class);
+        WorldBroadcaster broadcaster = new WorldBroadcaster(sessionManager, sender, combatState, taskScheduler);
 
         WebSocketSession ws = mock(WebSocketSession.class);
         broadcaster.register("session-1", ws);
@@ -75,6 +88,35 @@ class WorldBroadcasterTest {
         broadcaster.sendRoomBroadcastToSession("session-1", GameResponse.socialAction("Axi dances."));
 
         verify(sender, never()).sendUnmodified(any(WebSocketSession.class), any(GameResponse.class));
+    }
+
+    @Test
+    void kickSessionWithDelayWaitsBeforeClosingSocket() throws Exception {
+        GameSessionManager sessionManager = new GameSessionManager();
+        WsMessageSender sender = mock(WsMessageSender.class);
+        CombatState combatState = mock(CombatState.class);
+        TaskScheduler taskScheduler = mock(TaskScheduler.class);
+        WorldBroadcaster broadcaster = new WorldBroadcaster(sessionManager, sender, combatState, taskScheduler);
+
+        WebSocketSession ws = mock(WebSocketSession.class);
+        broadcaster.register("session-1", ws);
+
+        List<Runnable> scheduledTasks = new ArrayList<>();
+        doAnswer(invocation -> {
+            scheduledTasks.add(invocation.getArgument(0));
+            return mock(ScheduledFuture.class);
+        }).when(taskScheduler).schedule(any(Runnable.class), any(Instant.class));
+
+        GameResponse response = GameResponse.narrative("Idle timeout.");
+        broadcaster.kickSession("session-1", response, Duration.ofSeconds(4));
+
+        verify(sender).send(ws, response);
+        verify(ws, never()).close(CloseStatus.NORMAL);
+        assertThat(scheduledTasks).hasSize(1);
+
+        scheduledTasks.getFirst().run();
+
+        verify(ws).close(CloseStatus.NORMAL);
     }
 
     private static void registerPlayingSession(GameSessionManager sessionManager,
