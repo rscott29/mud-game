@@ -4,6 +4,7 @@ public record PlayerCombatStats(
         int minDamage,
         int maxDamage,
         int hitChance,
+        int critChance,
         int attackSpeed,
         int armor,
         String attackVerb

@@ -59,9 +59,8 @@ public class DropCommand implements GameCommand {
 
         dropService.drop(session, item);
 
-        String equippedWeaponId = session.getPlayer().getEquippedWeaponId();
         List<GameResponse.ItemView> views = session.getPlayer().getInventory().stream()
-                .map(i -> GameResponse.ItemView.from(i, equippedWeaponId))
+                .map(i -> GameResponse.ItemView.from(i, session.getPlayer()))
                 .toList();
 
         // Build inventory item IDs to exclude from room view

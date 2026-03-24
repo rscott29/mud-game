@@ -1,6 +1,7 @@
 package com.scott.tech.mud.mud_game.combat;
 
 import com.scott.tech.mud.mud_game.config.SkillTableService;
+import com.scott.tech.mud.mud_game.model.EquipmentSlot;
 import com.scott.tech.mud.mud_game.model.Item;
 import com.scott.tech.mud.mud_game.model.Player;
 import com.scott.tech.mud.mud_game.model.Rarity;
@@ -29,7 +30,7 @@ class CombatStatsResolverTest {
     }
 
     @Test
-    void resolve_usesEquippedWeaponAndCarriedDefensiveItems() {
+    void resolve_usesEquippedWeaponAndEquippedDefensiveItems() {
         Player player = new Player("p1", "Hero", "start");
         Item sword = new Item(
                 "iron_sword",
@@ -59,15 +60,40 @@ class CombatStatsResolverTest {
         player.addToInventory(sword);
         player.addToInventory(shield);
         player.setEquippedWeaponId("iron_sword");
+        player.setEquippedItemId(EquipmentSlot.OFF_HAND, "leather_shield");
 
         PlayerCombatStats stats = resolver.resolve(player);
 
         assertThat(stats.minDamage()).isEqualTo(8);
         assertThat(stats.maxDamage()).isEqualTo(12);
         assertThat(stats.hitChance()).isEqualTo(80);
+        assertThat(stats.critChance()).isZero();
         assertThat(stats.attackSpeed()).isEqualTo(-2);
         assertThat(stats.armor()).isEqualTo(5);
         assertThat(stats.attackVerb()).isEqualTo("slash");
+    }
+
+    @Test
+    void resolve_doesNotCountArmorFromUnequippedItems() {
+        Player player = new Player("p3", "Hero", "start");
+        Item shield = new Item(
+                "leather_shield",
+                "Leather Shield",
+                "desc",
+                List.of("shield"),
+                true,
+                Rarity.COMMON,
+                List.of(),
+                null,
+                List.of(),
+                new Item.CombatStats(0, 0, 0, 0, 5, null)
+        );
+
+        player.addToInventory(shield);
+
+        PlayerCombatStats stats = resolver.resolve(player);
+
+        assertThat(stats.armor()).isZero();
     }
 
     @Test
@@ -84,6 +110,7 @@ class CombatStatsResolverTest {
         assertThat(stats.minDamage()).isEqualTo(3);
         assertThat(stats.maxDamage()).isEqualTo(8);
         assertThat(stats.hitChance()).isEqualTo(79);
+        assertThat(stats.critChance()).isZero();
         assertThat(stats.armor()).isEqualTo(3);
     }
 }

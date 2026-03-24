@@ -55,6 +55,22 @@ class PlayerTest {
     }
 
     @Test
+    void equippedItemsSerialized_roundTripsMultipleSlots() {
+        Player player = new Player("p1", "Alice", "start");
+        player.setEquippedItemId(EquipmentSlot.MAIN_WEAPON, "item_sword");
+        player.setEquippedItemId(EquipmentSlot.OFF_HAND, "item_shield");
+
+        String serialized = player.getEquippedItemsSerialized();
+
+        Player restored = new Player("p2", "Bob", "start");
+        restored.setEquippedItemsSerialized(serialized);
+
+        assertThat(restored.getEquippedWeaponId()).isEqualTo("item_sword");
+        assertThat(restored.getEquippedItemIds())
+                .containsEntry(EquipmentSlot.OFF_HAND, "item_shield");
+    }
+
+    @Test
     void constructor_defaultsRecallRoomToStartRoom() {
         Player player = new Player("p1", "Alice", "start");
 

@@ -15,9 +15,11 @@ public class EquipValidator {
             return ValidationResult.deny(GameResponse.error(Messages.get("command.equip.invalid_item")));
         }
 
-        // Check if item is already equipped
-        String currentWeaponId = session.getPlayer().getEquippedWeaponId();
-        if (currentWeaponId != null && currentWeaponId.equals(item.getId())) {
+        if (!item.isEquippable()) {
+            return ValidationResult.deny(GameResponse.error(Messages.get("command.equip.invalid_item")));
+        }
+
+        if (session.getPlayer().getEquippedSlot(item).isPresent()) {
             return ValidationResult.deny(GameResponse.error(
                     Messages.fmt("command.equip.already_equipped", "item", item.getName())));
         }

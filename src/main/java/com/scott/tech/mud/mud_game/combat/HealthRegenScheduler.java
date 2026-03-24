@@ -65,8 +65,8 @@ public class HealthRegenScheduler {
         String sessionId = session.getSessionId();
         Player player = session.getPlayer();
 
-        // Skip if in combat (dead players can still regen until death mechanic is implemented)
-        if (combatState.isInCombat(sessionId)) {
+        // Dead players must explicitly respawn instead of passively regenerating back to life.
+        if (player.isDead() || combatState.isInCombat(sessionId)) {
             return;
         }
         

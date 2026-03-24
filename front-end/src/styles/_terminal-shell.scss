@@ -188,6 +188,55 @@ app-terminal {
     text-transform: uppercase;
   }
 
+  .hud-chip--infinite {
+    position: relative;
+    overflow: hidden;
+    font-size: 0.9em;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    border-color: rgba(214, 177, 115, 0.26);
+    background:
+      radial-gradient(circle at 82% 28%, rgba(255, 245, 214, 0.12), transparent 34%),
+      linear-gradient(135deg, rgba(212, 173, 97, 0.14), rgba(134, 162, 199, 0.08)),
+      rgba(18, 18, 24, 0.94);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.03),
+      0 10px 22px rgba(0, 0, 0, 0.18),
+      0 0 18px rgba(214, 177, 115, 0.08);
+  }
+
+  .hud-chip--infinite::after {
+    content: '';
+    position: absolute;
+    inset: 1px;
+    border-radius: inherit;
+    pointer-events: none;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.05), transparent 45%);
+    opacity: 0.75;
+  }
+
+  .hud-chip__label {
+    position: relative;
+    z-index: 1;
+    font: inherit;
+  }
+
+  .hud-chip__infinity {
+    position: relative;
+    z-index: 1;
+    display: inline-flex;
+    align-items: center;
+    font-family: 'Cambria Math', 'STIX Two Math', 'Segoe UI Symbol', var(--font-display);
+    font-size: 1.55em;
+    font-weight: 700;
+    line-height: 0.85;
+    letter-spacing: 0;
+    transform: translateY(-0.02em);
+    text-shadow:
+      0 0 10px rgba(255, 235, 189, 0.18),
+      0 0 18px rgba(214, 177, 115, 0.08);
+  }
+
   .hud-chip--god {
     border-color: rgba(214, 177, 115, 0.32);
     color: var(--terminal-warning);
@@ -330,6 +379,7 @@ app-terminal {
   }
 
   .msg.INVENTORY_UPDATE,
+  .msg.PLAYER_OVERVIEW,
   .msg.WHO_LIST,
   .msg.HELP,
   .msg.CLASS_PROGRESSION {

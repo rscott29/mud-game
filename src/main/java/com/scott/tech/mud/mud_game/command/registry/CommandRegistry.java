@@ -5,17 +5,21 @@ import com.scott.tech.mud.mud_game.command.bind.BindRecallCommand;
 import com.scott.tech.mud.mud_game.command.drop.DropCommand;
 import com.scott.tech.mud.mud_game.command.emote.EmoteCommand;
 import com.scott.tech.mud.mud_game.command.equip.EquipCommand;
+import com.scott.tech.mud.mud_game.command.equip.UnequipCommand;
 import com.scott.tech.mud.mud_game.command.help.HelpCommand;
 import com.scott.tech.mud.mud_game.command.inventory.InventoryCommand;
 import com.scott.tech.mud.mud_game.command.investigate.InvestigateCommand;
 import com.scott.tech.mud.mud_game.command.look.LookCommand;
 import com.scott.tech.mud.mud_game.command.logout.LogoutCommand;
+import com.scott.tech.mud.mud_game.command.me.MeCommand;
 import com.scott.tech.mud.mud_game.command.moderation.ModerationCommand;
 import com.scott.tech.mud.mud_game.command.move.MoveCommand;
 import com.scott.tech.mud.mud_game.command.pickup.PickupCommand;
 import com.scott.tech.mud.mud_game.command.quest.AcceptCommand;
 import com.scott.tech.mud.mud_game.command.quest.GiveCommand;
 import com.scott.tech.mud.mud_game.command.quest.QuestCommand;
+import com.scott.tech.mud.mud_game.command.recall.RecallCommand;
+import com.scott.tech.mud.mud_game.command.respawn.RespawnCommand;
 import com.scott.tech.mud.mud_game.command.skills.SkillsCommand;
 import com.scott.tech.mud.mud_game.command.social.SocialAction;
 import com.scott.tech.mud.mud_game.command.social.SocialCommand;
@@ -27,6 +31,7 @@ import com.scott.tech.mud.mud_game.command.admin.KickCommand;
 import com.scott.tech.mud.mud_game.command.admin.ResetQuestCommand;
 import com.scott.tech.mud.mud_game.command.admin.SetModeratorCommand;
 import com.scott.tech.mud.mud_game.command.admin.SetLevelCommand;
+import com.scott.tech.mud.mud_game.command.admin.SmiteCommand;
 import com.scott.tech.mud.mud_game.command.admin.SpawnCommand;
 import com.scott.tech.mud.mud_game.command.admin.SummonCommand;
 import com.scott.tech.mud.mud_game.command.admin.TeleportCommand;
@@ -60,12 +65,16 @@ public final class CommandRegistry {
     public static final String PICKUP = "take";
     public static final String DROP = "drop";
     public static final String EQUIP = "equip";
+    public static final String UNEQUIP = "unequip";
     public static final String ATTACK = "attack";
     public static final String BIND = "bind";
     public static final String INVENTORY = "inventory";
+    public static final String ME = "me";
     public static final String INVESTIGATE = "investigate";
     public static final String SKILLS = "skills";
     public static final String MODERATION = "moderation";
+    public static final String RECALL = "recall";
+    public static final String RESPAWN = "respawn";
     public static final String EMOTE = "emote";
     public static final String QUEST = "quest";
     public static final String ACCEPT = "accept";
@@ -76,6 +85,7 @@ public final class CommandRegistry {
     public static final String TELEPORT = "teleport";
     public static final String SUMMON = "summon";
     public static final String KICK = "kick";
+    public static final String SMITE = "smite";
     public static final String SET_LEVEL = "setlevel";
     public static final String RESET_QUEST = "resetquest";
     public static final String SET_MODERATOR = "setmoderator";
@@ -91,19 +101,24 @@ public final class CommandRegistry {
 
     /**
      * Normalizes raw input to a canonical command name.
-     * Strips leading slashes, lowercases, and resolves aliases.
+     * Lowercases, preserves exact slash aliases, and falls back to bare aliases.
      */
     public static String canonicalize(String raw) {
         if (raw == null) return "";
         String normalized = raw.trim().toLowerCase(Locale.ROOT);
         if (normalized.isEmpty()) return "";
 
-        // Strip leading slash for internal lookup
-        String lookup = normalized.startsWith("/") ? normalized.substring(1) : normalized;
+        String exactMatch = ALIAS_MAP.get(normalized);
+        if (exactMatch != null) {
+            return exactMatch;
+        }
 
-        // Also check with slash for backwards compatibility
-        return ALIAS_MAP.getOrDefault(lookup,
-                ALIAS_MAP.getOrDefault(normalized, normalized));
+        if (normalized.startsWith("/")) {
+            String withoutSlash = normalized.substring(1);
+            return ALIAS_MAP.getOrDefault(withoutSlash, withoutSlash);
+        }
+
+        return normalized;
     }
 
     /**
@@ -245,7 +260,7 @@ public final class CommandRegistry {
                     }
                     return new MoveCommand(dir, ctx.deps().taskScheduler(), ctx.deps().worldBroadcaster(), ctx.deps().sessionManager(),
                             ctx.deps().questService(), ctx.deps().levelingService(), ctx.deps().worldService(),
-                            ctx.deps().ambientEventService(), ctx.deps().aiTextPolisher());
+                            ctx.deps().ambientEventService(), ctx.deps().aiTextPolisher(), ctx.deps().playerDeathService());
                 })
                 .build());
 
@@ -255,6 +270,17 @@ public final class CommandRegistry {
                 .usage("inventory")
                 .description("List what you are carrying")
                 .creator(ctx -> new InventoryCommand())
+                .build());
+
+        commands.add(CommandDefinition.builder(ME)
+                .aliases("me", "profile", "sheet", "gear", "equipment")
+                .category(SESSION)
+                .usage("me")
+                .description("Show your character sheet and equipped gear")
+                .creator(ctx -> new MeCommand(
+                        ctx.deps().xpTables(),
+                        ctx.deps().combatStatsResolver()
+                ))
                 .build());
 
         commands.add(CommandDefinition.builder(INVESTIGATE)
@@ -311,11 +337,22 @@ public final class CommandRegistry {
         commands.add(CommandDefinition.builder(EQUIP)
                 .aliases("equip", "wield", "arm", "ready")
                 .category(INTERACTION)
-                .usage("equip <weapon>")
-                .description("Equip a weapon from your inventory")
+                .usage("equip <item>")
+                .description("Equip a weapon or piece of gear from your inventory")
                 .creator(ctx -> new EquipCommand(
                         ctx.hasNoArgs() ? null : ctx.joinedArgs(),
                         ctx.deps().equipValidator(),
+                        ctx.deps().equipService()
+                ))
+                .build());
+
+        commands.add(CommandDefinition.builder(UNEQUIP)
+                .aliases("unequip", "remove", "unwear", "unwield")
+                .category(INTERACTION)
+                .usage("remove <item|slot>")
+                .description("Unequip a weapon or piece of gear")
+                .creator(ctx -> new UnequipCommand(
+                        ctx.hasNoArgs() ? null : ctx.joinedArgs(),
                         ctx.deps().equipService()
                 ))
                 .build());
@@ -397,7 +434,7 @@ public final class CommandRegistry {
 
         // Emote commands
         commands.add(CommandDefinition.builder(EMOTE)
-                .aliases("emote", "/emote", "/em", "/me")
+                .aliases("emote", "em", "/emote", "/em", "/me")
                 .category(CommandCategory.EMOTE)
                 .usage("/em <action>")
                 .description("Custom emote (e.g., /em dances, /em waves at Bob)")
@@ -427,6 +464,26 @@ public final class CommandRegistry {
                 .usage("skills")
                 .description("View your class skill progression")
                 .creator(ctx -> new SkillsCommand())
+                .build());
+
+        commands.add(CommandDefinition.builder(RESPAWN)
+                .aliases("respawn", "revive", "recover")
+                .category(SESSION)
+                .usage("respawn")
+                .description("Return to your recall point after being defeated")
+                .creator(ctx -> new RespawnCommand(ctx.deps().playerRespawnService()))
+                .build());
+
+        commands.add(CommandDefinition.builder(RECALL)
+                .aliases("recall", "home")
+                .category(SESSION)
+                .usage("recall")
+                .description("Teleport to your bound recall point")
+                .creator(ctx -> new RecallCommand(
+                        ctx.deps().playerRespawnService(),
+                        ctx.deps().combatState(),
+                        ctx.deps().combatLoopScheduler()
+                ))
                 .build());
 
         commands.add(CommandDefinition.builder(MODERATION)
@@ -494,7 +551,7 @@ public final class CommandRegistry {
                 .build());
 
         commands.add(CommandDefinition.builder(KICK)
-                .aliases("kick", "remove", "boot")
+                .aliases("kick", "boot")
                 .category(GOD)
                 .usage("kick <player>")
                 .description("Kick a player from the game")
@@ -505,6 +562,23 @@ public final class CommandRegistry {
                         ctx.deps().worldBroadcaster(),
                         ctx.deps().accountStore(),
                         ctx.deps().reconnectTokenStore()
+                ))
+                .build());
+
+        commands.add(CommandDefinition.builder(SMITE)
+                .aliases("smite", "smote")
+                .category(GOD)
+                .usage("smite <player>")
+                .description("Instantly defeat a player for testing")
+                .godOnly()
+                .creator(ctx -> new SmiteCommand(
+                        ctx.joinedArgs(),
+                        ctx.deps().sessionManager(),
+                        ctx.deps().worldBroadcaster(),
+                        ctx.deps().playerDeathService(),
+                        ctx.deps().combatState(),
+                        ctx.deps().combatLoopScheduler(),
+                        ctx.deps().xpTables()
                 ))
                 .build());
 
@@ -633,13 +707,7 @@ public final class CommandRegistry {
         Map<String, String> map = new LinkedHashMap<>();
         for (CommandMetadata cmd : ALL_COMMANDS) {
             for (String alias : cmd.aliases()) {
-                // Store without leading slash
-                String key = alias.startsWith("/") ? alias.substring(1) : alias;
-                putAlias(map, key, cmd.canonicalName());
-                // Also store with slash for direct matching
-                if (alias.startsWith("/")) {
-                    putAlias(map, alias, cmd.canonicalName());
-                }
+                putAlias(map, alias, cmd.canonicalName());
             }
         }
         return Map.copyOf(map);

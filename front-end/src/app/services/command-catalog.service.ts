@@ -220,6 +220,8 @@ export class CommandCatalogService {
         return 'give bread to pilgrim';
       case 'skills':
         return 'skills';
+      case 'me':
+        return 'me';
       default:
         if (command.category === COMMAND_HELP_CATEGORIES.SOCIAL && command.usage.includes('[target|self]')) {
           return `${usageToken} self`;

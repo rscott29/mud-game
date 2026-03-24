@@ -117,9 +117,8 @@ public class GiveCommand implements GameCommand {
 
         // Add inventory update if inventory was modified
         if (inventoryModified && !responses.isEmpty()) {
-            String equippedWeaponId = player.getEquippedWeaponId();
             List<GameResponse.ItemView> views = player.getInventory().stream()
-                    .map(i -> GameResponse.ItemView.from(i, equippedWeaponId))
+                    .map(i -> GameResponse.ItemView.from(i, player))
                     .toList();
             // Replace last response with one that includes inventory
             GameResponse last = responses.remove(responses.size() - 1);

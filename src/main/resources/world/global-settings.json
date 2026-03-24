@@ -1,4 +1,8 @@
 {
   "title": "Obsidian Kingdom",
-  "faviconPath": "world/ui/obsidian-kingdom-favicon.ico"
+  "faviconPath": "world/ui/obsidian-kingdom-favicon.ico",
+  "death": {
+    "itemLossEnabled": true,
+    "corpsePersistenceMinutes": 30
+  }
 }

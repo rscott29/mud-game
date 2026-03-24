@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.Optional;
 
 /**
- * Equips an item from the player's inventory as their weapon.
+ * Equips an item from the player's inventory into its declared slot.
  *
  * Usage: equip <item>
  */
@@ -54,13 +54,13 @@ public class EquipCommand implements GameCommand {
             return CommandResult.of(validation.responses().toArray(new GameResponse[0]));
         }
 
-        Optional<Item> previousWeapon = equipService.equip(session, item);
+        Optional<Item> previousItem = equipService.equip(session, item);
         
         String successMsg;
-        if (previousWeapon.isPresent()) {
+        if (previousItem.isPresent()) {
             successMsg = Messages.fmt("command.equip.success_swap", 
                     "item", item.getName(),
-                    "previous", previousWeapon.get().getName());
+                    "previous", previousItem.get().getName());
         } else {
             successMsg = Messages.fmt("command.equip.success", "item", item.getName());
         }

@@ -170,6 +170,7 @@
     "keywords": ["sword", "iron sword", "blade", "weapon"],
     "takeable": true,
     "rarity": "COMMON",
+    "equipmentSlot": "main_weapon",
     "combatStats": {
       "minDamage": 8,
       "maxDamage": 16,
@@ -186,6 +187,7 @@
     "keywords": ["shield", "leather shield", "buckler", "armor", "armour"],
     "takeable": true,
     "rarity": "RARE",
+    "equipmentSlot": "off_hand",
     "combatStats": {
       "minDamage": 0,
       "maxDamage": 0,
@@ -221,6 +223,7 @@
     "triggers": [
       { "event": "PREREQUISITE_FAIL", "npcId": "npc_keeper_of_the_bond", "templateIndex": 0 }
     ],
+    "equipmentSlot": "main_weapon",
     "combatStats": {
       "minDamage": 20,
       "maxDamage": 35,
@@ -309,6 +312,7 @@
     "keywords": ["practice sword", "wooden sword", "training sword", "practice weapon", "bokken"],
     "takeable": true,
     "rarity": "COMMON",
+    "equipmentSlot": "main_weapon",
     "combatStats": {
       "minDamage": 2,
       "maxDamage": 4,

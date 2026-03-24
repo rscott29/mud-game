@@ -1,6 +1,7 @@
 package com.scott.tech.mud.mud_game.command.move;
 
 import com.scott.tech.mud.mud_game.ai.AiTextPolisher;
+import com.scott.tech.mud.mud_game.combat.PlayerDeathService;
 import com.scott.tech.mud.mud_game.command.core.CommandResult;
 import com.scott.tech.mud.mud_game.config.Messages;
 import com.scott.tech.mud.mud_game.dto.GameResponse;
@@ -38,6 +39,7 @@ public class MoveService {
     private final AmbientEventService ambientEventService;
     private final WorldService worldService;
     private final AiTextPolisher textPolisher;
+    private final PlayerDeathService playerDeathService;
 
     public MoveService(TaskScheduler taskScheduler,
                        WorldBroadcaster worldBroadcaster,
@@ -46,7 +48,7 @@ public class MoveService {
                        AmbientEventService ambientEventService,
                        WorldService worldService) {
         this(taskScheduler, worldBroadcaster, sessionManager, levelingService, ambientEventService, worldService,
-                AiTextPolisher.noOp());
+                AiTextPolisher.noOp(), null);
     }
 
     public MoveService(TaskScheduler taskScheduler,
@@ -56,6 +58,18 @@ public class MoveService {
                        AmbientEventService ambientEventService,
                        WorldService worldService,
                        AiTextPolisher textPolisher) {
+        this(taskScheduler, worldBroadcaster, sessionManager, levelingService, ambientEventService, worldService,
+                textPolisher, null);
+    }
+
+    public MoveService(TaskScheduler taskScheduler,
+                       WorldBroadcaster worldBroadcaster,
+                       GameSessionManager sessionManager,
+                       LevelingService levelingService,
+                       AmbientEventService ambientEventService,
+                       WorldService worldService,
+                       AiTextPolisher textPolisher,
+                       PlayerDeathService playerDeathService) {
         this.taskScheduler = taskScheduler;
         this.worldBroadcaster = worldBroadcaster;
         this.sessionManager = sessionManager;
@@ -63,6 +77,7 @@ public class MoveService {
         this.ambientEventService = ambientEventService;
         this.worldService = worldService;
         this.textPolisher = textPolisher == null ? AiTextPolisher.noOp() : textPolisher;
+        this.playerDeathService = playerDeathService;
     }
 
     public CommandResult buildResult(GameSession session,
@@ -84,9 +99,26 @@ public class MoveService {
                 && direction != currentRoom.getSafeExit() && currentRoom.getWrongExitDamage() > 0) {
             int damage = currentRoom.getWrongExitDamage();
             player.setHealth(Math.max(0, player.getHealth() - damage));
-            responses.add(GameResponse.narrative(
-                    Messages.fmt("command.move.dark_damage", "damage", String.valueOf(damage)))
-                    .withPlayerStats(player, levelingService.getXpTables()));
+            String damageMessage = Messages.fmt("command.move.dark_damage", "damage", String.valueOf(damage));
+            if (player.isDead() && playerDeathService != null) {
+                PlayerDeathService.DeathOutcome deathOutcome = playerDeathService.handleDeath(session);
+                worldBroadcaster.broadcastToRoom(
+                        currentRoom.getId(),
+                        GameResponse.roomAction(Messages.fmt(
+                                deathOutcome.leavesCorpse() ? "combat.player_dies_room" : "combat.player_dies_room.no_corpse",
+                                "player", playerName)),
+                        wsSessionId
+                );
+                responses.add(buildDeathRoomRefresh(session,
+                        damageMessage
+                                + "<br><br>"
+                                + Messages.get("combat.player_defeated")
+                                + "<br><br>"
+                                + deathOutcome.promptHtml()
+                ).withPlayerStats(player, levelingService.getXpTables()));
+                return CommandResult.of(responses.toArray(new GameResponse[0]));
+            }
+            responses.add(GameResponse.narrative(damageMessage).withPlayerStats(player, levelingService.getXpTables()));
         }
 
         worldBroadcaster.broadcastToRoom(
@@ -160,6 +192,22 @@ public class MoveService {
                     });
         }
     }
+
+        private GameResponse buildDeathRoomRefresh(GameSession session, String message) {
+                Room room = session.getCurrentRoom();
+                List<String> others = sessionManager.getSessionsInRoom(room.getId()).stream()
+                                .filter(other -> !other.getSessionId().equals(session.getSessionId()))
+                                .map(other -> other.getPlayer().getName())
+                                .toList();
+
+                return GameResponse.roomRefresh(
+                                room,
+                                message,
+                                others,
+                                session.getDiscoveredHiddenExits(room.getId()),
+                                Set.of()
+                );
+        }
 
     private void scheduleRoomFlavorMessages(Room room, GameSession session, String playerName, String wsSessionId) {
         List<GameResponse> npcInteractions = buildNpcInteractionMessages(room, playerName);

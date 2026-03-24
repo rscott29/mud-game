@@ -85,6 +85,13 @@ export class TerminalMessageInterpreterService {
           message: this.formatter.formatInventoryUpdate(message.inventory ?? []),
         };
 
+      case GAME_MESSAGE_TYPES.PLAYER_OVERVIEW:
+        return {
+          kind: 'display',
+          stateChanges,
+          message: this.formatter.formatPlayerOverview(message),
+        };
+
       case GAME_MESSAGE_TYPES.HELP:
         return {
           kind: 'help',

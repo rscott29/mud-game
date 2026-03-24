@@ -36,6 +36,7 @@ public class GameSessionManager {
     public Collection<GameSession> getSessionsInRoom(String roomId) {
         return sessions.values().stream()
                 .filter(s -> s.getState() == SessionState.PLAYING)
+                .filter(s -> s.getPlayer().isAlive())
                 .filter(s -> roomId.equals(s.getPlayer().getCurrentRoomId()))
                 .toList();
     }
@@ -59,6 +60,7 @@ public class GameSessionManager {
     public Optional<GameSession> findPlayingByNameInRoom(String name, String roomId) {
         return sessions.values().stream()
                 .filter(s -> s.getState() == SessionState.PLAYING)
+                .filter(s -> s.getPlayer().isAlive())
                 .filter(s -> roomId.equals(s.getPlayer().getCurrentRoomId()))
                 .filter(s -> s.getPlayer().getName().equalsIgnoreCase(name))
                 .findFirst();

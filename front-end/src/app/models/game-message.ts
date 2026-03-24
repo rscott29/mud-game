@@ -28,6 +28,7 @@ export const GAME_MESSAGE_TYPES = {
   WHO_LIST: 'WHO_LIST',
   SESSION_TOKEN: 'SESSION_TOKEN',
   INVENTORY_UPDATE: 'INVENTORY_UPDATE',
+  PLAYER_OVERVIEW: 'PLAYER_OVERVIEW',
   HELP: 'HELP',
   CHARACTER_CREATION: 'CHARACTER_CREATION',
   STAT_UPDATE: 'STAT_UPDATE',
@@ -82,6 +83,7 @@ export interface ItemDto {
   description: string;
   rarity: string;
   equipped: boolean;
+  equippedSlot?: string | null;
 }
 
 export interface WhoPlayerDto {
@@ -89,6 +91,7 @@ export interface WhoPlayerDto {
   level: number;
   title: string;
   location: string;
+  isGod: boolean;
 }
 
 export interface PlayerStatsDto {
@@ -105,6 +108,14 @@ export interface PlayerStatsDto {
   totalXp: number;
   isGod: boolean;
   characterClass: string;
+}
+
+export interface CombatStatsDto {
+  armor: number;
+  minDamage: number;
+  maxDamage: number;
+  hitChance: number;
+  critChance: number;
 }
 
 export interface PronounOptionDto {
@@ -131,5 +142,6 @@ export interface GameMessage {
   inventory?: ItemDto[];
   whoPlayers?: WhoPlayerDto[];
   playerStats?: PlayerStatsDto;
+  combatStats?: CombatStatsDto;
   characterCreation?: CharacterCreationDto;
 }

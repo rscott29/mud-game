@@ -21,7 +21,11 @@ class GlobalSettingsRegistryTest {
         Files.writeString(resourcesRoot.resolve("world/global-settings.json"), """
                 {
                   "title": "Lantern MUD",
-                  "faviconPath": "world/ui/custom-favicon.svg"
+                  "faviconPath": "world/ui/custom-favicon.svg",
+                  "death": {
+                    "itemLossEnabled": false,
+                    "corpsePersistenceMinutes": 12
+                  }
                 }
                 """);
         Files.writeString(resourcesRoot.resolve("world/ui/custom-favicon.svg"), "<svg></svg>");
@@ -33,6 +37,8 @@ class GlobalSettingsRegistryTest {
 
         assertThat(settings.title()).isEqualTo("Lantern MUD");
         assertThat(settings.faviconPath()).isEqualTo("world/ui/custom-favicon.svg");
+        assertThat(settings.death().itemLossEnabled()).isFalse();
+        assertThat(settings.death().corpsePersistenceMinutes()).isEqualTo(12);
         assertThat(new String(favicon.bytes(), StandardCharsets.UTF_8)).isEqualTo("<svg></svg>");
         assertThat(favicon.mediaType()).isEqualTo(MediaType.parseMediaType("image/svg+xml"));
     }
@@ -57,6 +63,8 @@ class GlobalSettingsRegistryTest {
 
         assertThat(settings.title()).isEqualTo(packagedSettings.title());
         assertThat(settings.faviconPath()).isEqualTo(packagedSettings.faviconPath());
+        assertThat(settings.death().itemLossEnabled()).isEqualTo(packagedSettings.death().itemLossEnabled());
+        assertThat(settings.death().corpsePersistenceMinutes()).isEqualTo(packagedSettings.death().corpsePersistenceMinutes());
         assertThat(favicon.bytes()).isEqualTo(expectedFaviconBytes);
     }
 }

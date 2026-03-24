@@ -68,13 +68,62 @@ class PlayerRespawnServiceTest {
                 eq("wilds"),
                 argThat(gameResponse ->
                         gameResponse.type() == GameResponse.Type.ROOM_ACTION
-                                && gameResponse.message().contains("dissolves")),
+                                && gameResponse.message().contains("shimmer")),
                 eq("session-1"));
         verify(broadcaster).broadcastToRoom(
                 eq("town_square"),
                 argThat(gameResponse ->
                         gameResponse.type() == GameResponse.Type.ROOM_ACTION
                                 && gameResponse.message().contains("staggers")),
+                eq("session-1"));
+    }
+
+    @Test
+    void recall_movesPlayerToRecallRoomWithoutRestoringResources() {
+        GameSessionManager sessionManager = mock(GameSessionManager.class);
+        WorldBroadcaster broadcaster = mock(WorldBroadcaster.class);
+        WorldService worldService = mock(WorldService.class);
+
+        Room wilds = new Room("wilds", "Wilds", "desc", new EnumMap<>(Direction.class), List.of(), List.of());
+        Room townSquare = new Room("town_square", "Town Square", "desc", new EnumMap<>(Direction.class), List.of(), List.of());
+
+        when(worldService.getRoom("wilds")).thenReturn(wilds);
+        when(worldService.getRoom("town_square")).thenReturn(townSquare);
+        when(worldService.getDefaultRecallRoomId()).thenReturn("town_square");
+        when(worldService.getStartRoomId()).thenReturn("town_square");
+
+        Player player = new Player("p1", "Hero", "wilds");
+        player.setRecallRoomId("town_square");
+        player.setHealth(37);
+        player.setMana(12);
+        player.setMovement(44);
+
+        GameSession session = new GameSession("session-1", player, worldService);
+        when(sessionManager.getSessionsInRoom("town_square")).thenReturn(List.of(session));
+
+        ExperienceTableService xpTables = mock(ExperienceTableService.class);
+
+        PlayerRespawnService service = new PlayerRespawnService(sessionManager, broadcaster, xpTables);
+        GameResponse response = service.recall(session);
+
+        assertThat(player.getCurrentRoomId()).isEqualTo("town_square");
+        assertThat(player.getHealth()).isEqualTo(37);
+        assertThat(player.getMana()).isEqualTo(12);
+        assertThat(player.getMovement()).isEqualTo(44);
+        assertThat(response.type()).isEqualTo(GameResponse.Type.ROOM_UPDATE);
+        assertThat(response.message()).contains("Town Square");
+
+        verify(broadcaster).broadcastToRoom(
+                eq("wilds"),
+                argThat(gameResponse ->
+                        gameResponse.type() == GameResponse.Type.ROOM_ACTION
+                                && gameResponse.message().contains("vanishes")),
+                eq("session-1"));
+        verify(broadcaster).broadcastToRoom(
+                eq("town_square"),
+                argThat(gameResponse ->
+                        gameResponse.type() == GameResponse.Type.ROOM_ACTION
+                                && gameResponse.message().contains("appears")),
                 eq("session-1"));
     }
 }

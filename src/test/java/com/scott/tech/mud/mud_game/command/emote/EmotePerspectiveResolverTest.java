@@ -68,4 +68,19 @@ class EmotePerspectiveResolverTest {
         assertThat(result.secondPerson()).isEqualTo("do the funky chicken");
         assertThat(result.thirdPerson()).isEqualTo("does the funky chicken");
     }
+
+    @Test
+    void normalizesAiPerspectiveWhenSecondPersonStillStartsThirdPerson() {
+        when(callSpec.entity(EmotePerspectiveResolver.Perspective.class))
+                .thenReturn(new EmotePerspectiveResolver.Perspective(
+                        "laughs out load",
+                        "laughs out load"
+                ));
+
+        EmotePerspectiveResolver resolver = new EmotePerspectiveResolver(chatClient);
+        EmotePerspectiveResolver.Perspective result = resolver.resolve("laughs out load");
+
+        assertThat(result.secondPerson()).isEqualTo("laugh out load");
+        assertThat(result.thirdPerson()).isEqualTo("laughs out load");
+    }
 }

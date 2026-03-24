@@ -20,9 +20,8 @@ public class InventoryCommand implements GameCommand {
     @Override
     public CommandResult execute(GameSession session) {
         List<Item> items = session.getPlayer().getInventory();
-        String equippedWeaponId = session.getPlayer().getEquippedWeaponId();
         List<GameResponse.ItemView> views = items.stream()
-                .map(item -> GameResponse.ItemView.from(item, equippedWeaponId))
+                .map(item -> GameResponse.ItemView.from(item, session.getPlayer()))
                 .toList();
         String playerName = session.getPlayer().getName();
         return CommandResult.withAction(

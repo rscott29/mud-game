@@ -25,16 +25,6 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-/**
- * Unit tests for {@link LookCommand}.
- *
- * Covers:
- *  - No target → full room update
- *  - NPC keyword resolution (including stop-word-prefixed inputs)
- *  - Item keyword resolution (including stop-word-prefixed inputs)
- *  - "exits" keyword
- *  - Unknown target → error
- */
 class LookCommandTest {
 
     private GameSession session;
@@ -69,8 +59,6 @@ class LookCommandTest {
         when(sessionManager.getSessionsInRoom(anyString())).thenReturn(List.of());
     }
 
-    // ── No target ────────────────────────────────────────────────────────────
-
     @Test
     void noTarget_returnsRoomUpdate() {
         CommandResult result = new LookCommand(null, sessionManager).execute(session);
@@ -83,42 +71,75 @@ class LookCommandTest {
         assertThat(singleResponse(result).type()).isEqualTo(GameResponse.Type.ROOM_REFRESH);
     }
 
-    // ── NPC resolution ───────────────────────────────────────────────────────
+    @ParameterizedTest(name = "look \"{0}\" resolves to the current room")
+    @ValueSource(strings = { "town square", "at town square", "town_square", "here", "around", "room" })
+    void currentRoomTarget_returnsRoomUpdate(String input) {
+        CommandResult result = new LookCommand(input, sessionManager).execute(session);
+        GameResponse response = singleResponse(result);
+
+        assertThat(response.type()).isEqualTo(GameResponse.Type.ROOM_REFRESH);
+        assertThat(response.room()).isNotNull();
+        assertThat(response.room().name()).isEqualTo("Town Square");
+    }
 
     @ParameterizedTest(name = "look \"{0}\" resolves to Obi")
-    @ValueSource(strings = { "obi", "dog", "labrador", "lab",
-                              "at obi", "at the dog", "the labrador", "a lab" })
+    @ValueSource(strings = { "obi", "dog", "labrador", "lab", "at obi", "at the dog", "the labrador", "a lab" })
     void npcKeyword_resolvesToNpcDescription(String input) {
         CommandResult result = new LookCommand(input, sessionManager).execute(session);
         GameResponse response = singleResponse(result);
+
         assertThat(response.type()).isEqualTo(GameResponse.Type.NARRATIVE);
         assertThat(response.message()).contains("Obi").contains("Labrador");
     }
 
-    // ── Item resolution ──────────────────────────────────────────────────────
-
     @ParameterizedTest(name = "look \"{0}\" resolves to Fountain")
-    @ValueSource(strings = { "fountain", "water", "at fountain",
-                              "the fountain", "at the fountain", "a fountain" })
+    @ValueSource(strings = { "fountain", "water", "at fountain", "the fountain", "at the fountain", "a fountain" })
     void itemKeyword_resolvesToItemDescription(String input) {
         CommandResult result = new LookCommand(input, sessionManager).execute(session);
         GameResponse response = singleResponse(result);
+
         assertThat(response.type()).isEqualTo(GameResponse.Type.NARRATIVE);
         assertThat(response.message()).contains("Fountain").contains("burbling");
     }
 
-    // ── Exits ────────────────────────────────────────────────────────────────
+    @Test
+    void corpseLook_listsContainedItems() {
+        Item sword = new Item("item_practice_sword", "Practice Sword", "A wooden blade.",
+                List.of("sword", "practice sword"), true, Rarity.COMMON);
+        Item corpse = new Item(
+                "corpse_quentor",
+                "Quentor's corpse",
+                "The remains of Quentor lie here. Their belongings rest within.",
+                List.of("corpse", "quentor corpse"),
+                false,
+                Rarity.COMMON,
+                List.of(),
+                null,
+                List.of(),
+                Item.CombatStats.NONE,
+                null,
+                true,
+                List.of(sword)
+        );
+        room.addItem(corpse);
+
+        CommandResult result = new LookCommand("quentor's corpse", sessionManager).execute(session);
+        GameResponse response = singleResponse(result);
+
+        assertThat(response.type()).isEqualTo(GameResponse.Type.NARRATIVE);
+        assertThat(response.message()).contains("Contents:");
+        assertThat(response.message()).contains("Practice Sword");
+    }
 
     @ParameterizedTest(name = "look \"{0}\" lists exits")
     @ValueSource(strings = { "exits", "exit" })
-    void exits_keyword_listsDirections(String input) {
+    void exitsKeyword_listsDirections(String input) {
         CommandResult result = new LookCommand(input, sessionManager).execute(session);
         GameResponse response = singleResponse(result);
+
         assertThat(response.type()).isEqualTo(GameResponse.Type.NARRATIVE);
         assertThat(response.message()).contains("north").contains("south");
     }
-
-    // ── Unknown target ───────────────────────────────────────────────────────
 
     @Test
     void unknownTarget_returnsError() {
@@ -128,14 +149,9 @@ class LookCommandTest {
 
     @Test
     void stopWordOnly_doesNotMatchAnything() {
-        // "the" alone (after strip) becomes "" which is treated as null → room look
         CommandResult result = new LookCommand("the", sessionManager).execute(session);
-        // "the" stripped of leading stop words leaves "the" as it is (not a stop word by itself
-        // — the pattern requires trailing whitespace), so it becomes an unknown target
         assertThat(singleResponse(result).type()).isEqualTo(GameResponse.Type.ERROR);
     }
-
-    // ── Helpers ──────────────────────────────────────────────────────────────
 
     private static GameResponse singleResponse(CommandResult result) {
         assertThat(result.getResponses()).hasSize(1);

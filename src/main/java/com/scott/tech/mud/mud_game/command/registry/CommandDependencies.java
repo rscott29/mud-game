@@ -4,9 +4,12 @@ import com.scott.tech.mud.mud_game.auth.AccountStore;
 import com.scott.tech.mud.mud_game.auth.ReconnectTokenStore;
 import com.scott.tech.mud.mud_game.ai.AiTextPolisher;
 import com.scott.tech.mud.mud_game.ai.PlayerTextModerator;
+import com.scott.tech.mud.mud_game.combat.CombatStatsResolver;
 import com.scott.tech.mud.mud_game.combat.CombatLoopScheduler;
 import com.scott.tech.mud.mud_game.combat.CombatService;
 import com.scott.tech.mud.mud_game.combat.CombatState;
+import com.scott.tech.mud.mud_game.combat.PlayerDeathService;
+import com.scott.tech.mud.mud_game.combat.PlayerRespawnService;
 import com.scott.tech.mud.mud_game.command.attack.AttackValidator;
 import com.scott.tech.mud.mud_game.command.drop.DropService;
 import com.scott.tech.mud.mud_game.command.drop.DropValidator;
@@ -56,6 +59,8 @@ public record CommandDependencies(
         CombatService combatService,
         CombatState combatState,
         CombatLoopScheduler combatLoopScheduler,
+        PlayerDeathService playerDeathService,
+        PlayerRespawnService playerRespawnService,
         TalkValidator talkValidator,
         TalkService talkService,
         SocialValidator socialValidator,
@@ -63,6 +68,7 @@ public record CommandDependencies(
         AccountStore accountStore,
         ReconnectTokenStore reconnectTokenStore,
         ExperienceTableService xpTables,
+        CombatStatsResolver combatStatsResolver,
         LevelingService levelingService,
         WorldModerationPolicyService worldModerationPolicyService,
         PlayerProfileService playerProfileService,

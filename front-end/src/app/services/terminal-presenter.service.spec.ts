@@ -35,6 +35,8 @@ describe('TerminalPresenterService', () => {
   let zoom: MockZoomService;
 
   beforeEach(() => {
+    document.title = 'MudGameUi';
+
     TestBed.configureTestingModule({
       providers: [
         TerminalPresenterService,
@@ -86,6 +88,14 @@ describe('TerminalPresenterService', () => {
     });
   });
 
+  it('surfaces the document title as the world title', () => {
+    document.title = 'Lantern MUD';
+
+    const presenter = TestBed.inject(TerminalPresenterService);
+
+    expect(presenter.worldTitle()).toBe('Lantern MUD');
+  });
+
   it('formats hud labels from player stats and god mode', () => {
     const presenter = TestBed.inject(TerminalPresenterService);
 
@@ -133,9 +143,9 @@ describe('TerminalPresenterService', () => {
     });
 
     expect(presenter.levelLabel()).toBe('Level 100');
-    expect(presenter.hudHealth()).toBe('HP INF');
-    expect(presenter.hudMana()).toBe('MP INF');
-    expect(presenter.hudMovement()).toBe('MV INF');
+    expect(presenter.hudHealth()).toBe('HP ∞');
+    expect(presenter.hudMana()).toBe('MP ∞');
+    expect(presenter.hudMovement()).toBe('MV ∞');
     expect(presenter.xpPercent()).toBe(100);
     expect(presenter.xpLabel()).toBe('Max level');
   });
