@@ -15,6 +15,7 @@ import com.scott.tech.mud.mud_game.persistence.service.PlayerProfileService;
 import com.scott.tech.mud.mud_game.session.DisconnectGracePeriodService;
 import com.scott.tech.mud.mud_game.session.GameSession;
 import com.scott.tech.mud.mud_game.session.GameSessionManager;
+import com.scott.tech.mud.mud_game.session.SessionInactivityService;
 import com.scott.tech.mud.mud_game.world.WorldService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -45,6 +46,7 @@ public class GameWebSocketHandler extends TextWebSocketHandler {
     private final InventoryService inventoryService;
     private final PlayerStateCache stateCache;
     private final DisconnectGracePeriodService disconnectGracePeriod;
+    private final SessionInactivityService sessionInactivityService;
 
     public GameWebSocketHandler(GameEngine gameEngine,
                                 GameSessionManager sessionManager,
@@ -58,7 +60,8 @@ public class GameWebSocketHandler extends TextWebSocketHandler {
                                 PlayerProfileService playerProfileService,
                                 InventoryService inventoryService,
                                 PlayerStateCache stateCache,
-                                DisconnectGracePeriodService disconnectGracePeriod) {
+                                DisconnectGracePeriodService disconnectGracePeriod,
+                                SessionInactivityService sessionInactivityService) {
         this.gameEngine = gameEngine;
         this.sessionManager = sessionManager;
         this.worldService = worldService;
@@ -72,6 +75,7 @@ public class GameWebSocketHandler extends TextWebSocketHandler {
         this.inventoryService = inventoryService;
         this.stateCache = stateCache;
         this.disconnectGracePeriod = disconnectGracePeriod;
+        this.sessionInactivityService = sessionInactivityService;
     }
 
     @Override
@@ -98,6 +102,11 @@ public class GameWebSocketHandler extends TextWebSocketHandler {
                 gameSession -> {
                     messageSender.withSessionGuard(wsSession.getId(), () -> {
                         try {
+                            SessionState stateBefore = gameSession.getState();
+                            if (sessionInactivityService.isTrackedState(stateBefore)) {
+                                sessionInactivityService.recordActivity(gameSession);
+                            }
+
                             CommandRequest request = objectMapper.readValue(message.getPayload(), CommandRequest.class);
                             CommandResult result = requestDispatcher.dispatch(wsSession, gameSession, request);
                             messageSender.send(wsSession, result);
@@ -132,6 +141,13 @@ public class GameWebSocketHandler extends TextWebSocketHandler {
                                 stateCache.cache(gameSession);
                             }
 
+                            SessionState stateAfter = gameSession.getState();
+                            if (!sessionInactivityService.isTrackedState(stateAfter) || result.isShouldDisconnect()) {
+                                sessionInactivityService.cancelTimeout(wsSession.getId());
+                            } else if (!sessionInactivityService.isTrackedState(stateBefore)) {
+                                sessionInactivityService.recordActivity(gameSession);
+                            }
+
                             if (result.isShouldDisconnect()) {
                                 wsSession.close(CloseStatus.NORMAL);
                             }
@@ -148,6 +164,7 @@ public class GameWebSocketHandler extends TextWebSocketHandler {
     @Override
     public void afterConnectionClosed(@NonNull WebSocketSession wsSession, @NonNull CloseStatus status) {
         broadcaster.unregister(wsSession.getId());
+        sessionInactivityService.cancelTimeout(wsSession.getId());
         sessionManager.get(wsSession.getId()).ifPresent(gameSession -> {
             String playerName = gameSession.getPlayer().getName();
             String roomId = gameSession.getPlayer().getCurrentRoomId();

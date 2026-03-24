@@ -3,10 +3,13 @@ package com.scott.tech.mud.mud_game.websocket;
 import com.scott.tech.mud.mud_game.combat.CombatState;
 import com.scott.tech.mud.mud_game.dto.GameResponse;
 import com.scott.tech.mud.mud_game.session.GameSessionManager;
+import org.springframework.scheduling.TaskScheduler;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.CloseStatus;
 import org.springframework.web.socket.WebSocketSession;
 
+import java.time.Duration;
+import java.time.Instant;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -24,13 +27,16 @@ public class WorldBroadcaster {
     private final GameSessionManager sessionManager;
     private final WsMessageSender messageSender;
     private final CombatState combatState;
+    private final TaskScheduler taskScheduler;
 
     public WorldBroadcaster(GameSessionManager sessionManager,
                             WsMessageSender messageSender,
-                            CombatState combatState) {
+                            CombatState combatState,
+                            TaskScheduler taskScheduler) {
         this.sessionManager = sessionManager;
         this.messageSender = messageSender;
         this.combatState = combatState;
+        this.taskScheduler = taskScheduler;
     }
 
     public void register(String wsSessionId, WebSocketSession wsSession) {
@@ -105,14 +111,30 @@ public class WorldBroadcaster {
 
     /** Send a message and forcefully close a player's WebSocket session. */
     public void kickSession(String wsSessionId, GameResponse kickMessage) {
+        kickSession(wsSessionId, kickMessage, Duration.ZERO);
+    }
+
+    /** Send a message and close a player's WebSocket session after a short delay. */
+    public void kickSession(String wsSessionId, GameResponse kickMessage, Duration closeDelay) {
         WebSocketSession ws = wsSessions.get(wsSessionId);
         if (ws != null) {
             messageSender.send(ws, kickMessage);
-            try {
-                ws.close(CloseStatus.NORMAL);
-            } catch (Exception e) {
-                // Log silently if already closed
+            if (closeDelay == null || closeDelay.isZero() || closeDelay.isNegative()) {
+                closeQuietly(ws);
+            } else {
+                taskScheduler.schedule(
+                        () -> closeQuietly(ws),
+                        Instant.now().plus(closeDelay)
+                );
             }
+        }
+    }
+
+    private void closeQuietly(WebSocketSession ws) {
+        try {
+            ws.close(CloseStatus.NORMAL);
+        } catch (Exception e) {
+            // Log silently if already closed
         }
     }
 
