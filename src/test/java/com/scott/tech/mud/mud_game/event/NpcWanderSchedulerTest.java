@@ -57,17 +57,17 @@ class NpcWanderSchedulerTest {
         );
 
         String withDirection = NpcWanderScheduler.renderDepartureTemplate(
-                "Obi gets distracted by something you can't see and scampers off in the {dir}.",
+                "Obi gets distracted by something you can't see and scampers off to the {dir}.",
                 obi,
                 Direction.EAST
         );
         String withoutDirection = NpcWanderScheduler.renderDepartureTemplate(
-                "Obi gets distracted by something you can't see and scampers off in the {dir}.",
+                "Obi gets distracted by something you can't see and scampers off to the {dir}.",
                 obi,
                 null
         );
 
-        assertThat(withDirection).isEqualTo("Obi gets distracted by something you can't see and scampers off in the east.");
+        assertThat(withDirection).isEqualTo("Obi gets distracted by something you can't see and scampers off to the east.");
         assertThat(withoutDirection).isEqualTo("Obi gets distracted by something you can't see and scampers off.");
     }
 

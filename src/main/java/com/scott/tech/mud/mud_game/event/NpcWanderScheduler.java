@@ -241,7 +241,9 @@ public class NpcWanderScheduler {
 
         return normalizeDirectionalGrammar(
                 rendered
-                .replaceAll("(?i)\\s+(?:off\\s+)?(?:to|into|in|toward|towards)\\s+the\\s+\\{dir\\}", "")
+            .replaceAll("(?i)\\s+off\\s+(?:to|into|in|toward|towards)\\s+the\\s+\\{dir\\}", " off")
+            .replaceAll("(?i)\\s+off\\s+(?:to|into|in|toward|towards)\\s+\\{dir\\}", " off")
+            .replaceAll("(?i)\\s+(?:to|into|in|toward|towards)\\s+the\\s+\\{dir\\}", "")
                 .replaceAll("(?i)\\s+(?:to|into|in|toward|towards)\\s+\\{dir\\}", "")
                 .replace("{dir}", "off")
                 .replaceAll("\\s+([,.;:!?])", "$1")

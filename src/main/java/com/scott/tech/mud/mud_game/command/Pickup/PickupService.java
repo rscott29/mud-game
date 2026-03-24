@@ -5,7 +5,6 @@ import com.scott.tech.mud.mud_game.model.Room;
 import com.scott.tech.mud.mud_game.persistence.service.InventoryService;
 import com.scott.tech.mud.mud_game.persistence.service.PersistedCorpseService;
 import com.scott.tech.mud.mud_game.session.GameSession;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.Locale;
@@ -16,7 +15,6 @@ public class PickupService {
     private final InventoryService inventoryService;
     private final PersistedCorpseService persistedCorpseService;
 
-    @Autowired
     public PickupService(InventoryService inventoryService,
                          PersistedCorpseService persistedCorpseService) {
         this.inventoryService = inventoryService;
