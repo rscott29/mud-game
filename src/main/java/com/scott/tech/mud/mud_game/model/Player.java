@@ -31,9 +31,11 @@ public class Player {
     private int maxMovement = DEFAULT_MAX_MOVEMENT;
     private int experience = 0;
     private boolean god = false;
+    private boolean moderator = false;
     private final List<Item> inventory = new CopyOnWriteArrayList<>();
     private String equippedWeaponId = null;
     private String recallRoomId;
+    private ModerationPreferences moderationPreferences = ModerationPreferences.defaults();
     private final PlayerQuestState questState = new PlayerQuestState();
 
     public Player(String id, String name, String startRoomId) {
@@ -62,9 +64,12 @@ public class Player {
     public int getMaxMovement()           { return maxMovement; }
     public int getExperience()            { return experience; }
     public boolean isGod()                { return god; }
+    public boolean isModerator()          { return moderator; }
     public List<Item> getInventory()      { return inventory; }
     public String getEquippedWeaponId()   { return equippedWeaponId; }
     public String getRecallRoomId()       { return recallRoomId; }
+    public ModerationPreferences getModerationPreferences() { return moderationPreferences; }
+    public String getModerationFilters()  { return moderationPreferences.serialize(); }
     public PlayerQuestState getQuestState() { return questState; }
 
     public void setName(String name)                     { this.name = name; }
@@ -86,8 +91,17 @@ public class Player {
     public void setExperience(int experience)            { this.experience = experience; }
     public void addExperience(int xp)                    { this.experience += xp; }
     public void setGod(boolean god)                      { this.god = god; }
+    public void setModerator(boolean moderator)          { this.moderator = moderator; }
     public void setEquippedWeaponId(String itemId)       { this.equippedWeaponId = itemId; }
     public void setRecallRoomId(String recallRoomId)     { this.recallRoomId = recallRoomId; }
+    public void setModerationPreferences(ModerationPreferences moderationPreferences) {
+        this.moderationPreferences = moderationPreferences == null
+                ? ModerationPreferences.defaults()
+                : moderationPreferences;
+    }
+    public void setModerationFilters(String moderationFilters) {
+        this.moderationPreferences = ModerationPreferences.fromSerialized(moderationFilters);
+    }
 
     /** Returns the currently equipped weapon, if any and still in inventory. */
     public Optional<Item> getEquippedWeapon() {
@@ -178,5 +192,16 @@ public class Player {
             this.pronounsObject = pronouns.object();
             this.pronounsPossessive = pronouns.possessive();
         }
+    }
+
+    public boolean blocksModerationCategory(ModerationCategory category) {
+        if (!canManageModeration()) {
+            return ModerationPreferences.defaults().blocks(category);
+        }
+        return moderationPreferences.blocks(category);
+    }
+
+    public boolean canManageModeration() {
+        return god || moderator;
     }
 }

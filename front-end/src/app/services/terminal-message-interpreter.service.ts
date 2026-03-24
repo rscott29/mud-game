@@ -105,6 +105,13 @@ export class TerminalMessageInterpreterService {
           data: message.characterCreation ?? null,
         };
 
+      case GAME_MESSAGE_TYPES.MODERATION_NOTICE:
+        return {
+          kind: 'display',
+          stateChanges,
+          message: this.formatter.formatModerationNotice(message.message ?? ''),
+        };
+
       case GAME_MESSAGE_TYPES.NARRATIVE:
         return {
           kind: 'room_inline',

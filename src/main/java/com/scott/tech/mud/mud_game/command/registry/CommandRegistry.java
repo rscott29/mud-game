@@ -10,6 +10,7 @@ import com.scott.tech.mud.mud_game.command.inventory.InventoryCommand;
 import com.scott.tech.mud.mud_game.command.investigate.InvestigateCommand;
 import com.scott.tech.mud.mud_game.command.look.LookCommand;
 import com.scott.tech.mud.mud_game.command.logout.LogoutCommand;
+import com.scott.tech.mud.mud_game.command.moderation.ModerationCommand;
 import com.scott.tech.mud.mud_game.command.move.MoveCommand;
 import com.scott.tech.mud.mud_game.command.pickup.PickupCommand;
 import com.scott.tech.mud.mud_game.command.quest.AcceptCommand;
@@ -24,6 +25,7 @@ import com.scott.tech.mud.mud_game.command.who.WhoCommand;
 import com.scott.tech.mud.mud_game.command.admin.DeleteInventoryItemCommand;
 import com.scott.tech.mud.mud_game.command.admin.KickCommand;
 import com.scott.tech.mud.mud_game.command.admin.ResetQuestCommand;
+import com.scott.tech.mud.mud_game.command.admin.SetModeratorCommand;
 import com.scott.tech.mud.mud_game.command.admin.SetLevelCommand;
 import com.scott.tech.mud.mud_game.command.admin.SpawnCommand;
 import com.scott.tech.mud.mud_game.command.admin.SummonCommand;
@@ -63,6 +65,7 @@ public final class CommandRegistry {
     public static final String INVENTORY = "inventory";
     public static final String INVESTIGATE = "investigate";
     public static final String SKILLS = "skills";
+    public static final String MODERATION = "moderation";
     public static final String EMOTE = "emote";
     public static final String QUEST = "quest";
     public static final String ACCEPT = "accept";
@@ -75,6 +78,7 @@ public final class CommandRegistry {
     public static final String KICK = "kick";
     public static final String SET_LEVEL = "setlevel";
     public static final String RESET_QUEST = "resetquest";
+    public static final String SET_MODERATOR = "setmoderator";
 
     private static final List<CommandDefinition> ALL_DEFINITIONS = buildDefinitions();
     private static final List<CommandMetadata> ALL_COMMANDS = ALL_DEFINITIONS.stream()
@@ -347,7 +351,12 @@ public final class CommandRegistry {
                 .category(SOCIAL)
                 .usage("say <message>")
                 .description("Chat to players in your room")
-                .creator(ctx -> new SpeakCommand(ctx.joinedArgs(), ctx.deps().worldBroadcaster()))
+                .creator(ctx -> new SpeakCommand(
+                        ctx.joinedArgs(),
+                        ctx.deps().worldBroadcaster(),
+                        ctx.deps().playerTextModerator(),
+                        ctx.deps().worldModerationPolicyService()
+                ))
                 .build());
 
         commands.add(CommandDefinition.builder(WORLD)
@@ -355,7 +364,12 @@ public final class CommandRegistry {
                 .category(SOCIAL)
                 .usage("/world <message>")
                 .description("Chat to all online players")
-                .creator(ctx -> new WorldCommand(ctx.joinedArgs(), ctx.deps().worldBroadcaster()))
+                .creator(ctx -> new WorldCommand(
+                        ctx.joinedArgs(),
+                        ctx.deps().worldBroadcaster(),
+                        ctx.deps().playerTextModerator(),
+                        ctx.deps().worldModerationPolicyService()
+                ))
                 .build());
 
         commands.add(CommandDefinition.builder(DM)
@@ -367,7 +381,9 @@ public final class CommandRegistry {
                         ctx.hasNoArgs() ? null : ctx.firstArg(),
                         ctx.argsAfterFirst().isEmpty() ? null : ctx.argsAfterFirst(),
                         ctx.deps().worldBroadcaster(),
-                        ctx.deps().sessionManager()
+                        ctx.deps().sessionManager(),
+                        ctx.deps().playerTextModerator(),
+                        ctx.deps().worldModerationPolicyService()
                 ))
                 .build());
 
@@ -388,7 +404,9 @@ public final class CommandRegistry {
                 .creator(ctx -> new EmoteCommand(
                         ctx.joinedArgs(),
                         ctx.deps().sessionManager(),
-                        ctx.deps().emotePerspectiveResolver()
+                        ctx.deps().emotePerspectiveResolver(),
+                        ctx.deps().playerTextModerator(),
+                        ctx.deps().worldModerationPolicyService()
                 ))
                 .build());
 
@@ -409,6 +427,17 @@ public final class CommandRegistry {
                 .usage("skills")
                 .description("View your class skill progression")
                 .creator(ctx -> new SkillsCommand())
+                .build());
+
+        commands.add(CommandDefinition.builder(MODERATION)
+                .aliases("moderation", "filter", "filters")
+                .category(SESSION)
+                .usage("moderation [show|allow|block <category|all>]")
+                .description("View or configure the world's broadcast moderation policy")
+                .creator(ctx -> new ModerationCommand(
+                        ctx.joinedArgs(),
+                        ctx.deps().worldModerationPolicyService()
+                ))
                 .build());
 
         commands.add(CommandDefinition.builder(LOGOUT)
@@ -511,6 +540,20 @@ public final class CommandRegistry {
                         ctx.deps().discoveredExitService(),
                         ctx.deps().inventoryService(),
                         ctx.deps().worldService()
+                ))
+                .build());
+
+        commands.add(CommandDefinition.builder(SET_MODERATOR)
+                .aliases("setmoderator", "setmod", "grantmod")
+                .category(GOD)
+                .usage("setmoderator <player> <on|off>")
+                .description("Grant or revoke moderator access")
+                .godOnly()
+                .creator(ctx -> new SetModeratorCommand(
+                        ctx.joinedArgs(),
+                        ctx.deps().accountStore(),
+                        ctx.deps().sessionManager(),
+                        ctx.deps().worldBroadcaster()
                 ))
                 .build());
 

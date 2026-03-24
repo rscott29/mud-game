@@ -1,9 +1,12 @@
 package com.scott.tech.mud.mud_game.command.emote;
 
+import com.scott.tech.mud.mud_game.ai.PlayerTextModerator;
 import com.scott.tech.mud.mud_game.command.core.CommandResult;
 import com.scott.tech.mud.mud_game.dto.GameResponse;
+import com.scott.tech.mud.mud_game.model.ModerationCategory;
 import com.scott.tech.mud.mud_game.model.Player;
 import com.scott.tech.mud.mud_game.model.SessionState;
+import com.scott.tech.mud.mud_game.service.WorldModerationPolicyService;
 import com.scott.tech.mud.mud_game.session.GameSession;
 import com.scott.tech.mud.mud_game.session.GameSessionManager;
 import com.scott.tech.mud.mud_game.world.WorldService;
@@ -11,6 +14,8 @@ import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 class EmoteCommandTest {
@@ -117,6 +122,35 @@ class EmoteCommandTest {
         assertThat(result.getResponses().get(0).message()).isEqualTo("You smile warmly");
         assertThat(result.getRoomAction()).isNotNull();
         assertThat(result.getRoomAction().message()).isEqualTo("Axi smiles warmly");
+    }
+
+    @Test
+    void blockedEmotesReturnErrorAndNeverResolvePerspective() {
+        GameSessionManager sessionManager = new GameSessionManager();
+        EmotePerspectiveResolver perspectiveResolver = mock(EmotePerspectiveResolver.class);
+        PlayerTextModerator moderator = mock(PlayerTextModerator.class);
+        WorldModerationPolicyService moderationPolicyService = mock(WorldModerationPolicyService.class);
+        GameSession actorSession = playingSession("session-1", "Axi", "town-square");
+        sessionManager.register(actorSession);
+
+        when(moderator.review("you are full of shit"))
+                .thenReturn(PlayerTextModerator.Review.block(ModerationCategory.PROFANITY, "contains profanity"));
+        when(moderationPolicyService.blocks(ModerationCategory.PROFANITY)).thenReturn(true);
+
+        EmoteCommand command = new EmoteCommand(
+                "you are full of shit",
+                sessionManager,
+                perspectiveResolver,
+                moderator,
+                moderationPolicyService
+        );
+
+        CommandResult result = command.execute(actorSession);
+
+        assertThat(result.getResponses()).hasSize(1);
+        assertThat(result.getResponses().getFirst().type()).isEqualTo(GameResponse.Type.MODERATION_NOTICE);
+        assertThat(result.getRoomAction()).isNull();
+        verify(perspectiveResolver, never()).resolve(org.mockito.ArgumentMatchers.anyString());
     }
 
     private static GameSession playingSession(String sessionId, String playerName, String roomId) {

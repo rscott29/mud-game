@@ -43,6 +43,7 @@ public record GameResponse(
         NARRATIVE,
         ROOM_ACTION,
         SOCIAL_ACTION,
+        MODERATION_NOTICE,
         AMBIENT_EVENT,
         COMPANION_DIALOGUE
     }
@@ -90,6 +91,10 @@ public record GameResponse(
 
     public static GameResponse socialAction(String message) {
         return new GameResponse(Type.SOCIAL_ACTION, message, null);
+    }
+
+    public static GameResponse moderationNotice(String message) {
+        return new GameResponse(Type.MODERATION_NOTICE, message, null);
     }
 
     public static GameResponse ambientEvent(String message) {

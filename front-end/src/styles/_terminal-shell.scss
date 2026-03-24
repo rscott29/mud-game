@@ -381,6 +381,17 @@ app-terminal {
     background: rgba(31, 12, 15, 0.88);
   }
 
+  .msg.MODERATION_NOTICE {
+    width: min(100%, 760px);
+    border-color: rgba(183, 122, 116, 0.34);
+    background:
+      radial-gradient(circle at top right, rgba(183, 122, 116, 0.1), transparent 38%),
+      linear-gradient(180deg, rgba(31, 12, 15, 0.96), rgba(17, 8, 10, 0.98));
+    box-shadow:
+      0 22px 48px rgba(0, 0, 0, 0.22),
+      inset 0 1px 0 rgba(255, 255, 255, 0.03);
+  }
+
   .input-bar {
     display: grid;
     grid-template-columns: auto minmax(0, 1fr) auto;

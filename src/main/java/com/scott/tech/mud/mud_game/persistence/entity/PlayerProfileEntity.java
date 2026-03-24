@@ -1,5 +1,6 @@
 package com.scott.tech.mud.mud_game.persistence.entity;
 
+import com.scott.tech.mud.mud_game.model.ModerationPreferences;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
@@ -47,6 +48,9 @@ public class PlayerProfileEntity {
 
     @Column(name = "description")
     private String description;
+
+    @Column(name = "moderation_filters", nullable = false, length = 200)
+    private String moderationFilters = ModerationPreferences.defaultSerialized();
 
     @Column(name = "health", nullable = false)
     private int health = 100;
@@ -99,6 +103,7 @@ public class PlayerProfileEntity {
     public String  getPronounsObject()    { return pronounsObject; }
     public String  getPronounsPossessive(){ return pronounsPossessive; }
     public String  getDescription()       { return description; }
+    public String  getModerationFilters() { return moderationFilters; }
     public int     getHealth()            { return health; }
     public int     getMaxHealth()         { return maxHealth; }
     public int     getMana()              { return mana; }
@@ -120,6 +125,11 @@ public class PlayerProfileEntity {
     public void setPronounsObject(String pronounsObject)  { this.pronounsObject = pronounsObject; }
     public void setPronounsPossessive(String pronounsPossessive) { this.pronounsPossessive = pronounsPossessive; }
     public void setDescription(String description)        { this.description = description; }
+    public void setModerationFilters(String moderationFilters) {
+        this.moderationFilters = moderationFilters == null
+                ? ModerationPreferences.defaultSerialized()
+                : moderationFilters;
+    }
     public void setHealth(int health)                     { this.health = health; }
     public void setMaxHealth(int maxHealth)              { this.maxHealth = maxHealth; }
     public void setMana(int mana)                        { this.mana = mana; }

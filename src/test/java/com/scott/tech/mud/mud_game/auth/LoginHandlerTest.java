@@ -325,6 +325,7 @@ class LoginHandlerTest {
 
         when(accountStore.isLocked("alice")).thenReturn(false);
         when(accountStore.verifyPassword("alice", "secret")).thenReturn(true);
+        when(accountStore.isModerator("alice")).thenReturn(true);
         when(stateCache.get("alice")).thenReturn(new PlayerStateCache.CachedPlayerState(
                 "Alice",
                 "tavern",
@@ -336,6 +337,7 @@ class LoginHandlerTest {
                 "them",
                 "their",
                 "desc",
+                "hate_speech,harassment",
                 80,
                 100,
                 20,
@@ -360,6 +362,9 @@ class LoginHandlerTest {
         assertThat(session.getPlayer().getInventory()).containsExactly(sword);
         assertThat(session.getPlayer().getEquippedWeaponId()).isEqualTo("iron_sword");
         assertThat(session.getPlayer().getRecallRoomId()).isEqualTo("town_square");
+        assertThat(session.getPlayer().isModerator()).isTrue();
+        assertThat(session.getPlayer().blocksModerationCategory(com.scott.tech.mud.mud_game.model.ModerationCategory.HATE_SPEECH)).isTrue();
+        assertThat(session.getPlayer().blocksModerationCategory(com.scott.tech.mud.mud_game.model.ModerationCategory.PROFANITY)).isFalse();
     }
 
     @Test

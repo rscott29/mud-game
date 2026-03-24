@@ -3,6 +3,7 @@ package com.scott.tech.mud.mud_game.command.registry;
 import com.scott.tech.mud.mud_game.auth.AccountStore;
 import com.scott.tech.mud.mud_game.auth.ReconnectTokenStore;
 import com.scott.tech.mud.mud_game.ai.AiTextPolisher;
+import com.scott.tech.mud.mud_game.ai.PlayerTextModerator;
 import com.scott.tech.mud.mud_game.combat.CombatLoopScheduler;
 import com.scott.tech.mud.mud_game.combat.CombatService;
 import com.scott.tech.mud.mud_game.combat.CombatState;
@@ -26,6 +27,7 @@ import com.scott.tech.mud.mud_game.persistence.service.PlayerProfileService;
 import com.scott.tech.mud.mud_game.quest.QuestService;
 import com.scott.tech.mud.mud_game.service.AmbientEventService;
 import com.scott.tech.mud.mud_game.service.LevelingService;
+import com.scott.tech.mud.mud_game.service.WorldModerationPolicyService;
 import com.scott.tech.mud.mud_game.world.WorldService;
 import com.scott.tech.mud.mud_game.session.GameSessionManager;
 import com.scott.tech.mud.mud_game.websocket.WorldBroadcaster;
@@ -46,6 +48,7 @@ public record CommandDependencies(
         DropValidator dropValidator,
         DropService dropService,
         AiTextPolisher aiTextPolisher,
+        PlayerTextModerator playerTextModerator,
         EmotePerspectiveResolver emotePerspectiveResolver,
         EquipValidator equipValidator,
         EquipService equipService,
@@ -61,6 +64,7 @@ public record CommandDependencies(
         ReconnectTokenStore reconnectTokenStore,
         ExperienceTableService xpTables,
         LevelingService levelingService,
+        WorldModerationPolicyService worldModerationPolicyService,
         PlayerProfileService playerProfileService,
         PlayerStateCache stateCache,
         QuestService questService,

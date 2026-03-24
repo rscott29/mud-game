@@ -3,6 +3,7 @@ package com.scott.tech.mud.mud_game.command;
 import com.scott.tech.mud.mud_game.auth.AccountStore;
 import com.scott.tech.mud.mud_game.auth.ReconnectTokenStore;
 import com.scott.tech.mud.mud_game.ai.AiTextPolisher;
+import com.scott.tech.mud.mud_game.ai.PlayerTextModerator;
 import com.scott.tech.mud.mud_game.combat.CombatLoopScheduler;
 import com.scott.tech.mud.mud_game.combat.CombatService;
 import com.scott.tech.mud.mud_game.combat.CombatState;
@@ -10,6 +11,7 @@ import com.scott.tech.mud.mud_game.config.ExperienceTableService;
 import com.scott.tech.mud.mud_game.command.attack.AttackValidator;
 import com.scott.tech.mud.mud_game.command.admin.DeleteInventoryItemCommand;
 import com.scott.tech.mud.mud_game.command.admin.SpawnCommand;
+import com.scott.tech.mud.mud_game.command.admin.SetModeratorCommand;
 import com.scott.tech.mud.mud_game.command.admin.TeleportCommand;
 import com.scott.tech.mud.mud_game.command.bind.BindRecallCommand;
 import com.scott.tech.mud.mud_game.command.communication.dm.DirectMessageCommand;
@@ -21,6 +23,7 @@ import com.scott.tech.mud.mud_game.command.emote.EmotePerspectiveResolver;
 import com.scott.tech.mud.mud_game.command.equip.EquipService;
 import com.scott.tech.mud.mud_game.command.equip.EquipValidator;
 import com.scott.tech.mud.mud_game.command.look.LookCommand;
+import com.scott.tech.mud.mud_game.command.moderation.ModerationCommand;
 import com.scott.tech.mud.mud_game.command.move.MoveCommand;
 import com.scott.tech.mud.mud_game.command.pickup.PickupService;
 import com.scott.tech.mud.mud_game.command.pickup.PickupValidator;
@@ -34,12 +37,14 @@ import com.scott.tech.mud.mud_game.command.unknown.UnknownCommand;
 import com.scott.tech.mud.mud_game.command.who.WhoCommand;
 import com.scott.tech.mud.mud_game.dto.CommandRequest;
 import com.scott.tech.mud.mud_game.dto.GameResponse;
+import com.scott.tech.mud.mud_game.model.ModerationCategory;
 import com.scott.tech.mud.mud_game.model.Player;
 import com.scott.tech.mud.mud_game.persistence.cache.PlayerStateCache;
 import com.scott.tech.mud.mud_game.persistence.service.DiscoveredExitService;
 import com.scott.tech.mud.mud_game.persistence.service.InventoryService;
 import com.scott.tech.mud.mud_game.persistence.service.PlayerProfileService;
 import com.scott.tech.mud.mud_game.service.LevelingService;
+import com.scott.tech.mud.mud_game.service.WorldModerationPolicyService;
 import com.scott.tech.mud.mud_game.session.GameSession;
 import com.scott.tech.mud.mud_game.session.GameSessionManager;
 import com.scott.tech.mud.mud_game.quest.QuestService;
@@ -53,6 +58,7 @@ import org.springframework.scheduling.TaskScheduler;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -69,6 +75,7 @@ class CommandFactoryTest {
     private DropValidator dropValidator;
     private DropService dropService;
     private AiTextPolisher aiTextPolisher;
+    private PlayerTextModerator playerTextModerator;
     private EmotePerspectiveResolver emotePerspectiveResolver;
     private EquipValidator equipValidator;
     private EquipService equipService;
@@ -84,6 +91,7 @@ class CommandFactoryTest {
     private ReconnectTokenStore reconnectTokenStore;
     private ExperienceTableService xpTables;
     private LevelingService levelingService;
+    private WorldModerationPolicyService worldModerationPolicyService;
     private PlayerProfileService playerProfileService;
     private PlayerStateCache stateCache;
     private QuestService questService;
@@ -103,6 +111,9 @@ class CommandFactoryTest {
         dropValidator = mock(DropValidator.class);
         dropService = mock(DropService.class);
         aiTextPolisher = mock(AiTextPolisher.class);
+        playerTextModerator = mock(PlayerTextModerator.class);
+        when(playerTextModerator.review(anyString()))
+                .thenReturn(PlayerTextModerator.Review.allow(ModerationCategory.SAFE, "test"));
         emotePerspectiveResolver = mock(EmotePerspectiveResolver.class);
         equipValidator = mock(EquipValidator.class);
         equipService = mock(EquipService.class);
@@ -118,6 +129,7 @@ class CommandFactoryTest {
         reconnectTokenStore = mock(ReconnectTokenStore.class);
         xpTables = mock(ExperienceTableService.class);
         levelingService = mock(LevelingService.class);
+        worldModerationPolicyService = mock(WorldModerationPolicyService.class);
         playerProfileService = mock(PlayerProfileService.class);
         stateCache = mock(PlayerStateCache.class);
         questService = mock(QuestService.class);
@@ -126,11 +138,13 @@ class CommandFactoryTest {
         factory = new CommandFactory(taskScheduler, worldBroadcaster, sessionManager,
                 inventoryService, discoveredExitService, pickupValidator, pickupService, dropValidator, dropService,
                 aiTextPolisher,
+                playerTextModerator,
                 emotePerspectiveResolver,
                 equipValidator, equipService,
                 attackValidator, combatService, combatState, combatLoopScheduler,
                 talkValidator, talkService, socialValidator, socialService,
-                accountStore, reconnectTokenStore, xpTables, levelingService, playerProfileService, stateCache,
+                accountStore, reconnectTokenStore, xpTables, levelingService, worldModerationPolicyService,
+                playerProfileService, stateCache,
                 questService, worldService, ambientEventService);
     }
 
@@ -249,6 +263,18 @@ class CommandFactoryTest {
     void bindCommand_createsBindRecallCommand() {
         GameCommand command = factory.create(request("bind", List.of()));
         assertThat(command).isInstanceOf(BindRecallCommand.class);
+    }
+
+    @Test
+    void moderationAlias_createsModerationCommand() {
+        GameCommand command = factory.create(request("filter", List.of("allow", "adult")));
+        assertThat(command).isInstanceOf(ModerationCommand.class);
+    }
+
+    @Test
+    void setModeratorAlias_createsSetModeratorCommand() {
+        GameCommand command = factory.create(request("setmod", List.of("Bob", "on")));
+        assertThat(command).isInstanceOf(SetModeratorCommand.class);
     }
 
     private static CommandRequest request(String command, List<String> args) {

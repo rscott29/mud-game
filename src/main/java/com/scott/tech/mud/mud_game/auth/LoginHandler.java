@@ -417,6 +417,7 @@ public class LoginHandler {
             session.getPlayer().setPronounsObject(cached.pronounsObject());
             session.getPlayer().setPronounsPossessive(cached.pronounsPossessive());
             session.getPlayer().setDescription(cached.description());
+            session.getPlayer().setModerationFilters(cached.moderationFilters());
             session.getPlayer().setHealth(cached.health());
             session.getPlayer().setMaxHealth(cached.maxHealth());
             session.getPlayer().setMana(cached.mana());
@@ -466,6 +467,7 @@ public class LoginHandler {
         }
         session.getPlayer().clearMissingEquipment();
         
+        session.getPlayer().setModerator(accountStore.isModerator(username));
         session.getPlayer().setGod(accountStore.isGod(username));
         if (session.getPlayer().isGod()) {
             session.getPlayer().setLevel(100);

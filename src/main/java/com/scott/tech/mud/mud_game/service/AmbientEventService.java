@@ -5,7 +5,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.scott.tech.mud.mud_game.ai.AiTextPolisher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
 
@@ -39,7 +38,7 @@ public class AmbientEventService {
     private long delayMinMs = 1500;
     private long delayMaxMs = 3500;
 
-    @Autowired
+  
     public AmbientEventService(ObjectMapper objectMapper, AiTextPolisher textPolisher) {
         this.textPolisher = textPolisher == null ? AiTextPolisher.noOp() : textPolisher;
         try {
