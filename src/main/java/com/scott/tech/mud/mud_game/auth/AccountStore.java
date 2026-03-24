@@ -102,6 +102,14 @@ public class AccountStore {
                 .orElse(false);
     }
 
+    /** Returns true if the account has moderator privileges. */
+    @Transactional(readOnly = true)
+    public boolean isModerator(String username) {
+        return accountRepository.findById(username.toLowerCase())
+                .map(AccountEntity::isModerator)
+                .orElse(false);
+    }
+
     // -- Mutation --------------------------------------------------------------
 
     /**
@@ -137,6 +145,15 @@ public class AccountStore {
                 .ifPresent(account -> {
                     account.setLockedUntil(Instant.now().plus(getLockDuration()));
                     log.info("Account '{}' locked until {} (kicked).", username, account.getLockedUntil());
+                });
+    }
+
+    /** Grants or revokes moderator privileges for an account. */
+    public void setModerator(String username, boolean moderator) {
+        accountRepository.findById(username.toLowerCase())
+                .ifPresent(account -> {
+                    account.setModerator(moderator);
+                    log.info("Account '{}' moderator status set to {}", username.toLowerCase(), moderator);
                 });
     }
 

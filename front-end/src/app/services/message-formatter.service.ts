@@ -104,6 +104,27 @@ export class MessageFormatterService {
     };
   }
 
+  formatModerationNotice(message: string): FormattedMessage {
+    return {
+      cssClass: TERMINAL_MESSAGE_CLASSES.MODERATION_NOTICE,
+      html: `
+        <section class="term-card term-card--moderation">
+          <div class="term-card__header">
+            <div>
+              <div class="term-card__eyebrow">Moderation</div>
+              <h2 class="term-card__title">Message withheld</h2>
+            </div>
+            <span class="term-badge term-badge--warning">broadcast blocked</span>
+          </div>
+          <div class="term-callout term-callout--moderation">${escapeHtml(message)}</div>
+          <div class="term-copy term-copy--muted">
+            Nothing was sent to the room, world chat, whispers, or emote feed.
+          </div>
+        </section>
+      `,
+    };
+  }
+
   formatAmbientEventMessage(message: string): FormattedMessage {
     return {
       cssClass: TERMINAL_MESSAGE_CLASSES.AMBIENT_EVENT,

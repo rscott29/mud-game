@@ -613,4 +613,19 @@ describe('TerminalComponent', () => {
     expect(component.view.messages()[0].html).toContain('Use n, s, e, w, u, and d for quick travel.');
     expect(component.view.messages()[0].html).not.toContain('spawn &lt;item&gt; [inv]');
   });
+
+  it('renders moderation notices as a distinct warning card', () => {
+    const fixture = TestBed.createComponent(TerminalComponent);
+    const component = fixture.componentInstance;
+
+    socket.messages$.next({
+      type: GAME_MESSAGE_TYPES.MODERATION_NOTICE,
+      message: "That message wasn't sent. Please keep broadcasts free of profanity and hate speech.",
+    });
+
+    expect(component.view.messages()).toHaveLength(1);
+    expect(component.view.messages()[0].cssClass).toBe(TERMINAL_MESSAGE_CLASSES.MODERATION_NOTICE);
+    expect(component.view.messages()[0].html).toContain('Message withheld');
+    expect(component.view.messages()[0].html).toContain('broadcast blocked');
+  });
 });

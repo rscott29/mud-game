@@ -36,6 +36,22 @@ class CommandRegistryTest {
     }
 
     @Test
+    void moderationAliasCanonicalizesCorrectly() {
+        String canonicalCommand = CommandRegistry.canonicalize("filter");
+
+        assertThat(canonicalCommand).isEqualTo(CommandRegistry.MODERATION);
+        assertThat(CommandRegistry.getCreator(canonicalCommand)).isPresent();
+    }
+
+    @Test
+    void setModeratorAliasCanonicalizesCorrectly() {
+        String canonicalCommand = CommandRegistry.canonicalize("setmod");
+
+        assertThat(canonicalCommand).isEqualTo(CommandRegistry.SET_MODERATOR);
+        assertThat(CommandRegistry.getCreator(canonicalCommand)).isPresent();
+    }
+
+    @Test
     void normalizedAliasesDoNotCollideAcrossCommands() {
         Map<String, String> normalizedAliasToCanonical = new HashMap<>();
 

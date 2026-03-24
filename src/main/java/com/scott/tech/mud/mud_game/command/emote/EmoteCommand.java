@@ -1,13 +1,17 @@
 package com.scott.tech.mud.mud_game.command.emote;
 
+import com.scott.tech.mud.mud_game.ai.PlayerTextModerator;
 import com.scott.tech.mud.mud_game.command.core.CommandResult;
 import com.scott.tech.mud.mud_game.command.core.GameCommand;
 import com.scott.tech.mud.mud_game.command.room.RoomAction;
 import com.scott.tech.mud.mud_game.config.Messages;
 import com.scott.tech.mud.mud_game.dto.GameResponse;
+import com.scott.tech.mud.mud_game.model.ModerationCategory;
+import com.scott.tech.mud.mud_game.model.ModerationPreferences;
 import com.scott.tech.mud.mud_game.model.Pronouns;
 import com.scott.tech.mud.mud_game.session.GameSession;
 import com.scott.tech.mud.mud_game.session.GameSessionManager;
+import com.scott.tech.mud.mud_game.service.WorldModerationPolicyService;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -37,13 +41,25 @@ public class EmoteCommand implements GameCommand {
     private final String emoteText;
     private final GameSessionManager sessionManager;
     private final EmotePerspectiveResolver perspectiveResolver;
+    private final PlayerTextModerator textModerator;
+    private final WorldModerationPolicyService moderationPolicyService;
 
     public EmoteCommand(String emoteText,
                         GameSessionManager sessionManager,
                         EmotePerspectiveResolver perspectiveResolver) {
+        this(emoteText, sessionManager, perspectiveResolver, PlayerTextModerator.noOp(), null);
+    }
+
+    public EmoteCommand(String emoteText,
+                        GameSessionManager sessionManager,
+                        EmotePerspectiveResolver perspectiveResolver,
+                        PlayerTextModerator textModerator,
+                        WorldModerationPolicyService moderationPolicyService) {
         this.emoteText = emoteText == null ? "" : emoteText.trim();
         this.sessionManager = sessionManager;
         this.perspectiveResolver = perspectiveResolver;
+        this.textModerator = textModerator == null ? PlayerTextModerator.noOp() : textModerator;
+        this.moderationPolicyService = moderationPolicyService;
     }
 
     @Override
@@ -62,6 +78,10 @@ public class EmoteCommand implements GameCommand {
                 : pronouns.reflexive();
 
         String normalizedEmote = normalize(emoteText);
+        PlayerTextModerator.Review review = textModerator.review(normalizedEmote);
+        if (blocks(review.category())) {
+            return CommandResult.of(GameResponse.moderationNotice(blockedMessage(review.category())));
+        }
 
         // Self-target handling first
         Matcher selfMatcher = wholeWordMatcher(playerName, normalizedEmote);
@@ -137,5 +157,23 @@ public class EmoteCommand implements GameCommand {
         result = result.replaceFirst("^[,.;:!?-]+", "").trim();
 
         return result;
+    }
+
+    private static String blockedMessage(ModerationCategory category) {
+        if (category != null && category.userSelectable()) {
+            return Messages.fmt(
+                    "command.moderation.blocked.category",
+                    "category", category.displayName(),
+                    "command", category.commandToken()
+            );
+        }
+        return Messages.get("command.moderation.blocked");
+    }
+
+    private boolean blocks(ModerationCategory category) {
+        if (moderationPolicyService == null) {
+            return ModerationPreferences.defaults().blocks(category);
+        }
+        return moderationPolicyService.blocks(category);
     }
 }

@@ -45,6 +45,12 @@
   white-space: nowrap;
 }
 
+.term-badge--warning {
+  border-color: rgba(183, 122, 116, 0.26);
+  background: rgba(44, 18, 18, 0.9);
+  color: #f0c0bb;
+}
+
 .term-copy {
   color: var(--text-desc);
   line-height: 1.7;
@@ -194,6 +200,21 @@
   background: rgba(212, 173, 97, 0.08);
   color: #f2dec0;
   line-height: 1.6;
+}
+
+.term-card--moderation {
+  gap: 14px;
+}
+
+.term-callout--moderation {
+  border-color: rgba(183, 122, 116, 0.28);
+  background:
+    linear-gradient(135deg, rgba(183, 122, 116, 0.18), rgba(94, 35, 35, 0.12)),
+    rgba(33, 12, 15, 0.92);
+  color: #f2cbc4;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.03),
+    0 12px 28px rgba(0, 0, 0, 0.12);
 }
 
 // Inline narrative - subtle text for game events, placed at bottom of room cards

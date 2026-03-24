@@ -65,6 +65,7 @@ public class PlayerProfileService {
             player.setPronounsObject(p.getPronounsObject());
             player.setPronounsPossessive(p.getPronounsPossessive());
             player.setDescription(p.getDescription());
+            player.setModerationFilters(p.getModerationFilters());
             player.setHealth(p.getHealth());
             player.setMaxHealth(p.getMaxHealth());
             player.setMana(p.getMana());
@@ -147,6 +148,7 @@ public class PlayerProfileService {
         profile.setPronounsObject(player.getPronounsObject());
         profile.setPronounsPossessive(player.getPronounsPossessive());
         profile.setDescription(player.getDescription());
+        profile.setModerationFilters(player.getModerationFilters());
         profile.setHealth(player.getHealth());
         profile.setMaxHealth(player.getMaxHealth());
         profile.setMana(player.getMana());
@@ -200,6 +202,7 @@ public class PlayerProfileService {
         profile.setPronounsObject(state.pronounsObject());
         profile.setPronounsPossessive(state.pronounsPossessive());
         profile.setDescription(state.description());
+        profile.setModerationFilters(state.moderationFilters());
         profile.setHealth(state.health());
         profile.setMaxHealth(state.maxHealth());
         profile.setMana(state.mana());

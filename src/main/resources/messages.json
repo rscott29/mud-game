@@ -56,6 +56,11 @@
   "command.dm.self"                     : "You can't send a DM to yourself.",
   "command.dm.offline"                  : "Player '{player}' is not online.",
   "command.dm.echo_prefix"              : "→ ",
+  "command.moderation.blocked"          : "That message matched the current moderation policy and wasn't sent.",
+  "command.moderation.blocked.category" : "That message matched the {category} moderation filter and wasn't sent.",
+  "command.moderation.usage"            : "Usage: moderation [show | allow <category|all> | block <category|all>]",
+  "command.moderation.invalid_category" : "Unknown moderation category '{category}'. Choose from: {categories}",
+  "command.moderation.not_moderator"    : "Only moderators and gods can change the world moderation policy.",
 
   "command.who.empty"                   : "No players are currently online.",
   "command.who.list"                    : "Online ({count}): {names}",
@@ -106,6 +111,14 @@
   "command.setlevel.level_out_of_range" : "[god] Level must be between 1 and {max}.",
   "command.setlevel.success"            : "[god] Set {player}'s level to {new_level} (was {old_level}).",
   "command.setlevel.target_notify"      : "Your level has been set to {level} by divine intervention.",
+
+  "command.setmoderator.not_god"        : "Unknown command.",
+  "command.setmoderator.usage"          : "[god] Usage: setmoderator <player> <on|off>",
+  "command.setmoderator.player_not_found": "[god] Could not find account: {player}",
+  "command.setmoderator.success_on"     : "[god] Granted moderator access to {player}.",
+  "command.setmoderator.success_off"    : "[god] Revoked moderator access from {player}.",
+  "command.setmoderator.target_notify_on": "You have been granted moderator access.",
+  "command.setmoderator.target_notify_off": "Your moderator access has been revoked.",
 
   "command.resetquest.not_god"          : "Unknown command.",
   "command.resetquest.usage"            : "[god] Usage: resetquest [player] <questId>",

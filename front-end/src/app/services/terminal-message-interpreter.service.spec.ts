@@ -130,4 +130,20 @@ describe('TerminalMessageInterpreterService', () => {
     expect(result.kind).toBe('class_progression');
     expect(result.stateChanges).toBeNull();
   });
+
+  it('renders moderation notices as a dedicated display card', () => {
+    const interpreter = TestBed.inject(TerminalMessageInterpreterService);
+
+    const result = interpreter.interpret({
+      type: GAME_MESSAGE_TYPES.MODERATION_NOTICE,
+      message: "That message wasn't sent.",
+    });
+
+    expect(result.kind).toBe('display');
+    if (result.kind === 'display') {
+      expect(result.message.cssClass).toBe(TERMINAL_MESSAGE_CLASSES.MODERATION_NOTICE);
+      expect(result.message.html).toContain('Message withheld');
+      expect(result.message.html).toContain('broadcast blocked');
+    }
+  });
 });
