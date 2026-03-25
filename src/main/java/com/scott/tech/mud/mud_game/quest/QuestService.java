@@ -25,12 +25,16 @@ public class QuestService {
 
     private final QuestLoader questLoader;
     private final WorldService worldService;
+    private final DefendObjectiveRuntimeService defendObjectiveRuntimeService;
     private final Map<QuestObjectiveType, ObjectiveProgressHandler> objectiveHandlers;
     private Map<String, Quest> quests = new HashMap<>();
 
-    public QuestService(QuestLoader questLoader, WorldService worldService) {
+    public QuestService(QuestLoader questLoader,
+                        WorldService worldService,
+                        DefendObjectiveRuntimeService defendObjectiveRuntimeService) {
         this.questLoader = questLoader;
         this.worldService = worldService;
+        this.defendObjectiveRuntimeService = defendObjectiveRuntimeService;
         this.objectiveHandlers = createObjectiveHandlers();
     }
 
@@ -170,28 +174,77 @@ public class QuestService {
 
         log.info("Player '{}' started quest '{}'", player.getName(), questId);
 
-        resolveActiveObjective(player, questId)
-                .ifPresent(context -> handlerFor(context.objective()).onQuestStarted(context));
+        ObjectiveStartFeedback objectiveStartFeedback = resolveActiveObjective(player, questId)
+                .map(context -> handlerFor(context.objective()).onQuestStarted(context))
+                .orElse(ObjectiveStartFeedback.NONE);
 
         QuestObjective effectiveFirstObj = resolveActiveObjective(player, questId)
                 .map(QuestProgressContext::objective)
                 .orElse(null);
 
-        return QuestStartResult.success(quest.startDialogue(), quest, effectiveFirstObj);
+        return QuestStartResult.success(
+                quest.startDialogue(),
+                objectiveStartFeedback.playerMessages(),
+                objectiveStartFeedback.roomMessage(),
+            objectiveStartFeedback.defendObjectiveStartData(),
+                quest,
+                effectiveFirstObj
+        );
     }
 
     public record QuestStartResult(
             boolean success,
             String errorMessage,
             List<String> dialogue,
+            List<String> objectiveStartMessages,
+            String objectiveStartRoomMessage,
+            DefendObjectiveStartData defendObjectiveStartData,
             Quest quest,
             QuestObjective firstObjective
     ) {
-        public static QuestStartResult success(List<String> dialogue, Quest quest, QuestObjective obj) {
-            return new QuestStartResult(true, null, dialogue, quest, obj);
+        public static QuestStartResult success(List<String> dialogue,
+                                              List<String> objectiveStartMessages,
+                                              String objectiveStartRoomMessage,
+                                              DefendObjectiveStartData defendObjectiveStartData,
+                                              Quest quest,
+                                              QuestObjective obj) {
+            return new QuestStartResult(true, null, dialogue, objectiveStartMessages, objectiveStartRoomMessage,
+                    defendObjectiveStartData, quest, obj);
         }
+
         public static QuestStartResult failure(String message) {
-            return new QuestStartResult(false, message, List.of(), null, null);
+            return new QuestStartResult(false, message, List.of(), List.of(), null, null, null, null);
+        }
+    }
+
+    public record DefendObjectiveStartData(
+            String roomId,
+            String targetName,
+            List<String> spawnedNpcIds,
+            String attackHint,
+            int targetHealth,
+            int timeLimitSeconds,
+            boolean failOnTargetDeath
+    ) {
+        public DefendObjectiveStartData {
+            spawnedNpcIds = spawnedNpcIds == null ? List.of() : List.copyOf(spawnedNpcIds);
+        }
+    }
+
+    private record ObjectiveStartFeedback(
+            List<String> playerMessages,
+            String roomMessage,
+            DefendObjectiveStartData defendObjectiveStartData
+    ) {
+        private static final ObjectiveStartFeedback NONE = new ObjectiveStartFeedback(List.of(), null, null);
+
+    
+
+        private static ObjectiveStartFeedback of(List<String> playerMessages,
+                                                 String roomMessage,
+                                                 DefendObjectiveStartData defendObjectiveStartData) {
+            List<String> safeMessages = playerMessages == null ? List.of() : List.copyOf(playerMessages);
+            return new ObjectiveStartFeedback(safeMessages, roomMessage, defendObjectiveStartData);
         }
     }
 
@@ -341,7 +394,9 @@ public class QuestService {
     }
 
     private interface ObjectiveProgressHandler {
-        default void onQuestStarted(QuestProgressContext context) {}
+        default ObjectiveStartFeedback onQuestStarted(QuestProgressContext context) {
+            return ObjectiveStartFeedback.NONE;
+        }
 
         default Optional<QuestProgressResult> onTalkToNpc(QuestProgressContext context, Npc npc) {
             return Optional.empty();
@@ -404,14 +459,15 @@ public class QuestService {
 
     private final class CollectObjectiveHandler implements ObjectiveProgressHandler {
         @Override
-        public void onQuestStarted(QuestProgressContext context) {
+        public ObjectiveStartFeedback onQuestStarted(QuestProgressContext context) {
             if (!playerHasItem(context.player(), context.objective().itemId())) {
-                return;
+                return ObjectiveStartFeedback.NONE;
             }
 
             log.debug("Player '{}' already has item '{}'; auto-completing COLLECT objective",
                     context.player().getName(), context.objective().itemId());
             advanceOrComplete(context.player(), context.quest(), context.objective());
+            return ObjectiveStartFeedback.NONE;
         }
 
         @Override
@@ -442,10 +498,63 @@ public class QuestService {
 
     private final class DefeatObjectiveHandler implements ObjectiveProgressHandler {
         @Override
+        public ObjectiveStartFeedback onQuestStarted(QuestProgressContext context) {
+            String roomId = Optional.ofNullable(worldService.getNpcRoomId(context.objective().target()))
+                    .orElse(context.player().getCurrentRoomId());
+            List<Npc> spawnedNpcs = new ArrayList<>();
+
+            for (String npcId : context.objective().spawnNpcs()) {
+                Optional<Npc> spawned = worldService.spawnNpcInstance(npcId, roomId);
+                if (spawned.isPresent()) {
+                    spawnedNpcs.add(spawned.get());
+                } else {
+                    log.warn("Failed to spawn quest NPC '{}' for quest '{}' objective '{}' in room '{}'",
+                            npcId, context.quest().id(), context.objective().id(), roomId);
+                }
+            }
+
+            if (spawnedNpcs.isEmpty()) {
+                return ObjectiveStartFeedback.NONE;
+            }
+
+            Npc defendedNpc = worldService.getNpcById(context.objective().target());
+            String targetName = defendedNpc != null ? defendedNpc.getName() : context.objective().target();
+            String enemyLabel = enemyLabel(spawnedNpcs);
+            String attackHint = attackHint(spawnedNpcs.get(0));
+            DefendObjectiveStartData startData = new DefendObjectiveStartData(
+                    roomId,
+                    targetName,
+                    spawnedNpcs.stream().map(Npc::getId).toList(),
+                    attackHint,
+                    context.objective().targetHealth(),
+                    context.objective().timeLimitSeconds(),
+                    context.objective().failOnTargetDeath()
+            );
+
+            return ObjectiveStartFeedback.of(
+                    List.of(Messages.fmt(
+                            "quest.defend.start.player",
+                            "target", targetName,
+                            "enemies", enemyLabel,
+                            "attackHint", attackHint
+                    )),
+                    Messages.fmt(
+                            "quest.defend.start.room",
+                            "target", targetName,
+                            "enemies", enemyLabel
+                        ),
+                    startData
+            );
+        }
+
+        @Override
         public Optional<QuestProgressResult> onDefeatNpc(QuestProgressContext context, Npc npc) {
-            if (!context.objective().spawnNpcs().contains(npc.getId())) {
+            String defeatedNpcTemplateId = Npc.templateIdFor(npc.getId());
+            if (!context.objective().spawnNpcs().contains(defeatedNpcTemplateId)) {
                 return Optional.empty();
             }
+
+            defendObjectiveRuntimeService.onSpawnedNpcDefeated(context.player(), context.quest().id(), npc);
 
             int progress = context.state().incrementObjectiveProgress(context.quest().id());
             if (progress >= context.objective().defeatCount()) {
@@ -455,6 +564,20 @@ public class QuestService {
             int remaining = context.objective().defeatCount() - progress;
             return Optional.of(QuestProgressResult.progress(context.quest(),
                     Messages.fmt("quest.defend.progress", "remaining", String.valueOf(remaining))));
+        }
+
+        private String enemyLabel(List<Npc> spawnedNpcs) {
+            if (spawnedNpcs.size() == 1) {
+                return spawnedNpcs.get(0).getName();
+            }
+            return spawnedNpcs.size() + " enemies";
+        }
+
+        private String attackHint(Npc npc) {
+            if (npc.getKeywords().isEmpty()) {
+                return npc.getName().toLowerCase(Locale.ROOT);
+            }
+            return npc.getKeywords().get(0);
         }
     }
 
@@ -505,6 +628,10 @@ public class QuestService {
     private QuestProgressResult advanceOrComplete(Player player, Quest quest, QuestObjective completedObj, String extraMessage) {
         PlayerQuestState state = player.getQuestState();
         QuestObjective nextObj = quest.getNextObjective(completedObj.id());
+
+        if (completedObj.type() == QuestObjectiveType.DEFEND) {
+            defendObjectiveRuntimeService.stopScenario(player, quest.id(), false);
+        }
 
         if (nextObj != null) {
             // Advance to next objective

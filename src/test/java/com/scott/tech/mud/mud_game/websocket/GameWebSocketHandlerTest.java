@@ -1,0 +1,86 @@
+package com.scott.tech.mud.mud_game.websocket;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.scott.tech.mud.mud_game.auth.LoginHandler;
+import com.scott.tech.mud.mud_game.engine.GameEngine;
+import com.scott.tech.mud.mud_game.model.Player;
+import com.scott.tech.mud.mud_game.model.SessionState;
+import com.scott.tech.mud.mud_game.party.PartyService;
+import com.scott.tech.mud.mud_game.persistence.cache.PlayerStateCache;
+import com.scott.tech.mud.mud_game.persistence.service.InventoryService;
+import com.scott.tech.mud.mud_game.persistence.service.PlayerProfileService;
+import com.scott.tech.mud.mud_game.session.DisconnectGracePeriodService;
+import com.scott.tech.mud.mud_game.session.GameSession;
+import com.scott.tech.mud.mud_game.session.GameSessionManager;
+import com.scott.tech.mud.mud_game.session.SessionInactivityService;
+import com.scott.tech.mud.mud_game.world.WorldService;
+import org.junit.jupiter.api.Test;
+import org.springframework.web.socket.CloseStatus;
+import org.springframework.web.socket.WebSocketSession;
+
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+
+class GameWebSocketHandlerTest {
+
+    @Test
+    void afterConnectionClosed_whenLeaderDisconnects_broadcastsGroupDepartureAndNotifiesFollowers() {
+        GameEngine gameEngine = mock(GameEngine.class);
+        GameSessionManager sessionManager = new GameSessionManager();
+        WorldService worldService = mock(WorldService.class);
+        WorldBroadcaster broadcaster = mock(WorldBroadcaster.class);
+        LoginHandler loginHandler = mock(LoginHandler.class);
+        SessionRequestDispatcher requestDispatcher = mock(SessionRequestDispatcher.class);
+        WsMessageSender messageSender = mock(WsMessageSender.class);
+        WsExceptionHandler wsExceptionHandler = mock(WsExceptionHandler.class);
+        PlayerProfileService playerProfileService = mock(PlayerProfileService.class);
+        InventoryService inventoryService = mock(InventoryService.class);
+        PlayerStateCache stateCache = mock(PlayerStateCache.class);
+        PartyService partyService = new PartyService();
+        DisconnectGracePeriodService disconnectGracePeriod = mock(DisconnectGracePeriodService.class);
+        SessionInactivityService sessionInactivityService = mock(SessionInactivityService.class);
+
+        GameWebSocketHandler handler = new GameWebSocketHandler(
+                gameEngine,
+                sessionManager,
+                worldService,
+                new ObjectMapper(),
+                broadcaster,
+                loginHandler,
+                requestDispatcher,
+                messageSender,
+                wsExceptionHandler,
+                playerProfileService,
+                inventoryService,
+                stateCache,
+                partyService,
+                disconnectGracePeriod,
+                sessionInactivityService
+        );
+
+        GameSession leader = session("leader-session", "Axi", "room_start", worldService);
+        GameSession follower = session("follower-session", "Nova", "room_grove", worldService);
+        sessionManager.register(leader);
+        sessionManager.register(follower);
+        partyService.follow(follower, leader);
+
+        WebSocketSession wsSession = mock(WebSocketSession.class);
+        org.mockito.Mockito.when(wsSession.getId()).thenReturn("leader-session");
+
+        handler.afterConnectionClosed(wsSession, CloseStatus.NORMAL);
+
+        verify(broadcaster).unregister("leader-session");
+        verify(broadcaster).broadcastToRoom(eq("room_start"), any(), eq("leader-session"));
+        verify(broadcaster).broadcastToRoom(eq("room_grove"), any(), eq("follower-session"));
+        verify(broadcaster).sendToSession(eq("follower-session"), any());
+        verify(gameEngine).onDisconnect(leader);
+    }
+
+    private static GameSession session(String sessionId, String playerName, String roomId, WorldService worldService) {
+        GameSession session = new GameSession(sessionId, new Player(sessionId, playerName, roomId), worldService);
+        session.transition(SessionState.PLAYING);
+        return session;
+    }
+}

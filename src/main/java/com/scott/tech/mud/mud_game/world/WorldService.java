@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 import java.util.Map;
 import java.util.Locale;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Service
@@ -94,6 +95,38 @@ public class WorldService {
 
     public Npc getNpcById(String npcId) {
         return npcRegistry.get(npcId);
+    }
+
+    public synchronized Optional<Npc> spawnNpcInstance(String templateNpcId, String roomId) {
+        Npc template = npcRegistry.get(templateNpcId);
+        Room room = rooms.get(roomId);
+        if (template == null || room == null) {
+            return Optional.empty();
+        }
+
+        String instanceId = templateNpcId + Npc.INSTANCE_ID_DELIMITER + UUID.randomUUID();
+        Npc instance = template.withId(instanceId);
+        npcRegistry.put(instanceId, instance);
+        npcRoomIndex.put(instanceId, roomId);
+        room.addNpc(instance);
+        return Optional.of(instance);
+    }
+
+    public synchronized void removeNpcInstance(String npcId) {
+        if (!Npc.isInstanceId(npcId)) {
+            return;
+        }
+
+        Npc npc = npcRegistry.remove(npcId);
+        String roomId = npcRoomIndex.remove(npcId);
+        if (npc == null || roomId == null) {
+            return;
+        }
+
+        Room room = rooms.get(roomId);
+        if (room != null) {
+            room.removeNpc(npc);
+        }
     }
 
     public String getNpcRoomId(String npcId) {

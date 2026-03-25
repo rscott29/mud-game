@@ -26,10 +26,12 @@ import com.scott.tech.mud.mud_game.command.talk.TalkService;
 import com.scott.tech.mud.mud_game.command.talk.TalkValidator;
 import com.scott.tech.mud.mud_game.command.unknown.UnknownCommand;
 import com.scott.tech.mud.mud_game.dto.CommandRequest;
+import com.scott.tech.mud.mud_game.party.PartyService;
 import com.scott.tech.mud.mud_game.persistence.cache.PlayerStateCache;
 import com.scott.tech.mud.mud_game.persistence.service.DiscoveredExitService;
 import com.scott.tech.mud.mud_game.persistence.service.InventoryService;
 import com.scott.tech.mud.mud_game.persistence.service.PlayerProfileService;
+import com.scott.tech.mud.mud_game.quest.DefendObjectiveRuntimeService;
 import com.scott.tech.mud.mud_game.quest.QuestService;
 import com.scott.tech.mud.mud_game.service.AmbientEventService;
 import com.scott.tech.mud.mud_game.service.LevelingService;
@@ -81,7 +83,9 @@ public class CommandFactory {
                           WorldModerationPolicyService worldModerationPolicyService,
                           PlayerProfileService playerProfileService,
                           PlayerStateCache stateCache,
+                          PartyService partyService,
                           QuestService questService,
+                          DefendObjectiveRuntimeService defendObjectiveRuntimeService,
                           WorldService worldService,
                           AmbientEventService ambientEventService) {
         this.deps = new CommandDependencies(
@@ -117,7 +121,9 @@ public class CommandFactory {
                 worldModerationPolicyService,
                 playerProfileService,
                 stateCache,
+                partyService,
                 questService,
+                defendObjectiveRuntimeService,
                 worldService,
                 ambientEventService
         );

@@ -9,6 +9,7 @@ import com.scott.tech.mud.mud_game.dto.GameResponse;
 import com.scott.tech.mud.mud_game.engine.GameEngine;
 import com.scott.tech.mud.mud_game.model.Player;
 import com.scott.tech.mud.mud_game.model.SessionState;
+import com.scott.tech.mud.mud_game.party.PartyService;
 import com.scott.tech.mud.mud_game.persistence.cache.PlayerStateCache;
 import com.scott.tech.mud.mud_game.persistence.service.InventoryService;
 import com.scott.tech.mud.mud_game.persistence.service.PlayerProfileService;
@@ -45,6 +46,7 @@ public class GameWebSocketHandler extends TextWebSocketHandler {
     private final PlayerProfileService playerProfileService;
     private final InventoryService inventoryService;
     private final PlayerStateCache stateCache;
+    private final PartyService partyService;
     private final DisconnectGracePeriodService disconnectGracePeriod;
     private final SessionInactivityService sessionInactivityService;
 
@@ -60,6 +62,7 @@ public class GameWebSocketHandler extends TextWebSocketHandler {
                                 PlayerProfileService playerProfileService,
                                 InventoryService inventoryService,
                                 PlayerStateCache stateCache,
+                                PartyService partyService,
                                 DisconnectGracePeriodService disconnectGracePeriod,
                                 SessionInactivityService sessionInactivityService) {
         this.gameEngine = gameEngine;
@@ -74,6 +77,7 @@ public class GameWebSocketHandler extends TextWebSocketHandler {
         this.playerProfileService = playerProfileService;
         this.inventoryService = inventoryService;
         this.stateCache = stateCache;
+        this.partyService = partyService;
         this.disconnectGracePeriod = disconnectGracePeriod;
         this.sessionInactivityService = sessionInactivityService;
     }
@@ -171,6 +175,9 @@ public class GameWebSocketHandler extends TextWebSocketHandler {
             log.info("Session {} disconnected (player={}, status={})",
                     wsSession.getId(), playerName, status);
 
+            PartyService.GroupDeparture departure = partyService.removeSession(wsSession.getId());
+            broadcastPartyDepartures(gameSession, departure);
+
             SessionState state = gameSession.getState();
             if (state == SessionState.PLAYING || state == SessionState.LOGOUT_CONFIRM) {
                 playerProfileService.saveProfile(gameSession.getPlayer());
@@ -202,5 +209,56 @@ public class GameWebSocketHandler extends TextWebSocketHandler {
             return GameResponse.socialAction(message);
         }
         return GameResponse.roomAction(message);
+    }
+
+    private void broadcastPartyDepartures(GameSession departingSession, PartyService.GroupDeparture departure) {
+        if (departure == null || !departure.changed()) {
+            return;
+        }
+
+        String departingSessionId = departingSession.getSessionId();
+        String leaderName = resolveLeaderName(departingSession, departure.leaderSessionId());
+
+        for (String affectedSessionId : departure.affectedSessionIds()) {
+            GameSession affectedSession = affectedSessionId.equals(departingSessionId)
+                    ? departingSession
+                    : sessionManager.get(affectedSessionId).orElse(null);
+            if (affectedSession == null) {
+                continue;
+            }
+
+            broadcaster.broadcastToRoom(
+                    affectedSession.getPlayer().getCurrentRoomId(),
+                    GameResponse.roomAction(Messages.fmt(
+                            "action.follow.stop",
+                            "player", affectedSession.getPlayer().getName()
+                    )),
+                    affectedSessionId
+            );
+
+            if (!affectedSessionId.equals(departingSessionId)
+                    && departure.leaderSessionId() != null
+                    && departure.leaderSessionId().equals(departingSessionId)) {
+                broadcaster.sendToSession(
+                        affectedSessionId,
+                        GameResponse.narrative(Messages.fmt(
+                                "command.follow.lost",
+                                "player", leaderName
+                        ))
+                );
+            }
+        }
+    }
+
+    private String resolveLeaderName(GameSession departingSession, String leaderSessionId) {
+        if (leaderSessionId == null || leaderSessionId.isBlank()) {
+            return departingSession.getPlayer().getName();
+        }
+        if (leaderSessionId.equals(departingSession.getSessionId())) {
+            return departingSession.getPlayer().getName();
+        }
+        return sessionManager.get(leaderSessionId)
+                .map(session -> session.getPlayer().getName())
+                .orElse(departingSession.getPlayer().getName());
     }
 }

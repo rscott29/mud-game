@@ -36,27 +36,45 @@ public class CombatNarrator {
     }
 
     public String playerMiss(Player player, PlayerCombatStats stats, Npc target) {
-        String missPrefix = stats.attackVerb() != null
-                ? "Your <span class='weapon-verb'>" + stats.attackVerb() + "</span>"
-                : "Your attack";
         return Messages.fmt("combat.player_misses",
-                "player", player.getName(),
+                "actorLabel", "Your",
                 "npc", target.getName(),
-                "attackPrefix", missPrefix);
+                "action", playerMissAction(stats));
+    }
+
+    public String playerMissForParty(Player player, PlayerCombatStats stats, Npc target) {
+        return Messages.fmt("combat.party.player_misses",
+                "actorLabel", possessive(player.getName()),
+                "npc", target.getName(),
+                "action", playerMissAction(stats));
     }
 
     public String playerHit(Player player, PlayerCombatStats stats, Npc target, int damage) {
         return Messages.fmt("combat.player_hits",
-                "player", player.getName(),
+                "actorLabel", "Your",
                 "npc", target.getName(),
-                "qualifier", playerQualifier(stats, damage));
+                "action", playerAction(stats, damage));
+    }
+
+    public String playerHitForParty(Player player, PlayerCombatStats stats, Npc target, int damage) {
+        return Messages.fmt("combat.party.player_hits",
+                "actorLabel", possessive(player.getName()),
+                "npc", target.getName(),
+                "action", playerAction(stats, damage));
     }
 
     public String npcHit(Npc attacker, Player player, int damage) {
         return Messages.fmt("combat.npc_hits",
                 "npc", attacker.getName(),
                 "player", player.getName(),
-                "qualifier", npcQualifier(damage));
+                "action", npcAction(damage));
+    }
+
+    public String npcHitForParty(Npc attacker, Player player, int damage) {
+        return Messages.fmt("combat.party.npc_hits",
+                "npc", attacker.getName(),
+                "player", player.getName(),
+                "action", npcAction(damage));
     }
 
     public String npcHealth(CombatEncounter encounter) {
@@ -64,7 +82,8 @@ public class CombatNarrator {
         return Messages.fmt("combat.npc_health",
                 "npc", target.getName(),
                 "health", String.valueOf(encounter.getCurrentHealth()),
-                "maxHealth", String.valueOf(target.getMaxHealth()));
+                "maxHealth", String.valueOf(target.getMaxHealth()),
+                "healthPercent", String.valueOf(healthPercent(encounter.getCurrentHealth(), target.getMaxHealth())));
     }
 
     public String npcDefeated(Npc target) {
@@ -75,10 +94,15 @@ public class CombatNarrator {
         return Messages.get("combat.player_defeated");
     }
 
+    public String playerDefeated(Player player) {
+        return Messages.fmt("combat.party.player_defeated", "player", player.getName());
+    }
+
     public String playerHealth(Player player) {
         return Messages.fmt("combat.player_health",
                 "health", String.valueOf(player.getHealth()),
-                "maxHealth", String.valueOf(player.getMaxHealth()));
+                "maxHealth", String.valueOf(player.getMaxHealth()),
+                "healthPercent", String.valueOf(healthPercent(player.getHealth(), player.getMaxHealth())));
     }
 
     public String xpGained(int xp) {
@@ -89,18 +113,42 @@ public class CombatNarrator {
         return Messages.fmt("combat.npc_respawns", "npc", target.getName());
     }
 
-    private String playerQualifier(PlayerCombatStats stats, int damage) {
+    private String playerAction(PlayerCombatStats stats, int damage) {
         DamageQualifier qualifier = qualifierFor(damage);
-        String verb = stats.attackVerb() != null ? qualifier.npcVerb() : qualifier.playerVerb();
-        String prefix = stats.attackVerb() != null
-                ? "Your <span class='weapon-verb'>" + stats.attackVerb() + "</span>"
-                : "You";
-        return prefix + " <span class='" + qualifier.cssClass() + "'>" + verb + "</span>";
+        if (stats.attackVerb() != null) {
+            return weaponVerbSpan(stats) + " <span class='" + qualifier.cssClass() + "'>" + qualifier.npcVerb() + "</span>";
+        }
+        return "<span class='" + qualifier.cssClass() + "'>" + qualifier.npcVerb() + "</span>";
     }
 
-    private String npcQualifier(int damage) {
+    private String playerMissAction(PlayerCombatStats stats) {
+        if (stats.attackVerb() != null) {
+            return weaponVerbSpan(stats) + " <span class='qualifier-miss'>misses</span>";
+        }
+        return "<span class='qualifier-miss'>misses</span>";
+    }
+
+    private String weaponVerbSpan(PlayerCombatStats stats) {
+        String rarityClass = stats.weaponRarity() == null || stats.weaponRarity().isBlank()
+                ? ""
+                : " weapon-verb--" + stats.weaponRarity();
+        return "<span class='weapon-verb" + rarityClass + "'>" + stats.attackVerb() + "</span>";
+    }
+
+    private String npcAction(int damage) {
         DamageQualifier qualifier = qualifierFor(damage);
         return "<span class='" + qualifier.cssClass() + "'>" + qualifier.npcVerb() + "</span>";
+    }
+
+    private int healthPercent(int currentHealth, int maxHealth) {
+        if (maxHealth <= 0) {
+            return 0;
+        }
+        return Math.max(0, Math.min(100, (int) Math.round((currentHealth * 100.0) / maxHealth)));
+    }
+
+    private String possessive(String name) {
+        return name.endsWith("s") ? name + "'" : name + "'s";
     }
 
     private DamageQualifier qualifierFor(int damage) {

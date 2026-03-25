@@ -11,6 +11,8 @@ import java.util.Locale;
  */
 public class Npc {
 
+    public static final String INSTANCE_ID_DELIMITER = "::instance::";
+
     private final String id;
     private final String name;
     private final String description;
@@ -222,6 +224,30 @@ public class Npc {
                 this.combatTarget, this.respawns, this.maxHealth, this.level, this.xpReward,
                 this.minDamage, this.maxDamage, this.playerDeathEnabled
         );
+    }
+
+    public Npc withId(String newId) {
+        return new Npc(
+                newId, this.name, this.description, this.keywords,
+                this.pronoun, this.possessive,
+                this.wanderMinSeconds, this.wanderMaxSeconds,
+                this.wanderDepartureTemplates, this.wanderArrivalTemplates,
+                this.wanderPath, this.interactTemplates,
+                this.sentient, this.talkTemplates, this.personality, this.humorous,
+                this.combatTarget, this.respawns, this.maxHealth, this.level, this.xpReward,
+                this.minDamage, this.maxDamage, this.playerDeathEnabled
+        );
+    }
+
+    public static boolean isInstanceId(String npcId) {
+        return npcId != null && npcId.contains(INSTANCE_ID_DELIMITER);
+    }
+
+    public static String templateIdFor(String npcId) {
+        if (!isInstanceId(npcId)) {
+            return npcId;
+        }
+        return npcId.substring(0, npcId.indexOf(INSTANCE_ID_DELIMITER));
     }
 
     private String normalizeForMatch(String value) {

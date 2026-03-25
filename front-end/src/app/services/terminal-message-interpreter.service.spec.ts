@@ -155,6 +155,22 @@ describe('TerminalMessageInterpreterService', () => {
     }
   });
 
+  it('uses the combat feed card for combat-marked narrative fallback', () => {
+    const interpreter = TestBed.inject(TerminalMessageInterpreterService);
+
+    const result = interpreter.interpret({
+      type: GAME_MESSAGE_TYPES.NARRATIVE,
+      message: "<div class='combat-line npc-hit'><span class='combat-badge combat-badge--enemy'>Dummy</span><span class='combat-body'><span class='qualifier-hit'>hits</span> <span class='combat-entity combat-entity--you'>you</span>.</span></div>",
+    });
+
+    expect(result.kind).toBe('room_inline');
+    if (result.kind === 'room_inline') {
+      expect(result.fallback.cssClass).toBe(TERMINAL_MESSAGE_CLASSES.NARRATIVE);
+      expect(result.fallback.html).toContain('term-card--combat');
+      expect(result.fallback.html).toContain('Combat feed');
+    }
+  });
+
   it('turns social actions into inline room content with a distinct fallback style', () => {
     const interpreter = TestBed.inject(TerminalMessageInterpreterService);
 

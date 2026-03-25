@@ -13,6 +13,7 @@ import com.scott.tech.mud.mud_game.quest.ObjectiveEffects;
 import com.scott.tech.mud.mud_game.quest.QuestCompletionEffects;
 import com.scott.tech.mud.mud_game.quest.QuestService;
 import com.scott.tech.mud.mud_game.quest.QuestService.QuestProgressResult;
+import com.scott.tech.mud.mud_game.party.PartyService;
 import com.scott.tech.mud.mud_game.service.AmbientEventService;
 import com.scott.tech.mud.mud_game.service.LevelingService;
 import com.scott.tech.mud.mud_game.session.GameSession;
@@ -38,6 +39,7 @@ public class MoveCommand implements GameCommand {
                        TaskScheduler taskScheduler,
                        WorldBroadcaster worldBroadcaster,
                        GameSessionManager sessionManager,
+                   PartyService partyService,
                        QuestService questService,
                        LevelingService levelingService,
                        WorldService worldService,
@@ -46,7 +48,7 @@ public class MoveCommand implements GameCommand {
                        PlayerDeathService playerDeathService) {
         this(direction, new MoveValidator(), 
                 new MoveService(taskScheduler, worldBroadcaster, sessionManager, levelingService,
-                        ambientEventService, worldService, textPolisher, playerDeathService),
+                ambientEventService, worldService, partyService, textPolisher, playerDeathService),
                 questService, levelingService, worldService);
     }
 

@@ -71,6 +71,7 @@ class CombatStatsResolverTest {
         assertThat(stats.attackSpeed()).isEqualTo(-2);
         assertThat(stats.armor()).isEqualTo(5);
         assertThat(stats.attackVerb()).isEqualTo("slash");
+        assertThat(stats.weaponRarity()).isEqualTo("common");
     }
 
     @Test
@@ -112,5 +113,6 @@ class CombatStatsResolverTest {
         assertThat(stats.hitChance()).isEqualTo(79);
         assertThat(stats.critChance()).isZero();
         assertThat(stats.armor()).isEqualTo(3);
+        assertThat(stats.weaponRarity()).isNull();
     }
 }

@@ -7,6 +7,7 @@ public record PlayerCombatStats(
         int critChance,
         int attackSpeed,
         int armor,
-        String attackVerb
+        String attackVerb,
+        String weaponRarity
 ) {
 }

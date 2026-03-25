@@ -27,6 +27,7 @@ import com.scott.tech.mud.mud_game.command.drop.DropValidator;
 import com.scott.tech.mud.mud_game.command.emote.EmotePerspectiveResolver;
 import com.scott.tech.mud.mud_game.command.emote.EmoteCommand;
 import com.scott.tech.mud.mud_game.command.equip.EquipService;
+import com.scott.tech.mud.mud_game.command.group.GroupCommand;
 import com.scott.tech.mud.mud_game.command.equip.UnequipCommand;
 import com.scott.tech.mud.mud_game.command.equip.EquipValidator;
 import com.scott.tech.mud.mud_game.command.look.LookCommand;
@@ -49,10 +50,12 @@ import com.scott.tech.mud.mud_game.dto.CommandRequest;
 import com.scott.tech.mud.mud_game.dto.GameResponse;
 import com.scott.tech.mud.mud_game.model.ModerationCategory;
 import com.scott.tech.mud.mud_game.model.Player;
+import com.scott.tech.mud.mud_game.party.PartyService;
 import com.scott.tech.mud.mud_game.persistence.cache.PlayerStateCache;
 import com.scott.tech.mud.mud_game.persistence.service.DiscoveredExitService;
 import com.scott.tech.mud.mud_game.persistence.service.InventoryService;
 import com.scott.tech.mud.mud_game.persistence.service.PlayerProfileService;
+import com.scott.tech.mud.mud_game.quest.DefendObjectiveRuntimeService;
 import com.scott.tech.mud.mud_game.service.LevelingService;
 import com.scott.tech.mud.mud_game.service.WorldModerationPolicyService;
 import com.scott.tech.mud.mud_game.session.GameSession;
@@ -107,7 +110,9 @@ class CommandFactoryTest {
     private WorldModerationPolicyService worldModerationPolicyService;
     private PlayerProfileService playerProfileService;
     private PlayerStateCache stateCache;
+    private PartyService partyService;
     private QuestService questService;
+    private DefendObjectiveRuntimeService defendObjectiveRuntimeService;
     private WorldService worldService;
     private AmbientEventService ambientEventService;
     private CommandFactory factory;
@@ -148,7 +153,9 @@ class CommandFactoryTest {
         worldModerationPolicyService = mock(WorldModerationPolicyService.class);
         playerProfileService = mock(PlayerProfileService.class);
         stateCache = mock(PlayerStateCache.class);
+        partyService = mock(PartyService.class);
         questService = mock(QuestService.class);
+        defendObjectiveRuntimeService = mock(DefendObjectiveRuntimeService.class);
         worldService = mock(WorldService.class);
         ambientEventService = mock(AmbientEventService.class);
         factory = new CommandFactory(taskScheduler, worldBroadcaster, sessionManager,
@@ -161,8 +168,8 @@ class CommandFactoryTest {
                 talkValidator, talkService, socialValidator, socialService,
                 accountStore, reconnectTokenStore, xpTables, combatStatsResolver,
                 levelingService, worldModerationPolicyService,
-                playerProfileService, stateCache,
-                questService, worldService, ambientEventService);
+                playerProfileService, stateCache, partyService,
+                questService, defendObjectiveRuntimeService, worldService, ambientEventService);
     }
 
     @Test
@@ -244,6 +251,12 @@ class CommandFactoryTest {
     void whoAlias_createsWhoCommand() {
         GameCommand command = factory.create(request("/who", List.of()));
         assertThat(command).isInstanceOf(WhoCommand.class);
+    }
+
+    @Test
+    void groupCommand_createsGroupCommand() {
+        GameCommand command = factory.create(request("group", List.of()));
+        assertThat(command).isInstanceOf(GroupCommand.class);
     }
 
     @Test

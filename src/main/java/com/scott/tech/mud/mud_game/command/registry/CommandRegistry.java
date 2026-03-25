@@ -6,6 +6,8 @@ import com.scott.tech.mud.mud_game.command.drop.DropCommand;
 import com.scott.tech.mud.mud_game.command.emote.EmoteCommand;
 import com.scott.tech.mud.mud_game.command.equip.EquipCommand;
 import com.scott.tech.mud.mud_game.command.equip.UnequipCommand;
+import com.scott.tech.mud.mud_game.command.follow.FollowCommand;
+import com.scott.tech.mud.mud_game.command.group.GroupCommand;
 import com.scott.tech.mud.mud_game.command.help.HelpCommand;
 import com.scott.tech.mud.mud_game.command.inventory.InventoryCommand;
 import com.scott.tech.mud.mud_game.command.investigate.InvestigateCommand;
@@ -71,6 +73,8 @@ public final class CommandRegistry {
     public static final String INVENTORY = "inventory";
     public static final String ME = "me";
     public static final String INVESTIGATE = "investigate";
+        public static final String FOLLOW = "follow";
+        public static final String GROUP = "group";
     public static final String SKILLS = "skills";
     public static final String MODERATION = "moderation";
     public static final String RECALL = "recall";
@@ -259,7 +263,7 @@ public final class CommandRegistry {
                         return new UnknownCommand(ctx.hasNoArgs() ? ctx.rawCommand() : "go " + ctx.firstArg());
                     }
                     return new MoveCommand(dir, ctx.deps().taskScheduler(), ctx.deps().worldBroadcaster(), ctx.deps().sessionManager(),
-                            ctx.deps().questService(), ctx.deps().levelingService(), ctx.deps().worldService(),
+                            ctx.deps().partyService(), ctx.deps().questService(), ctx.deps().levelingService(), ctx.deps().worldService(),
                             ctx.deps().ambientEventService(), ctx.deps().aiTextPolisher(), ctx.deps().playerDeathService());
                 })
                 .build());
@@ -369,7 +373,12 @@ public final class CommandRegistry {
                         ctx.deps().combatService(),
                         ctx.deps().combatLoopScheduler(),
                         ctx.deps().combatState(),
-                        ctx.deps().xpTables()
+                        ctx.deps().xpTables(),
+                        ctx.deps().sessionManager(),
+                        ctx.deps().partyService(),
+                        ctx.deps().worldBroadcaster(),
+                        ctx.deps().levelingService(),
+                        ctx.deps().worldService()
                 ))
                 .build());
 
@@ -430,6 +439,30 @@ public final class CommandRegistry {
                 .usage("who")
                 .description("List online players")
                 .creator(ctx -> new WhoCommand(ctx.deps().sessionManager()))
+                .build());
+
+        commands.add(CommandDefinition.builder(FOLLOW)
+                .aliases("follow", "party")
+                .category(SOCIAL)
+                .usage("follow <player|stop>")
+                .description("Follow a player and join their group")
+                .creator(ctx -> new FollowCommand(
+                        ctx.hasNoArgs() ? null : ctx.joinedArgs(),
+                        ctx.deps().sessionManager(),
+                        ctx.deps().partyService()
+                ))
+                .build());
+
+        commands.add(CommandDefinition.builder(GROUP)
+                .aliases("group", "grp")
+                .category(SOCIAL)
+                .usage("group")
+                .description("Show your current group")
+                .creator(ctx -> new GroupCommand(
+                        ctx.deps().partyService(),
+                        ctx.deps().sessionManager(),
+                        ctx.deps().combatState()
+                ))
                 .build());
 
         // Emote commands
@@ -647,7 +680,8 @@ public final class CommandRegistry {
                 .description("Accept a quest from an NPC")
                 .creator(ctx -> new AcceptCommand(
                         ctx.hasNoArgs() ? null : ctx.joinedArgs(),
-                        ctx.deps().questService()
+                        ctx.deps().questService(),
+                        ctx.deps().defendObjectiveRuntimeService()
                 ))
                 .build());
 

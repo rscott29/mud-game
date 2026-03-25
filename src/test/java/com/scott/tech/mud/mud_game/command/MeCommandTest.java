@@ -71,7 +71,7 @@ class MeCommandTest {
 
         CombatStatsResolver combatStatsResolver = mock(CombatStatsResolver.class);
         when(combatStatsResolver.resolve(player))
-                .thenReturn(new com.scott.tech.mud.mud_game.combat.PlayerCombatStats(2, 4, 77, 0, 0, 3, "slash"));
+                .thenReturn(new com.scott.tech.mud.mud_game.combat.PlayerCombatStats(2, 4, 77, 0, 0, 3, "slash", "common"));
 
         GameSession session = mock(GameSession.class);
         when(session.getPlayer()).thenReturn(player);

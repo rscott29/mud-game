@@ -4,6 +4,7 @@ import com.scott.tech.mud.mud_game.model.Npc;
 import com.scott.tech.mud.mud_game.model.Player;
 import com.scott.tech.mud.mud_game.quest.QuestService;
 import com.scott.tech.mud.mud_game.session.GameSession;
+import com.scott.tech.mud.mud_game.world.WorldService;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
@@ -24,33 +25,41 @@ public class CombatService {
     private final CombatStatsResolver statsResolver;
     private final CombatNarrator narrator;
     private final QuestService questService;
+    private final WorldService worldService;
 
     public CombatService(CombatState combatState,
                          CombatStatsResolver statsResolver,
                          CombatNarrator narrator,
-                         @Lazy QuestService questService) {
+                         @Lazy QuestService questService,
+                         WorldService worldService) {
         this.combatState = combatState;
         this.statsResolver = statsResolver;
         this.narrator = narrator;
         this.questService = questService;
+        this.worldService = worldService;
     }
 
     public record AttackResult(
             String message,
+            String partyMessage,
             boolean targetDefeated,
             boolean playerDefeated,
-            int xpGained
+            int xpGained,
+            QuestService.QuestProgressResult questProgressResult
     ) {
-        public static AttackResult hit(String message) {
-            return new AttackResult(message, false, false, 0);
+        public static AttackResult hit(String message, String partyMessage) {
+            return new AttackResult(message, partyMessage, false, false, 0, null);
         }
 
-        public static AttackResult targetDefeat(String message, int xp) {
-            return new AttackResult(message, true, false, xp);
+        public static AttackResult targetDefeat(String message,
+                                                String partyMessage,
+                                                int xp,
+                                                QuestService.QuestProgressResult questProgressResult) {
+            return new AttackResult(message, partyMessage, true, false, xp, questProgressResult);
         }
 
-        public static AttackResult playerDefeat(String message) {
-            return new AttackResult(message, false, true, 0);
+        public static AttackResult playerDefeat(String message, String partyMessage) {
+            return new AttackResult(message, partyMessage, false, true, 0, null);
         }
     }
 
@@ -61,19 +70,27 @@ public class CombatService {
 
             if (!encounter.isAlive()) {
                 combatState.endCombat(session.getSessionId());
-                return AttackResult.hit(narrator.targetAlreadyDead(target));
+                String message = narrator.targetAlreadyDead(target);
+                return AttackResult.hit(message, message);
             }
 
             PlayerCombatStats stats = statsResolver.resolve(player);
             if (!rollHit(stats.hitChance())) {
-                return AttackResult.hit(narrator.playerMiss(player, stats, target));
+                encounter.addThreat(session.getSessionId(), 1);
+                return AttackResult.hit(
+                        narrator.playerMiss(player, stats, target),
+                        narrator.playerMissForParty(player, stats, target)
+                );
             }
 
             int actualDamage = encounter.applyDamage(calculatePlayerDamage(stats));
+            encounter.addThreat(session.getSessionId(), Math.max(1, actualDamage));
             StringBuilder message = new StringBuilder(narrator.playerHit(player, stats, target, actualDamage));
+            StringBuilder partyMessage = new StringBuilder(narrator.playerHitForParty(player, stats, target, actualDamage));
 
             if (!encounter.isAlive()) {
                 message.append(narrator.npcDefeated(target));
+                partyMessage.append(narrator.npcDefeated(target));
 
                 int xpGained = scaleXpForLevelDifference(
                         target.getXpReward(),
@@ -85,13 +102,16 @@ public class CombatService {
                 }
 
                 // Check for quest progress on defeating this NPC
+                QuestService.QuestProgressResult questProgressResult = null;
                 if (questService != null) {
                     var questResult = questService.onDefeatNpc(player, target);
                     if (questResult.isPresent()) {
                         var result = questResult.get();
+                        questProgressResult = result;
                         String questMessage = result.message();
                         if (questMessage != null && !questMessage.isBlank()) {
                             message.append("\n\n").append(questMessage);
+                            partyMessage.append("\n\n").append(questMessage);
                         }
                     }
                 }
@@ -100,13 +120,17 @@ public class CombatService {
                 if (target.doesRespawn()) {
                     encounter.resetHealth();
                     message.append(narrator.npcRespawns(target));
+                    partyMessage.append(narrator.npcRespawns(target));
+                } else if (Npc.isInstanceId(target.getId())) {
+                    worldService.removeNpcInstance(target.getId());
                 }
 
-                return AttackResult.targetDefeat(message.toString(), xpGained);
+                return AttackResult.targetDefeat(message.toString(), partyMessage.toString(), xpGained, questProgressResult);
             }
 
             message.append(narrator.npcHealth(encounter));
-            return AttackResult.hit(message.toString());
+            partyMessage.append(narrator.npcHealth(encounter));
+            return AttackResult.hit(message.toString(), partyMessage.toString());
         }
     }
 
@@ -126,14 +150,16 @@ public class CombatService {
             player.setHealth(playerNewHealth);
 
             StringBuilder message = new StringBuilder(narrator.npcHit(attacker, player, npcDamage));
+            StringBuilder partyMessage = new StringBuilder(narrator.npcHitForParty(attacker, player, npcDamage));
 
             if (playerNewHealth <= 0) {
                 message.append(narrator.playerDefeated());
+                partyMessage.append(narrator.playerDefeated(player));
                 combatState.endCombat(session.getSessionId());
-                return AttackResult.playerDefeat(message.toString());
+                return AttackResult.playerDefeat(message.toString(), partyMessage.toString());
             }
 
-            return AttackResult.hit(message.toString());
+            return AttackResult.hit(message.toString(), partyMessage.toString());
         }
     }
 

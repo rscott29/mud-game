@@ -1,81 +1,114 @@
-// Combat log styles, damage qualifiers, health bars
+// Combat feed styles, damage qualifiers, health meters
+
+.term-card--combat {
+  border: 1px solid rgba(184, 71, 50, 0.4);
+  background:
+    radial-gradient(circle at top right, rgba(218, 120, 82, 0.16), transparent 34%),
+    linear-gradient(180deg, rgba(34, 18, 12, 0.96), rgba(17, 10, 7, 0.98));
+}
+
+.term-card--combat .term-copy--combat {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
 
 .combat-log {
-  border-left: 3px solid #c0392b;
-  background: rgba(0, 0, 0, 0.2);
-  padding: 8px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
   margin: 8px 0;
-  border-radius: 0 4px 4px 0;
+  padding: 14px 16px;
+  border: 1px solid rgba(184, 71, 50, 0.28);
+  border-radius: 14px;
+  background:
+    linear-gradient(180deg, rgba(82, 31, 23, 0.34), rgba(28, 13, 9, 0.72)),
+    rgba(0, 0, 0, 0.24);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.05),
+    0 16px 32px rgba(0, 0, 0, 0.18);
 }
 
 .combat-header {
-  font-family: inherit;
-  font-size: 0.85em;
-  font-weight: 700;
-  color: #c0392b;
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.combat-kicker {
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.2em;
   text-transform: uppercase;
-  letter-spacing: 0.1em;
-  margin-bottom: 6px;
-  opacity: 0.9;
+  color: #f4bb73;
+}
+
+.combat-opponent {
+  font-size: 1rem;
+  font-weight: 800;
+  color: #ffe0c5;
 }
 
 .combat-line {
-  font-family: 'Consolas', 'Courier New', monospace;
-  font-size: 0.95em;
-  line-height: 1.5;
-  color: #d1d5db;
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: 10px;
+  align-items: center;
+  padding: 9px 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  color: #ece5db;
 
   &.engage {
-    color: #f39c12;
-    font-style: italic;
-    font-family: inherit;
+    color: #ffd28f;
   }
 
-  &.player-hit { color: #ecf0f1; }
-  &.npc-hit { color: #bdc3c7; }
+  &.player-hit,
+  &.player-miss {
+    color: #f5f0e8;
+  }
+
+  &.npc-hit {
+    color: #ffd8d4;
+  }
 
   &.health-status {
-    color: #7f8c8d;
-    font-size: 0.9em;
-    margin-top: 2px;
+    grid-template-columns: 1fr;
+    gap: 8px;
+    align-items: stretch;
+    color: #dcc9b5;
+    font-size: 0.88rem;
+  }
+
+  &.victory,
+  &.defeat,
+  &.xp-gain,
+  &.respawn {
+    border-top-color: rgba(255, 255, 255, 0.06);
   }
 
   &.victory {
-    color: #f1c40f;
-    font-weight: 700;
-    font-size: 1.05em;
-    margin-top: 6px;
-    font-family: inherit;
+    color: #ffe899;
   }
 
   &.defeat {
-    color: #e74c3c;
-    font-weight: 700;
-    margin-top: 6px;
-    font-family: inherit;
+    color: #ffc2ba;
   }
 
   &.xp-gain {
-    color: #9b59b6;
-    font-style: italic;
-    font-family: inherit;
+    color: #f4dd9f;
   }
 
   &.respawn {
-    color: #3498db;
-    font-style: italic;
-    opacity: 0.8;
-    font-family: inherit;
+    color: #c6d9f0;
   }
 
   &.warning {
-    color: #f39c12;
-    background: rgba(243, 156, 18, 0.1);
-    border-left: 3px solid #f39c12;
-    padding: 6px 10px;
-    margin: 6px 0;
-    border-radius: 0 4px 4px 0;
-    font-family: inherit;
+    color: #f6d59a;
+    background: rgba(243, 156, 18, 0.08);
+    border: 1px solid rgba(243, 156, 18, 0.2);
+    padding: 10px 12px;
+    border-radius: 10px;
 
     .warning-text {
       color: #f5d89a;
@@ -90,27 +123,155 @@
   }
 }
 
-.combat-icon {
-  display: inline-block;
-  min-width: 22px;
-  text-align: center;
-  opacity: 0.9;
+.combat-line--you {
+  .combat-body {
+    color: #fff3df;
+  }
 }
 
-.combat-target {
-  color: #e74c3c;
-  font-weight: bold;
+.combat-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 58px;
+  padding: 5px 9px;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #fff7ec;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.12);
 }
 
-.hp-bar {
-  color: #8ed1fc;
-  font-weight: bold;
-  &.player { color: #2ecc71; }
+.combat-badge--you {
+  background: rgba(86, 176, 118, 0.18);
+  border-color: rgba(86, 176, 118, 0.36);
+  color: #c8f4c1;
+}
+
+.combat-badge--party {
+  background: rgba(96, 147, 216, 0.18);
+  border-color: rgba(96, 147, 216, 0.36);
+  color: #d8e9ff;
+}
+
+.combat-badge--enemy,
+.combat-badge--danger {
+  background: rgba(196, 73, 59, 0.2);
+  border-color: rgba(196, 73, 59, 0.4);
+  color: #ffd8d4;
+}
+
+.combat-badge--victory,
+.combat-badge--reward {
+  background: rgba(199, 151, 48, 0.22);
+  border-color: rgba(199, 151, 48, 0.42);
+  color: #fff1bd;
+}
+
+.combat-badge--system {
+  background: rgba(105, 140, 189, 0.2);
+  border-color: rgba(105, 140, 189, 0.4);
+  color: #d9e8ff;
+}
+
+.combat-body {
+  min-width: 0;
+  font-family: 'Consolas', 'Courier New', monospace;
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+
+.combat-entity {
+  font-weight: 800;
+}
+
+.combat-entity--target {
+  color: #ffb1a4;
+}
+
+.combat-entity--party {
+  color: #cfe1ff;
+}
+
+.combat-entity--you {
+  color: #c8f4c1;
+}
+
+.combat-status-meta {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.combat-status-label {
+  min-width: 0;
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #f0d6bc;
+  overflow-wrap: anywhere;
+}
+
+.combat-status-bar {
+  position: relative;
+  display: block;
+  width: 100%;
+  min-width: 0;
+  height: 8px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.combat-status-fill {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #d2644e, #f0a769);
+  box-shadow: 0 0 10px rgba(210, 100, 78, 0.3);
+
+  &.player {
+    background: linear-gradient(90deg, #2f8f61, #9ada8a);
+    box-shadow: 0 0 10px rgba(74, 188, 120, 0.28);
+  }
+}
+
+.combat-status-value {
+  font-family: 'Consolas', 'Courier New', monospace;
+  font-size: 0.82rem;
+  color: #f3e2d2;
+  white-space: nowrap;
 }
 
 .xp-value {
-  color: #f1c40f;
-  font-weight: 700;
+  color: #f6db7f;
+  font-weight: 800;
+}
+
+@media (max-width: 720px) {
+  .combat-line {
+    grid-template-columns: 1fr;
+    gap: 6px;
+  }
+
+  .combat-line.health-status {
+    grid-template-columns: 1fr;
+  }
+
+  .combat-status-meta {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+  }
+
+  .combat-badge {
+    width: fit-content;
+  }
 }
 
 // Level up celebration
@@ -181,8 +342,33 @@
 
 // Weapon attack verb
 .weapon-verb {
-  color: #3498db;
-  font-weight: bold;
+  color: #9cd8ff;
+  font-weight: 700;
+
+  &.weapon-verb--common {
+    color: var(--rarity-common);
+  }
+
+  &.weapon-verb--fine {
+    color: var(--rarity-fine);
+  }
+
+  &.weapon-verb--rare {
+    color: var(--rarity-rare);
+  }
+
+  &.weapon-verb.weapon-verb--legendary {
+  color: var(--rarity-legendary);
+    font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  text-shadow:
+    0 0 4px var(--rarity-legendary-glow),
+    0 0 10px var(--rarity-legendary-glow),
+    0 0 18px rgba(243, 156, 18, 0.22),
+    0 0 28px rgba(255, 210, 90, 0.12);
+  filter: saturate(1.2) brightness(1.08);
+}
 }
 
 // Damage qualifiers (ordered by severity)
