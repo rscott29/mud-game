@@ -178,7 +178,7 @@
   "wander": null,
   "combatTarget": true,
   "respawns": true,
-  "maxHealth": 100,
+  "maxHealth": 500,
   "level": 8,
   "xpReward": 25,
   "minDamage": 1,

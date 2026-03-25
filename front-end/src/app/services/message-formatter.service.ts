@@ -99,7 +99,9 @@ export class MessageFormatterService {
   formatNarrativeInlineMessage(message: string): FormattedMessage {
     return {
       cssClass: TERMINAL_MESSAGE_CLASSES.NARRATIVE,
-      html: this.renderInlineNarrative(message),
+      html: this.isCombatMarkup(message)
+        ? this.renderCombatNarrative(message)
+        : this.renderInlineNarrative(message),
     };
   }
 
@@ -299,6 +301,10 @@ export class MessageFormatterService {
   }
 
   private renderNarrative(label: string, message: string): string {
+    if (this.isCombatMarkup(message)) {
+      return this.renderCombatNarrative(message);
+    }
+
     return `
       <section class="term-card term-card--narrative">
         <div class="term-card__header">
@@ -312,8 +318,27 @@ export class MessageFormatterService {
     `;
   }
 
+  private renderCombatNarrative(message: string): string {
+    return `
+      <section class="term-card term-card--combat">
+        <div class="term-card__header">
+          <div>
+            <div class="term-card__eyebrow">Combat</div>
+            <h2 class="term-card__title">Combat feed</h2>
+          </div>
+          <span class="term-badge term-badge--warning">live</span>
+        </div>
+        <div class="term-copy term-copy--combat">${renderMarkup(message)}</div>
+      </section>
+    `;
+  }
+
   private renderInlineNarrative(message: string): string {
     return this.wrapInlineNarrative(renderMarkup(message));
+  }
+
+  private isCombatMarkup(message: string): boolean {
+    return message.includes('combat-log') || message.includes('combat-line');
   }
 
   private formatPlainText(message: string): string {

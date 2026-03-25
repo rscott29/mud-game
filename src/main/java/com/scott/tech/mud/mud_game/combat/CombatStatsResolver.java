@@ -32,6 +32,7 @@ public class CombatStatsResolver {
         int critChance = BASE_CRIT_CHANCE;
         int attackSpeed = 0;
         String attackVerb = null;
+        String weaponRarity = null;
 
         java.util.Optional<Item> weapon = player.getEquippedWeapon();
         if (weapon.isPresent()) {
@@ -43,6 +44,7 @@ public class CombatStatsResolver {
             hitChance += weaponStats.hitChance();
             attackSpeed += weaponStats.attackSpeed();
             attackVerb = weaponStats.attackVerb();
+            weaponRarity = weapon.get().getRarity().name().toLowerCase();
         }
 
         int armor = player.getEquippedItems().values().stream()
@@ -67,7 +69,8 @@ public class CombatStatsResolver {
                 Math.max(0, critChance),
                 attackSpeed,
                 armor,
-                attackVerb
+                attackVerb,
+                weaponRarity
         );
     }
 }

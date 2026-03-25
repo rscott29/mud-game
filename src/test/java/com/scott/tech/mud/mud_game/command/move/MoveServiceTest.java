@@ -12,6 +12,7 @@ import com.scott.tech.mud.mud_game.model.Player;
 import com.scott.tech.mud.mud_game.model.Rarity;
 import com.scott.tech.mud.mud_game.model.Room;
 import com.scott.tech.mud.mud_game.model.SessionState;
+import com.scott.tech.mud.mud_game.party.PartyService;
 import com.scott.tech.mud.mud_game.service.AmbientEventService;
 import com.scott.tech.mud.mud_game.service.LevelingService;
 import com.scott.tech.mud.mud_game.session.GameSession;
@@ -410,6 +411,96 @@ class MoveServiceTest {
                 .extracting(GameResponse::type)
                 .containsOnly(GameResponse.Type.ROOM_ACTION);
     }
+
+        @Test
+        void buildResult_movesSameRoomFollowersWithLeader() {
+                TaskScheduler taskScheduler = mock(TaskScheduler.class);
+                WorldBroadcaster broadcaster = mock(WorldBroadcaster.class);
+                LevelingService levelingService = mock(LevelingService.class);
+                AmbientEventService ambientEventService = mock(AmbientEventService.class);
+                WorldService worldService = mock(WorldService.class);
+                GameSessionManager sessionManager = new GameSessionManager();
+                PartyService partyService = new PartyService();
+
+                when(ambientEventService.getRandomAmbientEvent(anyString())).thenReturn(Optional.empty());
+                when(ambientEventService.getRandomCompanionDialogue(any(), anyString())).thenReturn(Optional.empty());
+                doReturn(new NoOpScheduledFuture()).when(taskScheduler).schedule(any(Runnable.class), any(Instant.class));
+
+                Room startRoom = new Room("start", "Trail", "A dusty trail.", exits(Direction.NORTH, "grove"), List.of(), List.of());
+                Room nextRoom = new Room("grove", "Whispering Grove", "Trees lean close here.", new EnumMap<>(Direction.class), List.of(), List.of());
+
+                when(worldService.getRoom("start")).thenReturn(startRoom);
+                when(worldService.getRoom("grove")).thenReturn(nextRoom);
+
+                GameSession leader = new GameSession("leader-session", new Player("p1", "Axi", "start"), worldService);
+                leader.transition(SessionState.PLAYING);
+                GameSession follower = new GameSession("follower-session", new Player("p2", "Nova", "start"), worldService);
+                follower.transition(SessionState.PLAYING);
+                sessionManager.register(leader);
+                sessionManager.register(follower);
+                partyService.follow(follower, leader);
+
+                MoveService service = new MoveService(
+                                taskScheduler,
+                                broadcaster,
+                                sessionManager,
+                                levelingService,
+                                ambientEventService,
+                                worldService,
+                                partyService,
+                                AiTextPolisher.noOp()
+                );
+
+                service.buildResult(leader, Direction.NORTH, MoveValidationResult.allow("grove", nextRoom));
+
+                assertThat(follower.getPlayer().getCurrentRoomId()).isEqualTo("grove");
+                verify(broadcaster).sendToSession(eq("follower-session"), any(GameResponse.class));
+        }
+
+        @Test
+        void buildResult_whenFollowerCannotKeepUp_broadcastsGroupLeaveToRoom() {
+                TaskScheduler taskScheduler = mock(TaskScheduler.class);
+                WorldBroadcaster broadcaster = mock(WorldBroadcaster.class);
+                LevelingService levelingService = mock(LevelingService.class);
+                AmbientEventService ambientEventService = mock(AmbientEventService.class);
+                WorldService worldService = mock(WorldService.class);
+                GameSessionManager sessionManager = new GameSessionManager();
+                PartyService partyService = new PartyService();
+
+                when(ambientEventService.getRandomAmbientEvent(anyString())).thenReturn(Optional.empty());
+                when(ambientEventService.getRandomCompanionDialogue(any(), anyString())).thenReturn(Optional.empty());
+                doReturn(new NoOpScheduledFuture()).when(taskScheduler).schedule(any(Runnable.class), any(Instant.class));
+
+                Room startRoom = new Room("start", "Trail", "A dusty trail.", new EnumMap<>(Direction.class), List.of(), List.of());
+                Room nextRoom = new Room("grove", "Whispering Grove", "Trees lean close here.", new EnumMap<>(Direction.class), List.of(), List.of());
+
+                when(worldService.getRoom("start")).thenReturn(startRoom);
+                when(worldService.getRoom("grove")).thenReturn(nextRoom);
+
+                GameSession leader = new GameSession("leader-session", new Player("p1", "Axi", "start"), worldService);
+                leader.transition(SessionState.PLAYING);
+                GameSession follower = new GameSession("follower-session", new Player("p2", "Nova", "start"), worldService);
+                follower.transition(SessionState.PLAYING);
+                sessionManager.register(leader);
+                sessionManager.register(follower);
+                partyService.follow(follower, leader);
+
+                MoveService service = new MoveService(
+                                taskScheduler,
+                                broadcaster,
+                                sessionManager,
+                                levelingService,
+                                ambientEventService,
+                                worldService,
+                                partyService,
+                                AiTextPolisher.noOp()
+                );
+
+                service.buildResult(leader, Direction.NORTH, MoveValidationResult.allow("grove", nextRoom));
+
+                assertThat(partyService.isFollowing(follower.getSessionId())).isFalse();
+                verify(broadcaster).broadcastToRoom(eq("start"), any(GameResponse.class), eq("follower-session"));
+        }
 
     @Test
     void buildResult_whenDarkRoomDamageKillsPlayer_stopsMovementAndReturnsDeathPrompt() {

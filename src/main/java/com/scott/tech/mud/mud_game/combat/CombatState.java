@@ -43,12 +43,19 @@ public class CombatState {
     }
 
     public void endCombat(String sessionId) {
-        activeCombat.remove(sessionId);
+        CombatEngagement engagement = activeCombat.remove(sessionId);
+        if (engagement != null) {
+            engagement.encounter().clearThreat(sessionId);
+        }
     }
 
     public void endCombatForTarget(Npc npc) {
         if (npc == null) {
             return;
+        }
+        CombatEncounter encounter = encountersByNpcId.get(npc.getId());
+        if (encounter != null) {
+            encounter.clearAllThreat();
         }
         activeCombat.entrySet().removeIf(entry -> entry.getValue().encounter().getTarget().getId().equals(npc.getId()));
     }
@@ -70,6 +77,13 @@ public class CombatState {
             return Optional.empty();
         }
         return Optional.ofNullable(encountersByNpcId.get(npc.getId()));
+    }
+
+    public Optional<CombatEncounter> getEncounterForNpcId(String npcId) {
+        if (npcId == null || npcId.isBlank()) {
+            return Optional.empty();
+        }
+        return Optional.ofNullable(encountersByNpcId.get(npcId));
     }
 
     public Optional<Npc> getCombatTarget(String sessionId) {

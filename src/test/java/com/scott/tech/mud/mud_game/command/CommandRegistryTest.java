@@ -73,10 +73,14 @@ class CommandRegistryTest {
     void frontendDispatchMetadataMarksContextualCommandsAsNaturalLanguage() {
         CommandMetadata look = CommandRegistry.getMetadata(CommandRegistry.LOOK).orElseThrow();
         CommandMetadata talk = CommandRegistry.getMetadata(CommandRegistry.TALK).orElseThrow();
+        CommandMetadata follow = CommandRegistry.getMetadata(CommandRegistry.FOLLOW).orElseThrow();
+        CommandMetadata group = CommandRegistry.getMetadata(CommandRegistry.GROUP).orElseThrow();
         CommandMetadata who = CommandRegistry.getMetadata(CommandRegistry.WHO).orElseThrow();
 
         assertThat(look.dispatchMode()).isEqualTo(CommandMetadata.DispatchMode.NATURAL_LANGUAGE);
         assertThat(talk.dispatchMode()).isEqualTo(CommandMetadata.DispatchMode.NATURAL_LANGUAGE);
+        assertThat(follow.dispatchMode()).isEqualTo(CommandMetadata.DispatchMode.DIRECT);
+        assertThat(group.dispatchMode()).isEqualTo(CommandMetadata.DispatchMode.DIRECT);
         assertThat(who.dispatchMode()).isEqualTo(CommandMetadata.DispatchMode.DIRECT);
     }
 

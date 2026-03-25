@@ -121,6 +121,40 @@ class WorldServiceTest {
         verify(npcPositionRepository, never()).save(org.mockito.ArgumentMatchers.any());
     }
 
+    @Test
+    void spawnAndRemoveNpcInstance_updatesRuntimeWorldStateWithoutPersisting() throws Exception {
+        WorldLoader worldLoader = mock(WorldLoader.class);
+        NpcPositionRepository npcPositionRepository = mock(NpcPositionRepository.class);
+
+        Npc wolf = npc("npc_forest_wolf");
+        Room room = room("deep_forest", List.of());
+        when(worldLoader.load()).thenReturn(new WorldLoadResult(
+                Map.of("deep_forest", room),
+                Map.of("npc_forest_wolf", wolf),
+                Map.of(),
+                Map.of(),
+                "deep_forest",
+                "deep_forest"
+        ));
+        when(npcPositionRepository.findAll()).thenReturn(List.of());
+
+        WorldService worldService = new WorldService(worldLoader, npcPositionRepository);
+        worldService.loadWorld();
+
+        Npc spawned = worldService.spawnNpcInstance("npc_forest_wolf", "deep_forest").orElseThrow();
+
+        assertThat(spawned.getId()).startsWith("npc_forest_wolf" + Npc.INSTANCE_ID_DELIMITER);
+        assertThat(worldService.getNpcRoomId(spawned.getId())).isEqualTo("deep_forest");
+        assertThat(room.hasNpc(spawned)).isTrue();
+        verify(npcPositionRepository, never()).save(org.mockito.ArgumentMatchers.any());
+
+        worldService.removeNpcInstance(spawned.getId());
+
+        assertThat(worldService.getNpcById(spawned.getId())).isNull();
+        assertThat(worldService.getNpcRoomId(spawned.getId())).isNull();
+        assertThat(room.hasNpc(spawned)).isFalse();
+    }
+
     private static Npc npc(String id) {
         return new Npc(id, "Bartender", "A seasoned barkeep.",
                 List.of("bartender"), "he", "his",

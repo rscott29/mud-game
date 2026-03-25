@@ -33,6 +33,12 @@ public record QuestObjective(
         
         /** Whether quest fails if the defended NPC dies. */
         boolean failOnTargetDeath,
+
+        /** Health pool for the defended NPC during DEFEND objectives. */
+        int targetHealth,
+
+        /** Time limit for the objective in seconds. */
+        int timeLimitSeconds,
         
         /** Dialogue options for DIALOGUE_CHOICE objectives. */
         DialogueData dialogue,
@@ -46,6 +52,24 @@ public record QuestObjective(
     public QuestObjective {
         spawnNpcs = spawnNpcs != null ? List.copyOf(spawnNpcs) : List.of();
         onComplete = onComplete != null ? onComplete : ObjectiveEffects.NONE;
+    }
+
+    public QuestObjective(
+            String id,
+            QuestObjectiveType type,
+            String description,
+            String target,
+            String itemId,
+            boolean consumeItem,
+            List<String> spawnNpcs,
+            int defeatCount,
+            boolean failOnTargetDeath,
+            DialogueData dialogue,
+            boolean requiresPrevious,
+            ObjectiveEffects onComplete
+    ) {
+        this(id, type, description, target, itemId, consumeItem, spawnNpcs, defeatCount,
+                failOnTargetDeath, 0, 0, dialogue, requiresPrevious, onComplete);
     }
     
     /**

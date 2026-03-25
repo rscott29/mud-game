@@ -25,7 +25,9 @@
                     "npc_forest_wolf"
                 ],
                 "defeatCount": 2,
-                "failOnTargetDeath": false
+                "failOnTargetDeath": true,
+                "targetHealth": 30,
+                "timeLimitSeconds": 45
             }
         ],
         "rewards": {

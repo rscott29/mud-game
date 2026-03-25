@@ -15,18 +15,23 @@ import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 class QuestServiceTest {
 
     private QuestLoader questLoader;
     private WorldService worldService;
+    private DefendObjectiveRuntimeService defendObjectiveRuntimeService;
 
     @BeforeEach
     void setUp() {
         questLoader = mock(QuestLoader.class);
         worldService = mock(WorldService.class);
+        defendObjectiveRuntimeService = mock(DefendObjectiveRuntimeService.class);
     }
 
     @Test
@@ -138,11 +143,61 @@ class QuestServiceTest {
         assertThat(player.getQuestState().isQuestCompleted(quest.id())).isFalse();
     }
 
+        @Test
+        void startQuest_defendObjective_spawnsConfiguredNpcInstancesInTargetRoom() throws Exception {
+        Quest quest = quest("quest_defend_start", List.of(
+            defendObjective("defend_traveler", "npc_lost_traveler", List.of("npc_forest_wolf", "npc_forest_wolf"), 2)
+        ));
+        when(worldService.getNpcRoomId("npc_lost_traveler")).thenReturn("deep_forest");
+        when(worldService.spawnNpcInstance(eq("npc_forest_wolf"), eq("deep_forest")))
+            .thenReturn(Optional.of(npc("npc_forest_wolf" + Npc.INSTANCE_ID_DELIMITER + "1")));
+
+        QuestService service = questServiceWith(quest);
+        Player player = player();
+        player.setCurrentRoomId("town_square");
+
+        QuestService.QuestStartResult result = service.startQuest(player, quest.id());
+
+        assertThat(result.success()).isTrue();
+        verify(worldService, times(2)).spawnNpcInstance("npc_forest_wolf", "deep_forest");
+        }
+
+        @Test
+        void onDefeatNpc_spawnedNpcInstanceCountsTowardDefendObjective() throws Exception {
+        Quest quest = quest("quest_defend_progress", List.of(
+            defendObjective("defend_traveler", "npc_lost_traveler", List.of("npc_forest_wolf", "npc_forest_wolf"), 2)
+        ));
+        when(worldService.spawnNpcInstance(eq("npc_forest_wolf"), eq("start_room")))
+            .thenReturn(Optional.of(npc("npc_forest_wolf" + Npc.INSTANCE_ID_DELIMITER + "seed")));
+
+        QuestService service = questServiceWith(quest);
+        Player player = player();
+        service.startQuest(player, quest.id());
+
+        Optional<QuestService.QuestProgressResult> first = service.onDefeatNpc(
+            player,
+            npc("npc_forest_wolf" + Npc.INSTANCE_ID_DELIMITER + "1")
+        );
+
+        assertThat(first).isPresent();
+        assertThat(first.get().type()).isEqualTo(QuestService.QuestProgressResult.ResultType.PROGRESS);
+        assertThat(player.getQuestState().getActiveQuest(quest.id()).getObjectiveProgress()).isEqualTo(1);
+
+        Optional<QuestService.QuestProgressResult> second = service.onDefeatNpc(
+            player,
+            npc("npc_forest_wolf" + Npc.INSTANCE_ID_DELIMITER + "2")
+        );
+
+        assertThat(second).isPresent();
+        assertThat(second.get().type()).isEqualTo(QuestService.QuestProgressResult.ResultType.QUEST_COMPLETE);
+        assertThat(player.getQuestState().isQuestCompleted(quest.id())).isTrue();
+        }
+
     @Test
     void init_rethrowsQuestLoadFailures() throws Exception {
         when(questLoader.load()).thenThrow(new WorldLoadException("Quest loading failed"));
 
-        QuestService service = new QuestService(questLoader, worldService);
+        QuestService service = new QuestService(questLoader, worldService, defendObjectiveRuntimeService);
 
         assertThatThrownBy(service::init)
                 .isInstanceOf(WorldLoadException.class)
@@ -154,7 +209,7 @@ class QuestServiceTest {
                 .collect(java.util.stream.Collectors.toMap(Quest::id, quest -> quest));
         when(questLoader.load()).thenReturn(questMap);
 
-        QuestService service = new QuestService(questLoader, worldService);
+        QuestService service = new QuestService(questLoader, worldService, defendObjectiveRuntimeService);
         service.init();
         return service;
     }
@@ -237,6 +292,23 @@ class QuestServiceTest {
                 0,
                 false,
                 dialogue,
+                false,
+                ObjectiveEffects.NONE
+        );
+    }
+
+    private QuestObjective defendObjective(String id, String targetNpcId, List<String> spawnNpcIds, int defeatCount) {
+        return new QuestObjective(
+                id,
+                QuestObjectiveType.DEFEND,
+                "Defend " + targetNpcId,
+                targetNpcId,
+                null,
+                false,
+                spawnNpcIds,
+                defeatCount,
+                false,
+                null,
                 false,
                 ObjectiveEffects.NONE
         );

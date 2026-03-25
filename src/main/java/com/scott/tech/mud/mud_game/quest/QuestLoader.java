@@ -108,6 +108,8 @@ public class QuestLoader {
                 def.spawnNpcs,
                 def.defeatCount,
                 def.failOnTargetDeath,
+            def.targetHealth,
+            def.timeLimitSeconds,
                 buildDialogue(def.dialogue),
                 def.requiresPrevious,
                 buildObjectiveEffects(def.onComplete)
@@ -428,6 +430,12 @@ public class QuestLoader {
         }
         if (parseObjectiveType(def.type) == QuestObjectiveType.DEFEND) {
             requireText(def.target, path + ".target", errors);
+            if (def.targetHealth < 1) {
+                errors.add(path + ".targetHealth must be at least 1");
+            }
+            if (def.timeLimitSeconds < 1) {
+                errors.add(path + ".timeLimitSeconds must be at least 1");
+            }
         }
     }
 
@@ -532,6 +540,8 @@ public class QuestLoader {
         public List<String> spawnNpcs = List.of();
         public int defeatCount = 0;
         public boolean failOnTargetDeath = false;
+        public int targetHealth = 0;
+        public int timeLimitSeconds = 0;
         public DialogueChoiceData dialogue;
         public boolean requiresPrevious = false;
         public ObjectiveEffectsData onComplete;

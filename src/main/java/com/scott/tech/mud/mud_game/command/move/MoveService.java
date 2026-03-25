@@ -10,6 +10,7 @@ import com.scott.tech.mud.mud_game.model.Item;
 import com.scott.tech.mud.mud_game.model.Npc;
 import com.scott.tech.mud.mud_game.model.Player;
 import com.scott.tech.mud.mud_game.model.Room;
+import com.scott.tech.mud.mud_game.party.PartyService;
 import com.scott.tech.mud.mud_game.service.AmbientEventService;
 import com.scott.tech.mud.mud_game.service.LevelingService;
 import com.scott.tech.mud.mud_game.session.GameSession;
@@ -38,6 +39,7 @@ public class MoveService {
     private final LevelingService levelingService;
     private final AmbientEventService ambientEventService;
     private final WorldService worldService;
+        private final PartyService partyService;
     private final AiTextPolisher textPolisher;
     private final PlayerDeathService playerDeathService;
 
@@ -48,7 +50,7 @@ public class MoveService {
                        AmbientEventService ambientEventService,
                        WorldService worldService) {
         this(taskScheduler, worldBroadcaster, sessionManager, levelingService, ambientEventService, worldService,
-                AiTextPolisher.noOp(), null);
+                  null, AiTextPolisher.noOp(), null);
     }
 
     public MoveService(TaskScheduler taskScheduler,
@@ -59,7 +61,7 @@ public class MoveService {
                        WorldService worldService,
                        AiTextPolisher textPolisher) {
         this(taskScheduler, worldBroadcaster, sessionManager, levelingService, ambientEventService, worldService,
-                textPolisher, null);
+                null, textPolisher, null);
     }
 
     public MoveService(TaskScheduler taskScheduler,
@@ -70,12 +72,38 @@ public class MoveService {
                        WorldService worldService,
                        AiTextPolisher textPolisher,
                        PlayerDeathService playerDeathService) {
+        this(taskScheduler, worldBroadcaster, sessionManager, levelingService, ambientEventService, worldService,
+                null, textPolisher, playerDeathService);
+    }
+
+    public MoveService(TaskScheduler taskScheduler,
+                       WorldBroadcaster worldBroadcaster,
+                       GameSessionManager sessionManager,
+                       LevelingService levelingService,
+                       AmbientEventService ambientEventService,
+                       WorldService worldService,
+                          PartyService partyService,
+                       AiTextPolisher textPolisher) {
+        this(taskScheduler, worldBroadcaster, sessionManager, levelingService, ambientEventService, worldService,
+                  partyService, textPolisher, null);
+    }
+
+    public MoveService(TaskScheduler taskScheduler,
+                       WorldBroadcaster worldBroadcaster,
+                       GameSessionManager sessionManager,
+                       LevelingService levelingService,
+                       AmbientEventService ambientEventService,
+                       WorldService worldService,
+                          PartyService partyService,
+                       AiTextPolisher textPolisher,
+                       PlayerDeathService playerDeathService) {
         this.taskScheduler = taskScheduler;
         this.worldBroadcaster = worldBroadcaster;
         this.sessionManager = sessionManager;
         this.levelingService = levelingService;
         this.ambientEventService = ambientEventService;
         this.worldService = worldService;
+                this.partyService = partyService;
         this.textPolisher = textPolisher == null ? AiTextPolisher.noOp() : textPolisher;
         this.playerDeathService = playerDeathService;
     }
@@ -164,8 +192,62 @@ public class MoveService {
                 inventoryItemIds
         ));
 
+                moveFollowingPartyMembers(session, direction, currentRoom.getId());
+
         return CommandResult.of(responses.toArray(new GameResponse[0]));
     }
+
+        private void moveFollowingPartyMembers(GameSession leaderSession, Direction direction, String fromRoomId) {
+                if (partyService == null) {
+                        return;
+                }
+
+                List<GameSession> followers = partyService.getFollowersInRoom(
+                                leaderSession.getSessionId(),
+                                sessionManager,
+                                fromRoomId
+                );
+                if (followers.isEmpty()) {
+                        return;
+                }
+
+                MoveValidator moveValidator = new MoveValidator();
+                for (GameSession followerSession : followers) {
+                        MoveValidationResult validation = moveValidator.validate(followerSession, direction);
+                        if (!validation.allowed()) {
+                                partyService.leaveGroup(followerSession.getSessionId());
+                                worldBroadcaster.sendToSession(
+                                                followerSession.getSessionId(),
+                                                GameResponse.narrative(Messages.fmt(
+                                                                "command.follow.lost",
+                                                                "player", leaderSession.getPlayer().getName()
+                                                ))
+                                );
+                                worldBroadcaster.broadcastToRoom(
+                                                fromRoomId,
+                                                GameResponse.roomAction(Messages.fmt(
+                                                                "action.follow.stop",
+                                                                "player", followerSession.getPlayer().getName()
+                                                )),
+                                                followerSession.getSessionId()
+                                );
+                                continue;
+                        }
+
+                        CommandResult followMoveResult = buildResult(followerSession, direction, validation);
+                        List<GameResponse> followResponses = followMoveResult.getResponses();
+                        for (int index = 0; index < followResponses.size(); index++) {
+                                GameResponse response = followResponses.get(index);
+                                if (index == 0 && response.message() != null) {
+                                        response = response.withAppendedMessage("<br><br>" + Messages.fmt(
+                                                        "command.follow.travel",
+                                                        "player", leaderSession.getPlayer().getName()
+                                        ));
+                                }
+                                worldBroadcaster.sendToSession(followerSession.getSessionId(), response);
+                        }
+                }
+        }
 
     private void moveFollowingNpcs(GameSession session, Room fromRoom, Room toRoom, Direction direction) {
         for (String npcId : session.getFollowingNpcs()) {

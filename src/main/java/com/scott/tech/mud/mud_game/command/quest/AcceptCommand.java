@@ -2,12 +2,14 @@ package com.scott.tech.mud.mud_game.command.quest;
 
 import com.scott.tech.mud.mud_game.command.core.CommandResult;
 import com.scott.tech.mud.mud_game.command.core.GameCommand;
+import com.scott.tech.mud.mud_game.command.room.RoomAction;
 import com.scott.tech.mud.mud_game.config.Messages;
 import com.scott.tech.mud.mud_game.dto.GameResponse;
 import com.scott.tech.mud.mud_game.model.Item;
 import com.scott.tech.mud.mud_game.model.Npc;
 import com.scott.tech.mud.mud_game.model.Player;
 import com.scott.tech.mud.mud_game.model.Room;
+import com.scott.tech.mud.mud_game.quest.DefendObjectiveRuntimeService;
 import com.scott.tech.mud.mud_game.quest.Quest;
 import com.scott.tech.mud.mud_game.quest.QuestService;
 import com.scott.tech.mud.mud_game.quest.QuestService.QuestStartResult;
@@ -28,10 +30,14 @@ public class AcceptCommand implements GameCommand {
 
     private final String args;
     private final QuestService questService;
+    private final DefendObjectiveRuntimeService defendObjectiveRuntimeService;
 
-    public AcceptCommand(String args, QuestService questService) {
+    public AcceptCommand(String args,
+                         QuestService questService,
+                         DefendObjectiveRuntimeService defendObjectiveRuntimeService) {
         this.args = args;
         this.questService = questService;
+        this.defendObjectiveRuntimeService = defendObjectiveRuntimeService;
     }
 
     @Override
@@ -82,12 +88,30 @@ public class AcceptCommand implements GameCommand {
             return CommandResult.of(GameResponse.error(result.errorMessage()));
         }
 
+        if (result.defendObjectiveStartData() != null && result.quest() != null && result.firstObjective() != null) {
+            defendObjectiveRuntimeService.startScenario(
+                    session,
+                    result.quest(),
+                    result.firstObjective(),
+                    result.defendObjectiveStartData()
+            );
+        }
+
         // Build narrative with dialogue
         List<GameResponse> responses = new ArrayList<>();
-        String narrative = String.join("<br>", result.dialogue());
+        List<String> narrativeParts = new ArrayList<>(result.dialogue());
+        narrativeParts.addAll(result.objectiveStartMessages());
+        String narrative = String.join("<br>", narrativeParts);
         responses.add(roomUpdateWithNarrative(session, narrative));
         responses.add(GameResponse.narrative(
                 Messages.fmt("quest.started", "quest", match.quest.name())));
+
+        if (result.objectiveStartRoomMessage() != null && !result.objectiveStartRoomMessage().isBlank()) {
+            return CommandResult.withAction(
+                RoomAction.inCurrentRoom(result.objectiveStartRoomMessage(), GameResponse.Type.NARRATIVE),
+                responses.toArray(new GameResponse[0])
+            );
+        }
 
         return CommandResult.of(responses.toArray(new GameResponse[0]));
     }
