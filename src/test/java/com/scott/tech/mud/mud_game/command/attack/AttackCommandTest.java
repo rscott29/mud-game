@@ -8,12 +8,12 @@ import com.scott.tech.mud.mud_game.dto.GameResponse;
 import com.scott.tech.mud.mud_game.model.Item;
 import com.scott.tech.mud.mud_game.model.Npc;
 import com.scott.tech.mud.mud_game.model.Player;
-import com.scott.tech.mud.mud_game.model.QuestRewards;
 import com.scott.tech.mud.mud_game.model.Rarity;
 import com.scott.tech.mud.mud_game.party.PartyService;
 import com.scott.tech.mud.mud_game.quest.Quest;
 import com.scott.tech.mud.mud_game.quest.QuestCompletionEffects;
 import com.scott.tech.mud.mud_game.quest.QuestPrerequisites;
+import com.scott.tech.mud.mud_game.quest.QuestRewards;
 import com.scott.tech.mud.mud_game.quest.QuestService;
 import com.scott.tech.mud.mud_game.session.GameSession;
 import com.scott.tech.mud.mud_game.session.GameSessionManager;
@@ -150,7 +150,7 @@ class AttackCommandTest {
                 List.of(),
                 QuestPrerequisites.NONE,
                 List.of(),
-                new com.scott.tech.mud.mud_game.quest.QuestRewards(List.of(), 50),
+                new QuestRewards(List.of(), 50),
                 List.of("The traveler sinks to their knees, trembling but alive."),
                 QuestCompletionEffects.NONE
         );
