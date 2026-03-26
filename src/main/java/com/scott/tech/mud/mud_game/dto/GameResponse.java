@@ -269,6 +269,14 @@ public record GameResponse(
         }
 
         public static RoomView from(Room room, List<String> playerNames, Set<Direction> discoveredHiddenExits, Set<String> excludeItemIds) {
+            return from(room, playerNames, discoveredHiddenExits, excludeItemIds, Set.of());
+        }
+
+        public static RoomView from(Room room,
+                                    List<String> playerNames,
+                                    Set<Direction> discoveredHiddenExits,
+                                    Set<String> excludeItemIds,
+                                    Set<String> questNpcIds) {
             var exits = Stream.concat(
                     room.getExits().keySet().stream(),
                     room.getHiddenExits().keySet().stream()
@@ -281,7 +289,7 @@ public record GameResponse(
                     .toList();
 
             var npcs = room.getNpcs().stream()
-                    .map(NpcView::from)
+            .map(npc -> NpcView.from(npc, questNpcIds.contains(npc.getId())))
                     .toList();
 
             var players = List.copyOf(playerNames);
@@ -298,9 +306,13 @@ public record GameResponse(
         }
     }
 
-    public record NpcView(String id, String name, boolean sentient) {
+    public record NpcView(String id, String name, boolean sentient, boolean hasAvailableQuest) {
         public static NpcView from(Npc npc) {
-            return new NpcView(npc.getId(), npc.getName(), npc.isSentient());
+            return from(npc, false);
+        }
+
+        public static NpcView from(Npc npc, boolean hasAvailableQuest) {
+            return new NpcView(npc.getId(), npc.getName(), npc.isSentient(), hasAvailableQuest);
         }
     }
 

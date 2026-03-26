@@ -321,7 +321,8 @@ public final class CommandRegistry {
                         ctx.hasNoArgs() ? null : ctx.joinedArgs(),
                         ctx.deps().pickupValidator(),
                         ctx.deps().pickupService(),
-                        ctx.deps().questService()
+                        ctx.deps().questService(),
+                        ctx.deps().objectiveEncounterRuntimeService()
                 ))
                 .build());
 

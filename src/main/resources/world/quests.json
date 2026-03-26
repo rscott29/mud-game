@@ -401,5 +401,100 @@
                 }
             ]
         }
+    },
+    {
+        "id": "quest_watchfire",
+        "name": "A Light for the Lost",
+        "description": "Beyond the old oak, a caretaker keeps watch over a dead beacon. Help them recover the ember lantern from the prayer ledge and relight the path for travelers who would otherwise vanish into the dark.",
+        "giver": "npc_waystation_caretaker",
+        "startDialogue": [
+            "The caretaker stands beside the empty brazier, listening to the wind whistle through broken stone.",
+            "\"This watchfire guided lost travelers for years,\" they say. \"Then the storm took the lantern from its hook and flung it up to the prayer ledge.\"",
+            "They gesture from the old beacon steps to the broken switchbacks threading across the ridge. \"The road splits apart up there now. Follow the shrine paths until you find the ledge.\"",
+            "\"If you can search it out and bring the lantern back, I can make this road safe again.\"",
+            "<br><em>The caretaker points <strong>east</strong> toward the higher ridge paths.</em>"
+        ],
+        "prerequisites": {
+            "minLevel": 1,
+            
+            "requiredItems": []
+        },
+        "objectives": [
+            {
+                "id": "obj_reach_prayer_ledge",
+                "type": "VISIT",
+                "description": "Search the ridge paths and reach the prayer ledge",
+                "target": "prayer_ledge",
+                "onComplete": {
+                    "dialogue": [
+                        "After the switchbacks, bells, and broken spans of the ridge road, you finally step onto the ledge.",
+                        "Beneath a row of faded ribbons, you spot an old brass lantern tucked under the lip of the shrine.",
+                        "<br><em>The ember lantern is here. Take it and bring it back to the caretaker.</em>"
+                    ]
+                }
+            },
+            {
+                "id": "obj_recover_lantern",
+                "type": "COLLECT",
+                "description": "Recover the Ember Lantern from the prayer ledge",
+                "itemId": "item_ember_lantern",
+                "requiresPrevious": true,
+                "onComplete": {
+                    "encounter": {
+                        "spawnNpcs": [
+                            "npc_restless_wayfarer",
+                            "npc_ashen_pilgrim"
+                        ],
+                        "blockExits": [
+                            "WEST"
+                        ]
+                    },
+                    "dialogue": [
+                        "The lantern's metal is still warm when you lift it free. For one heartbeat the wind goes dead still.",
+                        "Then the prayer ribbons snap taut, and two ruined figures haul themselves out of the ash around the shrine.",
+                        "Dead pilgrims crowd the narrow path back down, their hollow eyes fixed on the light in your hands.",
+                        "<br><em>The way <strong>west</strong> is blocked. Defeat the undead before you can carry the lantern back.</em>"
+                    ]
+                }
+            },
+            {
+                "id": "obj_return_lantern",
+                "type": "DELIVER_ITEM",
+                "description": "Return the Ember Lantern to the Waystation Caretaker",
+                "target": "npc_waystation_caretaker",
+                "itemId": "item_ember_lantern",
+                "consumeItem": true,
+                "requiresPrevious": true,
+                "onComplete": {
+                    "dialogue": [
+                        "The caretaker cups the lantern carefully, shielding it from the wind while they work flint against the old wick.",
+                        "For a breath nothing happens. Then the ember catches, and warm gold light blooms across the ruined stones.",
+                        "\"There,\" they whisper, smiling for the first time. \"Now the road remembers what it was built to do.\""
+                    ]
+                }
+            }
+        ],
+        "rewards": {
+            "items": [
+                "item_wayfarers_token"
+            ],
+            "xp": 60
+        },
+        "completionDialogue": [
+            "The brazier flares as the caretaker lifts the restored lantern high above it.",
+            "Light spills out across the ridge and down into the forest, tracing the path back toward town.",
+            "\"You have done more than fetch a lantern,\" the caretaker says. \"You gave lost souls one more chance to make it home.\"",
+            "They press a small iron token into your hand, still warm from the fire.",
+            "<br><em>You receive the <strong>Wayfarer's Token</strong> - a promise that no road stays dark forever.</em>"
+        ],
+        "completionEffects": {
+            "updateNpcDescriptions": [
+                {
+                    "npcId": "npc_waystation_caretaker",
+                    "newDescription": "The caretaker stands beside a living watchfire, their weather-faded cloak glowing gold at the edges. The lines in their face remain, but the worry has gone from their eyes. <br><br><em>\"The road is lit again, traveler. Tonight, someone will find their way because of you.\"</em>",
+                    "originalDescription": "A broad-shouldered warden wrapped in a weather-faded cloak stands beside the cold watchfire brazier. Soot stains their hands and sleeves, and their tired eyes keep drifting toward the ledge above the trail. <br><br><em>\"The light went out three nights ago,\"</em> they say. <em>\"If the old ember lantern still rests above, we may yet guide the lost home.\"</em>"
+                }
+            ]
+        }
     }
 ]

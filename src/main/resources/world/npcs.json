@@ -103,6 +103,82 @@
   "wander": null
 },
 {
+  "id": "npc_waystation_caretaker",
+  "name": "Waystation Caretaker",
+  "description": "A broad-shouldered warden wrapped in a weather-faded cloak stands beside the cold watchfire brazier. Soot stains their hands and sleeves, and their tired eyes keep drifting toward the ledge above the trail. <br><br><em>\"The light went out three nights ago,\"</em> they say. <em>\"If the old ember lantern still rests above, we may yet guide the lost home.\"</em>",
+  "keywords": ["caretaker", "warden", "waystation", "watcher", "guide"],
+  "pronoun": "they",
+  "possessive": "their",
+  "talkTemplates": [
+    "The caretaker rubs ash between their fingers. \"This trail used to shine all night. Now the dark takes travelers before dawn.\"",
+    "\"The lantern should be somewhere on the prayer ledge,\" the caretaker says. \"I am too old to scramble up there in this wind.\"",
+    "The caretaker glances toward the grove below. \"The Keeper sent me here when the old road began to fail. I have kept watch ever since.\"",
+    "\"Bring me the ember lantern and I can wake the beacon again,\" the caretaker says. \"That is all I ask.\"",
+    "The caretaker nods toward the brazier. \"A road is only useful if someone tends the light.\""
+  ],
+  "interactTemplates": [
+    "The caretaker straightens as {player} approaches, one soot-dark hand resting on the empty brazier.",
+    "The caretaker looks up from the cold beacon and gives {player} a weary nod.",
+    "A gust rattles the waystation timbers as the caretaker turns toward {player}.",
+    "The caretaker brushes ash from their cloak and studies {player} hopefully."
+  ],
+  "wander": null
+},
+{
+  "id": "npc_restless_wayfarer",
+  "name": "Restless Undead Wayfarer",
+  "description": "A traveler-shaped shade draped in torn road-cloth, its face half-lost behind a sheen of grave-cold mist. Blue fire leaks from the cracks in its ribs each time it stirs.",
+  "keywords": ["wayfarer", "restless wayfarer", "restless undead wayfarer", "shade", "undead", "spirit"],
+  "pronoun": "it",
+  "possessive": "its",
+  "talkTemplates": [
+    "The shade answers with a wet rattle, as if water is sloshing in lungs it no longer possesses.",
+    "A whisper slips out of the dead thing, thin as winter wind. It is not a language you know.",
+    "The restless wayfarer tilts its head, empty eyes burning brighter for a heartbeat."
+  ],
+  "interactTemplates": [
+    "The restless wayfarer drifts toward {player}, leaving frost across the stone.",
+    "A dead traveler's silhouette turns as {player} approaches, ember-blue eyes flaring.",
+    "The shade's ruined cloak stirs though there is no wind near it."
+  ],
+  "wander": null,
+  "combatTarget": true,
+  "respawns": false,
+  "maxHealth": 90,
+  "level": 5,
+  "xpReward": 12,
+  "minDamage": 12,
+  "maxDamage": 15,
+  "playerDeathEnabled": true
+},
+{
+  "id": "npc_ashen_pilgrim",
+  "name": "Ashen Undead Pilgrim",
+  "description": "A prayer-worn corpse wrapped in charred ribbons and shrine ash. Its hands are locked in a supplicant pose until it lunges, leaving a trail of soot behind it.",
+  "keywords": ["pilgrim", "ashen pilgrim", "ashen undead pilgrim", "undead", "corpse", "shade"],
+  "pronoun": "it",
+  "possessive": "its",
+  "talkTemplates": [
+    "Ash dribbles from the pilgrim's jaw as it opens its mouth in a soundless plea.",
+    "The dead pilgrim bows once, then jerks upright with a hiss like a dying coal.",
+    "Nothing living answers from the pilgrim, only the dry scrape of bone against cloth."
+  ],
+  "interactTemplates": [
+    "The ashen pilgrim lurches toward {player}, ribbons snapping like burnt paper.",
+    "Soot swirls around the pilgrim's feet as it drags itself closer to {player}.",
+    "The pilgrim raises its head toward {player}, eyes glowing like buried coals."
+  ],
+  "wander": null,
+  "combatTarget": true,
+  "respawns": false,
+  "maxHealth": 28,
+  "level": 5,
+  "xpReward": 12,
+  "minDamage": 3,
+  "maxDamage": 6,
+  "playerDeathEnabled": true
+},
+{
   "id": "npc_drill_instructor",
   "name": "Drill Instructor Magnus",
   "description": "A battle-scarred veteran with a shaved head and arms like tree trunks. His voice carries across the yard like a thunderclap. Despite his gruff exterior, there's a patient wisdom in his eyes — he's trained hundreds of recruits, and he'll train hundreds more.",
@@ -274,6 +350,246 @@
     "The child hops off the fountain and runs over to {player}.",
     "The child tugs at {player}'s sleeve. \"Play with me?\"",
     "The child beams at {player}, practically vibrating with energy."
+  ],
+  "wander": null
+},
+{
+  "id": "npc_town_clerk_elin",
+  "name": "Clerk Elin",
+  "description": "A brisk clerk in ink-smudged sleeves stands behind a stack of ledgers almost as tall as the desk itself. Their expression says they have already answered the same question six times today, but they still manage a professional smile. <br><br><em>\"If you need records, permits, or directions, speak clearly and one at a time.\"</em>",
+  "keywords": ["clerk", "elin", "town clerk", "scribe", "official"],
+  "pronoun": "they",
+  "possessive": "their",
+  "talkTemplates": [
+    "Elin taps a ledger. \"Most problems in town begin as paperwork and end as twice as much paperwork.\"",
+    "\"The market complains, the watch complains, and the mayor complains about both,\" Elin says. \"So the day proceeds normally.\"",
+    "Elin adjusts a stack of notices. \"If you're headed beyond the gate, sign the road book first. Captain Hale insists.\"",
+    "\"Town Hall keeps the place stitched together, more or less,\" Elin says. \"Try not to pull on any loose thread.\""
+  ],
+  "interactTemplates": [
+    "Clerk Elin glances up from a ledger as {player} approaches.",
+    "Elin straightens a pile of notices and gives {player} an efficient nod.",
+    "The town clerk pauses mid-entry to acknowledge {player}."
+  ],
+  "wander": null
+},
+{
+  "id": "npc_banker_merrow",
+  "name": "Banker Merrow",
+  "description": "A careful, silver-haired banker watches the room over half-moon spectacles, one hand always resting near the day's ledger key. Their coat is modest, but every seam suggests precise taste and older money. <br><br><em>\"Coin is only trust stamped in metal. Spend either carelessly and you soon go hungry.\"</em>",
+  "keywords": ["banker", "merrow", "bank", "teller", "cashier"],
+  "pronoun": "they",
+  "possessive": "their",
+  "talkTemplates": [
+    "Merrow folds their hands. \"Harvest loans, rebuilding loans, winter advances. A town survives because people trust tomorrow enough to borrow from it.\"",
+    "\"The road to the forest takes more coin from this town than bandits ever did,\" Merrow murmurs. \"Repairs are expensive. So are funerals.\"",
+    "Merrow inclines their head. \"If you carry valuables, remember that confidence is not the same thing as security.\"",
+    "\"Captain Hale worries about blades. I worry about roofs, grain, and debt,\" Merrow says. \"All three can ruin a family.\""
+  ],
+  "interactTemplates": [
+    "Banker Merrow closes a ledger softly as {player} nears the counter.",
+    "Merrow's attention shifts to {player} with measured calm.",
+    "The banker studies {player} as though weighing risk against promise."
+  ],
+  "wander": null
+},
+{
+  "id": "npc_captain_hale",
+  "name": "Captain Hale",
+  "description": "A broad-shouldered watch captain in a weather-creased cloak stands in the barracks yard, reading the road reports with a soldier's patience and a parent's fatigue. Old scars vanish into their collar. <br><br><em>\"If you're heading outside the walls, keep your eyes up and your route simple. The wild only surprises fools once.\"</em>",
+  "keywords": ["captain", "hale", "watch captain", "guard", "officer"],
+  "pronoun": "they",
+  "possessive": "their",
+  "talkTemplates": [
+    "Hale jerks their chin toward the gate. \"We keep the road open. Most days, that's the same as keeping people alive.\"",
+    "\"The forest isn't evil,\" Hale says. \"It just doesn't care whether you come back out. Plan accordingly.\"",
+    "Hale taps the duty board. \"Half the work is patrols. The other half is convincing townsfolk they don't need three escorts to visit a cousin.\"",
+    "\"If trouble starts inside the walls, I hear of it by noon. If it starts outside the walls, I hear of it when someone limps home,\" Hale says grimly."
+  ],
+  "interactTemplates": [
+    "Captain Hale looks up from the watch board as {player} crosses the yard.",
+    "Hale gives {player} the quick once-over of someone used to measuring readiness.",
+    "The captain folds the latest road report and turns to {player}."
+  ],
+  "wander": null
+},
+{
+  "id": "npc_innkeeper_mira",
+  "name": "Innkeeper Mira",
+  "description": "A sharp-eyed innkeeper in a rolled-sleeve apron moves through the common-room with practiced ease, carrying plates, keeping the peace, and remembering exactly who still owes for supper. <br><br><em>\"Roof, stew, and a clean cup cost less than trouble. I recommend the first three.\"</em>",
+  "keywords": ["innkeeper", "mira", "keeper", "host", "bartender"],
+  "pronoun": "she",
+  "possessive": "her",
+  "talkTemplates": [
+    "Mira wipes down the bar. \"Everyone comes through the Flagon eventually. Farmers, guards, traders, wanderers, liars. Usually in that order.\"",
+    "\"If you want news, sit near the hearth. If you want silence, rent the loft,\" Mira says. \"If you want both, you're out of luck.\"",
+    "Mira nods toward the bakery. \"Tomas sends over the morning loaves before sunrise. That's how I know the world hasn't ended in the night.\"",
+    "\"You're welcome to a room, but no muddy boots on the blankets,\" Mira says, not entirely joking."
+  ],
+  "interactTemplates": [
+    "Innkeeper Mira looks up from the hearth as {player} enters.",
+    "Mira slides a cup aside and greets {player} with a brisk nod.",
+    "The innkeeper catches sight of {player} and clears a space at the bar."
+  ],
+  "wander": null
+},
+{
+  "id": "npc_baker_tomas",
+  "name": "Baker Tomas",
+  "description": "A flour-dusted baker with strong forearms and a permanently warm face moves between the oven and the cooling racks as if he has been doing it since childhood. Which, judging by the confidence in his hands, he probably has. <br><br><em>\"Fresh bread forgives a lot. Not everything, but a lot.\"</em>",
+  "keywords": ["baker", "tomas", "bread", "cook", "bakery"],
+  "pronoun": "he",
+  "possessive": "his",
+  "talkTemplates": [
+    "Tomas laughs softly. \"The trick is heat, patience, and not panicking when the dough looks wrong. Same as most of life.\"",
+    "\"If the square smells good at dawn, that's me,\" Tomas says with clear pride.",
+    "Tomas jerks a thumb toward the inn. \"Mira buys first pick every morning. Says a good loaf keeps the peace better than a club.\"",
+    "\"People talk over bread more honestly than over coin,\" Tomas says. \"That's how you learn a town.\""
+  ],
+  "interactTemplates": [
+    "Baker Tomas looks up from a peel of fresh loaves as {player} approaches.",
+    "Tomas dusts flour from his hands and smiles toward {player}.",
+    "The baker shifts a tray off the rack and nods to {player}."
+  ],
+  "wander": null
+},
+{
+  "id": "npc_shopkeeper_rona",
+  "name": "Shopkeeper Rona",
+  "description": "A practical merchant with measuring twine looped around one wrist keeps the general store in immaculate order. They have the gaze of someone who can tell at once whether you need lamp oil, rope, or better judgment. <br><br><em>\"If I don't stock it, you probably don't need it before supper. Probably.\"</em>",
+  "keywords": ["shopkeeper", "rona", "merchant", "storekeeper", "grocer"],
+  "pronoun": "they",
+  "possessive": "their",
+  "talkTemplates": [
+    "Rona taps the nearest crate. \"Needles, cord, salt, soap, lantern hooks. Town runs on small things more than grand ones.\"",
+    "\"People remember the swordsmith,\" Rona says. \"They forget the person who sells them lamp wicks and winter thread. That is as it should be.\"",
+    "Rona smiles thinly. \"If you're headed past the gate, buy rope before you decide you can improvise without it.\"",
+    "\"I hear every complaint in town eventually,\" Rona says. \"Usually while wrapping someone's parcel.\""
+  ],
+  "interactTemplates": [
+    "Shopkeeper Rona glances up from the counter as {player} enters the store.",
+    "Rona adjusts a row of lanterns, then turns to {player}.",
+    "The shopkeeper gives {player} a measuring look and a courteous nod."
+  ],
+  "wander": null
+},
+{
+  "id": "npc_blacksmith_bram",
+  "name": "Blacksmith Bram",
+  "description": "A soot-dark blacksmith with forearms like hammered iron works the forge with steady, economical force. Sparks leap around him, but he scarcely seems to notice. <br><br><em>\"Steel doesn't care what you intend. Only what you do to it.\"</em>",
+  "keywords": ["blacksmith", "bram", "smith", "forgemaster", "armorer"],
+  "pronoun": "he",
+  "possessive": "his",
+  "talkTemplates": [
+    "Bram eyes the blade on his anvil. \"Every weapon tells you when you've rushed it. Usually by failing at the worst possible time.\"",
+    "\"Magnus trains people to swing,\" Bram says. \"I make sure what they're swinging survives the lesson.\"",
+    "Bram grunts toward the market. \"Coin comes from the square. Good ore comes from patience. I prefer the second.\"",
+    "\"If your gear rattles, slips, or bends, bring it back before it gets you killed,\" Bram says."
+  ],
+  "interactTemplates": [
+    "Blacksmith Bram looks up from the anvil as {player} steps into the forge.",
+    "Bram sets down his hammer and studies {player} through the sparks.",
+    "The blacksmith wipes soot from his brow and acknowledges {player}."
+  ],
+  "wander": null
+},
+{
+  "id": "npc_apothecary_selin",
+  "name": "Apothecary Selin",
+  "description": "A narrow-eyed apothecary in a moss-green shawl sorts dried herbs with delicate precision. Every jar on the shelf is labeled in the same exact hand, and every smell in the room seems to come with a warning. <br><br><em>\"Medicine is only poison with a better reputation and a smaller dose.\"</em>",
+  "keywords": ["apothecary", "selin", "healer", "herbalist", "chemist"],
+  "pronoun": "she",
+  "possessive": "her",
+  "talkTemplates": [
+    "Selin ties off a bundle of herbs. \"Most ailments are boring. Most cures are bitter. People remain shocked by both facts.\"",
+    "\"Health potions mend flesh, not foolishness,\" Selin says. \"Be careful what you expect them to solve.\"",
+    "Selin glances toward the road. \"The forest provides half my stock and most of my worries.\"",
+    "\"If something glows, stings, or smells sweet in the wilds, assume it wants respect,\" Selin advises."
+  ],
+  "interactTemplates": [
+    "Apothecary Selin looks up from her herb bundles as {player} enters.",
+    "Selin corks a vial and turns her attention to {player}.",
+    "The apothecary watches {player} with thoughtful reserve."
+  ],
+  "wander": null
+},
+{
+  "id": "npc_stablehand_elsie",
+  "name": "Stablehand Elsie",
+  "description": "A wiry stablehand with hay in her hair and mud on her boots moves easily between the stalls, calming horses with a touch and a word. She smells of leather, oats, and open weather. <br><br><em>\"A horse knows before you do whether the road ahead is a good idea. Shame riders don't listen half as well.\"</em>",
+  "keywords": ["stablehand", "elsie", "groom", "stable", "handler"],
+  "pronoun": "she",
+  "possessive": "her",
+  "talkTemplates": [
+    "Elsie pats a mare's neck. \"Road horses hate the east wind. Means rain or worse. Usually both.\"",
+    "\"If you're sleeping at the inn and leaving at dawn, tell Mira to wake you before I start saddling,\" Elsie says.",
+    "Elsie jerks her head toward the gate. \"Everything that leaves town passes me first. Wagons, patrols, bad ideas.\"",
+    "\"This stable hears more secrets than Town Hall,\" Elsie says. \"Horses never repeat them.\""
+  ],
+  "interactTemplates": [
+    "Stablehand Elsie glances over a stall door as {player} enters the yard.",
+    "Elsie brushes hay from her sleeves and nods to {player}.",
+    "A gelding snorts softly while Elsie looks toward {player}."
+  ],
+  "wander": null
+},
+{
+  "id": "npc_temple_keeper_sera",
+  "name": "Keeper Sera",
+  "description": "A quiet temple keeper in layered grey-blue robes tends the court candles with patient hands. Their voice is low, but it carries with the same calm steadiness as the bells above the eaves. <br><br><em>\"Not every prayer asks for rescue. Some only ask to be remembered.\"</em>",
+  "keywords": ["keeper", "sera", "priest", "temple keeper", "acolyte"],
+  "pronoun": "they",
+  "possessive": "their",
+  "talkTemplates": [
+    "Sera lights another candle. \"The old district remembers longer than the rest of town cares to. That is both burden and gift.\"",
+    "\"The ruined shrine still draws offerings,\" Sera says. \"Faith rarely leaves just because the roof does.\"",
+    "Sera inclines their head. \"If you walk the graveyard, do so gently. Grief lingers even where bodies do not.\"",
+    "\"Most travelers ask for safety,\" Sera says softly. \"Most towns ask for endurance.\""
+  ],
+  "interactTemplates": [
+    "Keeper Sera looks up from the prayer candles as {player} enters the court.",
+    "Sera folds their hands and offers {player} a calm greeting.",
+    "The temple keeper pauses beside the bells and turns toward {player}."
+  ],
+  "wander": null
+},
+{
+  "id": "npc_groundskeeper_orrow",
+  "name": "Groundskeeper Orrow",
+  "description": "An older groundskeeper in a patched coat tends the graveyard paths with a rake over one shoulder and rosemary tucked into a breast pocket. Their back is bent by years, but their gaze is unflinching. <br><br><em>\"The dead ask little. Clean paths, steady names, and someone to notice when the living forget them.\"</em>",
+  "keywords": ["groundskeeper", "orrow", "gravedigger", "caretaker", "gravekeeper"],
+  "pronoun": "they",
+  "possessive": "their",
+  "talkTemplates": [
+    "Orrow brushes moss from a stone. \"This place stays honest. Names, dates, and no room for boasting.\"",
+    "\"The memorial gets flowers. The graveyard gets visitors after dark,\" Orrow says. \"Both have their reasons.\"",
+    "Orrow nods toward the ruined shrine. \"People leave offerings where things are broken. Makes them feel less alone in it.\"",
+    "\"If you're looking for peace, tread slower,\" Orrow advises. \"It doesn't care for boots in a hurry.\""
+  ],
+  "interactTemplates": [
+    "Groundskeeper Orrow looks up from a headstone as {player} approaches.",
+    "Orrow leans on their rake and studies {player} in thoughtful silence.",
+    "The graveyard keeper nods once toward {player}."
+  ],
+  "wander": null
+},
+{
+  "id": "npc_gatewarden_holt",
+  "name": "Gatewarden Holt",
+  "description": "A square-jawed gatewarden in weathered mail keeps watch beneath the portcullis, one hand resting near the road register and the other near a spear polished smooth by use. The habit of scanning the horizon never seems to leave them. <br><br><em>\"Heading out is easy. Coming back with all your pieces is where skill begins.\"</em>",
+  "keywords": ["gatewarden", "holt", "warden", "guard", "gate"],
+  "pronoun": "they",
+  "possessive": "their",
+  "talkTemplates": [
+    "Holt glances east. \"Quiet roads make me nervous. They usually mean the trouble's learning patience.\"",
+    "\"Sign out if you're leaving town,\" Holt says. \"Saves Captain Hale from guessing where to send a search.\"",
+    "Holt taps the gate arch. \"Walls aren't for keeping brave people in. They're for giving scared people somewhere to run back to.\"",
+    "\"The watchtower sees far, but not far enough to save fools from themselves,\" Holt says dryly."
+  ],
+  "interactTemplates": [
+    "Gatewarden Holt shifts beneath the arch as {player} nears the gate.",
+    "Holt glances from the road back to {player} with practiced caution.",
+    "The gatewarden gives {player} a brief nod without taking their eyes off the frontier for long."
   ],
   "wander": null
 },

@@ -2,7 +2,7 @@
   {
     "id": "item_signpost",
     "name": "Signpost",
-    "description": "A weathered wooden signpost, its paint cracked and faded by years of sun and rain. Four arms point in cardinal directions: Tavern to the north, Market to the south, East Road to the east, and Blacksmith to the west.",
+    "description": "A weathered wooden signpost stands at the center of the square, its cracked boards pointing toward the Town Hall, the Market, the Temple Court, and the Rusty Flagon Inn.",
     "keywords": ["signpost", "sign", "post", "directions", "signs"],
     "takeable": false,
     "rarity": "COMMON"
@@ -48,6 +48,54 @@
     "rarity": "COMMON"
   },
   {
+    "id": "item_council_bell",
+    "name": "Council Bell",
+    "description": "A handbell of polished brass rests on a clerk's table near the hall entrance. Its handle is worn smooth from years of summoning petitioners and councilors alike.",
+    "keywords": ["bell", "council bell", "brass bell"],
+    "takeable": false,
+    "rarity": "COMMON"
+  },
+  {
+    "id": "item_civic_charter",
+    "name": "Town Charter",
+    "description": "A framed charter hangs beneath the town crest, its ink faded but still legible. Every mayor since the town's founding has signed the lower margin in a careful hand.",
+    "keywords": ["charter", "town charter", "deed", "crest"],
+    "takeable": false,
+    "rarity": "COMMON"
+  },
+  {
+    "id": "item_loan_ledger",
+    "name": "Loan Ledger",
+    "description": "Page after page of careful columns record harvest advances, rebuilding loans, and the names of families who have trusted the bank through lean winters.",
+    "keywords": ["ledger", "loan ledger", "book", "accounts"],
+    "takeable": false,
+    "rarity": "COMMON"
+  },
+  {
+    "id": "item_iron_strongbox",
+    "name": "Iron Strongbox",
+    "description": "An ironbound strongbox sits beneath the teller's counter, its lockplate burnished bright by years of keys and anxious glances.",
+    "keywords": ["strongbox", "lockbox", "iron strongbox", "chest"],
+    "takeable": false,
+    "rarity": "COMMON"
+  },
+  {
+    "id": "item_barracks_board",
+    "name": "Duty Board",
+    "description": "A slate board lists watches, patrol routes, and a growing tally of boots overdue for repair. Someone has added a note in chalk: Check the east road before dusk.",
+    "keywords": ["board", "duty board", "orders", "slate"],
+    "takeable": false,
+    "rarity": "COMMON"
+  },
+  {
+    "id": "item_spear_rack",
+    "name": "Spear Rack",
+    "description": "A rack of ash-wood spears stands beneath the barracks eaves, each shaft nicked and re-oiled so often that the grain shines through the wear.",
+    "keywords": ["spear", "spears", "spear rack", "weapons"],
+    "takeable": false,
+    "rarity": "COMMON"
+  },
+  {
     "id": "item_bread_loaf",
     "name": "Bread Loaf",
     "description": "A round loaf of dark bread, still faintly warm. Its crust is hard and dusted with flour. It smells wonderfully of a wood-fired oven. The price tag reads 2 copper.",
@@ -62,6 +110,30 @@
     "keywords": ["trinket", "strange trinket", "brass", "rune", "charm", "object"],
     "takeable": true,
     "rarity": "FINE"
+  },
+  {
+    "id": "item_market_awning",
+    "name": "Market Awning",
+    "description": "A patched canvas awning stretches above the busiest stall line, throwing striped shadows over baskets of onions, wax, and old iron fittings.",
+    "keywords": ["awning", "market awning", "canvas", "stall"],
+    "takeable": false,
+    "rarity": "COMMON"
+  },
+  {
+    "id": "item_shop_counter",
+    "name": "Shop Counter",
+    "description": "A stout oak counter divides the store from its customers, scarred by knife points, dropped nails, and decades of haggling.",
+    "keywords": ["counter", "shop counter", "oak counter"],
+    "takeable": false,
+    "rarity": "COMMON"
+  },
+  {
+    "id": "item_supply_crates",
+    "name": "Supply Crates",
+    "description": "Crates stamped with millers' marks and caravan seals are stacked shoulder high against the wall, filled with lamp oil, twine, and wrapped bundles of everyday necessity.",
+    "keywords": ["crates", "supply crates", "boxes", "supplies"],
+    "takeable": false,
+    "rarity": "COMMON"
   },
   {
     "id": "item_health_potion",
@@ -80,6 +152,14 @@
     "rarity": "FINE"
   },
   {
+    "id": "item_herb_bundle",
+    "name": "Drying Herb Bundle",
+    "description": "Bundles of rosemary, feverfew, and bitterroot hang upside down from a ceiling beam, drying into something sharp enough to clear the head from across the room.",
+    "keywords": ["herbs", "herb bundle", "bundle", "drying herbs"],
+    "takeable": false,
+    "rarity": "COMMON"
+  },
+  {
     "id": "item_broken_arrow",
     "name": "Broken Arrow",
     "description": "A snapped arrow shaft with the fletchings still attached, goose feathers dyed red. The head is missing. The wood is old and weathered.",
@@ -94,6 +174,102 @@
     "keywords": ["mushroom", "odd mushroom", "fungus", "toadstool", "spotted"],
     "takeable": true,
     "rarity": "FINE"
+  },
+  {
+    "id": "item_inn_hearth",
+    "name": "Inn Hearth",
+    "description": "A wide stone hearth dominates the common-room wall, its fire banked low beneath a kettle and a row of drying boots.",
+    "keywords": ["hearth", "inn hearth", "fireplace", "fire"],
+    "takeable": false,
+    "rarity": "COMMON"
+  },
+  {
+    "id": "item_bakers_oven",
+    "name": "Baker's Oven",
+    "description": "A brick oven radiates the steady, patient heat of a craft practiced every morning for years. The stone lip is dusted white with fresh flour.",
+    "keywords": ["oven", "baker's oven", "baking oven", "brick oven"],
+    "takeable": false,
+    "rarity": "COMMON"
+  },
+  {
+    "id": "item_flour_sack",
+    "name": "Flour Sack",
+    "description": "A burlap sack of milled flour leans against the bakery wall, stitched shut with blue twine and marked with the miller's seal.",
+    "keywords": ["flour", "flour sack", "sack", "meal"],
+    "takeable": false,
+    "rarity": "COMMON"
+  },
+  {
+    "id": "item_laundry_line",
+    "name": "Laundry Line",
+    "description": "Shirts, blankets, and children's socks flutter from a rope line strung between cottage eaves, giving the lane a lived-in softness despite the packed mud below.",
+    "keywords": ["laundry", "line", "laundry line", "clothes"],
+    "takeable": false,
+    "rarity": "COMMON"
+  },
+  {
+    "id": "item_horse_tack",
+    "name": "Horse Tack",
+    "description": "Bridles, saddle blankets, and curry combs hang from hooks under the stable eaves, all smelling of leather oil, hay, and rain-damp horse.",
+    "keywords": ["tack", "horse tack", "bridle", "saddle"],
+    "takeable": false,
+    "rarity": "COMMON"
+  },
+  {
+    "id": "item_temple_candles",
+    "name": "Temple Candles",
+    "description": "Rows of stubby prayer candles flicker in red clay holders, their wax pooled into layered drifts that speak of many quiet petitions.",
+    "keywords": ["candles", "temple candles", "wax", "prayer"],
+    "takeable": false,
+    "rarity": "COMMON"
+  },
+  {
+    "id": "item_grave_marker",
+    "name": "Grave Marker",
+    "description": "A lichen-flecked marker stone bears a name so worn it can only be read when the light hits from the side. Someone has recently set a fresh sprig of rosemary beside it.",
+    "keywords": ["grave", "grave marker", "headstone", "marker"],
+    "takeable": false,
+    "rarity": "COMMON"
+  },
+  {
+    "id": "item_broken_idol",
+    "name": "Broken Idol",
+    "description": "The upper half of a stone idol lies toppled beside the ruined shrine altar, its face softened by rain and ivy but still solemn beneath the damage.",
+    "keywords": ["idol", "broken idol", "statue", "shrine"],
+    "takeable": false,
+    "rarity": "COMMON"
+  },
+  {
+    "id": "item_memorial_plaque",
+    "name": "Memorial Plaque",
+    "description": "A bronze plaque set into the old memorial bears the names of those who never returned from the frontier road. The metal has been rubbed bright by passing hands.",
+    "keywords": ["plaque", "memorial plaque", "bronze plaque", "names"],
+    "takeable": false,
+    "rarity": "COMMON"
+  },
+  {
+    "id": "item_gate_portcullis",
+    "name": "Portcullis",
+    "description": "Heavy iron teeth hang in the gatehouse arch, blackened by age and weather but clean where the chains still haul them up and down.",
+    "keywords": ["portcullis", "gate", "iron gate", "teeth"],
+    "takeable": false,
+    "rarity": "COMMON"
+  },
+  {
+    "id": "item_watch_lantern",
+    "name": "Watch Lantern",
+    "description": "A hooded watch lantern hangs ready near the parapet, its panes polished clean so the guard can signal the road below even in hard weather.",
+    "keywords": ["lantern", "watch lantern", "signal lantern", "lamp"],
+    "takeable": false,
+    "rarity": "COMMON"
+  },
+  {
+    "id": "item_boarded_door",
+    "name": "Boarded Door",
+    "description": "Rough planks have been nailed across the cottage door from the outside. The wood is old, but not old enough to explain why no one ever removed them.",
+    "keywords": ["door", "boarded door", "planks", "boards"],
+    "takeable": false,
+    "rarity": "COMMON"
   },
   {
     "id": "item_glowing_mushroom",
@@ -150,6 +326,86 @@
     "keywords": ["oak", "ancient oak", "tree", "grove"],
     "takeable": false,
     "rarity": "COMMON"
+  },
+  {
+    "id": "item_waymarker_cairn",
+    "name": "Waymarker Cairn",
+    "description": "A waist-high stack of flat stones marks the old ridge trail. Someone has pressed fresh ash into the cracks, tracing the outline of a lantern.",
+    "keywords": ["cairn", "waymarker", "stones", "trail marker"],
+    "takeable": false,
+    "rarity": "COMMON"
+  },
+  {
+    "id": "item_switchback_steps",
+    "name": "Switchback Steps",
+    "description": "A run of chiselled footholds worn slick by years of rain and boot leather. Faded chalk arrows still point climbers onward, though half now lead into bare rock where the mountain has shifted.",
+    "keywords": ["steps", "switchbacks", "switchback steps", "trail"],
+    "takeable": false,
+    "rarity": "COMMON"
+  },
+  {
+    "id": "item_trail_bells",
+    "name": "Trail Bells",
+    "description": "A handful of bronze bells hang from old posts and ribbon cords above the gorge path. Their chimes are thin and irregular, but still loud enough to guide travelers through fog and dark.",
+    "keywords": ["bells", "trail bells", "bronze bells", "ribbons"],
+    "takeable": false,
+    "rarity": "COMMON"
+  },
+  {
+    "id": "item_scree_marker",
+    "name": "Scree Marker",
+    "description": "A broken guide post has been rebuilt from stacked slate and a strip of red cloth. Someone has scratched a lantern symbol into the soft stone to keep the path from vanishing beneath the slide.",
+    "keywords": ["marker", "scree marker", "guide post", "slate"],
+    "takeable": false,
+    "rarity": "COMMON"
+  },
+  {
+    "id": "item_cold_brazier",
+    "name": "Cold Brazier",
+    "description": "A squat iron brazier sits in the center of the ruined waystation, packed with ash and rainwater. The soot around its rim suggests it once burned every night.",
+    "keywords": ["brazier", "beacon", "watchfire", "ash"],
+    "takeable": false,
+    "rarity": "COMMON"
+  },
+  {
+    "id": "item_beacon_steps",
+    "name": "Beacon Steps",
+    "description": "These narrow stone stairs are flanked by broken plinths where fire baskets once stood. Melted wax, ash, and old soot have hardened in the seams like black glass.",
+    "keywords": ["steps", "beacon steps", "stairs", "plinths"],
+    "takeable": false,
+    "rarity": "COMMON"
+  },
+  {
+    "id": "item_guide_ropes",
+    "name": "Guide Ropes",
+    "description": "Thick travel ropes are knotted between iron spikes along the broken span. The fibers are frayed and furred with frost, but they still hold fast against the cliff.",
+    "keywords": ["ropes", "guide ropes", "span", "line"],
+    "takeable": false,
+    "rarity": "COMMON"
+  },
+  {
+    "id": "item_shrine_steps",
+    "name": "Shrine Steps",
+    "description": "Broad, shallow steps rise between standing stones etched with worn prayers. Travelers once climbed here in single file, leaving wax drippings, tokens, and scraps of ribbon in the cracks.",
+    "keywords": ["steps", "shrine steps", "standing stones", "offerings"],
+    "takeable": false,
+    "rarity": "COMMON"
+  },
+  {
+    "id": "item_prayer_ribbons",
+    "name": "Prayer Ribbons",
+    "description": "Dozens of faded ribbons are tied to the branch-posts on the ledge, each one stiff with rain and sun. Names and promises have been inked onto the cloth in a dozen hands.",
+    "keywords": ["ribbons", "prayer ribbons", "cloth", "shrine"],
+    "takeable": false,
+    "rarity": "COMMON"
+  },
+  {
+    "id": "item_ember_lantern",
+    "name": "Ember Lantern",
+    "description": "An old brass lantern with amber-glass panes and a soot-dark handle. The housing is dented, but the wick inside has been kept dry beneath a careful seal.",
+    "keywords": ["lantern", "ember lantern", "brass lantern", "beacon light"],
+    "takeable": true,
+    "rarity": "RARE"
   },
   {
     "id": "item_childs_ball",
@@ -278,6 +534,14 @@
       "<br><em>No matter how lost the road becomes, purpose lights the way.</em>"
     ],
     "keywords": ["compass shard", "compass", "shard", "brass compass", "compass fragment"],
+    "takeable": true,
+    "rarity": "RARE"
+  },
+  {
+    "id": "item_wayfarers_token",
+    "name": "Wayfarer's Token",
+    "description": "A thumb-sized iron token stamped with a lantern above a winding road. It carries a faint, steady warmth, as if it still remembers the watchfire it once served.",
+    "keywords": ["token", "wayfarer's token", "wayfarer token", "lantern token", "iron token"],
     "takeable": true,
     "rarity": "RARE"
   },

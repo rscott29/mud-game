@@ -3,6 +3,7 @@ package com.scott.tech.mud.mud_game.combat;
 import com.scott.tech.mud.mud_game.config.SkillTableService;
 import com.scott.tech.mud.mud_game.model.Npc;
 import com.scott.tech.mud.mud_game.model.Player;
+import com.scott.tech.mud.mud_game.quest.ObjectiveEncounterRuntimeService;
 import com.scott.tech.mud.mud_game.quest.QuestService;
 import com.scott.tech.mud.mud_game.session.GameSession;
 import com.scott.tech.mud.mud_game.world.WorldService;
@@ -26,6 +27,7 @@ class CombatServiceTest {
     private CombatService combatService;
     private WorldService worldService;
     private QuestService questService;
+    private ObjectiveEncounterRuntimeService objectiveEncounterRuntimeService;
 
     @BeforeEach
     void setUp() {
@@ -37,12 +39,14 @@ class CombatServiceTest {
 
         questService = mock(QuestService.class);
         worldService = mock(WorldService.class);
+        objectiveEncounterRuntimeService = mock(ObjectiveEncounterRuntimeService.class);
 
         combatService = new CombatService(
                 combatState,
                 new CombatStatsResolver(skillTableService),
                 new CombatNarrator(),
             questService,
+            objectiveEncounterRuntimeService,
             worldService
         );
     }
@@ -98,6 +102,7 @@ class CombatServiceTest {
         CombatService.AttackResult result = defeatTarget(session, encounter);
 
         assertThat(result.targetDefeated()).isTrue();
+        verify(objectiveEncounterRuntimeService).onSpawnedNpcDefeated(player, target);
         verify(worldService).removeNpcInstance("wolf" + Npc.INSTANCE_ID_DELIMITER + "1");
     }
 

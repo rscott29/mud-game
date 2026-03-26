@@ -2,9 +2,15 @@ package com.scott.tech.mud.mud_game.websocket;
 
 import com.scott.tech.mud.mud_game.dto.GameResponse;
 import com.scott.tech.mud.mud_game.model.Direction;
+import com.scott.tech.mud.mud_game.model.Npc;
 import com.scott.tech.mud.mud_game.model.Player;
 import com.scott.tech.mud.mud_game.model.Room;
 import com.scott.tech.mud.mud_game.model.SessionState;
+import com.scott.tech.mud.mud_game.quest.Quest;
+import com.scott.tech.mud.mud_game.quest.QuestCompletionEffects;
+import com.scott.tech.mud.mud_game.quest.QuestPrerequisites;
+import com.scott.tech.mud.mud_game.quest.QuestRewards;
+import com.scott.tech.mud.mud_game.quest.QuestService;
 import com.scott.tech.mud.mud_game.session.GameSession;
 import com.scott.tech.mud.mud_game.session.GameSessionManager;
 import com.scott.tech.mud.mud_game.world.WorldService;
@@ -36,7 +42,8 @@ class SessionDisplayResponseNormalizerTest {
         otherSession.transition(SessionState.PLAYING);
         sessionManager.register(otherSession);
 
-        SessionDisplayResponseNormalizer normalizer = new SessionDisplayResponseNormalizer(sessionManager);
+        QuestService questService = mock(QuestService.class);
+        SessionDisplayResponseNormalizer normalizer = new SessionDisplayResponseNormalizer(sessionManager, questService);
 
         GameResponse roomUpdate = GameResponse.roomUpdate(room, "You head north.", List.of("Rogue"));
         GameResponse narrative = GameResponse.narrative("Quest objective complete.").withPlayerStats(player);
@@ -64,7 +71,8 @@ class SessionDisplayResponseNormalizerTest {
         session.transition(SessionState.PLAYING);
         sessionManager.register(session);
 
-        SessionDisplayResponseNormalizer normalizer = new SessionDisplayResponseNormalizer(sessionManager);
+        QuestService questService = mock(QuestService.class);
+        SessionDisplayResponseNormalizer normalizer = new SessionDisplayResponseNormalizer(sessionManager, questService);
 
         List<GameResponse> normalized = normalizer.normalize(
                 session,
@@ -79,4 +87,65 @@ class SessionDisplayResponseNormalizerTest {
         assertThat(response.room().name()).isEqualTo("Moonlit Cave");
         assertThat(response.playerStats()).isNotNull();
     }
+
+        @Test
+        void normalize_marksQuestGiversInRoomPayload() {
+        GameSessionManager sessionManager = new GameSessionManager();
+        QuestService questService = mock(QuestService.class);
+        WorldService worldService = mock(WorldService.class);
+        Npc guide = new Npc(
+            "npc_guide",
+            "Blind Guide",
+            "A patient guide.",
+            List.of("guide"),
+            "they",
+            "their",
+            0,
+            0,
+            List.of(),
+            List.of(),
+            List.of(),
+            List.of(),
+            true,
+            List.of(),
+            null,
+            false,
+            false,
+            0,
+            0,
+            0,
+            0,
+            true
+        );
+        Room room = new Room("fork", "Forest Fork", "A quiet fork.", new EnumMap<>(Direction.class), List.of(), List.of(guide));
+        when(worldService.getRoom("fork")).thenReturn(room);
+
+        Player player = new Player("p1", "Hero", "fork");
+        GameSession session = new GameSession("session-1", player, worldService);
+        session.transition(SessionState.PLAYING);
+        sessionManager.register(session);
+
+        Quest quest = new Quest(
+            "quest_purpose",
+            "The Compass Points True",
+            "Answer the guide.",
+            "npc_guide",
+            List.of(),
+            QuestPrerequisites.NONE,
+            List.of(),
+            QuestRewards.NONE,
+            List.of(),
+            QuestCompletionEffects.NONE
+        );
+        when(questService.getAvailableQuestsForNpc(player, "npc_guide")).thenReturn(List.of(quest));
+
+        SessionDisplayResponseNormalizer normalizer = new SessionDisplayResponseNormalizer(sessionManager, questService);
+
+        List<GameResponse> normalized = normalizer.normalize(session, List.of(GameResponse.roomRefresh(room, "You look around.")));
+
+        assertThat(normalized).hasSize(1);
+        assertThat(normalized.getFirst().room()).isNotNull();
+        assertThat(normalized.getFirst().room().npcs()).hasSize(1);
+        assertThat(normalized.getFirst().room().npcs().getFirst().hasAvailableQuest()).isTrue();
+        }
 }

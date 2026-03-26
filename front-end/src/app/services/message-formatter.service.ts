@@ -405,7 +405,7 @@ export class MessageFormatterService {
           </section>
           <section class="term-section">
             <div class="term-section__title">Folk</div>
-            ${this.formatChipList((room.npcs ?? []).map(npc => this.formatNpcChip(npc.name, npc.sentient)), 'term-chip--npc', true)}
+            ${this.formatChipList((room.npcs ?? []).map(npc => this.formatNpcChip(npc.name, npc.sentient, npc.hasAvailableQuest ?? false)), 'term-chip--npc', true)}
           </section>
           <section class="term-section">
             <div class="term-section__title">Travelers</div>
@@ -720,10 +720,15 @@ export class MessageFormatterService {
     `;
   }
 
-  private formatNpcChip(name: string, sentient: boolean): string {
+  private formatNpcChip(name: string, sentient: boolean, hasAvailableQuest: boolean): string {
+    const meta = hasAvailableQuest
+      ? `${sentient ? 'sentient' : 'creature'} · quest ready`
+      : (sentient ? 'sentient' : 'creature');
+
     return `
+      ${hasAvailableQuest ? '<span class="term-chip__marker term-chip__marker--quest" aria-hidden="true">!</span>' : ''}
       <span class="term-chip__body">${escapeHtml(name)}</span>
-      <span class="term-chip__meta">${sentient ? 'sentient' : 'creature'}</span>
+      <span class="term-chip__meta">${escapeHtml(meta)}</span>
     `;
   }
 

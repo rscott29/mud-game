@@ -686,6 +686,27 @@ describe('TerminalComponent', () => {
     expect(component.view.messages()[0].html).toContain('Mira');
   });
 
+  it('renders a quest marker for NPCs with available quests', () => {
+    const fixture = TestBed.createComponent(TerminalComponent);
+    const component = fixture.componentInstance;
+
+    const room = {
+      id: 'forest_fork',
+      name: 'Forest Fork',
+      description: 'A quiet crossroads.',
+      exits: ['west'],
+      items: [],
+      npcs: [{ name: 'Blind Guide', sentient: true, hasAvailableQuest: true }],
+      players: [],
+    };
+
+    socket.messages$.next({ type: GAME_MESSAGE_TYPES.ROOM_UPDATE, message: 'The guide waits.', room });
+
+    expect(component.view.messages()).toHaveLength(1);
+    expect(component.view.messages()[0].html).toContain('term-chip__marker--quest');
+    expect(component.view.messages()[0].html).toContain('Blind Guide');
+  });
+
   it('creates a fresh room card when look refreshes the current room', () => {
     const fixture = TestBed.createComponent(TerminalComponent);
     const component = fixture.componentInstance;

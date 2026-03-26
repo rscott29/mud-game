@@ -7,6 +7,8 @@ import com.scott.tech.mud.mud_game.config.Messages;
 import com.scott.tech.mud.mud_game.dto.GameResponse;
 import com.scott.tech.mud.mud_game.model.Item;
 import com.scott.tech.mud.mud_game.model.Room;
+import com.scott.tech.mud.mud_game.quest.ObjectiveEffects;
+import com.scott.tech.mud.mud_game.quest.ObjectiveEncounterRuntimeService;
 import com.scott.tech.mud.mud_game.quest.QuestService;
 import com.scott.tech.mud.mud_game.session.GameSession;
 
@@ -25,21 +27,31 @@ public class PickupCommand implements GameCommand {
     private final PickupValidator pickupValidator;
     private final PickupService pickupService;
     private final QuestService questService;
+    private final ObjectiveEncounterRuntimeService objectiveEncounterRuntimeService;
 
     public PickupCommand(String target,
                          PickupValidator pickupValidator,
                          PickupService pickupService) {
-        this(target, pickupValidator, pickupService, null);
+        this(target, pickupValidator, pickupService, null, null);
     }
 
     public PickupCommand(String target,
                          PickupValidator pickupValidator,
                          PickupService pickupService,
                          QuestService questService) {
+        this(target, pickupValidator, pickupService, questService, null);
+    }
+
+    public PickupCommand(String target,
+                         PickupValidator pickupValidator,
+                         PickupService pickupService,
+                         QuestService questService,
+                         ObjectiveEncounterRuntimeService objectiveEncounterRuntimeService) {
         this.target = stripArticle(target);
         this.pickupValidator = pickupValidator;
         this.pickupService = pickupService;
         this.questService = questService;
+        this.objectiveEncounterRuntimeService = objectiveEncounterRuntimeService;
     }
 
     @Override
@@ -86,16 +98,9 @@ public class PickupCommand implements GameCommand {
         String playerName = session.getPlayer().getName();
         String message = Messages.fmt("command.pickup.success", "item", item.getName());
         
-        // Check for quest progress on collecting this item
-        if (questService != null) {
-            var questResult = questService.onCollectItem(session.getPlayer(), item);
-            if (questResult.isPresent()) {
-                var result = questResult.get();
-                String questMessage = result.message();
-                if (questMessage != null && !questMessage.isBlank()) {
-                    message += "<br><br>" + questMessage;
-                }
-            }
+        String questMessage = collectQuestMessage(session, item);
+        if (!questMessage.isBlank()) {
+            message += "<br><br>" + questMessage;
         }
 
         GameResponse response = GameResponse.roomUpdate(
@@ -244,8 +249,22 @@ public class PickupCommand implements GameCommand {
             return "";
         }
 
-        String questMessage = questResult.get().message();
-        return questMessage == null ? "" : questMessage;
+        var result = questResult.get();
+        if (objectiveEncounterRuntimeService != null) {
+            objectiveEncounterRuntimeService.startEncounter(session, result);
+        }
+
+        List<String> messageParts = new java.util.ArrayList<>();
+        if (result.message() != null && !result.message().isBlank()) {
+            messageParts.add(result.message());
+        }
+
+        ObjectiveEffects effects = result.objectiveEffects();
+        if (effects != null && !effects.dialogue().isEmpty()) {
+            messageParts.add(String.join("<br>", effects.dialogue()));
+        }
+
+        return String.join("<br><br>", messageParts);
     }
 
     private GameResponse buildRoomUpdateResponse(GameSession session, Room room, String message) {

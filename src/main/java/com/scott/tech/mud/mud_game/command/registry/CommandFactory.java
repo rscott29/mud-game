@@ -32,6 +32,7 @@ import com.scott.tech.mud.mud_game.persistence.service.DiscoveredExitService;
 import com.scott.tech.mud.mud_game.persistence.service.InventoryService;
 import com.scott.tech.mud.mud_game.persistence.service.PlayerProfileService;
 import com.scott.tech.mud.mud_game.quest.DefendObjectiveRuntimeService;
+import com.scott.tech.mud.mud_game.quest.ObjectiveEncounterRuntimeService;
 import com.scott.tech.mud.mud_game.quest.QuestService;
 import com.scott.tech.mud.mud_game.service.AmbientEventService;
 import com.scott.tech.mud.mud_game.service.LevelingService;
@@ -86,6 +87,7 @@ public class CommandFactory {
                           PartyService partyService,
                           QuestService questService,
                           DefendObjectiveRuntimeService defendObjectiveRuntimeService,
+                          ObjectiveEncounterRuntimeService objectiveEncounterRuntimeService,
                           WorldService worldService,
                           AmbientEventService ambientEventService) {
         this.deps = new CommandDependencies(
@@ -124,6 +126,7 @@ public class CommandFactory {
                 partyService,
                 questService,
                 defendObjectiveRuntimeService,
+                objectiveEncounterRuntimeService,
                 worldService,
                 ambientEventService
         );
