@@ -8,6 +8,7 @@ import com.scott.tech.mud.mud_game.model.SessionState;
 import com.scott.tech.mud.mud_game.world.WorldService;
 
 import java.util.Collections;
+import java.util.EnumMap;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -34,8 +35,12 @@ public class GameSession {
     private String pendingUsername;
     /** Hidden exits the player has discovered, keyed by room id. */
     private final Map<String, Set<Direction>> discoveredExits = new HashMap<>();
+    /** Exit locks applied by runtime encounters, keyed by room id and direction. */
+    private final Map<String, Map<Direction, String>> blockedExits = new HashMap<>();
     /** NPC IDs currently following this player. */
     private final Set<String> followingNpcs = new HashSet<>();
+    /** Most recent NPC the player talked to, used for follow-up commands like accept. */
+    private String lastTalkedNpcId;
     /** Monotonic counter used to invalidate delayed room-flavor messages after the player acts again. */
     private final AtomicLong actionRevision = new AtomicLong();
     /** Monotonic counter used to invalidate stale inactivity timeout tasks after the player sends input again. */
@@ -77,6 +82,8 @@ public class GameSession {
     public WorldService getWorldService(){ return worldService; }
     public String getPendingUsername()   { return pendingUsername; }
     public void setPendingUsername(String u) { this.pendingUsername = u; }
+    public String getLastTalkedNpcId()   { return lastTalkedNpcId; }
+    public void setLastTalkedNpcId(String npcId) { this.lastTalkedNpcId = npcId; }
     public long getActionRevision()      { return actionRevision.get(); }
     public long getActivityRevision()    { return activityRevision.get(); }
 
@@ -113,6 +120,34 @@ public class GameSession {
             return false;
         }
         return set.remove(dir);
+    }
+
+    public void blockExit(String roomId, Direction dir, String message) {
+        if (roomId == null || dir == null || message == null || message.isBlank()) {
+            return;
+        }
+        blockedExits.computeIfAbsent(roomId, ignored -> new EnumMap<>(Direction.class))
+                .put(dir, message);
+    }
+
+    public boolean unblockExit(String roomId, Direction dir) {
+        Map<Direction, String> roomLocks = blockedExits.get(roomId);
+        if (roomLocks == null) {
+            return false;
+        }
+        boolean removed = roomLocks.remove(dir) != null;
+        if (roomLocks.isEmpty()) {
+            blockedExits.remove(roomId);
+        }
+        return removed;
+    }
+
+    public String getBlockedExitMessage(String roomId, Direction dir) {
+        Map<Direction, String> roomLocks = blockedExits.get(roomId);
+        if (roomLocks == null) {
+            return null;
+        }
+        return roomLocks.get(dir);
     }
 
     /** Bulk-restores persisted discovered exits at login. */

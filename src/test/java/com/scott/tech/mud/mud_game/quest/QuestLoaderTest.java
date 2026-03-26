@@ -26,6 +26,9 @@ class QuestLoaderTest {
         objective.onComplete.startFollowing = "npc_healer";
         objective.onComplete.addItems = List.of("item_token");
         objective.onComplete.dialogue = List.of("The healer joins you.");
+        objective.onComplete.encounter = new QuestLoader.EncounterData();
+        objective.onComplete.encounter.spawnNpcs = List.of("npc_restless_wayfarer");
+        objective.onComplete.encounter.blockExits = List.of("WEST");
         objective.onComplete.relocateItem = new QuestLoader.RelocateItemData();
         objective.onComplete.relocateItem.itemId = "item_potion";
         objective.onComplete.relocateItem.targetRooms = List.of("forest_edge", "market");
@@ -46,6 +49,11 @@ class QuestLoaderTest {
         assertThat(quest).isNotNull();
         assertThat(quest.objectives()).hasSize(1);
         assertThat(quest.objectives().get(0).onComplete().startFollowing()).isEqualTo("npc_healer");
+        assertThat(quest.objectives().get(0).onComplete().encounter()).isNotNull();
+        assertThat(quest.objectives().get(0).onComplete().encounter().spawnNpcs())
+            .containsExactly("npc_restless_wayfarer");
+        assertThat(quest.objectives().get(0).onComplete().encounter().blockExits())
+            .containsExactly(Direction.WEST);
         assertThat(quest.objectives().get(0).onComplete().relocateItem()).isNotNull();
         assertThat(quest.objectives().get(0).onComplete().relocateItem().targetRooms())
                 .containsExactly("forest_edge", "market");
@@ -73,6 +81,23 @@ class QuestLoaderTest {
                 .hasMessageContaining("objective[0].target is required")
                 .hasMessageContaining("objective[1].dialogue.choices must include at least one option")
                 .hasMessageContaining("completionEffects.revealHiddenExit.direction must be a valid direction");
+    }
+
+    @Test
+    void load_rejectsEncounterEffectsWithMissingSpawnsOrBadDirections() {
+        QuestLoader.QuestData badQuest = baseQuest("quest_loader_bad_encounter");
+        QuestLoader.ObjectiveData collect = objective("collect_lantern", "COLLECT");
+        collect.itemId = "item_ember_lantern";
+        collect.onComplete = new QuestLoader.ObjectiveEffectsData();
+        collect.onComplete.encounter = new QuestLoader.EncounterData();
+        collect.onComplete.encounter.spawnNpcs = List.of();
+        collect.onComplete.encounter.blockExits = List.of("SIDEWAYS");
+        badQuest.objectives = List.of(collect);
+
+        assertThatThrownBy(() -> loader.load(new QuestLoader.QuestData[]{badQuest}))
+                .isInstanceOf(WorldLoadException.class)
+                .hasMessageContaining("encounter.spawnNpcs must include at least one NPC")
+                .hasMessageContaining("encounter.blockExits contains invalid direction 'SIDEWAYS'");
     }
 
     @Test

@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.scott.tech.mud.mud_game.dto.GameResponse;
 import com.scott.tech.mud.mud_game.model.Direction;
 import com.scott.tech.mud.mud_game.model.Room;
+import com.scott.tech.mud.mud_game.quest.QuestService;
 import com.scott.tech.mud.mud_game.session.GameSessionManager;
 import org.junit.jupiter.api.Test;
 import org.springframework.web.socket.TextMessage;
@@ -32,7 +33,8 @@ class WsMessageSenderTest {
     @Test
     void send_serializesConcurrentRoomUpdatesForTheSameSession() throws Exception {
         GameSessionManager sessionManager = new GameSessionManager();
-        SessionDisplayResponseNormalizer normalizer = new SessionDisplayResponseNormalizer(sessionManager);
+        QuestService questService = mock(QuestService.class);
+        SessionDisplayResponseNormalizer normalizer = new SessionDisplayResponseNormalizer(sessionManager, questService);
         WsMessageSender sender = new WsMessageSender(new ObjectMapper(), sessionManager, normalizer);
 
         WebSocketSession wsSession = mock(WebSocketSession.class);
@@ -84,7 +86,8 @@ class WsMessageSenderTest {
     @Test
     void withSessionGuard_blocksConcurrentSendsUntilTheGuardIsReleased() throws Exception {
         GameSessionManager sessionManager = new GameSessionManager();
-        SessionDisplayResponseNormalizer normalizer = new SessionDisplayResponseNormalizer(sessionManager);
+        QuestService questService = mock(QuestService.class);
+        SessionDisplayResponseNormalizer normalizer = new SessionDisplayResponseNormalizer(sessionManager, questService);
         WsMessageSender sender = new WsMessageSender(new ObjectMapper(), sessionManager, normalizer);
 
         WebSocketSession wsSession = mock(WebSocketSession.class);

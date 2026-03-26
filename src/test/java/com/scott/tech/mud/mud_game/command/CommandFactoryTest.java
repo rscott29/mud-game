@@ -56,6 +56,7 @@ import com.scott.tech.mud.mud_game.persistence.service.DiscoveredExitService;
 import com.scott.tech.mud.mud_game.persistence.service.InventoryService;
 import com.scott.tech.mud.mud_game.persistence.service.PlayerProfileService;
 import com.scott.tech.mud.mud_game.quest.DefendObjectiveRuntimeService;
+import com.scott.tech.mud.mud_game.quest.ObjectiveEncounterRuntimeService;
 import com.scott.tech.mud.mud_game.service.LevelingService;
 import com.scott.tech.mud.mud_game.service.WorldModerationPolicyService;
 import com.scott.tech.mud.mud_game.session.GameSession;
@@ -113,6 +114,7 @@ class CommandFactoryTest {
     private PartyService partyService;
     private QuestService questService;
     private DefendObjectiveRuntimeService defendObjectiveRuntimeService;
+    private ObjectiveEncounterRuntimeService objectiveEncounterRuntimeService;
     private WorldService worldService;
     private AmbientEventService ambientEventService;
     private CommandFactory factory;
@@ -156,6 +158,7 @@ class CommandFactoryTest {
         partyService = mock(PartyService.class);
         questService = mock(QuestService.class);
         defendObjectiveRuntimeService = mock(DefendObjectiveRuntimeService.class);
+        objectiveEncounterRuntimeService = mock(ObjectiveEncounterRuntimeService.class);
         worldService = mock(WorldService.class);
         ambientEventService = mock(AmbientEventService.class);
         factory = new CommandFactory(taskScheduler, worldBroadcaster, sessionManager,
@@ -169,7 +172,8 @@ class CommandFactoryTest {
                 accountStore, reconnectTokenStore, xpTables, combatStatsResolver,
                 levelingService, worldModerationPolicyService,
                 playerProfileService, stateCache, partyService,
-                questService, defendObjectiveRuntimeService, worldService, ambientEventService);
+                questService, defendObjectiveRuntimeService, objectiveEncounterRuntimeService,
+                worldService, ambientEventService);
     }
 
     @Test

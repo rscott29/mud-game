@@ -173,7 +173,18 @@ public class QuestLoader {
             );
         }
 
+        ObjectiveEffects.Encounter encounter = null;
+        if (def.encounter != null) {
+            encounter = new ObjectiveEffects.Encounter(
+                    def.encounter.spawnNpcs,
+                    safeList(def.encounter.blockExits).stream()
+                            .map(this::parseDirection)
+                            .toList()
+            );
+        }
+
         if (relocate == null
+                && encounter == null
                 && isBlank(def.startFollowing)
                 && isBlank(def.stopFollowing)
                 && safeList(def.addItems).isEmpty()
@@ -183,6 +194,7 @@ public class QuestLoader {
 
         return new ObjectiveEffects(
                 relocate,
+                encounter,
                 def.startFollowing,
                 def.stopFollowing,
                 def.addItems,
@@ -327,6 +339,21 @@ public class QuestLoader {
                 && !isBlank(def.stopFollowing)
                 && def.startFollowing.equals(def.stopFollowing)) {
             errors.add(path + " cannot start and stop following the same NPC");
+        }
+
+        if (def.encounter != null) {
+            validateStringList(def.encounter.spawnNpcs, path + ".encounter.spawnNpcs", errors);
+            validateStringList(def.encounter.blockExits, path + ".encounter.blockExits", errors);
+            if (safeList(def.encounter.spawnNpcs).isEmpty()) {
+                errors.add(path + ".encounter.spawnNpcs must include at least one NPC");
+            }
+            for (String direction : safeList(def.encounter.blockExits)) {
+                try {
+                    parseDirection(direction);
+                } catch (IllegalArgumentException e) {
+                    errors.add(path + ".encounter.blockExits contains invalid direction '" + direction + "'");
+                }
+            }
         }
     }
 
@@ -549,10 +576,16 @@ public class QuestLoader {
 
     static class ObjectiveEffectsData {
         public RelocateItemData relocateItem;
+        public EncounterData encounter;
         public String startFollowing;
         public String stopFollowing;
         public List<String> addItems = List.of();
         public List<String> dialogue = List.of();
+    }
+
+    static class EncounterData {
+        public List<String> spawnNpcs = List.of();
+        public List<String> blockExits = List.of();
     }
 
     static class RelocateItemData {

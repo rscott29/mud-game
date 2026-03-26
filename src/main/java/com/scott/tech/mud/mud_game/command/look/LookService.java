@@ -81,9 +81,28 @@ public class LookService {
             var availableQuests = questService.getAvailableQuestsForNpc(
                     session.getPlayer(), npc.getId());
             if (!availableQuests.isEmpty()) {
-                description.append("\n\n<span class='quest-available'>📜 ")
+                description.append("\n\n<div class='quest-available'>📜 <strong>")
+                    .append(npc.getName())
+                    .append(" has ")
+                    .append(availableQuests.size() == 1 ? "a quest" : "quests")
+                    .append(" for you.</strong></div>");
+                if (availableQuests.size() == 1) {
+                    var quest = availableQuests.getFirst();
+                    description.append("<div class='quest-offer'><strong>")
+                        .append(quest.name())
+                        .append("</strong><br><small>")
+                        .append(quest.description())
+                        .append("</small></div>")
+                        .append("<div class='quest-hint'>Try <strong>talk ")
+                        .append(npc.getName().toLowerCase())
+                        .append("</strong> for details, then <strong>accept</strong>.</div>");
+                } else {
+                    description.append("<div class='quest-hint'>Talk to ")
                         .append(npc.getName())
-                        .append(" has a quest for you! Type <strong>accept</strong> to see available quests.</span>");
+                        .append(" and use <strong>accept ")
+                        .append(npc.getName().toLowerCase())
+                        .append("</strong> to choose from them.</div>");
+                }
             }
         }
         

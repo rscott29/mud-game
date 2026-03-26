@@ -2,10 +2,17 @@ package com.scott.tech.mud.mud_game.command;
 
 import com.scott.tech.mud.mud_game.command.core.CommandResult;
 import com.scott.tech.mud.mud_game.command.talk.TalkCommand;
+import com.scott.tech.mud.mud_game.command.talk.TalkService;
+import com.scott.tech.mud.mud_game.command.talk.TalkValidator;
 import com.scott.tech.mud.mud_game.dto.GameResponse;
 import com.scott.tech.mud.mud_game.model.Npc;
 import com.scott.tech.mud.mud_game.model.Player;
 import com.scott.tech.mud.mud_game.model.Room;
+import com.scott.tech.mud.mud_game.quest.Quest;
+import com.scott.tech.mud.mud_game.quest.QuestCompletionEffects;
+import com.scott.tech.mud.mud_game.quest.QuestPrerequisites;
+import com.scott.tech.mud.mud_game.quest.QuestRewards;
+import com.scott.tech.mud.mud_game.quest.QuestService;
 import com.scott.tech.mud.mud_game.session.GameSession;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -117,6 +124,40 @@ class TalkCommandTest {
                 .contains("Adventurer")
                 .doesNotContain("{name}", "{player}");
     }
+
+            @Test
+            void talkingToQuestGiver_recordsNpcAndShowsQuestOffer() {
+            QuestService questService = mock(QuestService.class);
+                TalkValidator talkValidator = mock(TalkValidator.class);
+                TalkService talkService = mock(TalkService.class);
+            Npc obi = nonSentientNpc("obi", List.of("He wags his tail at {player}."));
+            Quest quest = new Quest(
+                "quest_loyalty",
+                "The Path of Loyalty",
+                "Protect the traveler.",
+                "obi",
+                List.of(),
+                QuestPrerequisites.NONE,
+                List.of(),
+                QuestRewards.NONE,
+                List.of(),
+                QuestCompletionEffects.NONE
+            );
+            setRoom(List.of(obi));
+            when(questService.getAvailableQuestsForNpc(player, "obi")).thenReturn(List.of(quest));
+            when(questService.onTalkToNpc(player, obi)).thenReturn(java.util.Optional.empty());
+            when(talkValidator.validate(session, "obi")).thenReturn(
+                com.scott.tech.mud.mud_game.command.talk.TalkValidationResult.allow("obi", obi));
+            when(talkService.buildDialogue(session, obi)).thenReturn("Obi gives Adventurer a decisive bark.");
+
+            CommandResult result = new TalkCommand("obi", talkValidator, talkService, questService)
+                .execute(session);
+
+            assertThat(singleResponse(result).message())
+                .contains("The Path of Loyalty")
+                .contains("Type <strong>accept</strong> now");
+            verify(session).setLastTalkedNpcId("obi");
+            }
 
     @Test
     void exactNpcTargetBeatsDescriptionOnlyCollisionInSameRoom() {

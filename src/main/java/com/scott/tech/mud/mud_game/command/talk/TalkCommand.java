@@ -9,9 +9,11 @@ import com.scott.tech.mud.mud_game.model.Item;
 import com.scott.tech.mud.mud_game.model.Npc;
 import com.scott.tech.mud.mud_game.model.Room;
 import com.scott.tech.mud.mud_game.quest.QuestService;
+import com.scott.tech.mud.mud_game.quest.Quest;
 import com.scott.tech.mud.mud_game.session.GameSession;
 import org.springframework.ai.chat.client.ChatClient;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -47,6 +49,7 @@ public class TalkCommand implements GameCommand {
         }
 
         Npc npc = validation.npc();
+    session.setLastTalkedNpcId(npc.getId());
         String playerName = session.getPlayer().getName();
         RoomAction talkAction = RoomAction.inCurrentRoom(
                 Messages.fmt("action.talk.npc", "player", playerName, "npc", npc.getName()));
@@ -64,6 +67,11 @@ public class TalkCommand implements GameCommand {
                     dialogue = dialogue + "<br><br>" + questMessage;
                 }
             }
+
+            List<Quest> availableQuests = questService.getAvailableQuestsForNpc(session.getPlayer(), npc.getId());
+            if (!availableQuests.isEmpty()) {
+                dialogue = dialogue + "<br><br>" + buildQuestOffer(npc, availableQuests);
+            }
         }
         
         // Wrap in room update so player sees room context
@@ -80,5 +88,28 @@ public class TalkCommand implements GameCommand {
                 inventoryItemIds);
         
         return CommandResult.withAction(talkAction, response);
+    }
+
+    private String buildQuestOffer(Npc npc, List<Quest> availableQuests) {
+        List<String> lines = new ArrayList<>();
+        lines.add("<div class='quest-available'>📜 <strong>" + npc.getName() + " has quest"
+                + (availableQuests.size() == 1 ? "" : "s") + " for you.</strong></div>");
+
+        if (availableQuests.size() == 1) {
+            Quest quest = availableQuests.getFirst();
+            lines.add("<div class='quest-offer'><strong>" + quest.name() + "</strong><br><small>"
+                    + quest.description() + "</small></div>");
+            lines.add("<div class='quest-hint'>Type <strong>accept</strong> now, or <strong>accept "
+                    + npc.getName().toLowerCase() + "</strong>.</div>");
+            return String.join("", lines);
+        }
+
+        for (Quest quest : availableQuests) {
+            lines.add("<div class='quest-offer'><strong>" + quest.name() + "</strong><br><small>"
+                    + quest.description() + "</small></div>");
+        }
+        lines.add("<div class='quest-hint'>Type <strong>accept " + npc.getName().toLowerCase()
+                + "</strong> to list them, or <strong>accept [quest name]</strong> to choose one.</div>");
+        return String.join("", lines);
     }
 }

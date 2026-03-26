@@ -16,7 +16,9 @@ import com.scott.tech.mud.mud_game.quest.QuestService.QuestStartResult;
 import com.scott.tech.mud.mud_game.session.GameSession;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -45,43 +47,107 @@ public class AcceptCommand implements GameCommand {
         Player player = session.getPlayer();
         Room room = session.getCurrentRoom();
 
-        // Find quests available from NPCs in this room
-        List<AvailableQuest> availableQuests = new ArrayList<>();
-        for (Npc npc : room.getNpcs()) {
-            for (Quest quest : questService.getAvailableQuestsForNpc(player, npc.getId())) {
-                availableQuests.add(new AvailableQuest(quest, npc));
-            }
-        }
+        List<AvailableQuest> availableQuests = collectAvailableQuests(player, room);
 
         if (availableQuests.isEmpty()) {
             return CommandResult.of(roomUpdateWithNarrative(session,
                     "There are no quests available in this room."));
         }
 
-        // If no args provided, show available quests
         if (args == null || args.isBlank()) {
+            AvailableQuest contextualQuest = resolveContextualQuest(session, availableQuests);
+            if (contextualQuest != null) {
+                return acceptQuest(session, player, contextualQuest);
+            }
+
+            if (availableQuests.size() == 1) {
+                return acceptQuest(session, player, availableQuests.getFirst());
+            }
+
             return showAvailableQuests(session, availableQuests);
         }
 
-        // Try to match the arg to a quest name or NPC name
-        String search = args.toLowerCase().trim();
-        AvailableQuest match = null;
-
-        for (AvailableQuest aq : availableQuests) {
-            if (aq.quest.name().toLowerCase().contains(search) ||
-                aq.quest.id().toLowerCase().contains(search) ||
-                aq.npc.getName().toLowerCase().contains(search) ||
-                aq.npc.matchesKeyword(search)) {
-                match = aq;
-                break;
-            }
-        }
+        String search = normalize(args);
+        AvailableQuest match = findBestMatch(availableQuests, search);
 
         if (match == null) {
             return showAvailableQuests(session, availableQuests);
         }
 
-        // Accept the quest
+        return acceptQuest(session, player, match);
+    }
+
+    private List<AvailableQuest> collectAvailableQuests(Player player, Room room) {
+        List<AvailableQuest> availableQuests = new ArrayList<>();
+        for (Npc npc : room.getNpcs()) {
+            for (Quest quest : questService.getAvailableQuestsForNpc(player, npc.getId())) {
+                availableQuests.add(new AvailableQuest(quest, npc));
+            }
+        }
+        return availableQuests;
+    }
+
+    private AvailableQuest resolveContextualQuest(GameSession session, List<AvailableQuest> availableQuests) {
+        String lastTalkedNpcId = session.getLastTalkedNpcId();
+        if (lastTalkedNpcId == null || lastTalkedNpcId.isBlank()) {
+            return null;
+        }
+
+        List<AvailableQuest> fromLastNpc = availableQuests.stream()
+                .filter(aq -> aq.npc.getId().equals(lastTalkedNpcId))
+                .toList();
+        return fromLastNpc.size() == 1 ? fromLastNpc.getFirst() : null;
+    }
+
+    private AvailableQuest findBestMatch(List<AvailableQuest> availableQuests, String search) {
+        return availableQuests.stream()
+                .filter(aq -> matchScore(aq, search) > 0)
+                .max(Comparator.comparingInt(aq -> matchScore(aq, search)))
+                .orElse(null);
+    }
+
+    private int matchScore(AvailableQuest aq, String search) {
+        if (search == null || search.isBlank()) {
+            return 0;
+        }
+
+        String questName = normalize(aq.quest.name());
+        String questId = normalize(aq.quest.id());
+        String npcName = normalize(aq.npc.getName());
+
+        if (questName.equals(search) || questId.equals(search) || npcName.equals(search)) {
+            return 100;
+        }
+        if (questName.startsWith(search) || npcName.startsWith(search)) {
+            return 80;
+        }
+        if (questName.contains(search) || questId.contains(search) || npcName.contains(search)) {
+            return 60;
+        }
+        if (aq.npc.matchesKeyword(search)) {
+            return 50;
+        }
+
+        List<String> searchTokens = List.of(search.split(" "));
+        long questTokenHits = searchTokens.stream().filter(token -> !token.isBlank() && questName.contains(token)).count();
+        long npcTokenHits = searchTokens.stream().filter(token -> !token.isBlank() && npcName.contains(token)).count();
+        if (questTokenHits == searchTokens.size() || npcTokenHits == searchTokens.size()) {
+            return 40;
+        }
+        return 0;
+    }
+
+    private String normalize(String value) {
+        if (value == null) {
+            return "";
+        }
+        return value.toLowerCase(Locale.ROOT)
+                .replaceAll("[^a-z0-9 ]", " ")
+                .replaceAll("\\s+", " ")
+                .trim();
+    }
+
+    private CommandResult acceptQuest(GameSession session, Player player, AvailableQuest match) {
         QuestStartResult result = questService.startQuest(player, match.quest.id());
         
         if (!result.success()) {
@@ -119,16 +185,30 @@ public class AcceptCommand implements GameCommand {
     private CommandResult showAvailableQuests(GameSession session, List<AvailableQuest> quests) {
         StringBuilder sb = new StringBuilder();
         sb.append("<div class='quest-available'>📜 <strong>Available Quests:</strong></div>");
+
+        String lastTalkedNpcId = session.getLastTalkedNpcId();
+        if (lastTalkedNpcId != null && !lastTalkedNpcId.isBlank()) {
+            quests = quests.stream()
+                    .sorted(Comparator.comparingInt(aq -> aq.npc.getId().equals(lastTalkedNpcId) ? 0 : 1))
+                    .toList();
+        }
         
         for (AvailableQuest aq : quests) {
             sb.append("<div class='quest-offer'>");
             sb.append("<strong>").append(aq.npc.getName()).append("</strong> offers: ");
             sb.append("<em>").append(aq.quest.name()).append("</em>");
             sb.append("<br><small>").append(aq.quest.description()).append("</small>");
+            sb.append("<br><small>Use <strong>accept ").append(aq.npc.getName().toLowerCase())
+                    .append("</strong> or <strong>accept ").append(aq.quest.name().toLowerCase())
+                    .append("</strong>.</small>");
             sb.append("</div>");
         }
         
-        sb.append("<div class='quest-hint'>Type <strong>accept [quest name]</strong> or <strong>accept [npc name]</strong> to begin.</div>");
+        if (lastTalkedNpcId != null && quests.stream().anyMatch(aq -> aq.npc.getId().equals(lastTalkedNpcId))) {
+            sb.append("<div class='quest-hint'>You can also <strong>talk</strong> to the quest giver again for a reminder, then type <strong>accept</strong>.</div>");
+        } else {
+            sb.append("<div class='quest-hint'>Type <strong>accept [quest name]</strong> or <strong>accept [npc name]</strong> to begin.</div>");
+        }
         
         return CommandResult.of(roomUpdateWithNarrative(session, sb.toString()));
     }

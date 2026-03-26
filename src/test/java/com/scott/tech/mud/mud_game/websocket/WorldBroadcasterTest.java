@@ -2,7 +2,9 @@ package com.scott.tech.mud.mud_game.websocket;
 
 import com.scott.tech.mud.mud_game.combat.CombatState;
 import com.scott.tech.mud.mud_game.dto.GameResponse;
+import com.scott.tech.mud.mud_game.model.Direction;
 import com.scott.tech.mud.mud_game.model.Player;
+import com.scott.tech.mud.mud_game.model.Room;
 import com.scott.tech.mud.mud_game.model.SessionState;
 import com.scott.tech.mud.mud_game.session.GameSession;
 import com.scott.tech.mud.mud_game.session.GameSessionManager;
@@ -15,6 +17,7 @@ import org.springframework.web.socket.WebSocketSession;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.EnumMap;
 import java.util.List;
 import java.util.concurrent.ScheduledFuture;
 
@@ -50,8 +53,8 @@ class WorldBroadcasterTest {
 
         broadcaster.broadcastToRoom("square", GameResponse.roomAction("Quentor arrives from the east."));
 
-        verify(sender, never()).sendUnmodified(ws1, GameResponse.roomAction("Quentor arrives from the east."));
-        verify(sender, times(1)).sendUnmodified(ws2, GameResponse.roomAction("Quentor arrives from the east."));
+        verify(sender, never()).send(ws1, GameResponse.roomAction("Quentor arrives from the east."));
+        verify(sender, times(1)).send(ws2, GameResponse.roomAction("Quentor arrives from the east."));
     }
 
     @Test
@@ -87,6 +90,28 @@ class WorldBroadcasterTest {
 
         broadcaster.sendRoomBroadcastToSession("session-1", GameResponse.socialAction("Axi dances."));
 
+        verify(sender, never()).send(any(WebSocketSession.class), any(GameResponse.class));
+    }
+
+    @Test
+    void sendRoomBroadcastToSession_usesNormalizedSendPath() {
+        GameSessionManager sessionManager = new GameSessionManager();
+        WsMessageSender sender = mock(WsMessageSender.class);
+        CombatState combatState = mock(CombatState.class);
+        TaskScheduler taskScheduler = mock(TaskScheduler.class);
+        WorldBroadcaster broadcaster = new WorldBroadcaster(sessionManager, sender, combatState, taskScheduler);
+
+        WebSocketSession ws = mock(WebSocketSession.class);
+        broadcaster.register("session-1", ws);
+
+        when(combatState.isInCombat("session-1")).thenReturn(false);
+
+        Room room = new Room("square", "Town Square", "A busy square.", new EnumMap<>(Direction.class), List.of(), List.of());
+        GameResponse response = GameResponse.roomUpdate(room, "Room state changed.");
+
+        broadcaster.sendRoomBroadcastToSession("session-1", response);
+
+        verify(sender).send(ws, response);
         verify(sender, never()).sendUnmodified(any(WebSocketSession.class), any(GameResponse.class));
     }
 

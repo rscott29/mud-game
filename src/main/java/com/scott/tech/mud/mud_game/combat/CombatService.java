@@ -2,9 +2,11 @@ package com.scott.tech.mud.mud_game.combat;
 
 import com.scott.tech.mud.mud_game.model.Npc;
 import com.scott.tech.mud.mud_game.model.Player;
+import com.scott.tech.mud.mud_game.quest.ObjectiveEncounterRuntimeService;
 import com.scott.tech.mud.mud_game.quest.QuestService;
 import com.scott.tech.mud.mud_game.session.GameSession;
 import com.scott.tech.mud.mud_game.world.WorldService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
@@ -25,18 +27,30 @@ public class CombatService {
     private final CombatStatsResolver statsResolver;
     private final CombatNarrator narrator;
     private final QuestService questService;
+    private final ObjectiveEncounterRuntimeService objectiveEncounterRuntimeService;
     private final WorldService worldService;
+
+    @Autowired
+    public CombatService(CombatState combatState,
+                         CombatStatsResolver statsResolver,
+                         CombatNarrator narrator,
+                         @Lazy QuestService questService,
+                         @Lazy ObjectiveEncounterRuntimeService objectiveEncounterRuntimeService,
+                         WorldService worldService) {
+        this.combatState = combatState;
+        this.statsResolver = statsResolver;
+        this.narrator = narrator;
+        this.questService = questService;
+        this.objectiveEncounterRuntimeService = objectiveEncounterRuntimeService;
+        this.worldService = worldService;
+    }
 
     public CombatService(CombatState combatState,
                          CombatStatsResolver statsResolver,
                          CombatNarrator narrator,
                          @Lazy QuestService questService,
                          WorldService worldService) {
-        this.combatState = combatState;
-        this.statsResolver = statsResolver;
-        this.narrator = narrator;
-        this.questService = questService;
-        this.worldService = worldService;
+        this(combatState, statsResolver, narrator, questService, null, worldService);
     }
 
     public record AttackResult(
@@ -114,6 +128,10 @@ public class CombatService {
                             partyMessage.append("\n\n").append(questMessage);
                         }
                     }
+                }
+
+                if (objectiveEncounterRuntimeService != null) {
+                    objectiveEncounterRuntimeService.onSpawnedNpcDefeated(player, target);
                 }
 
                 combatState.endCombatForTarget(target);

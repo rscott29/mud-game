@@ -11,6 +11,11 @@ public class MoveValidator {
     public MoveValidationResult validate(GameSession session, Direction direction) {
         Room current = session.getCurrentRoom();
 
+        String blockedExitMessage = session.getBlockedExitMessage(current.getId(), direction);
+        if (blockedExitMessage != null && !blockedExitMessage.isBlank()) {
+            return MoveValidationResult.deny(GameResponse.error(blockedExitMessage));
+        }
+
         boolean canMove = current.getExits().containsKey(direction)
                 || session.hasDiscoveredExit(current.getId(), direction);
         if (!canMove) {

@@ -26,6 +26,7 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -97,6 +98,75 @@ class AcceptCommandTest {
         assertThat(startData.getValue().attackHint()).isEqualTo("wolf");
         assertThat(startData.getValue().targetHealth()).isEqualTo(30);
         assertThat(startData.getValue().timeLimitSeconds()).isEqualTo(45);
+    }
+
+    @Test
+    void execute_withoutArgs_acceptsQuestFromLastTalkedNpcWhenOnlyOneIsAvailable() {
+        WorldService worldService = mock(WorldService.class);
+        QuestService questService = mock(QuestService.class);
+        DefendObjectiveRuntimeService defendObjectiveRuntimeService = mock(DefendObjectiveRuntimeService.class);
+
+        Npc traveler = npc("npc_lost_traveler", "Lost Traveler", "traveler", "lost traveler");
+        Npc child = npc("npc_joyful_child", "Joyful Child", "child", "joyful child");
+        Room room = new Room(
+                "deep_forest",
+                "Deep Forest",
+                "desc",
+                new EnumMap<>(Direction.class),
+                List.of(),
+                List.of(traveler, child)
+        );
+
+        Player player = new Player("player-1", "Nova", "deep_forest");
+        GameSession session = new GameSession("session-1", player, worldService);
+        session.transition(SessionState.PLAYING);
+        session.setLastTalkedNpcId("npc_lost_traveler");
+
+        Quest quest = quest();
+        when(worldService.getRoom("deep_forest")).thenReturn(room);
+        when(questService.getAvailableQuestsForNpc(player, "npc_lost_traveler")).thenReturn(List.of(quest));
+        when(questService.getAvailableQuestsForNpc(player, "npc_joyful_child")).thenReturn(List.of());
+        when(questService.startQuest(player, "quest_loyalty")).thenReturn(
+                QuestService.QuestStartResult.success(List.of("Start"), List.of(), null, null, quest, quest.getFirstObjective())
+        );
+
+        CommandResult result = new AcceptCommand(null, questService, defendObjectiveRuntimeService).execute(session);
+
+        assertThat(result.getResponses()).hasSize(2);
+        verify(questService).startQuest(player, "quest_loyalty");
+        verify(defendObjectiveRuntimeService, never()).startScenario(org.mockito.Mockito.any(), org.mockito.Mockito.any(), org.mockito.Mockito.any(), org.mockito.Mockito.any());
+    }
+
+    @Test
+    void execute_withoutArgs_singleQuestInRoom_acceptsImmediately() {
+        WorldService worldService = mock(WorldService.class);
+        QuestService questService = mock(QuestService.class);
+        DefendObjectiveRuntimeService defendObjectiveRuntimeService = mock(DefendObjectiveRuntimeService.class);
+
+        Npc traveler = npc("npc_lost_traveler", "Lost Traveler", "traveler", "lost traveler");
+        Room room = new Room(
+                "deep_forest",
+                "Deep Forest",
+                "desc",
+                new EnumMap<>(Direction.class),
+                List.of(),
+                List.of(traveler)
+        );
+
+        Player player = new Player("player-1", "Nova", "deep_forest");
+        GameSession session = new GameSession("session-1", player, worldService);
+        session.transition(SessionState.PLAYING);
+
+        Quest quest = quest();
+        when(worldService.getRoom("deep_forest")).thenReturn(room);
+        when(questService.getAvailableQuestsForNpc(player, "npc_lost_traveler")).thenReturn(List.of(quest));
+        when(questService.startQuest(player, "quest_loyalty")).thenReturn(
+                QuestService.QuestStartResult.success(List.of("Start"), List.of(), null, null, quest, quest.getFirstObjective())
+        );
+
+        new AcceptCommand(null, questService, defendObjectiveRuntimeService).execute(session);
+
+        verify(questService).startQuest(player, "quest_loyalty");
     }
 
     private static Quest quest() {

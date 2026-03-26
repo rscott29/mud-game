@@ -58,8 +58,10 @@ export type KnownTerminalMessageClass =
 export type TerminalMessageClass = KnownTerminalMessageClass | (string & {});
 
 export interface NpcDto {
+  id?: string;
   name: string;
   sentient: boolean;
+  hasAvailableQuest?: boolean;
 }
 
 export interface RoomItemDto {

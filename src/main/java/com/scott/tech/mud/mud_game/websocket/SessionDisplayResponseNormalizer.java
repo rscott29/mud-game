@@ -4,22 +4,36 @@ import com.scott.tech.mud.mud_game.dto.GameResponse;
 import com.scott.tech.mud.mud_game.model.Item;
 import com.scott.tech.mud.mud_game.model.Room;
 import com.scott.tech.mud.mud_game.model.SessionState;
+import com.scott.tech.mud.mud_game.quest.QuestService;
 import com.scott.tech.mud.mud_game.session.GameSession;
 import com.scott.tech.mud.mud_game.session.GameSessionManager;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.function.Supplier;
 
 @Component
 public class SessionDisplayResponseNormalizer {
 
     private final GameSessionManager sessionManager;
+    private final Supplier<QuestService> questServiceSupplier;
 
-    public SessionDisplayResponseNormalizer(GameSessionManager sessionManager) {
+    @Autowired
+    public SessionDisplayResponseNormalizer(GameSessionManager sessionManager,
+                                            ObjectProvider<QuestService> questServiceProvider) {
         this.sessionManager = sessionManager;
+        this.questServiceSupplier = questServiceProvider::getIfAvailable;
+    }
+
+    SessionDisplayResponseNormalizer(GameSessionManager sessionManager,
+                                     QuestService questService) {
+        this.sessionManager = sessionManager;
+        this.questServiceSupplier = () -> questService;
     }
 
     public List<GameResponse> normalize(GameSession session, List<GameResponse> responses) {
@@ -85,8 +99,12 @@ public class SessionDisplayResponseNormalizer {
     }
 
     private GameResponse contextualize(GameSession session, GameResponse response) {
-        if (response == null || isRoomDisplay(response) || session == null) {
+        if (response == null || session == null) {
             return response;
+        }
+
+        if (isRoomDisplay(response)) {
+            return personalizeRoomDisplay(session, response);
         }
 
         Room room = session.getCurrentRoom();
@@ -112,6 +130,53 @@ public class SessionDisplayResponseNormalizer {
         );
 
         return mergeMetadata(roomUpdate, response);
+    }
+
+    private GameResponse personalizeRoomDisplay(GameSession session, GameResponse response) {
+        Room room = session.getCurrentRoom();
+        if (room == null) {
+            return response;
+        }
+
+        QuestService questService = questServiceSupplier.get();
+
+        List<String> others = sessionManager.getSessionsInRoom(room.getId()).stream()
+                .filter(other -> !other.getSessionId().equals(session.getSessionId()))
+                .map(other -> other.getPlayer().getName())
+                .toList();
+
+        Set<String> inventoryItemIds = session.getPlayer().getInventory().stream()
+                .map(Item::getId)
+                .collect(Collectors.toSet());
+
+        Set<String> questNpcIds = questService == null
+                ? Set.of()
+                : room.getNpcs().stream()
+                        .filter(npc -> !questService.getAvailableQuestsForNpc(session.getPlayer(), npc.getId()).isEmpty())
+                        .map(npc -> npc.getId())
+                        .collect(Collectors.toSet());
+
+        GameResponse.RoomView roomView = GameResponse.RoomView.from(
+                room,
+                others,
+                session.getDiscoveredHiddenExits(room.getId()),
+                inventoryItemIds,
+                questNpcIds
+        );
+
+        return new GameResponse(
+                response.type(),
+                response.message(),
+                roomView,
+                response.mask(),
+                response.from(),
+                response.token(),
+                response.inventory(),
+                response.whoPlayers(),
+                response.playerStats(),
+                response.combatStats(),
+                response.characterCreation()
+        );
     }
 
     private GameResponse mergeRoomDisplays(GameResponse current, GameResponse next) {

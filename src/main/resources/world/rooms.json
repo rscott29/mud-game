@@ -4,12 +4,12 @@
     {
       "id": "town_square",
       "name": "Town Square",
-      "description": "A weathered cobblestone plaza at the heart of a small town. A fountain burbles in the center, and a wooden signpost points in all directions.",
+      "description": "A broad cobbled square sits at the heart of town, built where four districts meet. A fountain burbles beneath strings of civic pennants, and a weathered signpost marks the roads toward the hall, market, temple, and inn.",
       "exits": {
-        "NORTH": "tavern",
+        "NORTH": "town_hall",
         "SOUTH": "market",
-        "EAST":  "east_road",
-        "WEST":  "blacksmith"
+        "EAST":  "temple",
+        "WEST":  "tavern"
       },
       "recallBindable": true,
       "defaultRecallPoint": true,
@@ -17,14 +17,51 @@
       "npcIds": ["npc_dog_Obi", "npc_joyful_child"]
     },
     {
-      "id": "tavern",
-      "name": "The Rusty Flagon Tavern",
-      "description": "A dimly lit tavern that smells of ale and woodsmoke. Gruff adventurers murmur at scarred oak tables. A red-faced bartender polishes mugs behind the bar.",
+      "id": "town_hall",
+      "name": "Town Hall",
+      "description": "A sturdy stone hall overlooks the square from a shallow rise, its steps worn smooth by petitions, proclamations, and muddy boots. Ledger clerks move between noticeboards and long benches beneath the town crest.",
       "exits": {
         "SOUTH": "town_square",
+        "EAST": "bank",
+        "WEST": "barracks"
+      },
+      "itemIds": ["item_council_bell", "item_civic_charter"],
+      "npcIds": ["npc_town_clerk_elin"]
+    },
+    {
+      "id": "bank",
+      "name": "Town Bank",
+      "description": "Thick oak shutters, iron grilles, and neatly stacked ledgers give this chamber a solid, cautious air. The scent of wax and coin hangs over every whisper.",
+      "exits": {
+        "WEST": "town_hall"
+      },
+      "itemIds": ["item_loan_ledger", "item_iron_strongbox"],
+      "npcIds": ["npc_banker_merrow"]
+    },
+    {
+      "id": "barracks",
+      "name": "Barracks Yard",
+      "description": "A gravel training yard and low barracks building sit just beyond the hall. Spear racks, duty rosters, and boot-scraped flagstones make it clear that the town watch starts and ends its day here.",
+      "exits": {
+        "EAST": "town_hall",
+        "NORTH": "gate"
+      },
+      "itemIds": ["item_barracks_board", "item_spear_rack"],
+      "npcIds": ["npc_captain_hale"]
+    },
+    {
+      "id": "tavern",
+      "name": "The Rusty Flagon Inn",
+      "description": "A warm common-room glows with hearthlight, supper steam, and the soft noise of regulars trading the day's gossip. Boots dry by the fire, travelers crowd the long tables, and the innkeeper keeps one eye on every cup in the room.",
+      "exits": {
+        "EAST": "town_square",
+        "NORTH": "bakery",
+        "WEST": "homes",
+        "SOUTH": "stable",
         "UP":    "tavern_loft"
       },
-      "itemIds": ["item_ale_mug", "item_wanted_poster"]
+      "itemIds": ["item_ale_mug", "item_wanted_poster", "item_inn_hearth"],
+      "npcIds": ["npc_innkeeper_mira"]
     },
     {
       "id": "tavern_loft",
@@ -37,47 +74,165 @@
       "itemIds": ["item_straw_mattress", "item_cracked_window"]
     },
     {
-      "id": "market",
-      "name": "Town Market",
-      "description": "Colourful stalls line the road – vendors hawk everything from fresh bread to peculiar trinkets. The noise and bustle is almost overwhelming.",
+      "id": "bakery",
+      "name": "Rosemary Bakery",
+      "description": "Heat rolls out from a brick oven that has likely been warm since before dawn. Shelves of fresh loaves, sugared twists, and hand pies fill the room with the kind of smell that can stop a traveler in their tracks.",
       "exits": {
-        "NORTH": "town_square",
-        "EAST":  "alchemist"
+        "SOUTH": "tavern"
       },
-      "itemIds": ["item_bread_loaf", "item_strange_trinket", "item_childs_ball"]
+      "itemIds": ["item_bakers_oven", "item_flour_sack"],
+      "npcIds": ["npc_baker_tomas"]
     },
     {
-      "id": "alchemist",
-      "name": "Alchemist's Shop",
-      "description": "Shelves packed with bubbling vials and drying herbs crowd every surface. The air reeks of sulphur and something floral. An old alchemist peers at you over thick spectacles.",
+      "id": "homes",
+      "name": "Common Row",
+      "description": "A short lane of plastered cottages and shared stoops runs behind the inn. Laundry lines sway overhead, and every doorway bears its own mixture of flower pots, chopped wood, and watchful curtains.",
+      "exits": {
+        "EAST": "tavern"
+      },
+      "itemIds": ["item_laundry_line"]
+    },
+    {
+      "id": "stable",
+      "name": "South Stable",
+      "description": "The stable yard is packed hard by hooves and wagon wheels. Horses stamp in their stalls while saddles, feed sacks, and rain-dark tack hang from every post near the gate road.",
+      "exits": {
+        "NORTH": "tavern",
+        "EAST": "gate"
+      },
+      "itemIds": ["item_horse_tack"],
+      "npcIds": ["npc_stablehand_elsie"]
+    },
+    {
+      "id": "market",
+      "name": "Town Market",
+      "description": "Canvas awnings, chalked price boards, and barrows piled with produce turn this whole lane into the commercial heart of town. Hawkers shout over one another while buyers squeeze between bread stalls, tool carts, and hanging bundles of herbs.",
+      "exits": {
+        "NORTH": "town_square",
+        "EAST":  "general_store",
+        "SOUTH": "alchemist",
+        "WEST": "blacksmith"
+      },
+      "itemIds": ["item_bread_loaf", "item_strange_trinket", "item_childs_ball", "item_market_awning"]
+    },
+    {
+      "id": "general_store",
+      "name": "General Store",
+      "description": "Shelves packed with lamp oil, rope, kettles, nails, blankets, and a dozen little necessities make this the sort of shop every resident eventually visits. The counter is polished smooth by elbows and barter.",
       "exits": {
         "WEST": "market"
       },
-      "itemIds": ["item_health_potion", "item_mysterious_powder"]
+      "itemIds": ["item_shop_counter", "item_supply_crates"],
+      "npcIds": ["npc_shopkeeper_rona"]
+    },
+    {
+      "id": "alchemist",
+      "name": "Riverside Apothecary",
+      "description": "Shelves packed with labeled jars, bundled herbs, and carefully corked tinctures line every wall. The air smells of camphor, lavender, and bitter roots drying near the back window.",
+      "exits": {
+        "NORTH": "market"
+      },
+      "itemIds": ["item_health_potion", "item_mysterious_powder", "item_herb_bundle"],
+      "npcIds": ["npc_apothecary_selin"]
+    },
+    {
+      "id": "temple",
+      "name": "Temple Court",
+      "description": "Stone lanterns and shallow steps mark the threshold of the town's oldest sacred quarter. Bells murmur softly above the eaves, and offerings of wax, ribbon, and river flowers line the court in careful rows.",
+      "exits": {
+        "WEST": "town_square",
+        "NORTH": "graveyard",
+        "EAST": "ruined_shrine",
+        "SOUTH": "old_memorial"
+      },
+      "itemIds": ["item_temple_candles"],
+      "npcIds": ["npc_temple_keeper_sera"]
+    },
+    {
+      "id": "graveyard",
+      "name": "Temple Graveyard",
+      "description": "Weathered headstones climb a gentle slope behind the temple, half-shadowed by yew trees and iron fencing. The paths are swept clean despite the moss, and small remembrance candles burn in sheltered niches.",
+      "exits": {
+        "SOUTH": "temple"
+      },
+      "itemIds": ["item_grave_marker"],
+      "npcIds": ["npc_groundskeeper_orrow"]
+    },
+    {
+      "id": "ruined_shrine",
+      "name": "Ruined Shrine",
+      "description": "The oldest shrine in town stands roofless and ivy-bound, its altar split by a long-forgotten crack. Even in disrepair, locals still leave charms and folded prayers in the broken stone.",
+      "exits": {
+        "WEST": "temple"
+      },
+      "itemIds": ["item_broken_idol"]
+    },
+    {
+      "id": "old_memorial",
+      "name": "Old Memorial",
+      "description": "A ring of carved standing stones surrounds a bronze memorial plaque blackened by age and rain. Fresh flowers and old military badges rest side by side at its base.",
+      "exits": {
+        "NORTH": "temple"
+      },
+      "itemIds": ["item_memorial_plaque"]
     },
     {
       "id": "east_road",
-      "name": "East Road",
-      "description": "A rutted dirt track leading away from town toward a distant dark forest. The trees loom large on the horizon. The road continues east.",
+      "name": "Frontier Road",
+      "description": "Beyond the town gate, the road narrows into a wind-scoured frontier lane lined with ditch grass, cart ruts, and old boundary stones. The forest gathers darkly ahead.",
       "exits": {
-        "WEST": "town_square",
-        "EAST": "forest_edge"
+        "WEST": "gate",
+        "EAST": "forest_edge",
+        "SOUTH": "abandoned_house"
       },
       "itemIds": []
     },
     {
+      "id": "gate",
+      "name": "East Gate",
+      "description": "A timber-and-stone gatehouse guards the eastern exit of town. Iron portcullis teeth hang overhead, watch orders are pinned beside the arch, and the road beyond runs straight toward the wilds.",
+      "exits": {
+        "SOUTH": "barracks",
+        "WEST": "stable",
+        "EAST": "east_road",
+        "NORTH": "watchtower"
+      },
+      "itemIds": ["item_gate_portcullis"],
+      "npcIds": ["npc_gatewarden_holt"]
+    },
+    {
+      "id": "watchtower",
+      "name": "Gate Watchtower",
+      "description": "A narrow stair climbs the inside of the eastern watchtower to a platform overlooking the walls, fields, and forest road. Spare lanterns, signal flags, and a spyglass sit ready against the parapet.",
+      "exits": {
+        "SOUTH": "gate"
+      },
+      "itemIds": ["item_watch_lantern"]
+    },
+    {
+      "id": "abandoned_house",
+      "name": "Abandoned House",
+      "description": "A weather-beaten cottage slumps beside the road behind a leaning fence, its shutters nailed shut and its garden long gone to weeds. The place has stood empty long enough for the town to stop talking about why.",
+      "exits": {
+        "NORTH": "east_road"
+      },
+      "itemIds": ["item_boarded_door"]
+    },
+    {
       "id": "forest_edge",
       "name": "Forest Edge",
-      "description": "The road dissolves into a tangle of roots and undergrowth at the edge of a dense forest. Strange sounds drift from the shadowed canopy. A narrow path leads north.",
+      "description": "The last boundary stones of town give way here to roots, hanging vines, and the first dark line of the forest. Strange sounds drift from the canopy ahead, while somewhere below the roadside you can hear cold water moving through hidden stone.",
       "exits": {
         "WEST":  "east_road",
         "NORTH": "deep_forest"
       },
       "hiddenExits": {
-        "SOUTH": "cave_entrance"
+        "SOUTH": "cave_entrance",
+        "DOWN": "cave_heart"
       },
       "hiddenExitHints": {
-        "SOUTH": "Behind a curtain of hanging vines, you discover a dark cave entrance leading <em>south</em>."
+        "SOUTH": "Behind a curtain of hanging vines, you discover a dark cave entrance leading <em>south</em>.",
+        "DOWN": "Peering over a moss-slick sinkhole hidden among the roots, you spot a narrow descent dropping <em>down</em> toward the cave's heart."
       },
       "itemIds": ["item_broken_arrow", "item_odd_mushroom"],
       "npcIds": ["npc_wounded_pilgrim"]
@@ -318,22 +473,120 @@
 {
   "id": "old_oak_crossing",
   "name": "Old Oak Crossing",
-  "description": "Beyond the fork, both paths join again in a hidden grove beneath an ancient oak. Sunlight spills through the leaves in golden shafts, illuminating a weathered stone at the tree's roots. A magnificent sword is embedded in the stone, and beside it sits the faint spectral form of a Labrador, tail gently thumping against the earth.",
+  "description": "Beyond the fork, both paths join again in a hidden grove beneath an ancient oak. Sunlight spills through the leaves in golden shafts, illuminating a weathered stone at the tree's roots. A magnificent sword is embedded in the stone, and beside it sits the faint spectral form of a Labrador, tail gently thumping against the earth. A narrow trail climbs north toward a ruined watch post on the ridge.",
   "exits": {
-    "WEST": "forest_fork"
+    "WEST": "forest_fork",
+    "NORTH": "wayfarers_rest"
   },
   "itemIds": ["item_obis_oath", "item_obis_tag", "item_weathered_stone", "item_ancient_oak"],
   "npcIds": ["npc_keeper_of_the_bond"]
 },
     {
+      "id": "wayfarers_rest",
+      "name": "Wayfarer's Rest",
+      "description": "The ridge path widens into a small shelf of stone ringed by wind-bent grass. A cairn marks the trail back to the grove. The remnants of an older road continue north toward a ruined waystation, while broken switchbacks peel east along the cliff face toward the higher shrine paths.",
+      "exits": {
+        "SOUTH": "old_oak_crossing",
+        "NORTH": "ruined_waystation",
+        "EAST": "switchback_trail"
+      },
+      "itemIds": ["item_waymarker_cairn"]
+    },
+    {
+      "id": "ruined_waystation",
+      "name": "Ruined Waystation",
+      "description": "A roofless stone shelter clings to the ridge, its timbers silvered by weather and old smoke. In the middle stands a squat iron brazier packed with cold ash. From here, the old road can be seen threading back toward the forest below, while a flight of weather-eaten steps climbs east toward the beacon line.",
+      "exits": {
+        "SOUTH": "wayfarers_rest",
+        "EAST": "beacon_steps"
+      },
+      "itemIds": ["item_cold_brazier"],
+      "npcIds": ["npc_waystation_caretaker"]
+    },
+    {
+      "id": "switchback_trail",
+      "name": "Ridge Switchbacks",
+      "description": "A procession of narrow stone cutbacks zigzags up the ridge. Frost-split steps lean toward the drop, and every landing carries scraps of old chalk arrows left for travelers climbing in the dark.",
+      "exits": {
+        "WEST": "wayfarers_rest",
+        "NORTH": "ribbon_gorge",
+        "EAST": "scree_walk"
+      },
+      "itemIds": ["item_switchback_steps"]
+    },
+    {
+      "id": "ribbon_gorge",
+      "name": "Ribbon Gorge",
+      "description": "The trail squeezes through a narrow cut in the ridge where prayer ribbons have been tied from post to post. Small bronze bells knock together overhead whenever the wind surges through the gap.",
+      "exits": {
+        "SOUTH": "switchback_trail",
+        "NORTH": "beacon_steps",
+        "UP": "shrine_approach"
+      },
+      "itemIds": ["item_trail_bells"]
+    },
+    {
+      "id": "scree_walk",
+      "name": "Scree Walk",
+      "description": "A slanted shelf of slate and loose stone skirts the outside of the ridge. The path is broader here, but every few paces boot marks vanish beneath fresh rockfall and windblown gravel.",
+      "exits": {
+        "WEST": "switchback_trail",
+        "EAST": "shrine_approach"
+      },
+      "itemIds": ["item_scree_marker"]
+    },
+    {
+      "id": "beacon_steps",
+      "name": "Beacon Steps",
+      "description": "A steep run of carved stairs climbs toward the outer ridge, bracketed by broken stone posts where signal braziers once stood. From this height you can see most of the old watch road unraveling below.",
+      "exits": {
+        "WEST": "ruined_waystation",
+        "SOUTH": "ribbon_gorge",
+        "EAST": "collapsed_span"
+      },
+      "itemIds": ["item_beacon_steps"]
+    },
+    {
+      "id": "collapsed_span",
+      "name": "Collapsed Span",
+      "description": "Part of the ridge road has sheared away into the valley, leaving only a broken arch, a few replacement planks, and guide ropes tied hard against iron spikes. The wind claws at the gap without pause.",
+      "exits": {
+        "WEST": "beacon_steps",
+        "SOUTH": "shrine_approach"
+      },
+      "itemIds": ["item_guide_ropes"]
+    },
+    {
+      "id": "shrine_approach",
+      "name": "Shrine Approach",
+      "description": "The ridge path gathers itself into a ceremonial climb of shallow steps and standing stones. Faded offerings lie in niches cut into the rock, and the shrine ledge waits farther east above the last bend.",
+      "exits": {
+        "WEST": "scree_walk",
+        "NORTH": "collapsed_span",
+        "DOWN": "ribbon_gorge",
+        "EAST": "prayer_ledge"
+      },
+      "itemIds": ["item_shrine_steps"]
+    },
+    {
+      "id": "prayer_ledge",
+      "name": "Prayer Ledge",
+      "description": "A narrow shelf of stone overlooks the valley below. Faded ribbons crack in the wind from a line of branch-posts, and rainwater has pooled in the hollow of an old shrine. Half-hidden beneath the shrine's lip rests an ember lantern sealed against the weather.",
+      "exits": {
+        "WEST": "shrine_approach"
+      },
+      "itemIds": ["item_prayer_ribbons", "item_ember_lantern"]
+    },
+    {
       "id": "blacksmith",
       "name": "Blacksmith's Forge",
       "description": "The heat from the forge is intense. Weapons and armour hang from every hook. A massive blacksmith hammers a glowing sword blade on a thick anvil. A wooden gate to the west leads to the training yard.",
       "exits": {
-        "EAST": "town_square",
+        "EAST": "market",
         "WEST": "training_yard"
       },
-      "itemIds": ["item_iron_sword", "item_leather_shield", "item_anvil"]
+      "itemIds": ["item_iron_sword", "item_leather_shield", "item_anvil"],
+      "npcIds": ["npc_blacksmith_bram"]
     },
     {
       "id": "training_yard",

@@ -90,7 +90,7 @@ public class WorldBroadcaster {
 
         WebSocketSession ws = wsSessions.get(wsSessionId);
         if (ws != null) {
-            messageSender.sendUnmodified(ws, response);
+            messageSender.send(ws, response);
         }
     }
 

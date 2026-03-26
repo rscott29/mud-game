@@ -9,6 +9,11 @@ import com.scott.tech.mud.mud_game.model.Npc;
 import com.scott.tech.mud.mud_game.model.Player;
 import com.scott.tech.mud.mud_game.model.Rarity;
 import com.scott.tech.mud.mud_game.model.Room;
+import com.scott.tech.mud.mud_game.quest.Quest;
+import com.scott.tech.mud.mud_game.quest.QuestCompletionEffects;
+import com.scott.tech.mud.mud_game.quest.QuestPrerequisites;
+import com.scott.tech.mud.mud_game.quest.QuestRewards;
+import com.scott.tech.mud.mud_game.quest.QuestService;
 import com.scott.tech.mud.mud_game.session.GameSession;
 import com.scott.tech.mud.mud_game.session.GameSessionManager;
 import org.junit.jupiter.api.BeforeEach;
@@ -145,6 +150,30 @@ class LookCommandTest {
     void unknownTarget_returnsError() {
         CommandResult result = new LookCommand("dragon", sessionManager).execute(session);
         assertThat(singleResponse(result).type()).isEqualTo(GameResponse.Type.ERROR);
+    }
+
+    @Test
+    void lookingAtQuestGiver_showsQuestDetailsAndAcceptHint() {
+        QuestService questService = mock(QuestService.class);
+        Quest quest = new Quest(
+                "quest_loyalty",
+                "The Path of Loyalty",
+                "Protect the traveler.",
+                "npc_dog_Obi",
+                List.of(),
+                QuestPrerequisites.NONE,
+                List.of(),
+                QuestRewards.NONE,
+                List.of(),
+                QuestCompletionEffects.NONE
+        );
+        when(questService.getAvailableQuestsForNpc(session.getPlayer(), "npc_dog_Obi")).thenReturn(List.of(quest));
+
+        CommandResult result = new LookCommand("obi", sessionManager, questService).execute(session);
+
+        assertThat(singleResponse(result).message())
+                .contains("The Path of Loyalty")
+                .contains("accept</strong>");
     }
 
     @Test
