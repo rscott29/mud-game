@@ -10,6 +10,7 @@ import {
   TERMINAL_MESSAGE_CLASSES,
 } from '../models/game-message';
 import { GameSocketService } from './game-socket.service';
+import { TerminalInputService } from './terminal-input.service';
 import { DisplayMessage, TerminalMessageStore } from './terminal-message-store.service';
 import { TerminalPresenterService } from './terminal-presenter.service';
 import { ZoomService } from './zoom.service';
@@ -29,8 +30,16 @@ class MockZoomService {
   readonly zoomLevel = signal(100);
 }
 
+class MockTerminalInputService {
+  readonly inputValue = signal('');
+  readonly commandCompletionSuggestions = signal<string[]>([]);
+  readonly activeCommandCompletionIndex = signal(-1);
+  readonly activeCommandCompletion = signal<string | undefined>(undefined);
+}
+
 describe('TerminalPresenterService', () => {
   let socket: MockGameSocketService;
+  let input: MockTerminalInputService;
   let store: MockTerminalMessageStore;
   let zoom: MockZoomService;
 
@@ -41,12 +50,14 @@ describe('TerminalPresenterService', () => {
       providers: [
         TerminalPresenterService,
         { provide: GameSocketService, useClass: MockGameSocketService },
+        { provide: TerminalInputService, useClass: MockTerminalInputService },
         { provide: TerminalMessageStore, useClass: MockTerminalMessageStore },
         { provide: ZoomService, useClass: MockZoomService },
       ],
     });
 
     socket = TestBed.inject(GameSocketService) as unknown as MockGameSocketService;
+    input = TestBed.inject(TerminalInputService) as unknown as MockTerminalInputService;
     store = TestBed.inject(TerminalMessageStore) as unknown as MockTerminalMessageStore;
     zoom = TestBed.inject(ZoomService) as unknown as MockZoomService;
   });
@@ -160,5 +171,37 @@ describe('TerminalPresenterService', () => {
     expect(presenter.messages()).toHaveLength(1);
     expect(presenter.characterCreationData()?.step).toBe(CHARACTER_CREATION_STEPS.DESCRIPTION);
     expect(presenter.zoomLevel()).toBe(115);
+  });
+
+  it('offers a command suggestion only for in-game non-password input', () => {
+    const presenter = TestBed.inject(TerminalPresenterService);
+
+    input.activeCommandCompletion.set(undefined);
+    expect(presenter.commandSuggestion()).toBeUndefined();
+
+    socket.playerStats.set({
+      health: 12,
+      maxHealth: 20,
+      mana: 7,
+      maxMana: 10,
+      movement: 8,
+      maxMovement: 12,
+      level: 3,
+      maxLevel: 10,
+      xpProgress: 25,
+      xpForNextLevel: 100,
+      totalXp: 250,
+      isGod: false,
+      characterClass: 'mage',
+    });
+    input.commandCompletionSuggestions.set(['look', 'lore', 'locate']);
+    input.activeCommandCompletionIndex.set(0);
+    input.activeCommandCompletion.set('look');
+
+    expect(presenter.commandSuggestion()).toBe('look');
+    expect(presenter.visibleCommandSuggestions()).toEqual(['look', 'lore', 'locate']);
+
+    store.passwordMode.set(true);
+    expect(presenter.commandSuggestion()).toBe('look');
   });
 });

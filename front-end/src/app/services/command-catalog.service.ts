@@ -62,6 +62,12 @@ interface CommandCatalogResponse {
   commands: RawCommandCatalogEntry[];
 }
 
+interface ParsedAutocompleteInput {
+  leadingWhitespace: string;
+  partialToken: string;
+  suffix: string;
+}
+
 @Injectable({ providedIn: 'root' })
 export class CommandCatalogService {
   private readonly http = inject(HttpClient);
@@ -97,6 +103,39 @@ export class CommandCatalogService {
     return this.catalog().find(command =>
       command.aliases.some(candidate => candidate.toLowerCase() === normalized)
     );
+  }
+
+  autocompleteMatches(input: string, isGod: boolean): string[] {
+    this.load();
+
+    const parsedInput = this.parseAutocompleteInput(input);
+    if (!parsedInput) {
+      return [];
+    }
+
+    const { leadingWhitespace, partialToken, suffix } = parsedInput;
+    const matches = new Set<string>();
+
+    for (const command of this.catalog()) {
+      if (command.godOnly && !isGod) {
+        continue;
+      }
+
+      for (const alias of command.aliases) {
+        const normalizedAlias = alias.trim().toLowerCase();
+        if (!normalizedAlias || normalizedAlias === partialToken || !normalizedAlias.startsWith(partialToken)) {
+          continue;
+        }
+
+        matches.add(`${leadingWhitespace}${normalizedAlias}${suffix}`);
+      }
+    }
+
+    return [...matches].sort((left, right) => left.length - right.length || left.localeCompare(right));
+  }
+
+  autocompleteSuggestion(input: string, isGod: boolean): string | undefined {
+    return this.autocompleteMatches(input, isGod)[0];
   }
 
   helpCategories(isGod: boolean): HelpCategory[] {
@@ -248,5 +287,29 @@ export class CommandCatalogService {
     const knownCategory = Object.values(COMMAND_HELP_CATEGORIES).find(value => value === normalized);
 
     return knownCategory ?? normalized;
+  }
+
+  private parseAutocompleteInput(input: string): ParsedAutocompleteInput | null {
+    const leadingWhitespace = input.match(/^\s*/)?.[0] ?? '';
+    const trimmedLeading = input.slice(leadingWhitespace.length);
+    if (!trimmedLeading) {
+      return null;
+    }
+
+    const tokenMatch = trimmedLeading.match(/^(\S+)([\s\S]*)$/);
+    if (!tokenMatch) {
+      return null;
+    }
+
+    const partialToken = tokenMatch[1].toLowerCase();
+    if (!partialToken) {
+      return null;
+    }
+
+    return {
+      leadingWhitespace,
+      partialToken,
+      suffix: tokenMatch[2] ?? '',
+    };
   }
 }

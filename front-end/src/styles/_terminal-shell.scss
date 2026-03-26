@@ -495,6 +495,86 @@ app-terminal {
     color: rgba(196, 183, 162, 0.62);
   }
 
+  .cmd-input-stack {
+    display: grid;
+    gap: 6px;
+    min-width: 0;
+  }
+
+  .cmd-completion {
+    display: grid;
+    gap: 6px;
+    min-width: 0;
+  }
+
+  .cmd-suggestion {
+    display: inline-flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    min-width: 0;
+    color: rgba(196, 183, 162, 0.78);
+    font-size: 0.76em;
+    letter-spacing: 0.04em;
+  }
+
+  .cmd-suggestion__key {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 34px;
+    padding: 2px 7px;
+    border: 1px solid rgba(214, 177, 115, 0.18);
+    border-radius: 999px;
+    background: rgba(16, 16, 20, 0.88);
+    color: var(--terminal-warning);
+    font-size: 0.9em;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .cmd-suggestion__text {
+    min-width: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .cmd-suggestion__count {
+    color: rgba(183, 200, 161, 0.86);
+    font-size: 0.9em;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+  }
+
+  .cmd-suggestion-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    min-width: 0;
+  }
+
+  .cmd-suggestion-list__item {
+    display: inline-flex;
+    align-items: center;
+    min-width: 0;
+    padding: 4px 9px;
+    border: 1px solid rgba(214, 177, 115, 0.12);
+    border-radius: 999px;
+    background: rgba(12, 12, 16, 0.82);
+    color: rgba(196, 183, 162, 0.74);
+    font-size: 0.74em;
+    letter-spacing: 0.04em;
+    white-space: nowrap;
+  }
+
+  .cmd-suggestion-list__item--active {
+    border-color: rgba(183, 200, 161, 0.26);
+    background: rgba(33, 41, 31, 0.62);
+    color: rgba(232, 240, 224, 0.95);
+  }
+
   .send-btn {
     min-width: 92px;
     padding: 12px 16px;

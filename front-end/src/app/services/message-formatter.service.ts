@@ -361,7 +361,7 @@ export class MessageFormatterService {
   private renderChat(msg: GameMessage): string {
     const type = msg.type ?? GAME_MESSAGE_TYPES.CHAT_ROOM;
     const label =
-      type === GAME_MESSAGE_TYPES.CHAT_ROOM ? 'hall' :
+      type === GAME_MESSAGE_TYPES.CHAT_ROOM ? 'room' :
       type === GAME_MESSAGE_TYPES.CHAT_WORLD ? 'realm' :
       'whisper';
 

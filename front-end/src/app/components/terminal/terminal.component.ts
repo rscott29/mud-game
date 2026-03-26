@@ -44,6 +44,25 @@ export class TerminalComponent {
   readonly view = inject(TerminalPresenterService);
 
   constructor() {
+    this.initializeAutoScroll();
+  }
+
+  @HostListener('window:beforeunload')
+  onBeforeUnload(): void {
+    this.disconnectTerminal();
+  }
+
+  ngOnDestroy(): void {
+    this.disconnectTerminal();
+  }
+
+  acceptSuggestion(event: Event): void {
+    if (this.input.acceptNextCompletion()) {
+      event.preventDefault();
+    }
+  }
+
+  private initializeAutoScroll(): void {
     effect(() => {
       const lastMessageClass = this.view.messages().at(-1)?.cssClass;
       this.view.characterCreationData();
@@ -51,30 +70,42 @@ export class TerminalComponent {
     });
   }
 
-  @HostListener('window:beforeunload')
-  onBeforeUnload(): void {
-    this.facade.disconnect();
-  }
-
-  ngOnDestroy(): void {
+  private disconnectTerminal(): void {
     this.facade.disconnect();
   }
 
   private scrollLatestIntoView(lastMessageClass?: TerminalMessageClass): void {
-    const el = this.logEl?.nativeElement;
-    if (!el) {
+    const logElement = this.logEl?.nativeElement;
+    if (!logElement) {
       return;
     }
 
-    if (lastMessageClass === TERMINAL_MESSAGE_CLASSES.HELP) {
-      const helpCards = el.querySelectorAll<HTMLDivElement>('.msg.HELP');
-      const latestHelpCard = helpCards.item(helpCards.length - 1);
-      if (latestHelpCard) {
-        el.scrollTop = Math.max(0, latestHelpCard.offsetTop - 12);
-        return;
-      }
+    if (this.scrollHelpCardIntoView(logElement, lastMessageClass)) {
+      return;
     }
 
-    el.scrollTop = el.scrollHeight;
+    this.scrollLogToBottom(logElement);
+  }
+
+  private scrollHelpCardIntoView(
+    logElement: HTMLDivElement,
+    lastMessageClass?: TerminalMessageClass
+  ): boolean {
+    if (lastMessageClass !== TERMINAL_MESSAGE_CLASSES.HELP) {
+      return false;
+    }
+
+    const helpCards = logElement.querySelectorAll<HTMLDivElement>('.msg.HELP');
+    const latestHelpCard = helpCards.item(helpCards.length - 1);
+    if (!latestHelpCard) {
+      return false;
+    }
+
+    logElement.scrollTop = Math.max(0, latestHelpCard.offsetTop - 12);
+    return true;
+  }
+
+  private scrollLogToBottom(logElement: HTMLDivElement): void {
+    logElement.scrollTop = logElement.scrollHeight;
   }
 }
