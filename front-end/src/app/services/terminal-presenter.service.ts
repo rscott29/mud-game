@@ -6,12 +6,14 @@ import {
   type PlayerStatsDto,
 } from '../models/game-message';
 import { GameSocketService } from './game-socket.service';
+import { TerminalInputService } from './terminal-input.service';
 import { TerminalMessageStore } from './terminal-message-store.service';
 import { ZoomService } from './zoom.service';
 
 @Injectable()
 export class TerminalPresenterService {
   private readonly socketService = inject(GameSocketService);
+  private readonly input = inject(TerminalInputService);
   private readonly store = inject(TerminalMessageStore);
   private readonly zoomService = inject(ZoomService);
   private readonly destroyRef = inject(DestroyRef);
@@ -20,6 +22,8 @@ export class TerminalPresenterService {
   readonly messages = this.store.messages;
   readonly playerStats = this.socketService.playerStats;
   readonly characterCreationData = this.store.characterCreationData;
+  readonly commandSuggestions = this.input.commandCompletionSuggestions;
+  readonly commandSuggestionIndex = this.input.activeCommandCompletionIndex;
   readonly zoomLevel = this.zoomService.zoomLevel;
   readonly worldTitle = computed(() => this.worldTitleState());
   readonly isAuthenticated = computed(() => this.playerStats() !== null);
@@ -43,6 +47,17 @@ export class TerminalPresenterService {
       ? 'Enter your password to continue.'
       : 'Sign in to begin or continue your adventure.'
   );
+  readonly commandSuggestion = this.input.activeCommandCompletion;
+  readonly visibleCommandSuggestions = computed(() => {
+    const suggestions = this.commandSuggestions();
+    const activeIndex = this.commandSuggestionIndex();
+    if (suggestions.length <= 5 || activeIndex < 0) {
+      return suggestions.slice(0, 5);
+    }
+
+    const start = Math.min(Math.max(0, activeIndex - 2), suggestions.length - 5);
+    return suggestions.slice(start, start + 5);
+  });
   readonly statusLabel = computed(() => {
     switch (this.socketService.status()) {
       case CONNECTION_STATUSES.CONNECTED:

@@ -63,7 +63,7 @@ class MockCommandCatalogService {
     },
     {
       canonicalName: 'look',
-      aliases: ['look', 'l', 'examine', 'x'],
+      aliases: ['look', 'l', 'lore', 'locate', 'examine', 'x'],
       category: COMMAND_HELP_CATEGORIES.EXPLORATION,
       usage: 'look [target]',
       description: 'Describe surroundings or examine something',
@@ -110,6 +110,31 @@ class MockCommandCatalogService {
     return this.commands.find(command =>
       command.aliases.some(candidate => candidate === normalized)
     );
+  }
+
+  autocompleteSuggestion(input: string, isGod: boolean): string | undefined {
+    return this.autocompleteMatches(input, isGod)[0];
+  }
+
+  autocompleteMatches(input: string, isGod: boolean): string[] {
+    const leadingWhitespace = input.match(/^\s*/)?.[0] ?? '';
+    const trimmedLeading = input.slice(leadingWhitespace.length);
+    const tokenMatch = trimmedLeading.match(/^(\S+)([\s\S]*)$/);
+    if (!tokenMatch) {
+      return [];
+    }
+
+    const partialToken = tokenMatch[1].toLowerCase();
+    const suffix = tokenMatch[2] ?? '';
+
+    return this.commands
+      .filter(command => !command.godOnly || isGod)
+      .flatMap(command => command.aliases)
+      .map(alias => alias.trim().toLowerCase())
+      .filter(alias => alias.startsWith(partialToken) && alias !== partialToken)
+      .map(alias => `${leadingWhitespace}${alias}${suffix}`)
+      .filter((alias, index, aliases) => aliases.indexOf(alias) === index)
+      .sort((left, right) => left.length - right.length || left.localeCompare(right));
   }
 
   helpCategories(isGod: boolean): HelpCategory[] {
@@ -238,6 +263,97 @@ describe('TerminalComponent', () => {
     expect(JSON.parse(socket.sent[0])).toEqual({
       input: 'look at the old fountain',
     });
+  });
+
+  it('recalls previous commands from the input when the player presses arrow up', () => {
+    const fixture = TestBed.createComponent(TerminalComponent);
+    const component = fixture.componentInstance;
+
+    socket.playerStats.set({
+      health: 12,
+      maxHealth: 20,
+      mana: 7,
+      maxMana: 10,
+      movement: 8,
+      maxMovement: 12,
+      level: 3,
+      maxLevel: 10,
+      xpProgress: 25,
+      xpForNextLevel: 100,
+      totalXp: 250,
+      isGod: false,
+      characterClass: 'mage',
+    });
+    fixture.detectChanges();
+
+    component.input.updateInputValue('look');
+    component.input.send();
+    component.input.updateInputValue('north');
+    component.input.send();
+
+    const input: HTMLInputElement = fixture.nativeElement.querySelector('.cmd-input');
+    const firstUpEvent = new KeyboardEvent('keydown', { key: 'ArrowUp', bubbles: true, cancelable: true });
+    input.dispatchEvent(firstUpEvent);
+    fixture.detectChanges();
+
+    expect(component.input.inputValue()).toBe('north');
+    expect(firstUpEvent.defaultPrevented).toBe(true);
+
+    const secondUpEvent = new KeyboardEvent('keydown', { key: 'ArrowUp', bubbles: true, cancelable: true });
+    input.dispatchEvent(secondUpEvent);
+    fixture.detectChanges();
+
+    expect(component.input.inputValue()).toBe('look');
+
+    const downEvent = new KeyboardEvent('keydown', { key: 'ArrowDown', bubbles: true, cancelable: true });
+    input.dispatchEvent(downEvent);
+    fixture.detectChanges();
+
+    expect(component.input.inputValue()).toBe('north');
+  });
+
+  it('shows command completions, preserves the rest of the line, and cycles them with tab', () => {
+    const fixture = TestBed.createComponent(TerminalComponent);
+    const component = fixture.componentInstance;
+
+    socket.playerStats.set({
+      health: 12,
+      maxHealth: 20,
+      mana: 7,
+      maxMana: 10,
+      movement: 8,
+      maxMovement: 12,
+      level: 3,
+      maxLevel: 10,
+      xpProgress: 25,
+      xpForNextLevel: 100,
+      totalXp: 250,
+      isGod: false,
+      characterClass: 'mage',
+    });
+    component.input.updateInputValue('lo fountain');
+    fixture.detectChanges();
+
+    const text = fixture.nativeElement.textContent ?? '';
+    expect(text).toContain('Tab');
+    expect(text).toContain('complete look fountain');
+    expect(text).toContain('1/3');
+    expect(text).toContain('lore fountain');
+
+    const input: HTMLInputElement = fixture.nativeElement.querySelector('.cmd-input');
+    const tabEvent = new KeyboardEvent('keydown', { key: 'Tab', bubbles: true, cancelable: true });
+    input.dispatchEvent(tabEvent);
+    fixture.detectChanges();
+
+    expect(component.input.inputValue()).toBe('look fountain');
+    expect(tabEvent.defaultPrevented).toBe(true);
+
+    const secondTabEvent = new KeyboardEvent('keydown', { key: 'Tab', bubbles: true, cancelable: true });
+    input.dispatchEvent(secondTabEvent);
+    fixture.detectChanges();
+
+    expect(component.input.inputValue()).toBe('lore fountain');
+    expect(fixture.nativeElement.textContent ?? '').toContain('2/3');
   });
 
   it('appends narrative messages immediately as they arrive', () => {

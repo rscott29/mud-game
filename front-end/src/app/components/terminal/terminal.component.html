@@ -84,18 +84,50 @@
 
   <div class="input-bar" [class.hidden]="view.characterCreationData() !== null">
     <span class="prompt-glyph">{{ view.promptLabel() }}</span>
-    <input
-      class="cmd-input"
-      [type]="view.inputType()"
-      [placeholder]="view.placeholder()"
-      [ngModel]="input.inputValue()"
-      (ngModelChange)="input.inputValue.set($event)"
-      (keydown.enter)="input.send()"
-      autocomplete="off"
-      autocapitalize="off"
-      spellcheck="false"
-      autofocus
-    />
+    <div class="cmd-input-stack">
+      <input
+        class="cmd-input"
+        [type]="view.inputType()"
+        [placeholder]="view.placeholder()"
+        [ngModel]="input.inputValue()"
+        (ngModelChange)="input.updateInputValue($event)"
+        (keydown.enter)="input.send()"
+        (keydown.tab)="acceptSuggestion($event)"
+        (keydown.arrowup)="$event.preventDefault(); input.recallPrevious()"
+        (keydown.arrowdown)="$event.preventDefault(); input.recallNext()"
+        autocomplete="off"
+        autocapitalize="off"
+        spellcheck="false"
+        autofocus
+      />
+
+      @if (view.commandSuggestion(); as suggestion) {
+        <div class="cmd-completion" aria-live="polite">
+          <div class="cmd-suggestion">
+            <span class="cmd-suggestion__key">Tab</span>
+            <span class="cmd-suggestion__text">complete {{ suggestion }}</span>
+            @if (view.commandSuggestions().length > 1) {
+              <span class="cmd-suggestion__count">
+                {{ view.commandSuggestionIndex() + 1 }}/{{ view.commandSuggestions().length }}
+              </span>
+            }
+          </div>
+
+          @if (view.visibleCommandSuggestions().length > 1) {
+            <div class="cmd-suggestion-list" role="listbox" aria-label="Command suggestions">
+              @for (match of view.visibleCommandSuggestions(); track match) {
+                <span
+                  class="cmd-suggestion-list__item"
+                  [class.cmd-suggestion-list__item--active]="match === suggestion"
+                >
+                  {{ match }}
+                </span>
+              }
+            </div>
+          }
+        </div>
+      }
+    </div>
     <button type="button" class="send-btn" (click)="input.send()">Send</button>
   </div>
 </div>

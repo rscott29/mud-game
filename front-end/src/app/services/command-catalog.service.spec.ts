@@ -133,4 +133,45 @@ describe('CommandCatalogService', () => {
     expect(social?.example).toBe('wave self');
     expect(tips).toContain('Use n, s, e, w, u, and d for quick travel.');
   });
+
+  it('returns the shortest matching alias for command autocomplete', () => {
+    service.load();
+
+    const request = httpMock.expectOne('/api/commands');
+    request.flush({
+      commands: [
+        {
+          canonicalName: 'look',
+          aliases: ['look', 'lore', 'locate'],
+          category: 'Exploration',
+          usage: 'look [target]',
+          description: 'Describe surroundings or examine something',
+          godOnly: false,
+          showInHelp: true,
+          dispatchMode: 'NATURAL_LANGUAGE',
+        },
+        {
+          canonicalName: 'spawn',
+          aliases: ['spawn'],
+          category: 'God',
+          usage: 'spawn <item>',
+          description: 'Spawn an item by ID',
+          godOnly: true,
+          showInHelp: true,
+          dispatchMode: 'DIRECT',
+        },
+      ],
+    });
+
+    expect(service.autocompleteMatches('lo fountain', false)).toEqual([
+      'look fountain',
+      'lore fountain',
+      'locate fountain',
+    ]);
+    expect(service.autocompleteSuggestion('lo', false)).toBe('look');
+    expect(service.autocompleteSuggestion('sp', false)).toBeUndefined();
+    expect(service.autocompleteSuggestion('sp', true)).toBe('spawn');
+    expect(service.autocompleteSuggestion('look', false)).toBeUndefined();
+    expect(service.autocompleteSuggestion('look at', false)).toBeUndefined();
+  });
 });
