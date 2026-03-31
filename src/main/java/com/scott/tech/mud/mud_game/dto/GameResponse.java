@@ -8,6 +8,7 @@ import com.scott.tech.mud.mud_game.model.Item;
 import com.scott.tech.mud.mud_game.model.Npc;
 import com.scott.tech.mud.mud_game.model.Player;
 import com.scott.tech.mud.mud_game.model.Room;
+import com.scott.tech.mud.mud_game.model.Shop;
 
 import java.util.List;
 import java.util.Set;
@@ -254,7 +255,8 @@ public record GameResponse(
             List<String> exits,
             List<RoomItemView> items,
             List<NpcView> npcs,
-            List<String> players
+            List<String> players,
+            ShopView shop
     ) {
         public static RoomView from(Room room) {
             return from(room, List.of(), Set.of());
@@ -294,6 +296,8 @@ public record GameResponse(
 
             var players = List.copyOf(playerNames);
 
+            ShopView shop = ShopView.from(room.getShop(), room);
+
             return new RoomView(
                     room.getId(),
                     room.getName(),
@@ -301,7 +305,40 @@ public record GameResponse(
                     exits,
                     items,
                     npcs,
-                    players
+                    players,
+                    shop
+            );
+        }
+    }
+
+    public record ShopView(String merchantNpcId, String merchantName, List<ShopListingView> listings) {
+        public static ShopView from(Shop shop, Room room) {
+            if (shop == null || shop.isEmpty()) {
+                return null;
+            }
+
+            String merchantName = room == null ? shop.getMerchantNpcId() : room.getNpcs().stream()
+                    .filter(npc -> shop.getMerchantNpcId().equals(npc.getId()))
+                    .map(Npc::getName)
+                    .findFirst()
+                    .orElse(shop.getMerchantNpcId());
+
+            List<ShopListingView> listings = shop.getListings().stream()
+                    .map(ShopListingView::from)
+                    .toList();
+
+            return new ShopView(shop.getMerchantNpcId(), merchantName, listings);
+        }
+    }
+
+    public record ShopListingView(String itemId, String name, String description, String rarity, int price) {
+        public static ShopListingView from(Shop.Listing listing) {
+            return new ShopListingView(
+                    listing.itemId(),
+                    listing.item().getName(),
+                    listing.item().getDescription(),
+                    listing.item().getRarity().name().toLowerCase(),
+                    listing.price()
             );
         }
     }
@@ -345,6 +382,7 @@ public record GameResponse(
             int level, int maxLevel,
             int xpProgress, int xpForNextLevel,
             int totalXp,
+                int gold,
             boolean isGod,
             String characterClass
     ) {
@@ -371,6 +409,7 @@ public record GameResponse(
                     Math.max(0, xpProgress),
                     xpForNext,
                     totalXp,
+                    player.getGold(),
                     player.isGod(),
                     player.getCharacterClass());
         }
@@ -397,6 +436,7 @@ public record GameResponse(
                     Math.max(0, xpProgress),
                     xpForNext,
                     totalXp,
+                    player.getGold(),
                     player.isGod(),
                     player.getCharacterClass());
         }

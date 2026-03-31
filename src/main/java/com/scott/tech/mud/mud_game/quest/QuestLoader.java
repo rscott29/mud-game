@@ -157,7 +157,7 @@ public class QuestLoader {
             return QuestRewards.NONE;
         }
 
-        return new QuestRewards(def.items, def.xp);
+        return new QuestRewards(def.items, def.xp, def.gold);
     }
 
     private ObjectiveEffects buildObjectiveEffects(ObjectiveEffectsData def) {
@@ -258,6 +258,9 @@ public class QuestLoader {
 
         if (def.rewards != null && def.rewards.xp < 0) {
             errors.add("quest '" + safeLabel(def.id) + "' rewards.xp cannot be negative");
+        }
+        if (def.rewards != null && def.rewards.gold < 0) {
+            errors.add("quest '" + safeLabel(def.id) + "' rewards.gold cannot be negative");
         }
 
         validateStringList(def.startDialogue, "quest '" + safeLabel(def.id) + "' startDialogue", errors);
@@ -608,6 +611,7 @@ public class QuestLoader {
     static class RewardsData {
         public List<String> items = List.of();
         public int xp = 0;
+        public int gold = 0;
     }
 
     static class CompletionEffectsData {

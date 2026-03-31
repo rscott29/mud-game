@@ -69,6 +69,20 @@ export interface RoomItemDto {
   rarity: string;
 }
 
+export interface ShopListingDto {
+  itemId: string;
+  name: string;
+  description: string;
+  rarity: string;
+  price: number;
+}
+
+export interface ShopDto {
+  merchantNpcId: string;
+  merchantName: string;
+  listings: ShopListingDto[];
+}
+
 export interface RoomDto {
   id?: string;
   name: string;
@@ -77,6 +91,7 @@ export interface RoomDto {
   items: RoomItemDto[];
   npcs: NpcDto[];
   players: string[];
+  shop?: ShopDto | null;
 }
 
 export interface ItemDto {
@@ -108,6 +123,7 @@ export interface PlayerStatsDto {
   xpProgress: number;
   xpForNextLevel: number;
   totalXp: number;
+  gold?: number;
   isGod: boolean;
   characterClass: string;
 }

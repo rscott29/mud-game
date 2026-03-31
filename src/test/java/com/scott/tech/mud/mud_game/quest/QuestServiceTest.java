@@ -91,6 +91,32 @@ class QuestServiceTest {
     }
 
     @Test
+    void completeQuest_awardsGoldToPlayer() throws Exception {
+        Quest quest = new Quest(
+                "quest_gold",
+                "Quest Gold",
+                "A quest for testing gold rewards.",
+                "npc_giver",
+                List.of("Welcome, traveler."),
+                QuestPrerequisites.NONE,
+                List.of(visitObjective("visit_grove", "moonlit_grove")),
+                new QuestRewards(List.of(), 10, 35),
+                List.of("Quest complete."),
+                QuestCompletionEffects.NONE
+        );
+        QuestService service = questServiceWith(quest);
+        Player player = player();
+        service.startQuest(player, quest.id());
+
+        Optional<QuestService.QuestProgressResult> result = service.onEnterRoom(player, "moonlit_grove");
+
+        assertThat(result).isPresent();
+        assertThat(result.get().type()).isEqualTo(QuestService.QuestProgressResult.ResultType.QUEST_COMPLETE);
+        assertThat(result.get().goldReward()).isEqualTo(35);
+        assertThat(player.getGold()).isEqualTo(35);
+    }
+
+    @Test
     void onDialogueChoice_advancesDialogueStageBeforeQuestCompletion() throws Exception {
         QuestObjective.DialogueData followUp = new QuestObjective.DialogueData(
                 "Second question?",

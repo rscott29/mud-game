@@ -661,12 +661,16 @@ public class QuestService {
         }
 
         int xpReward = quest.rewards().xp();
+        int goldReward = quest.rewards().gold();
+        if (goldReward > 0) {
+            player.addGold(goldReward);
+        }
         
         // Build completion data
         QuestCompletionEffects effects = quest.completionEffects();
         
-        log.info("Player '{}' completed quest '{}', earned {} XP and {} items",
-                player.getName(), quest.id(), xpReward, rewardItems.size());
+        log.info("Player '{}' completed quest '{}', earned {} XP, {} gold, and {} items",
+            player.getName(), quest.id(), xpReward, goldReward, rewardItems.size());
 
         List<String> messages = new ArrayList<>();
         if (extraMessage != null) {
@@ -674,7 +678,7 @@ public class QuestService {
         }
         messages.addAll(quest.completionDialogue());
 
-        return QuestProgressResult.questComplete(quest, messages, rewardItems, xpReward, effects);
+        return QuestProgressResult.questComplete(quest, messages, rewardItems, xpReward, goldReward, effects);
     }
 
     /**
@@ -689,6 +693,7 @@ public class QuestService {
             List<String> messages,
             List<Item> rewardItems,
             int xpReward,
+            int goldReward,
             QuestCompletionEffects effects,
             ObjectiveEffects objectiveEffects,
             QuestObjective.DialogueData nextDialogue
@@ -703,30 +708,30 @@ public class QuestService {
 
         public static QuestProgressResult progress(Quest quest, String message) {
             return new QuestProgressResult(ResultType.PROGRESS, quest, null, null, message, 
-                    List.of(), List.of(), 0, null, null, null);
+                    List.of(), List.of(), 0, 0, null, null, null);
         }
 
         public static QuestProgressResult objectiveComplete(Quest quest, QuestObjective completedObj, 
                 QuestObjective nextObj, String message) {
             return new QuestProgressResult(ResultType.OBJECTIVE_COMPLETE, quest, nextObj, completedObj, message,
-                    List.of(), List.of(), 0, null, completedObj.onComplete(), null);
+                    List.of(), List.of(), 0, 0, null, completedObj.onComplete(), null);
         }
 
         public static QuestProgressResult questComplete(Quest quest, List<String> messages, 
-                List<Item> items, int xp, QuestCompletionEffects effects) {
+                List<Item> items, int xp, int gold, QuestCompletionEffects effects) {
             return new QuestProgressResult(ResultType.QUEST_COMPLETE, quest, null, null, null,
-                    messages, items, xp, effects, null, null);
+                    messages, items, xp, gold, effects, null, null);
         }
 
         public static QuestProgressResult dialogue(Quest quest, String message, 
                 QuestObjective.DialogueData nextDialogue) {
             return new QuestProgressResult(ResultType.DIALOGUE, quest, null, null, message,
-                    List.of(), List.of(), 0, null, null, nextDialogue);
+                    List.of(), List.of(), 0, 0, null, null, nextDialogue);
         }
 
         public static QuestProgressResult failure(String message) {
             return new QuestProgressResult(ResultType.FAILURE, null, null, null, message,
-                    List.of(), List.of(), 0, null, null, null);
+                    List.of(), List.of(), 0, 0, null, null, null);
         }
     }
 

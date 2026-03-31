@@ -113,7 +113,7 @@
         "SOUTH": "alchemist",
         "WEST": "blacksmith"
       },
-      "itemIds": ["item_bread_loaf", "item_strange_trinket", "item_childs_ball", "item_market_awning"]
+      "itemIds": ["item_wbl_sign",  "item_childs_ball", "item_market_awning"]
     },
     {
       "id": "general_store",
@@ -123,7 +123,14 @@
         "WEST": "market"
       },
       "itemIds": ["item_shop_counter", "item_supply_crates"],
-      "npcIds": ["npc_shopkeeper_rona"]
+      "npcIds": ["npc_shopkeeper_rona"],
+      "shop": {
+        "merchantNpcId": "npc_shopkeeper_rona",
+        "listings": [
+          { "itemId": "item_travel_rope", "price": 8 },
+          { "itemId": "item_tinderbox", "price": 5 }
+        ]
+      }
     },
     {
       "id": "alchemist",
@@ -132,8 +139,15 @@
       "exits": {
         "NORTH": "market"
       },
-      "itemIds": ["item_health_potion", "item_mysterious_powder", "item_herb_bundle"],
-      "npcIds": ["npc_apothecary_selin"]
+      "itemIds": ["item_herb_bundle"],
+      "npcIds": ["npc_apothecary_selin"],
+      "shop": {
+        "merchantNpcId": "npc_apothecary_selin",
+        "listings": [
+          { "itemId": "item_health_potion", "price": 18 },
+          { "itemId": "item_mysterious_powder", "price": 14 }
+        ]
+      }
     },
     {
       "id": "temple",
@@ -585,8 +599,15 @@
         "EAST": "market",
         "WEST": "training_yard"
       },
-      "itemIds": ["item_iron_sword", "item_leather_shield", "item_anvil"],
-      "npcIds": ["npc_blacksmith_bram"]
+      "itemIds": ["item_anvil"],
+      "npcIds": ["npc_blacksmith_bram"],
+      "shop": {
+        "merchantNpcId": "npc_blacksmith_bram",
+        "listings": [
+          { "itemId": "item_iron_sword", "price": 30 },
+          { "itemId": "item_leather_shield", "price": 24 }
+        ]
+      }
     },
     {
       "id": "training_yard",

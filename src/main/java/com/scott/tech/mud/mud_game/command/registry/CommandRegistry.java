@@ -25,6 +25,8 @@ import com.scott.tech.mud.mud_game.command.respawn.RespawnCommand;
 import com.scott.tech.mud.mud_game.command.skills.SkillsCommand;
 import com.scott.tech.mud.mud_game.command.social.SocialAction;
 import com.scott.tech.mud.mud_game.command.social.SocialCommand;
+import com.scott.tech.mud.mud_game.command.shop.BuyCommand;
+import com.scott.tech.mud.mud_game.command.shop.ShopCommand;
 import com.scott.tech.mud.mud_game.command.talk.TalkCommand;
 import com.scott.tech.mud.mud_game.command.unknown.UnknownCommand;
 import com.scott.tech.mud.mud_game.command.who.WhoCommand;
@@ -75,6 +77,8 @@ public final class CommandRegistry {
     public static final String INVESTIGATE = "investigate";
         public static final String FOLLOW = "follow";
         public static final String GROUP = "group";
+        public static final String SHOP = "shop";
+        public static final String BUY = "buy";
     public static final String SKILLS = "skills";
     public static final String MODERATION = "moderation";
     public static final String RECALL = "recall";
@@ -274,6 +278,26 @@ public final class CommandRegistry {
                 .usage("inventory")
                 .description("List what you are carrying")
                 .creator(ctx -> new InventoryCommand())
+                .build());
+
+        commands.add(CommandDefinition.builder(SHOP)
+                .aliases("shop", "browse", "wares", "trade")
+                .category(INTERACTION)
+                .usage("shop")
+                .description("Browse the merchant stock in the current room")
+                .creator(ctx -> new ShopCommand(ctx.deps().shopService()))
+                .build());
+
+        commands.add(CommandDefinition.builder(BUY)
+                .aliases("buy", "purchase")
+                .category(INTERACTION)
+                .usage("buy <item>")
+                .description("Buy an item from the current room's merchant")
+                .creator(ctx -> new BuyCommand(
+                        ctx.hasNoArgs() ? null : ctx.joinedArgs(),
+                        ctx.deps().shopService(),
+                        ctx.deps().xpTables()
+                ))
                 .build());
 
         commands.add(CommandDefinition.builder(ME)

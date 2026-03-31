@@ -59,10 +59,12 @@ class ObjectiveEncounterRuntimeServiceTest {
         assertThat(session.getBlockedExitMessage("prayer_ledge", Direction.WEST)).isNotBlank();
         verify(broadcaster).broadcastToRoom(eq("prayer_ledge"), any(), eq("session-1"));
 
-        service.onSpawnedNpcDefeated(player, revenant);
+        var clearedMessage = service.onSpawnedNpcDefeated(player, revenant);
 
         assertThat(session.getBlockedExitMessage("prayer_ledge", Direction.WEST)).isNull();
-        verify(broadcaster).sendToSession(eq("session-1"), any());
+        assertThat(clearedMessage).isPresent();
+        assertThat(clearedMessage.get()).contains("path is open again");
+        verify(broadcaster, never()).sendToSession(eq("session-1"), any());
     }
 
     @Test

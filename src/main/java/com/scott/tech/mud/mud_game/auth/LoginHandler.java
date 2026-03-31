@@ -427,6 +427,7 @@ public class LoginHandler {
             session.getPlayer().setMovement(cached.movement());
             session.getPlayer().setMaxMovement(cached.maxMovement());
             session.getPlayer().setExperience(cached.experience());
+            session.getPlayer().setGold(cached.gold() == null ? 0 : cached.gold());
             if (cached.equippedItems() != null && !cached.equippedItems().isBlank()) {
                 session.getPlayer().setEquippedItemsSerialized(cached.equippedItems());
             } else {

@@ -101,6 +101,26 @@ class MockCommandCatalogService {
       showInHelp: true,
       dispatchMode: COMMAND_DISPATCH_MODES.DIRECT,
     },
+    {
+      canonicalName: 'shop',
+      aliases: ['shop', 'browse', 'wares', 'trade'],
+      category: COMMAND_HELP_CATEGORIES.INTERACTION,
+      usage: 'shop',
+      description: 'Browse the merchant stock in the current room',
+      godOnly: false,
+      showInHelp: true,
+      dispatchMode: COMMAND_DISPATCH_MODES.DIRECT,
+    },
+    {
+      canonicalName: 'buy',
+      aliases: ['buy', 'purchase'],
+      category: COMMAND_HELP_CATEGORIES.INTERACTION,
+      usage: 'buy <item>',
+      description: 'Buy an item from the current room\'s merchant',
+      godOnly: false,
+      showInHelp: true,
+      dispatchMode: COMMAND_DISPATCH_MODES.DIRECT,
+    },
   ];
 
   load(): void {}
@@ -838,6 +858,66 @@ describe('TerminalComponent', () => {
     expect(component.view.messages()[1].cssClass).toBe(TERMINAL_MESSAGE_CLASSES.ROOM_UPDATE);
     expect(component.view.messages()[1].html).toContain('You arrive.');
     expect(component.view.messages()[1].html).toContain('Quentor arrives from the east.');
+  });
+
+  it('renders a shop panel inside the room card and sends buy commands from shop buttons', () => {
+    socket.playerStats.set({
+      health: 10,
+      maxHealth: 10,
+      mana: 5,
+      maxMana: 5,
+      movement: 8,
+      maxMovement: 8,
+      level: 1,
+      maxLevel: 10,
+      xpProgress: 0,
+      xpForNextLevel: 100,
+      totalXp: 0,
+      gold: 12,
+      isGod: false,
+      characterClass: 'warrior',
+    });
+    const fixture = TestBed.createComponent(TerminalComponent);
+    const component = fixture.componentInstance;
+
+    const room = {
+      id: 'general_store',
+      name: 'General Store',
+      description: 'A bright room full of useful things.',
+      exits: ['west'],
+      items: [],
+      npcs: [{ name: 'Shopkeeper Rona', sentient: true }],
+      players: [],
+      shop: {
+        merchantNpcId: 'npc_shopkeeper_rona',
+        merchantName: 'Shopkeeper Rona',
+        listings: [
+          {
+            itemId: 'item_travel_rope',
+            name: 'Travel Rope',
+            description: 'A stout rope.',
+            rarity: 'common',
+            price: 8,
+          },
+        ],
+      },
+    };
+
+    socket.messages$.next({ type: GAME_MESSAGE_TYPES.ROOM_UPDATE, message: 'You arrive.', room });
+    fixture.detectChanges();
+
+    expect(component.view.messages()[0].html).toContain('Shopkeeper Rona');
+    expect(component.view.messages()[0].html).toContain('Buy now');
+    expect(component.view.messages()[0].html).toContain('8 gold');
+
+    const button = fixture.nativeElement.querySelector('.term-shop__buy') as HTMLButtonElement;
+    button.click();
+
+    expect(socket.sent.length).toBe(1);
+    expect(JSON.parse(socket.sent[0])).toEqual({
+      command: 'buy',
+      args: ['item_travel_rope'],
+    });
   });
 
   it('renders help from the command catalog instead of hardcoded frontend lists', () => {

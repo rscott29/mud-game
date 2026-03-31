@@ -49,9 +49,9 @@ public class ObjectiveEncounterRuntimeService {
         return startEncounter(session, result.quest().id(), result.completedObjective().id(), effects.encounter());
     }
 
-    public void onSpawnedNpcDefeated(Player player, Npc npc) {
+    public java.util.Optional<String> onSpawnedNpcDefeated(Player player, Npc npc) {
         if (player == null || npc == null) {
-            return;
+            return java.util.Optional.empty();
         }
 
         for (Map.Entry<EncounterKey, EncounterState> entry : activeEncounters.entrySet()) {
@@ -64,10 +64,12 @@ public class ObjectiveEncounterRuntimeService {
                 continue;
             }
             if (state.spawnedNpcIds().isEmpty()) {
-                clearEncounter(key, true);
+                return clearEncounter(key, true);
             }
-            return;
+            return java.util.Optional.empty();
         }
+
+        return java.util.Optional.empty();
     }
 
     private boolean startEncounter(GameSession session,
@@ -128,10 +130,10 @@ public class ObjectiveEncounterRuntimeService {
         return true;
     }
 
-    private void clearEncounter(EncounterKey key, boolean announceClear) {
+    private java.util.Optional<String> clearEncounter(EncounterKey key, boolean announceClear) {
         EncounterState state = activeEncounters.remove(key);
         if (state == null) {
-            return;
+            return java.util.Optional.empty();
         }
 
         sessionManager.get(state.sessionId()).ifPresent(session -> {
@@ -141,13 +143,10 @@ public class ObjectiveEncounterRuntimeService {
         });
 
         if (!announceClear) {
-            return;
+            return java.util.Optional.empty();
         }
 
-        broadcaster.sendToSession(
-                state.sessionId(),
-                GameResponse.narrative(Messages.fmt("quest.encounter.cleared", "enemies", state.enemyLabel()))
-        );
+        return java.util.Optional.of(Messages.fmt("quest.encounter.cleared", "enemies", state.enemyLabel()));
     }
 
     private String enemyLabel(List<Npc> spawnedNpcs) {

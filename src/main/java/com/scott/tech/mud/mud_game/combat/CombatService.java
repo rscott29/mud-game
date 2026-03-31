@@ -106,13 +106,28 @@ public class CombatService {
                 message.append(narrator.npcDefeated(target));
                 partyMessage.append(narrator.npcDefeated(target));
 
-                int xpGained = scaleXpForLevelDifference(
+                int xpGained = player.isGod()
+                    ? Math.max(0, target.getXpReward())
+                    : scaleXpForLevelDifference(
                         target.getXpReward(),
                         player.getLevel(),
                         target.getLevel()
-                );
+                    );
+                int goldGained = player.isGod()
+                    ? Math.max(0, target.getGoldReward())
+                    : scaleRewardForLevelDifference(
+                        target.getGoldReward(),
+                        player.getLevel(),
+                        target.getLevel()
+                    );
+                if (goldGained > 0) {
+                    player.addGold(goldGained);
+                }
                 if (xpGained > 0) {
                     message.append(narrator.xpGained(xpGained));
+                }
+                if (goldGained > 0) {
+                    message.append(narrator.goldLooted(goldGained));
                 }
 
                 // Check for quest progress on defeating this NPC
@@ -130,8 +145,10 @@ public class CombatService {
                     }
                 }
 
+                String encounterClearedMessage = null;
                 if (objectiveEncounterRuntimeService != null) {
-                    objectiveEncounterRuntimeService.onSpawnedNpcDefeated(player, target);
+                    encounterClearedMessage = objectiveEncounterRuntimeService.onSpawnedNpcDefeated(player, target)
+                            .orElse(null);
                 }
 
                 combatState.endCombatForTarget(target);
@@ -141,6 +158,10 @@ public class CombatService {
                     partyMessage.append(narrator.npcRespawns(target));
                 } else if (Npc.isInstanceId(target.getId())) {
                     worldService.removeNpcInstance(target.getId());
+                }
+
+                if (encounterClearedMessage != null && !encounterClearedMessage.isBlank()) {
+                    message.append("\n\n").append(encounterClearedMessage);
                 }
 
                 return AttackResult.targetDefeat(message.toString(), partyMessage.toString(), xpGained, questProgressResult);
@@ -202,13 +223,17 @@ public class CombatService {
     }
 
     static int scaleXpForLevelDifference(int baseXp, int playerLevel, int targetLevel) {
-        if (baseXp <= 0) {
+        return scaleRewardForLevelDifference(baseXp, playerLevel, targetLevel);
+    }
+
+    static int scaleRewardForLevelDifference(int baseReward, int playerLevel, int targetLevel) {
+        if (baseReward <= 0) {
             return 0;
         }
 
         int playerAboveTarget = playerLevel - targetLevel;
         if (playerAboveTarget <= XP_FULL_REWARD_LEVEL_DELTA) {
-            return baseXp;
+            return baseReward;
         }
         if (playerAboveTarget >= XP_ZERO_REWARD_LEVEL_DELTA) {
             return 0;
@@ -216,7 +241,7 @@ public class CombatService {
 
         double range = XP_ZERO_REWARD_LEVEL_DELTA - XP_FULL_REWARD_LEVEL_DELTA;
         double remaining = XP_ZERO_REWARD_LEVEL_DELTA - playerAboveTarget;
-        int scaled = (int) Math.round(baseXp * (remaining / range));
+        int scaled = (int) Math.round(baseReward * (remaining / range));
         return Math.max(1, scaled);
     }
 }

@@ -109,6 +109,10 @@ public class CombatNarrator {
         return Messages.fmt("combat.xp_gained", "xp", String.valueOf(xp));
     }
 
+    public String goldLooted(int gold) {
+        return Messages.fmt("combat.gold_looted", "gold", String.valueOf(gold));
+    }
+
     public String npcRespawns(Npc target) {
         return Messages.fmt("combat.npc_respawns", "npc", target.getName());
     }

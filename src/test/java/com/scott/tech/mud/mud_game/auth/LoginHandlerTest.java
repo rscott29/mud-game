@@ -355,6 +355,7 @@ class LoginHandlerTest {
                 60,
                 100,
                 150,
+                25,
                 List.of("iron_sword"),
                 "iron_sword",
                 "main_weapon=iron_sword",

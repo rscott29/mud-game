@@ -15,8 +15,10 @@ import java.util.Map;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -122,7 +124,7 @@ class WorldServiceTest {
     }
 
     @Test
-    void spawnAndRemoveNpcInstance_updatesRuntimeWorldStateWithoutPersisting() throws Exception {
+    void spawnAndRemoveNpcInstance_updatesRuntimeWorldStateAndPersistsIt() throws Exception {
         WorldLoader worldLoader = mock(WorldLoader.class);
         NpcPositionRepository npcPositionRepository = mock(NpcPositionRepository.class);
 
@@ -146,13 +148,44 @@ class WorldServiceTest {
         assertThat(spawned.getId()).startsWith("npc_forest_wolf" + Npc.INSTANCE_ID_DELIMITER);
         assertThat(worldService.getNpcRoomId(spawned.getId())).isEqualTo("deep_forest");
         assertThat(room.hasNpc(spawned)).isTrue();
-        verify(npcPositionRepository, never()).save(org.mockito.ArgumentMatchers.any());
+        verify(npcPositionRepository).save(argThat(pos ->
+            spawned.getId().equals(pos.getNpcId()) && "deep_forest".equals(pos.getRoomId())));
 
         worldService.removeNpcInstance(spawned.getId());
 
         assertThat(worldService.getNpcById(spawned.getId())).isNull();
         assertThat(worldService.getNpcRoomId(spawned.getId())).isNull();
         assertThat(room.hasNpc(spawned)).isFalse();
+        verify(npcPositionRepository).deleteById(spawned.getId());
+        }
+
+        @Test
+        void loadWorld_restoresPersistedSpawnedNpcInstances() throws Exception {
+        WorldLoader worldLoader = mock(WorldLoader.class);
+        NpcPositionRepository npcPositionRepository = mock(NpcPositionRepository.class);
+
+        Npc wolf = npc("npc_forest_wolf");
+        String spawnedId = "npc_forest_wolf" + Npc.INSTANCE_ID_DELIMITER + "abc123";
+        Room room = room("deep_forest", List.of());
+        when(worldLoader.load()).thenReturn(new WorldLoadResult(
+            Map.of("deep_forest", room),
+            Map.of("npc_forest_wolf", wolf),
+            Map.of(),
+            Map.of(),
+            "deep_forest",
+            "deep_forest"
+        ));
+        when(npcPositionRepository.findAll()).thenReturn(List.of(new NpcPositionEntity(spawnedId, "deep_forest")));
+
+        WorldService worldService = new WorldService(worldLoader, npcPositionRepository);
+        worldService.loadWorld();
+
+        Npc restored = worldService.getNpcById(spawnedId);
+        assertThat(restored).isNotNull();
+        assertThat(restored.getId()).isEqualTo(spawnedId);
+        assertThat(worldService.getNpcRoomId(spawnedId)).isEqualTo("deep_forest");
+        assertThat(room.hasNpc(restored)).isTrue();
+        verify(npcPositionRepository, times(0)).deleteById(anyString());
     }
 
     private static Npc npc(String id) {

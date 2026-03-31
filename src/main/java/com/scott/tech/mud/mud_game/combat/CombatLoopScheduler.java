@@ -460,6 +460,12 @@ public class CombatLoopScheduler {
                     }
                 }
 
+                if (result.goldReward() > 0) {
+                    broadcaster.sendToSession(session.getSessionId(),
+                            GameResponse.narrative(Messages.fmt("quest.gold_reward", "gold", String.valueOf(result.goldReward())))
+                                    .withPlayerStats(player, levelingService.getXpTables()));
+                }
+
                 for (Item item : result.rewardItems()) {
                     broadcaster.sendToSession(session.getSessionId(),
                             GameResponse.narrative(Messages.fmt("quest.item_reward", "item", item.getName())));
@@ -516,6 +522,10 @@ public class CombatLoopScheduler {
                 if (result.xpReward() > 0) {
                     builder.append("<br><br>")
                             .append(Messages.fmt("quest.xp_reward", "xp", String.valueOf(result.xpReward())));
+                }
+                if (result.goldReward() > 0) {
+                    builder.append("<br>")
+                            .append(Messages.fmt("quest.gold_reward", "gold", String.valueOf(result.goldReward())));
                 }
                 for (Item item : result.rewardItems()) {
                     builder.append("<br>")

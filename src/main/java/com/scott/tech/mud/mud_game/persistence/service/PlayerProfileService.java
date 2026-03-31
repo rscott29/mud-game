@@ -78,6 +78,7 @@ public class PlayerProfileService {
                 player.setEquippedWeaponId(p.getEquippedWeaponId());
             }
             player.setExperience(p.getExperience());
+            player.setGold(p.getGold());
             if (p.getRecallRoomId() != null && !p.getRecallRoomId().isBlank()) {
                 player.setRecallRoomId(p.getRecallRoomId());
             }
@@ -163,18 +164,20 @@ public class PlayerProfileService {
         profile.setEquippedItems(player.getEquippedItemsSerialized());
         profile.setRecallRoomId(player.getRecallRoomId());
         profile.setExperience(player.getExperience());
+        profile.setGold(player.getGold());
         // Save completed quests as comma-separated string
         var completedQuests = player.getQuestState().getCompletedQuests();
         profile.setCompletedQuests(completedQuests.isEmpty() ? null : String.join(",", completedQuests));
         profile.setLastSeenAt(Instant.now());
         profileRepository.save(profile);
-        log.debug("Saved full profile for '{}': room='{}' hp={}/{} mp={}/{} mv={}/{} xp={}",
+        log.debug("Saved full profile for '{}': room='{}' hp={}/{} mp={}/{} mv={}/{} xp={} gold={}",
                 key,
                 player.getCurrentRoomId(),
                 player.getHealth(), player.getMaxHealth(),
                 player.getMana(), player.getMaxMana(),
                 player.getMovement(), player.getMaxMovement(),
-                player.getExperience());
+            player.getExperience(),
+            player.getGold());
     }
 
     /** Backwards-compatible overload that preserves existing level/title. */
@@ -218,6 +221,7 @@ public class PlayerProfileService {
         profile.setEquippedItems(state.equippedItems());
         profile.setRecallRoomId(state.recallRoomId());
         profile.setExperience(state.experience());
+        profile.setGold(state.gold() == null ? 0 : state.gold());
         // Save completed quests as comma-separated string
         var completedQuests = state.completedQuests();
         profile.setCompletedQuests(completedQuests == null || completedQuests.isEmpty() ? null : String.join(",", completedQuests));

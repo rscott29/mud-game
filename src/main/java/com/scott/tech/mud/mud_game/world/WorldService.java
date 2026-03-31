@@ -53,18 +53,8 @@ public class WorldService {
             // Overlay with persisted NPC positions from the database
             int[] overlaid = {0};
             npcPositionRepository.findAll().forEach(pos -> {
-                String savedRoom = pos.getRoomId();
-                String currentRoom = npcRoomIndex.get(pos.getNpcId());
-                if (currentRoom != null && !currentRoom.equals(savedRoom) && rooms.containsKey(savedRoom)) {
-                    Npc npc = npcRegistry.get(pos.getNpcId());
-                    if (npc != null) {
-                        Room from = rooms.get(currentRoom);
-                        Room to   = rooms.get(savedRoom);
-                        if (from != null) from.removeNpc(npc);
-                        if (to   != null) to.addNpc(npc);
-                        npcRoomIndex.put(pos.getNpcId(), savedRoom);
-                        overlaid[0]++;
-                    }
+                if (restorePersistedNpcPosition(pos)) {
+                    overlaid[0]++;
                 }
             });
             if (overlaid[0] > 0) {
@@ -109,6 +99,7 @@ public class WorldService {
         npcRegistry.put(instanceId, instance);
         npcRoomIndex.put(instanceId, roomId);
         room.addNpc(instance);
+        npcPositionRepository.save(new NpcPositionEntity(instanceId, roomId));
         return Optional.of(instance);
     }
 
@@ -127,6 +118,7 @@ public class WorldService {
         if (room != null) {
             room.removeNpc(npc);
         }
+        npcPositionRepository.deleteById(npcId);
     }
 
     public String getNpcRoomId(String npcId) {
@@ -179,6 +171,58 @@ public class WorldService {
         toRoom.addNpc(npc);
         npcRoomIndex.put(npcId, toRoomId);
         npcPositionRepository.save(new NpcPositionEntity(npcId, toRoomId));
+    }
+
+    private boolean restorePersistedNpcPosition(NpcPositionEntity pos) {
+        if (pos == null || pos.getNpcId() == null || pos.getRoomId() == null || !rooms.containsKey(pos.getRoomId())) {
+            return false;
+        }
+
+        String npcId = pos.getNpcId();
+        String savedRoom = pos.getRoomId();
+        String currentRoom = npcRoomIndex.get(npcId);
+        if (currentRoom != null) {
+            if (currentRoom.equals(savedRoom)) {
+                return false;
+            }
+
+            Npc npc = npcRegistry.get(npcId);
+            if (npc == null) {
+                return false;
+            }
+
+            moveNpcToRoom(npc, currentRoom, savedRoom);
+            npcRoomIndex.put(npcId, savedRoom);
+            return true;
+        }
+
+        if (!Npc.isInstanceId(npcId)) {
+            return false;
+        }
+
+        String templateNpcId = Npc.templateIdFor(npcId);
+        Npc template = npcRegistry.get(templateNpcId);
+        Room room = rooms.get(savedRoom);
+        if (template == null || room == null) {
+            return false;
+        }
+
+        Npc instance = template.withId(npcId);
+        npcRegistry.put(npcId, instance);
+        npcRoomIndex.put(npcId, savedRoom);
+        room.addNpc(instance);
+        return true;
+    }
+
+    private void moveNpcToRoom(Npc npc, String fromRoomId, String toRoomId) {
+        Room from = rooms.get(fromRoomId);
+        Room to = rooms.get(toRoomId);
+        if (from != null) {
+            from.removeNpc(npc);
+        }
+        if (to != null) {
+            to.addNpc(npc);
+        }
     }
 
     /**

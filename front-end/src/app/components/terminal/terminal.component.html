@@ -17,6 +17,7 @@
         <div class="hud-profile__eyebrow">{{ view.classLabel() || 'Adventurer' }}</div>
         <div class="hud-profile__title">{{ view.levelLabel() }}</div>
         <div class="hud-profile__meta">
+          <span>Gold {{ stats.gold ?? 0 }}</span>
           @if (!stats.isGod) {
             <span>Total XP {{ stats.totalXp }}</span>
           }
@@ -69,7 +70,7 @@
     </div>
   </section>
 
-  <div #logEl class="log" [class.log--auth]="view.isAuthScreen()">
+  <div #logEl class="log" [class.log--auth]="view.isAuthScreen()" (click)="handleLogClick($event)">
     @for (msg of view.messages(); track msg.id) {
       <div class="msg" [ngClass]="msg.cssClass" [innerHTML]="msg.html | safeHtml"></div>
     }

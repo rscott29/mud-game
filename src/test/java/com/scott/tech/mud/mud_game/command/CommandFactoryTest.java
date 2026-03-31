@@ -42,6 +42,9 @@ import com.scott.tech.mud.mud_game.command.registry.CommandFactory;
 import com.scott.tech.mud.mud_game.command.social.SocialCommand;
 import com.scott.tech.mud.mud_game.command.social.SocialService;
 import com.scott.tech.mud.mud_game.command.social.SocialValidator;
+import com.scott.tech.mud.mud_game.command.shop.BuyCommand;
+import com.scott.tech.mud.mud_game.command.shop.ShopCommand;
+import com.scott.tech.mud.mud_game.command.shop.ShopService;
 import com.scott.tech.mud.mud_game.command.talk.TalkService;
 import com.scott.tech.mud.mud_game.command.talk.TalkValidator;
 import com.scott.tech.mud.mud_game.command.unknown.UnknownCommand;
@@ -117,6 +120,7 @@ class CommandFactoryTest {
     private ObjectiveEncounterRuntimeService objectiveEncounterRuntimeService;
     private WorldService worldService;
     private AmbientEventService ambientEventService;
+    private ShopService shopService;
     private CommandFactory factory;
 
     @BeforeEach
@@ -161,6 +165,7 @@ class CommandFactoryTest {
         objectiveEncounterRuntimeService = mock(ObjectiveEncounterRuntimeService.class);
         worldService = mock(WorldService.class);
         ambientEventService = mock(AmbientEventService.class);
+        shopService = mock(ShopService.class);
         factory = new CommandFactory(taskScheduler, worldBroadcaster, sessionManager,
                 inventoryService, discoveredExitService, pickupValidator, pickupService, dropValidator, dropService,
                 aiTextPolisher,
@@ -173,7 +178,7 @@ class CommandFactoryTest {
                 levelingService, worldModerationPolicyService,
                 playerProfileService, stateCache, partyService,
                 questService, defendObjectiveRuntimeService, objectiveEncounterRuntimeService,
-                worldService, ambientEventService);
+                worldService, ambientEventService, shopService);
     }
 
     @Test
@@ -218,6 +223,18 @@ class CommandFactoryTest {
     void fullDirectionAlias_createsMoveCommand() {
         GameCommand command = factory.create(request("north", List.of()));
         assertThat(command).isInstanceOf(MoveCommand.class);
+    }
+
+    @Test
+    void shop_createsShopCommand() {
+        GameCommand command = factory.create(request("shop", List.of()));
+        assertThat(command).isInstanceOf(ShopCommand.class);
+    }
+
+    @Test
+    void buy_createsBuyCommand() {
+        GameCommand command = factory.create(request("buy", List.of("rope")));
+        assertThat(command).isInstanceOf(BuyCommand.class);
     }
 
     @Test

@@ -8,6 +8,19 @@
     "rarity": "COMMON"
   },
   {
+    "id": "item_wbl_sign",
+    "name": "Notice Board",
+    "description": [
+      "<strong>W.B.L.</strong> <em>Wayfarer's Bureau of Logistics</em>",
+      "<br><br><em>\"Through the careful application of tiered pathing matrices, regional outcome harmonisation, and longitudinal readiness mapping, all journeys may be made legible.\"</em>",
+      "<br><br>Someone has scratched underneath in a much less confident hand:",
+      "<br><strong>\"Nobody knows what this means.\"</strong>"
+    ],
+    "keywords": ["notice", "board", "sign", "information", "announcement"],
+    "takeable": false,
+    "rarity": "COMMON"
+  },
+  {
     "id": "item_fountain",
     "name": "Fountain",
     "description": "A stone fountain carved with leaping fish and swirling wave motifs. Cool, clear water bubbles up from a central spout and spills into the basin below. A few copper coins glint at the bottom.",
@@ -134,6 +147,22 @@
     "keywords": ["crates", "supply crates", "boxes", "supplies"],
     "takeable": false,
     "rarity": "COMMON"
+  },
+  {
+    "id": "item_travel_rope",
+    "name": "Travel Rope",
+    "description": "A coil of sturdy hemp rope, rubbed with wax to keep out damp. A little card tied through the knot reads: Twelve fathoms. Don't waste them.",
+    "keywords": ["rope", "travel rope", "hemp rope", "coil"],
+    "takeable": true,
+    "rarity": "COMMON"
+  },
+  {
+    "id": "item_tinderbox",
+    "name": "Tinderbox",
+    "description": "A compact brass tinderbox containing flint, steel, and a pinch of dry tinder wrapped in oilcloth. It smells faintly of lamp smoke and resin.",
+    "keywords": ["tinderbox", "flint", "steel", "fire kit"],
+    "takeable": true,
+    "rarity": "FINE"
   },
   {
     "id": "item_health_potion",

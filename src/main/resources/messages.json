@@ -126,6 +126,15 @@
   "command.inventory.header"            : "You are carrying:",
   "command.inventory.carrying_suffix"   : "You're carrying: {items}",
 
+  "command.shop.no_shop"                : "There is nothing for sale here.",
+  "command.shop.browse"                 : "You take a closer look at {merchant}'s wares.",
+  "command.shop.buy.no_target"          : "Buy what?",
+  "command.shop.buy.not_found"          : "{item} is not on offer here.",
+  "command.shop.buy.available"          : "Available: {items}",
+  "command.shop.buy.already_carrying"   : "You're already carrying the {item}.",
+  "command.shop.buy.not_enough_gold"    : "You need {price} gold for the {item}, but you only have {gold}. You are short by {shortfall}.",
+  "command.shop.buy.success"            : "You buy the {item} from {merchant} for {price} gold.",
+
   "command.investigate.fallback"        : "You search every corner of the room carefully, but find nothing new.",
   "command.investigate.discovery_default": "You search carefully and discover a hidden path to the {direction}!",
 
@@ -225,6 +234,8 @@
   "action.follow"                       : "{player} falls in behind {leader}.",
   "action.follow.stop"                  : "{player} leaves the group.",
   "action.inventory"                    : "{player} checks their belongings.",
+  "action.shop.browse"                  : "{player} studies the wares on display.",
+  "action.shop.buy"                     : "{player} buys the {item} from {merchant}.",
   "action.combat.attack"                : "{player} attacks {npc}!",
   "action.combat.defeat"                : "{player} defeats {npc}!",
   "action.combat.group_defeat"          : "{leader}'s group defeats {npc}!",
@@ -260,6 +271,7 @@
   "combat.player_corpse.description.empty" : "The remains of {player} lie here, cold and still.",
   "combat.player_corpse.description.items" : "The remains of {player} lie here. Their belongings rest within.",
   "combat.xp_gained"                    : "<div class='combat-line xp-gain'><span class='combat-badge combat-badge--reward'>XP</span><span class='combat-body'>+<span class='xp-value'>{xp}</span> experience.</span></div>",
+  "combat.gold_looted"                  : "<div class='combat-line loot-gain'><span class='combat-badge combat-badge--reward'>Gold</span><span class='combat-body'>+<span class='gold-value'>{gold}</span> gold looted.</span></div>",
   "combat.npc_respawns"                 : "<div class='combat-line respawn'><span class='combat-badge combat-badge--system'>Reset</span><span class='combat-body'>{npc} reconstitutes itself, ready for more training.</span></div>",
 
   "level.up"                            : "<div class='level-up'>🎉 <span class='level-up-text'>LEVEL UP!</span> {name} has reached <span class='level-value'>Level {level}</span>!</div>",
@@ -303,6 +315,7 @@
   "quest.started"                       : "<div class='quest-started'>📜 Quest Started: <strong>{quest}</strong></div>",
   "quest.completed"                     : "<div class='quest-complete'>🏆 Quest Complete: <strong>{quest}</strong>!</div>",
   "quest.xp_reward"                     : "<div class='quest-reward'>✨ You gain <span class='xp-value'>{xp}</span> experience points.</div>",
+  "quest.gold_reward"                   : "<div class='quest-reward'>💰 You receive <span class='gold-value'>{gold}</span> gold.</div>",
   "quest.item_reward"                   : "<div class='quest-reward'>📦 You receive: <strong>{item}</strong></div>",
   "quest.accept.none_available"         : "There are no quests available from {npc}.",
   "quest.accept.prompt"                 : "{npc} has a quest for you: <strong>{quest}</strong><br><em>{description}</em><br>Type <strong>accept</strong> to begin.",

@@ -62,6 +62,22 @@ export class TerminalComponent {
     }
   }
 
+  handleLogClick(event: MouseEvent): void {
+    const target = event.target;
+    if (!(target instanceof HTMLElement)) {
+      return;
+    }
+
+    const commandElement = target.closest<HTMLElement>('[data-command]');
+    const command = commandElement?.dataset['command']?.trim();
+    if (!command) {
+      return;
+    }
+
+    event.preventDefault();
+    this.input.sendCommand(command, true);
+  }
+
   private initializeAutoScroll(): void {
     effect(() => {
       const lastMessageClass = this.view.messages().at(-1)?.cssClass;
