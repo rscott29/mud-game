@@ -150,7 +150,7 @@ class AttackCommandTest {
                 List.of(),
                 QuestPrerequisites.NONE,
                 List.of(),
-                new QuestRewards(List.of(), 50),
+                new QuestRewards(List.of(), 50, 25),
                 List.of("The traveler sinks to their knees, trembling but alive."),
                 QuestCompletionEffects.NONE
         );
@@ -159,6 +159,7 @@ class AttackCommandTest {
                 List.of("The traveler sinks to their knees, trembling but alive."),
                 List.of(reward),
                 50,
+                25,
                 QuestCompletionEffects.NONE
         );
 
@@ -193,6 +194,7 @@ class AttackCommandTest {
                 .anyMatch(message -> message != null && message.contains("The traveler sinks to their knees"))
                 .anyMatch(message -> message != null && message.contains("Quest Complete"))
                 .anyMatch(message -> message != null && message.contains("50"))
+                .anyMatch(message -> message != null && message.contains("25"))
                 .anyMatch(message -> message != null && message.contains("Paw Shard"));
     }
 

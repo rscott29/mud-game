@@ -33,6 +33,7 @@ public class Player {
     private int movement = DEFAULT_MAX_MOVEMENT;
     private int maxMovement = DEFAULT_MAX_MOVEMENT;
     private int experience = 0;
+    private int gold = 0;
     private boolean god = false;
     private boolean moderator = false;
     private final List<Item> inventory = new CopyOnWriteArrayList<>();
@@ -66,6 +67,7 @@ public class Player {
     public int getMovement()              { return movement; }
     public int getMaxMovement()           { return maxMovement; }
     public int getExperience()            { return experience; }
+    public int getGold()                  { return gold; }
     public boolean isGod()                { return god; }
     public boolean isModerator()          { return moderator; }
     public boolean isDead()               { return health <= 0; }
@@ -95,6 +97,19 @@ public class Player {
     public void setMaxMovement(int maxMovement)          { this.maxMovement = maxMovement; }
     public void setExperience(int experience)            { this.experience = experience; }
     public void addExperience(int xp)                    { this.experience += xp; }
+    public void setGold(int gold)                        { this.gold = Math.max(0, gold); }
+    public void addGold(int gold) {
+        if (gold > 0) {
+            this.gold += gold;
+        }
+    }
+    public boolean spendGold(int gold) {
+        if (gold <= 0 || this.gold < gold) {
+            return false;
+        }
+        this.gold -= gold;
+        return true;
+    }
     public void setGod(boolean god)                      { this.god = god; }
     public void setModerator(boolean moderator)          { this.moderator = moderator; }
     public void setEquippedWeaponId(String itemId)       { setEquippedItemId(EquipmentSlot.MAIN_WEAPON, itemId); }

@@ -8,13 +8,17 @@ import java.util.List;
 public record QuestRewards(
         /** Item IDs to add to the player's inventory. */
         List<String> items,
-        
+
         /** Experience points to award. */
-        int xp
+        int xp,
+
+        /** Gold to award. */
+        int gold
 ) {
-    public static final QuestRewards NONE = new QuestRewards(List.of(), 0);
+    public static final QuestRewards NONE = new QuestRewards(List.of(), 0, 0);
     
     public QuestRewards {
         items = items != null ? List.copyOf(items) : List.of();
+        gold = Math.max(0, gold);
     }
 }

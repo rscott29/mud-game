@@ -57,6 +57,7 @@ class QuestLoaderTest {
         assertThat(quest.objectives().get(0).onComplete().relocateItem()).isNotNull();
         assertThat(quest.objectives().get(0).onComplete().relocateItem().targetRooms())
                 .containsExactly("forest_edge", "market");
+        assertThat(quest.rewards().gold()).isEqualTo(12);
         assertThat(quest.completionEffects().revealHiddenExit()).isNotNull();
         assertThat(quest.completionEffects().revealHiddenExit().direction()).isEqualTo(Direction.SOUTH);
         assertThat(quest.completionEffects().resetDiscoveredExits()).hasSize(1);
@@ -129,6 +130,7 @@ class QuestLoaderTest {
         quest.rewards = new QuestLoader.RewardsData();
         quest.rewards.items = List.of();
         quest.rewards.xp = 10;
+        quest.rewards.gold = 12;
         return quest;
     }
 

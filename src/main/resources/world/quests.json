@@ -34,7 +34,8 @@
             "items": [
                 "item_tag_shard_paw"
             ],
-            "xp": 50
+            "xp": 50,
+            "gold": 25
         },
         "completionDialogue": [
             "The traveler sinks to their knees, trembling but alive.",
@@ -153,7 +154,8 @@
   ],
   "rewards": {
     "items": [],
-    "xp": 75
+        "xp": 75,
+        "gold": 40
   },
   "completionDialogue": [
     "The pilgrim studies you in silence for a moment, as though weighing something unseen.",
@@ -282,7 +284,8 @@
             "items": [
                 "item_tag_shard_ball"
             ],
-            "xp": 30
+            "xp": 30,
+            "gold": 15
         },
         "completionDialogue": [
             "The child hugs the ball tight to their chest, finally keeping it close.",
@@ -377,7 +380,8 @@
             "items": [
                 "item_tag_shard_compass"
             ],
-            "xp": 75
+            "xp": 75,
+            "gold": 35
         },
         "completionDialogue": [
             "The guide rises slowly, staff clicking against stone.",
@@ -478,7 +482,8 @@
             "items": [
                 "item_wayfarers_token"
             ],
-            "xp": 60
+            "xp": 60,
+            "gold": 45
         },
         "completionDialogue": [
             "The brazier flares as the caretaker lifts the restored lantern high above it.",

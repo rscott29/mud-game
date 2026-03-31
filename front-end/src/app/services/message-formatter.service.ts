@@ -5,6 +5,7 @@ import {
   GAME_MESSAGE_TYPES,
   GameMessage,
   ItemDto,
+  ShopDto,
   TERMINAL_MESSAGE_CLASSES,
   type TerminalMessageClass,
   WhoPlayerDto,
@@ -412,8 +413,44 @@ export class MessageFormatterService {
             ${this.formatChipList(room.players ?? [], 'term-chip--player')}
           </section>
         </div>
+        ${this.renderShop(room.shop ?? null)}
         ${leadText ? `<div class="term-inline-narrative">${renderMarkup(leadText)}</div>` : ''}
         ${trailingText ? `<div class="term-inline-narrative">${renderMarkup(trailingText)}</div>` : ''}
+      </section>
+    `;
+  }
+
+  private renderShop(shop: ShopDto | null): string {
+    if (!shop || (shop.listings?.length ?? 0) === 0) {
+      return '';
+    }
+
+    return `
+      <section class="term-shop" aria-label="Merchant inventory">
+        <div class="term-shop__header">
+          <div>
+            <div class="term-card__eyebrow">Merchant</div>
+            <h3 class="term-shop__title">${escapeHtml(shop.merchantName)}</h3>
+          </div>
+          <span class="term-badge">${escapeHtml(String(shop.listings.length))} wares</span>
+        </div>
+        <div class="term-shop__grid">
+          ${shop.listings.map(listing => `
+            <article class="term-shop__item">
+              <div class="term-shop__item-header">
+                <div>
+                  <div class="term-shop__item-title">${escapeHtml(listing.name)}</div>
+                  <div class="term-shop__item-price">${escapeHtml(String(listing.price))} gold</div>
+                </div>
+                <span class="term-pill term-pill--rarity term-pill--${escapeHtml(listing.rarity)}">${escapeHtml(this.toTitleCase(listing.rarity))}</span>
+              </div>
+              <div class="term-copy term-copy--muted">${renderMarkup(listing.description ?? '')}</div>
+              <button type="button" class="term-shop__buy" data-command="${escapeHtml(`buy ${listing.itemId}`)}">
+                Buy now
+              </button>
+            </article>
+          `).join('')}
+        </div>
       </section>
     `;
   }
@@ -518,6 +555,10 @@ export class MessageFormatterService {
               <div class="term-meta-row">
                 <span class="term-label">Total XP</span>
                 <span class="term-value">${escapeHtml(String(stats.totalXp))}</span>
+              </div>
+              <div class="term-meta-row">
+                <span class="term-label">Gold</span>
+                <span class="term-value">${escapeHtml(String(stats.gold ?? 0))}</span>
               </div>
             ` : ''}
             <div class="term-progress">

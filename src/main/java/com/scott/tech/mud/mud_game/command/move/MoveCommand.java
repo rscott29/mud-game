@@ -181,6 +181,12 @@ public class MoveCommand implements GameCommand {
                                 .withPlayerStats(player, levelingService.getXpTables()));
                     }
                 }
+
+                if (result.goldReward() > 0) {
+                    notifications.add(GameResponse.narrative(
+                            Messages.fmt("quest.gold_reward", "gold", String.valueOf(result.goldReward())))
+                            .withPlayerStats(player, levelingService.getXpTables()));
+                }
                 
                 // Item rewards as notifications
                 for (Item item : result.rewardItems()) {

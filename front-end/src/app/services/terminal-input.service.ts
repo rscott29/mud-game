@@ -56,20 +56,11 @@ export class TerminalInputService {
   }
 
   send(): void {
-    const command = this.inputValue().trim();
-    if (!command) {
-      return;
-    }
+    this.submitCommand(this.inputValue().trim(), true, true);
+  }
 
-    const isPasswordMode = this.store.passwordMode();
-    this.recordCommandHistory(command, isPasswordMode);
-
-    const { payload, echo, maskEcho } = this.commandBuilder.build(command, isPasswordMode);
-
-    this.clearInputAfterSend();
-    this.echoSentCommand(echo, maskEcho);
-
-    this.socketService.sendRaw(payload);
+  sendCommand(command: string, echo = true): void {
+    this.submitCommand(command.trim(), echo, false);
   }
 
   completeCharacterCreation(selection: string): void {
@@ -188,6 +179,30 @@ export class TerminalInputService {
       cssClass: TERMINAL_MESSAGE_CLASSES.SENT,
       html: `&gt; ${maskEcho ? '********' : escapeHtml(echo)}`,
     });
+  }
+
+  private submitCommand(command: string, echo: boolean, clearInput: boolean): void {
+    if (!command) {
+      return;
+    }
+
+    const isPasswordMode = this.store.passwordMode();
+    this.recordCommandHistory(command, isPasswordMode);
+
+    const { payload, echo: renderedEcho, maskEcho } = this.commandBuilder.build(command, isPasswordMode);
+
+    if (clearInput) {
+      this.clearInputAfterSend();
+    } else {
+      this.resetHistoryNavigation();
+      this.resetCompletionState();
+    }
+
+    if (echo) {
+      this.echoSentCommand(renderedEcho, maskEcho);
+    }
+
+    this.socketService.sendRaw(payload);
   }
 
   private pushHistory(command: string): void {

@@ -231,6 +231,10 @@ public class AttackCommand implements GameCommand {
                     combatNarrative.append("<br><br>")
                             .append(Messages.fmt("quest.xp_reward", "xp", String.valueOf(result.xpReward())));
                 }
+                if (result.goldReward() > 0) {
+                    combatNarrative.append("<br>")
+                            .append(Messages.fmt("quest.gold_reward", "gold", String.valueOf(result.goldReward())));
+                }
                 for (Item item : result.rewardItems()) {
                     combatNarrative.append("<br>")
                             .append(Messages.fmt("quest.item_reward", "item", item.getName()));
@@ -309,6 +313,12 @@ public class AttackCommand implements GameCommand {
                         responses.add(GameResponse.narrative(xpResult.levelUpMessage())
                                 .withPlayerStats(player, levelingService.getXpTables()));
                     }
+                }
+
+                if (result.goldReward() > 0) {
+                    responses.add(GameResponse.narrative(
+                            Messages.fmt("quest.gold_reward", "gold", String.valueOf(result.goldReward())))
+                            .withPlayerStats(player, levelingService.getXpTables()));
                 }
 
                 for (Item item : result.rewardItems()) {

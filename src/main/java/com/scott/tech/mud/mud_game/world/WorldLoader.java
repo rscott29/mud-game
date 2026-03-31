@@ -7,6 +7,7 @@ import com.scott.tech.mud.mud_game.model.EquipmentSlot;
 import com.scott.tech.mud.mud_game.model.Item;
 import com.scott.tech.mud.mud_game.model.Npc;
 import com.scott.tech.mud.mud_game.model.Room;
+import com.scott.tech.mud.mud_game.model.Shop;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.io.ClassPathResource;
@@ -81,6 +82,7 @@ public class WorldLoader {
                 room.setWrongExitDamage(def.getWrongExitDamage());
                 room.setSuppressRegen(def.isSuppressRegen());
                 room.setAmbientZone(def.getAmbientZone());
+                room.setShop(buildShop(def, roomNpcs, items, errors));
                 if (builtRooms.put(def.getId(), room) != null) {
                     errors.add("Duplicate room id: " + def.getId());
                 }
@@ -167,6 +169,7 @@ public class WorldLoader {
                     n.getInteractTemplates(),
                     n.isSentient(), n.getTalkTemplates(), n.getPersonality(), n.isHumorous(),
                     n.isCombatTarget(), n.isRespawns(), n.getMaxHealth(), n.getLevel(), n.getXpReward(),
+                    n.getGoldReward(),
                     n.getMinDamage(), n.getMaxDamage(), n.isPlayerDeathEnabled()
             );
 
@@ -191,7 +194,7 @@ public class WorldLoader {
     private static void validateCombatConfig(NpcData npc) {
         String npcId = npc.getId();
         if (!npc.isCombatTarget()) {
-            if (npc.getMaxHealth() > 0 || npc.getXpReward() > 0 || npc.getMinDamage() > 0 || npc.getMaxDamage() > 0) {
+            if (npc.getMaxHealth() > 0 || npc.getXpReward() > 0 || npc.getGoldReward() > 0 || npc.getMinDamage() > 0 || npc.getMaxDamage() > 0) {
                 log.warn("NPC '{}' defines combat stats but combatTarget is false; stats will be ignored", npcId);
             }
             if (npc.getLevel() != 1) {
@@ -208,6 +211,9 @@ public class WorldLoader {
         }
         if (npc.getXpReward() < 0) {
             throw new WorldLoadException("NPC '" + npcId + "' has negative xpReward");
+        }
+        if (npc.getGoldReward() < 0) {
+            throw new WorldLoadException("NPC '" + npcId + "' has negative goldReward");
         }
         if (npc.getMinDamage() < 0 || npc.getMaxDamage() < 0) {
             throw new WorldLoadException("NPC '" + npcId + "' has negative damage values");
@@ -310,6 +316,63 @@ public class WorldLoader {
         }
 
         return startRoomId;
+    }
+
+    private static Shop buildShop(WorldData.RoomDefinition def,
+                                  List<Npc> roomNpcs,
+                                  Map<String, Item> items,
+                                  List<String> errors) {
+        WorldData.ShopDefinition shopDef = def.getShop();
+        if (shopDef == null) {
+            return null;
+        }
+
+        String merchantNpcId = shopDef.getMerchantNpcId();
+        if (merchantNpcId == null || merchantNpcId.isBlank()) {
+            errors.add("Room '" + def.getId() + "' shop is missing merchantNpcId");
+            return null;
+        }
+
+        boolean merchantPresent = roomNpcs.stream().anyMatch(npc -> merchantNpcId.equals(npc.getId()));
+        if (!merchantPresent) {
+            errors.add("Room '" + def.getId() + "' shop merchant '" + merchantNpcId + "' is not in npcIds");
+        }
+
+        List<Shop.Listing> listings = new ArrayList<>();
+        List<WorldData.ShopListingDefinition> listingDefs = shopDef.getListings();
+        if (listingDefs == null || listingDefs.isEmpty()) {
+            errors.add("Room '" + def.getId() + "' shop has no listings");
+            return null;
+        }
+
+        for (WorldData.ShopListingDefinition listingDef : listingDefs) {
+            if (listingDef == null || listingDef.getItemId() == null || listingDef.getItemId().isBlank()) {
+                errors.add("Room '" + def.getId() + "' has a shop listing without an itemId");
+                continue;
+            }
+
+            Item item = items.get(listingDef.getItemId());
+            if (item == null) {
+                errors.add("Room '" + def.getId() + "' shop references unknown item id '" + listingDef.getItemId() + "'");
+                continue;
+            }
+            if (!item.isTakeable()) {
+                errors.add("Room '" + def.getId() + "' shop item '" + listingDef.getItemId() + "' is not takeable");
+                continue;
+            }
+            if (listingDef.getPrice() <= 0) {
+                errors.add("Room '" + def.getId() + "' shop item '" + listingDef.getItemId() + "' must have price > 0");
+                continue;
+            }
+
+            listings.add(new Shop.Listing(listingDef.getItemId(), item, listingDef.getPrice()));
+        }
+
+        if (listings.isEmpty()) {
+            return null;
+        }
+
+        return new Shop(merchantNpcId, listings);
     }
 
     private static Map<String, String> buildNpcRoomIndex(Iterable<Room> rooms) {

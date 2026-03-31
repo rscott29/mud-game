@@ -65,6 +65,8 @@ public class NpcData {
     private int level = 1;
     /** XP awarded when defeated. */
     private int xpReward = 0;
+    /** Gold awarded when defeated. */
+    private int goldReward = 0;
     /** Minimum damage this NPC deals when attacking. */
     private int minDamage = 0;
     /** Maximum damage this NPC deals when attacking. */
@@ -89,6 +91,7 @@ public class NpcData {
     public int getMaxHealth()                      { return maxHealth; }
     public int getLevel()                          { return level; }
     public int getXpReward()                       { return xpReward; }
+    public int getGoldReward()                     { return goldReward; }
     public int getMinDamage()                      { return minDamage; }
     public int getMaxDamage()                      { return maxDamage; }
     public boolean isPlayerDeathEnabled()          { return playerDeathEnabled; }
@@ -110,6 +113,7 @@ public class NpcData {
     public void setMaxHealth(int h)                        { this.maxHealth = h; }
     public void setLevel(int level)                        { this.level = level; }
     public void setXpReward(int xp)                        { this.xpReward = xp; }
+    public void setGoldReward(int goldReward)              { this.goldReward = goldReward; }
     public void setMinDamage(int d)                        { this.minDamage = d; }
     public void setMaxDamage(int d)                        { this.maxDamage = d; }
     public void setPlayerDeathEnabled(boolean playerDeathEnabled)  { this.playerDeathEnabled = playerDeathEnabled; }

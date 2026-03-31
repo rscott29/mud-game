@@ -125,6 +125,69 @@ class CombatServiceTest {
         verify(worldService, never()).removeNpcInstance("wolf");
     }
 
+    @Test
+    void defeatingNpc_awardsGoldToPlayer() {
+        Player player = new Player("player-5", "Hero", "room_wilds");
+        Npc target = goldNpc("bandit", 1, 1, true, false, 12, 18);
+
+        GameSession session = mock(GameSession.class);
+        when(session.getPlayer()).thenReturn(player);
+        when(session.getSessionId()).thenReturn("session-5");
+        when(questService.onDefeatNpc(player, target)).thenReturn(Optional.empty());
+
+        CombatEncounter encounter = combatState.engage("session-5", target, "room_wilds");
+
+        CombatService.AttackResult result = defeatTarget(session, encounter);
+
+        assertThat(result.targetDefeated()).isTrue();
+        assertThat(player.getGold()).isEqualTo(18);
+        assertThat(result.message()).contains("18").contains("gold");
+    }
+
+    @Test
+    void defeatingSpawnedNpc_appendsEncounterClearTextAfterBattleLog() {
+        Player player = new Player("player-7", "Hero", "room_wilds");
+        Npc target = goldNpc("bandit" + Npc.INSTANCE_ID_DELIMITER + "1", 1, 1, true, false, 12, 18);
+
+        GameSession session = mock(GameSession.class);
+        when(session.getPlayer()).thenReturn(player);
+        when(session.getSessionId()).thenReturn("session-7");
+        when(questService.onDefeatNpc(player, target)).thenReturn(Optional.empty());
+        when(objectiveEncounterRuntimeService.onSpawnedNpcDefeated(player, target))
+                .thenReturn(Optional.of("<div class='quest-progress'>The last of 2 undead falls quiet. The path is open again.</div>"));
+
+        CombatEncounter encounter = combatState.engage("session-7", target, "room_wilds");
+
+        CombatService.AttackResult result = defeatTarget(session, encounter);
+
+        assertThat(result.targetDefeated()).isTrue();
+        assertThat(result.message()).contains("goes down");
+        assertThat(result.message()).contains("18").contains("gold");
+        assertThat(result.message().indexOf("goes down")).isLessThan(result.message().indexOf("path is open again"));
+        assertThat(result.message().indexOf("gold looted")).isLessThan(result.message().indexOf("path is open again"));
+    }
+
+    @Test
+    void defeatingNpc_asGod_awardsFullGoldDespiteLevelGap() {
+        Player player = new Player("player-6", "Immortal", "room_wilds");
+        player.setGod(true);
+        player.setLevel(100);
+        Npc target = goldNpc("bandit", 1, 1, true, false, 12, 18);
+
+        GameSession session = mock(GameSession.class);
+        when(session.getPlayer()).thenReturn(player);
+        when(session.getSessionId()).thenReturn("session-6");
+        when(questService.onDefeatNpc(player, target)).thenReturn(Optional.empty());
+
+        CombatEncounter encounter = combatState.engage("session-6", target, "room_wilds");
+
+        CombatService.AttackResult result = defeatTarget(session, encounter);
+
+        assertThat(result.targetDefeated()).isTrue();
+        assertThat(player.getGold()).isEqualTo(18);
+        assertThat(result.message()).contains("18").contains("gold");
+    }
+
     private CombatService.AttackResult defeatTarget(GameSession session, CombatEncounter encounter) {
         CombatService.AttackResult result = null;
         for (int attempt = 0; attempt < 20; attempt++) {
@@ -158,10 +221,42 @@ class CombatServiceTest {
                 false,
                 List.of(),
                 null,
+                false,
                 true,
                 respawns,
                 maxHealth,
                 1,
+                minDamage,
+                maxDamage,
+                playerDeathEnabled
+        );
+    }
+
+    private static Npc goldNpc(String id, int minDamage, int maxDamage, boolean playerDeathEnabled,
+                               boolean respawns, int maxHealth, int goldReward) {
+        return new Npc(
+                id,
+                id,
+                "desc",
+                List.of(id),
+                "it",
+                "its",
+                0,
+                0,
+                List.of(),
+                List.of(),
+                List.of(),
+                List.of(),
+                false,
+                List.of(),
+                null,
+                false,
+                true,
+                respawns,
+                maxHealth,
+                1,
+                0,
+                goldReward,
                 minDamage,
                 maxDamage,
                 playerDeathEnabled

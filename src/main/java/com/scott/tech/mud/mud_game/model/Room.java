@@ -28,6 +28,8 @@ public class Room {
     private boolean suppressRegen;
     /** Optional zone identifier for ambient events (e.g., "cave", "forest"). */
     private String ambientZone;
+    /** Optional shop data for merchant rooms. */
+    private Shop shop;
 
     public Room(String id, String name, String description,
                 Map<Direction, String> exits, List<Item> items, List<Npc> npcs) {
@@ -71,6 +73,9 @@ public class Room {
     public void setSuppressRegen(boolean suppressRegen) { this.suppressRegen = suppressRegen; }
     public String getAmbientZone()                       { return ambientZone; }
     public void setAmbientZone(String ambientZone)       { this.ambientZone = ambientZone; }
+    public Shop getShop()                                { return shop; }
+    public boolean hasShop()                             { return shop != null && !shop.isEmpty(); }
+    public void setShop(Shop shop)                       { this.shop = shop; }
 
     public void addNpc(Npc npc)    { npcs.add(npc); }
     public void removeNpc(Npc npc)  { npcs.remove(npc); }

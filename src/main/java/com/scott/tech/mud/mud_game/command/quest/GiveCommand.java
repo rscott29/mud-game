@@ -246,6 +246,12 @@ public class GiveCommand implements GameCommand {
                                 .withPlayerStats(player, levelingService.getXpTables()));
                     }
                 }
+
+                if (result.goldReward() > 0) {
+                    responses.add(GameResponse.narrative(
+                            Messages.fmt("quest.gold_reward", "gold", String.valueOf(result.goldReward())))
+                            .withPlayerStats(player, levelingService.getXpTables()));
+                }
                 
                 // Item rewards
                 for (Item item : result.rewardItems()) {

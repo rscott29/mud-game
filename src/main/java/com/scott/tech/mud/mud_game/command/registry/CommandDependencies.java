@@ -20,6 +20,7 @@ import com.scott.tech.mud.mud_game.command.pickup.PickupService;
 import com.scott.tech.mud.mud_game.command.pickup.PickupValidator;
 import com.scott.tech.mud.mud_game.command.social.SocialService;
 import com.scott.tech.mud.mud_game.command.social.SocialValidator;
+import com.scott.tech.mud.mud_game.command.shop.ShopService;
 import com.scott.tech.mud.mud_game.command.talk.TalkService;
 import com.scott.tech.mud.mud_game.command.talk.TalkValidator;
 import com.scott.tech.mud.mud_game.config.ExperienceTableService;
@@ -81,6 +82,7 @@ public record CommandDependencies(
         DefendObjectiveRuntimeService defendObjectiveRuntimeService,
         ObjectiveEncounterRuntimeService objectiveEncounterRuntimeService,
         WorldService worldService,
-        AmbientEventService ambientEventService
+        AmbientEventService ambientEventService,
+        ShopService shopService
 ) {
 }

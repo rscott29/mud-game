@@ -48,6 +48,8 @@ public class Npc {
     private final int level;
     /** XP awarded when this NPC is defeated. */
     private final int xpReward;
+    /** Gold awarded when this NPC is defeated. */
+    private final int goldReward;
     /** Minimum damage this NPC deals when attacking. */
     private final int minDamage;
     /** Maximum damage this NPC deals when attacking. */
@@ -72,6 +74,7 @@ public class Npc {
                 sentient, talkTemplates, personality,
                 false,
                 combatTarget, respawns, maxHealth, 1, xpReward,
+                0,
                 minDamage, maxDamage, playerDeathEnabled
         );
     }
@@ -94,6 +97,7 @@ public class Npc {
                 sentient, talkTemplates, personality,
                 humorous,
                 combatTarget, respawns, maxHealth, 1, xpReward,
+                0,
                 minDamage, maxDamage, playerDeathEnabled
         );
     }
@@ -115,6 +119,7 @@ public class Npc {
                 sentient, talkTemplates, personality,
                 false,
                 combatTarget, respawns, maxHealth, level, xpReward,
+                0,
                 minDamage, maxDamage, playerDeathEnabled
         );
     }
@@ -127,6 +132,7 @@ public class Npc {
                boolean sentient, List<String> talkTemplates, String personality,
                boolean humorous,
                boolean combatTarget, boolean respawns, int maxHealth, int level, int xpReward,
+               int goldReward,
                int minDamage, int maxDamage, boolean playerDeathEnabled) {
         this.id                       = id;
         this.name                     = name;
@@ -149,6 +155,7 @@ public class Npc {
         this.maxHealth                = maxHealth;
         this.level                    = Math.max(1, level);
         this.xpReward                 = xpReward;
+        this.goldReward               = Math.max(0, goldReward);
         this.minDamage                = minDamage;
         this.maxDamage                = maxDamage;
         this.playerDeathEnabled       = playerDeathEnabled;
@@ -179,6 +186,7 @@ public class Npc {
     public int getMaxHealth()                         { return maxHealth; }
     public int getLevel()                             { return level; }
     public int getXpReward()                          { return xpReward; }
+    public int getGoldReward()                        { return goldReward; }
     public int getMinDamage()                         { return minDamage; }
     public int getMaxDamage()                         { return maxDamage; }
     public boolean isPlayerDeathEnabled()             { return playerDeathEnabled; }
@@ -222,6 +230,7 @@ public class Npc {
                 this.wanderPath, this.interactTemplates,
                 this.sentient, this.talkTemplates, this.personality, this.humorous,
                 this.combatTarget, this.respawns, this.maxHealth, this.level, this.xpReward,
+                this.goldReward,
                 this.minDamage, this.maxDamage, this.playerDeathEnabled
         );
     }
@@ -235,6 +244,7 @@ public class Npc {
                 this.wanderPath, this.interactTemplates,
                 this.sentient, this.talkTemplates, this.personality, this.humorous,
                 this.combatTarget, this.respawns, this.maxHealth, this.level, this.xpReward,
+                this.goldReward,
                 this.minDamage, this.maxDamage, this.playerDeathEnabled
         );
     }
