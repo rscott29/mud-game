@@ -52,6 +52,23 @@ public class ReconnectTokenStore {
     }
 
     /**
+     * Resolves the username for a token without consuming it.
+     * Returns empty if the token is missing or expired.
+     */
+    public Optional<String> resolve(String token) {
+        if (token == null) {
+            return Optional.empty();
+        }
+
+        purgeExpired();
+        TokenEntry entry = tokens.get(token);
+        if (entry == null || Instant.now().isAfter(entry.expiresAt())) {
+            return Optional.empty();
+        }
+        return Optional.of(entry.username());
+    }
+
+    /**
      * Revokes all tokens issued for the given username (e.g. on explicit logout).
      */
     public void revokeForUser(String username) {

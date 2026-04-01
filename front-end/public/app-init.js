@@ -1,0 +1,55 @@
+(function () {
+  function applyFavicon(url, type) {
+    if (typeof url !== 'string' || !url.trim()) {
+      return;
+    }
+
+    var href = url.trim();
+    var resolvedType = typeof type === 'string' && type.trim() ? type.trim() : '';
+    var supportsAnySize = resolvedType === 'image/svg+xml';
+    var head = document.head || document.getElementsByTagName('head')[0];
+    var faviconIds = ['app-favicon', 'app-shortcut-favicon'];
+    var relValues = ['icon', 'shortcut icon'];
+
+    for (var index = 0; index < faviconIds.length; index += 1) {
+      var existing = document.getElementById(faviconIds[index]);
+      if (existing && existing.parentNode) {
+        existing.parentNode.removeChild(existing);
+      }
+
+      var link = document.createElement('link');
+      link.id = faviconIds[index];
+      link.rel = relValues[index];
+      link.href = href;
+      if (resolvedType) {
+        link.type = resolvedType;
+      }
+      if (supportsAnySize) {
+        link.sizes = 'any';
+      }
+      head.appendChild(link);
+    }
+  }
+
+  fetch('/api/ui/settings', { cache: 'no-store' })
+    .then(function (response) {
+      if (!response.ok) {
+        return null;
+      }
+      return response.json();
+    })
+    .then(function (settings) {
+      if (!settings) {
+        return;
+      }
+
+      if (typeof settings.title === 'string' && settings.title.trim()) {
+        document.title = settings.title.trim();
+      }
+
+      applyFavicon(settings.faviconUrl, settings.faviconType);
+    })
+    .catch(function () {
+      // Keep the static fallback title and favicon when the backend config is unavailable.
+    });
+})();

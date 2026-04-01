@@ -13,6 +13,9 @@ describe('CommandCatalogService', () => {
   let service: CommandCatalogService;
 
   beforeEach(() => {
+    sessionStorage.clear();
+    localStorage.clear();
+
     TestBed.configureTestingModule({
       providers: [
         CommandCatalogService,
@@ -26,6 +29,8 @@ describe('CommandCatalogService', () => {
   });
 
   afterEach(() => {
+    sessionStorage.clear();
+    localStorage.clear();
     httpMock.verify();
   });
 
@@ -173,5 +178,16 @@ describe('CommandCatalogService', () => {
     expect(service.autocompleteSuggestion('sp', true)).toBe('spawn');
     expect(service.autocompleteSuggestion('look', false)).toBeUndefined();
     expect(service.autocompleteSuggestion('look at', false)).toBeUndefined();
+  });
+
+  it('sends the reconnect token header when one is stored', () => {
+    sessionStorage.setItem('mudReconnectToken', 'token-123');
+
+    service.load();
+
+    const request = httpMock.expectOne('/api/commands');
+    expect(request.request.headers.get('X-Mud-Reconnect-Token')).toBe('token-123');
+
+    request.flush({ commands: [] });
   });
 });

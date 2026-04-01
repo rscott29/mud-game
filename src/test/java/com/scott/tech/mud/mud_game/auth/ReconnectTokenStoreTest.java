@@ -29,4 +29,14 @@ class ReconnectTokenStoreTest {
         assertThat(store.consume(aliceToken)).isEmpty();
         assertThat(store.consume(bobToken)).contains("bob");
     }
+
+    @Test
+    void resolve_doesNotConsumeToken() {
+        ReconnectTokenStore store = new ReconnectTokenStore();
+
+        String token = store.issue("Alice");
+
+        assertThat(store.resolve(token)).contains("alice");
+        assertThat(store.consume(token)).contains("alice");
+    }
 }
