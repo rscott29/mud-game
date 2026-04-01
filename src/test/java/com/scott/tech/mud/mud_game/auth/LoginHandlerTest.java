@@ -123,8 +123,7 @@ class LoginHandlerTest {
     @Test
     void handleUsername_existingAccount_transitionsToAwaitingPassword() {
         GameSession session = newSession("s1", "start");
-        when(accountStore.exists("Alice")).thenReturn(true);
-        when(accountStore.isLocked("Alice")).thenReturn(false);
+        when(accountStore.exists("alice")).thenReturn(true);
 
         CommandResult result = loginHandler.handle("Alice", session);
 
@@ -132,14 +131,13 @@ class LoginHandlerTest {
         assertThat(session.getPendingUsername()).isEqualTo("alice");
         assertThat(singleResponse(result).type()).isEqualTo(GameResponse.Type.AUTH_PROMPT);
         assertThat(singleResponse(result).mask()).isTrue();
-        assertThat(singleResponse(result).message()).contains("Password");
-        assertThat(singleResponse(result).message()).contains("create");
+        assertThat(singleResponse(result).message()).isEqualTo("Welcome back, Alice.");
     }
 
     @Test
     void handleUsername_newAccount_stillTransitionsToAwaitingPassword() {
         GameSession session = newSession("s1", "start");
-        when(accountStore.exists("Alice")).thenReturn(false);
+        when(accountStore.exists("alice")).thenReturn(false);
 
         CommandResult result = loginHandler.handle("Alice", session);
 

@@ -129,8 +129,16 @@ public class LoginHandler {
             return prompt(Messages.get("auth.error.username_invalid"), false);
         }
 
-        session.setPendingUsername(username.toLowerCase());
+        String normalizedUsername = username.toLowerCase();
+        session.setPendingUsername(normalizedUsername);
         session.transition(SessionState.AWAITING_PASSWORD);
+
+        if (accountStore.exists(normalizedUsername)) {
+            return prompt(Messages.fmt(
+                    "auth.prompt.password_existing",
+                    "username", capitalize(normalizedUsername)), true);
+        }
+
         return prompt(Messages.get("auth.prompt.password"), true);
     }
 
