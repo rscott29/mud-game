@@ -1,5 +1,6 @@
 package com.scott.tech.mud.mud_game.session;
 
+import jakarta.annotation.PreDestroy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -20,8 +21,16 @@ public class DisconnectGracePeriodService {
     /** Grace period in seconds before broadcasting the disconnect. */
     private static final int GRACE_PERIOD_SECONDS = 5;
 
-    private final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
+    private final ScheduledExecutorService scheduler;
     private final Map<String, ScheduledFuture<?>> pendingDisconnects = new ConcurrentHashMap<>();
+
+    public DisconnectGracePeriodService() {
+        this(Executors.newSingleThreadScheduledExecutor());
+    }
+
+    DisconnectGracePeriodService(ScheduledExecutorService scheduler) {
+        this.scheduler = scheduler;
+    }
 
     /**
      * Schedules a disconnect broadcast after the grace period.
@@ -72,5 +81,16 @@ public class DisconnectGracePeriodService {
         String key = username.toLowerCase();
         ScheduledFuture<?> future = pendingDisconnects.get(key);
         return future != null && !future.isDone();
+    }
+
+    @PreDestroy
+    void shutdown() {
+        pendingDisconnects.values().forEach(future -> {
+            if (future != null && !future.isDone()) {
+                future.cancel(false);
+            }
+        });
+        pendingDisconnects.clear();
+        scheduler.shutdownNow();
     }
 }

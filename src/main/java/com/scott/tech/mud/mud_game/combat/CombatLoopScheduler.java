@@ -67,21 +67,12 @@ public class CombatLoopScheduler {
     }
 
     public void scheduleNpcCounterAttack(String sessionId) {
-        GameSession session = sessionManager.get(sessionId).orElse(null);
-        if (session == null) {
-            combatState.endCombat(sessionId);
-            stopCombatLoop(sessionId);
+        ActiveEncounterContext context = resolveEncounterContext(sessionId, true);
+        if (context == null) {
             return;
         }
 
-        CombatEncounter encounter = resolveEncounter(sessionId, session);
-        if (encounter == null || !encounter.isAlive()) {
-            combatState.endCombat(sessionId);
-            stopCombatLoop(sessionId);
-            return;
-        }
-
-        scheduleNpcTurn(encounter);
+        scheduleNpcTurn(context.encounter());
     }
 
     public void stopCombatLoop(String sessionId) {
@@ -91,78 +82,29 @@ public class CombatLoopScheduler {
     }
 
     public void startCombatLoop(String sessionId) {
-        GameSession session = sessionManager.get(sessionId).orElse(null);
-        if (session == null) {
+        ActiveEncounterContext context = resolveEncounterContext(sessionId, false);
+        if (context == null) {
             return;
         }
 
-        CombatEncounter encounter = resolveEncounter(sessionId, session);
-        if (encounter == null || !encounter.isAlive()) {
-            combatState.endCombat(sessionId);
-            stopCombatLoop(sessionId);
-            return;
-        }
-
-        schedulePlayerTurn(sessionId, session);
-        scheduleNpcTurn(encounter);
+        schedulePlayerTurn(context);
+        scheduleNpcTurn(context.encounter());
     }
 
     private void executeNpcTurn(String npcId) {
         try {
-            scheduledNpcActions.remove(npcId);
-
-            CombatEncounter encounter = combatState.getEncounterForNpcId(npcId).orElse(null);
-            if (encounter == null || !encounter.isAlive()) {
+            NpcTurnContext context = resolveNpcTurnContext(npcId);
+            if (context == null) {
                 return;
             }
 
-            List<GameSession> participants = resolveParticipants(encounter);
-            if (participants.isEmpty()) {
-                combatState.endCombatForTarget(encounter.getTarget());
-                return;
-            }
-
-            if (!encounter.getTarget().canFightBack()) {
-                return;
-            }
-
-            String targetSessionId = encounter.selectTargetSessionId(
-                    participants.stream().map(GameSession::getSessionId).toList());
-            GameSession session = participants.stream()
-                    .filter(candidate -> candidate.getSessionId().equals(targetSessionId))
-                    .findFirst()
-                    .orElseGet(() -> participants.get(ThreadLocalRandom.current().nextInt(participants.size())));
-            CombatService.AttackResult result = combatService.executeNpcAttack(session, encounter);
+            CombatService.AttackResult result = combatService.executeNpcAttack(context.targetSession(), context.encounter());
             if (result == null) {
                 return;
             }
 
-            String playerMessage = result.message();
-            if (result.playerDefeated()) {
-                PlayerDeathService.DeathOutcome deathOutcome = playerDeathService.handleDeath(session);
-                playerMessage = playerMessage + "<br><br>" + deathOutcome.promptHtml();
-            }
-
-            GameResponse playerResponse = result.playerDefeated()
-                    ? buildDeathRoomRefresh(session, playerMessage).withPlayerStats(session.getPlayer(), levelingService.getXpTables())
-                    : GameResponse.narrative(playerMessage).withPlayerStats(session.getPlayer(), levelingService.getXpTables());
-            broadcaster.sendToSession(session.getSessionId(), playerResponse);
-            broadcastPartyCombatLog(encounter, session.getSessionId(), result.partyMessage());
-
-            String actionKey = result.playerDefeated() ? "action.combat.npc_defeats" : "action.combat.npc_attacks";
-            broadcaster.broadcastToRoom(session.getPlayer().getCurrentRoomId(),
-                    GameResponse.narrative(Messages.fmt(actionKey,
-                            "npc", encounter.getTarget().getName(),
-                            "player", session.getPlayer().getName())),
-                    session.getSessionId());
-
-            if (result.playerDefeated()) {
-                cancelPlayerTurn(session.getSessionId());
-            }
-
-            if (encounter.isAlive() && !resolveParticipants(encounter).isEmpty()) {
-                scheduleNpcTurn(encounter);
-            }
+            handleNpcAttackResult(context, result);
+            maybeContinueNpcPressure(context.encounter());
         } catch (Exception e) {
             log.error("Error during NPC turn for target {}: {}", npcId, e.getMessage(), e);
             stopNpcTurn(npcId);
@@ -176,75 +118,144 @@ public class CombatLoopScheduler {
                 return;
             }
 
-            GameSession session = sessionManager.get(sessionId).orElse(null);
-            if (session == null) {
-                combatState.endCombat(sessionId);
-                stopCombatLoop(sessionId);
+            ActiveEncounterContext context = resolveEncounterContext(sessionId, true);
+            if (context == null) {
                 return;
             }
 
-            CombatEncounter encounter = resolveEncounter(sessionId, session);
-            if (encounter == null || !encounter.isAlive()) {
-                combatState.endCombat(sessionId);
-                stopCombatLoop(sessionId);
-                return;
-            }
-
-            CombatService.AttackResult result = combatService.executePlayerAttack(session, encounter);
-                String playerMessage = appendQuestSummary(result.message(), result.questProgressResult());
-                if (result.xpGained() > 0) {
-                LevelingService.XpGainResult xpResult = levelingService.addExperience(session.getPlayer(), result.xpGained());
-
-                broadcaster.sendToSession(sessionId,
-                    GameResponse.narrative(playerMessage).withPlayerStats(session.getPlayer(), levelingService.getXpTables()));
-                broadcastPartyCombatLog(encounter, sessionId, result.partyMessage());
-
-                if (xpResult.leveledUp()) {
-                    broadcaster.sendToSession(sessionId,
-                            GameResponse.narrative(xpResult.levelUpMessage()).withPlayerStats(session.getPlayer(), levelingService.getXpTables()));
-
-                    List<String> unlockedSkills = levelingService.getNewlyUnlockedSkillNames(
-                            session.getPlayer(),
-                            xpResult.oldLevel(),
-                            xpResult.newLevel()
-                    );
-                    for (String skillName : unlockedSkills) {
-                        broadcaster.sendToSession(sessionId,
-                                GameResponse.narrative(Messages.fmt("skill.unlock", "skill", skillName)));
-                    }
-
-                    String worldMsg = Messages.fmt("level.up.world",
-                            "name", session.getPlayer().getName(),
-                            "level", String.valueOf(xpResult.newLevel()));
-                    broadcaster.broadcastToAll(GameResponse.narrative(worldMsg));
-                }
-            } else {
-                broadcaster.sendToSession(sessionId,
-                        GameResponse.narrative(playerMessage).withPlayerStats(session.getPlayer(), levelingService.getXpTables()));
-                broadcastPartyCombatLog(encounter, sessionId, result.partyMessage());
-            }
-
-            sendQuestProgressResponses(session, result.questProgressResult());
-
-                List<GameSession> participants = resolveParticipants(encounter);
-                String actionMsg = result.targetDefeated()
-                    ? formatDefeatAction(session, encounter, participants)
-                    : Messages.fmt("action.combat.attack", "player", session.getPlayer().getName(), "npc", encounter.getTarget().getName());
-            broadcaster.broadcastToRoom(session.getPlayer().getCurrentRoomId(),
-                    GameResponse.narrative(actionMsg),
-                    sessionId);
-
-            if (result.targetDefeated()) {
-                endEncounter(encounter);
-            } else {
-                schedulePlayerTurn(sessionId, session);
-                scheduleNpcTurn(encounter);
-            }
+            CombatService.AttackResult result = combatService.executePlayerAttack(context.session(), context.encounter());
+            handlePlayerAttackResult(context, result);
         } catch (Exception e) {
             log.error("Error during player turn for session {}: {}", sessionId, e.getMessage(), e);
-            combatState.endCombat(sessionId);
-            stopCombatLoop(sessionId);
+            endCombatAndStop(sessionId);
         }
+    }
+
+    private void handleNpcAttackResult(NpcTurnContext context, CombatService.AttackResult result) {
+        GameSession session = context.targetSession();
+        String playerMessage = result.message();
+        if (result.playerDefeated()) {
+            PlayerDeathService.DeathOutcome deathOutcome = playerDeathService.handleDeath(session);
+            playerMessage = playerMessage + "<br><br>" + deathOutcome.promptHtml();
+        }
+
+        broadcaster.sendToSession(
+                session.getSessionId(),
+                buildNpcPlayerResponse(session, playerMessage, result.playerDefeated())
+        );
+        broadcastPartyCombatLog(context.encounter(), session.getSessionId(), result.partyMessage());
+
+        String actionKey = result.playerDefeated() ? "action.combat.npc_defeats" : "action.combat.npc_attacks";
+        broadcaster.broadcastToRoom(
+                session.getPlayer().getCurrentRoomId(),
+                GameResponse.narrative(Messages.fmt(
+                        actionKey,
+                        "npc", context.encounter().getTarget().getName(),
+                        "player", session.getPlayer().getName()
+                )),
+                session.getSessionId()
+        );
+
+        if (result.playerDefeated()) {
+            cancelPlayerTurn(session.getSessionId());
+        }
+    }
+
+    private void handlePlayerAttackResult(ActiveEncounterContext context, CombatService.AttackResult result) {
+        String playerMessage = appendQuestSummary(result.message(), result.questProgressResult());
+        dispatchPlayerAttackNarrative(context, playerMessage, result.partyMessage());
+
+        if (result.xpGained() > 0) {
+            LevelingService.XpGainResult xpResult = levelingService.addExperience(
+                    context.session().getPlayer(),
+                    result.xpGained()
+            );
+            if (xpResult.leveledUp()) {
+                sendLevelUpResponses(context, xpResult);
+            }
+        }
+
+        sendQuestProgressResponses(context.session(), result.questProgressResult());
+        broadcastPlayerAction(context, result);
+
+        if (result.targetDefeated()) {
+            endEncounter(context.encounter());
+            return;
+        }
+
+        rescheduleEncounter(context);
+    }
+
+    private void sendLevelUpResponses(ActiveEncounterContext context, LevelingService.XpGainResult xpResult) {
+        GameSession session = context.session();
+        broadcaster.sendToSession(
+                context.sessionId(),
+                GameResponse.narrative(xpResult.levelUpMessage())
+                        .withPlayerStats(session.getPlayer(), levelingService.getXpTables())
+        );
+
+        for (String skillName : levelingService.getNewlyUnlockedSkillNames(
+                session.getPlayer(),
+                xpResult.oldLevel(),
+                xpResult.newLevel()
+        )) {
+            broadcaster.sendToSession(
+                    context.sessionId(),
+                    GameResponse.narrative(Messages.fmt("skill.unlock", "skill", skillName))
+            );
+        }
+
+        broadcaster.broadcastToAll(GameResponse.narrative(Messages.fmt(
+                "level.up.world",
+                "name", session.getPlayer().getName(),
+                "level", String.valueOf(xpResult.newLevel())
+        )));
+    }
+
+    private void broadcastPlayerAction(ActiveEncounterContext context, CombatService.AttackResult result) {
+        List<GameSession> participants = resolveParticipants(context.encounter());
+        String actionMessage = result.targetDefeated()
+                ? formatDefeatAction(context.session(), context.encounter(), participants)
+                : Messages.fmt(
+                        "action.combat.attack",
+                        "player", context.session().getPlayer().getName(),
+                        "npc", context.encounter().getTarget().getName()
+                );
+
+        broadcaster.broadcastToRoom(
+                context.session().getPlayer().getCurrentRoomId(),
+                GameResponse.narrative(actionMessage),
+                context.sessionId()
+        );
+    }
+
+    private void maybeContinueNpcPressure(CombatEncounter encounter) {
+        if (encounter.isAlive() && !resolveParticipants(encounter).isEmpty()) {
+            scheduleNpcTurn(encounter);
+        }
+    }
+
+    private void rescheduleEncounter(ActiveEncounterContext context) {
+        schedulePlayerTurn(context);
+        scheduleNpcTurn(context.encounter());
+    }
+
+    private GameResponse buildNpcPlayerResponse(GameSession session, String message, boolean playerDefeated) {
+        return playerDefeated
+                ? buildDeathRoomRefresh(session, message).withPlayerStats(session.getPlayer(), levelingService.getXpTables())
+                : GameResponse.narrative(message).withPlayerStats(session.getPlayer(), levelingService.getXpTables());
+    }
+
+    private void dispatchPlayerAttackNarrative(ActiveEncounterContext context, String playerMessage, String partyMessage) {
+        sendNarrativeWithStats(context.session(), playerMessage);
+        broadcastPartyCombatLog(context.encounter(), context.sessionId(), partyMessage);
+    }
+
+    private void sendNarrativeWithStats(GameSession session, String message) {
+        broadcaster.sendToSession(
+                session.getSessionId(),
+                GameResponse.narrative(message).withPlayerStats(session.getPlayer(), levelingService.getXpTables())
+        );
     }
 
     private GameResponse buildDeathRoomRefresh(GameSession session, String message) {
@@ -262,14 +273,14 @@ public class CombatLoopScheduler {
         );
     }
 
-    private void schedulePlayerTurn(String sessionId, GameSession session) {
-        cancelPlayerTurn(sessionId);
+    private void schedulePlayerTurn(ActiveEncounterContext context) {
+        cancelPlayerTurn(context.sessionId());
 
-        ScheduledFuture<?> future = taskScheduler.schedule(
-                () -> executePlayerTurn(sessionId),
-                Instant.now().plusMillis(combatTimingPolicy.playerTurnDelay(session.getPlayer()))
+        ScheduledFuture<?> future = scheduleTurn(
+                () -> executePlayerTurn(context.sessionId()),
+                combatTimingPolicy.playerTurnDelay(context.session().getPlayer())
         );
-        scheduledPlayerActions.put(sessionId, future);
+        scheduledPlayerActions.put(context.sessionId(), future);
     }
 
     private void scheduleNpcTurn(CombatEncounter encounter) {
@@ -282,32 +293,78 @@ public class CombatLoopScheduler {
             return;
         }
 
-        ScheduledFuture<?> future = taskScheduler.schedule(
+        ScheduledFuture<?> future = scheduleTurn(
                 () -> executeNpcTurn(npcId),
-                Instant.now().plusMillis(combatTimingPolicy.npcTurnDelay(encounter.getTarget()))
+                combatTimingPolicy.npcTurnDelay(encounter.getTarget())
         );
         scheduledNpcActions.put(npcId, future);
     }
 
+    private ScheduledFuture<?> scheduleTurn(Runnable action, long delayMillis) {
+        return taskScheduler.schedule(action, Instant.now().plusMillis(delayMillis));
+    }
+
+    private ActiveEncounterContext resolveEncounterContext(String sessionId, boolean endCombatWhenMissingSession) {
+        GameSession session = sessionManager.get(sessionId).orElse(null);
+        if (session == null) {
+            if (endCombatWhenMissingSession) {
+                endCombatAndStop(sessionId);
+            }
+            return null;
+        }
+
+        CombatEncounter encounter = resolveEncounter(sessionId, session);
+        if (encounter == null || !encounter.isAlive()) {
+            endCombatAndStop(sessionId);
+            return null;
+        }
+
+        return new ActiveEncounterContext(sessionId, session, encounter);
+    }
+
+    private NpcTurnContext resolveNpcTurnContext(String npcId) {
+        scheduledNpcActions.remove(npcId);
+
+        CombatEncounter encounter = combatState.getEncounterForNpcId(npcId).orElse(null);
+        if (encounter == null || !encounter.isAlive()) {
+            return null;
+        }
+
+        List<GameSession> participants = resolveParticipants(encounter);
+        if (participants.isEmpty()) {
+            combatState.endCombatForTarget(encounter.getTarget());
+            return null;
+        }
+
+        if (!encounter.getTarget().canFightBack()) {
+            return null;
+        }
+
+        return new NpcTurnContext(encounter, participants, selectNpcTarget(encounter, participants));
+    }
+
+    private GameSession selectNpcTarget(CombatEncounter encounter, List<GameSession> participants) {
+        String targetSessionId = encounter.selectTargetSessionId(
+                participants.stream().map(GameSession::getSessionId).toList()
+        );
+
+        return participants.stream()
+                .filter(candidate -> candidate.getSessionId().equals(targetSessionId))
+                .findFirst()
+                .orElseGet(() -> participants.get(ThreadLocalRandom.current().nextInt(participants.size())));
+    }
+
     private CombatEncounter resolveEncounter(String sessionId, GameSession session) {
         CombatState.CombatEngagement engagement = combatState.getEngagement(sessionId).orElse(null);
-        if (engagement == null) {
+        if (engagement == null || session.getCurrentRoom() == null) {
             return null;
         }
 
         CombatEncounter encounter = engagement.encounter();
-        if (session.getCurrentRoom() == null) {
-            return null;
-        }
-
         boolean sameRoom = engagement.roomId() != null
                 && engagement.roomId().equals(session.getPlayer().getCurrentRoomId())
                 && engagement.roomId().equals(encounter.getRoomId());
-        if (!sameRoom) {
-            return null;
-        }
-
-        if (!session.getCurrentRoom().hasNpc(encounter.getTarget())) {
+        if (!sameRoom || !session.getCurrentRoom().hasNpc(encounter.getTarget())) {
             return null;
         }
 
@@ -337,6 +394,11 @@ public class CombatLoopScheduler {
             combatState.endCombat(participant.getSessionId());
         }
         stopNpcTurn(encounter.getTarget().getId());
+    }
+
+    private void endCombatAndStop(String sessionId) {
+        combatState.endCombat(sessionId);
+        stopCombatLoop(sessionId);
     }
 
     private void broadcastPartyCombatLog(CombatEncounter encounter, String actorSessionId, String partyMessage) {
@@ -388,12 +450,11 @@ public class CombatLoopScheduler {
             return;
         }
 
-        CombatEncounter encounter = engagement.encounter();
-        List<GameSession> remainingParticipants = resolveParticipants(encounter).stream()
+        List<GameSession> remainingParticipants = resolveParticipants(engagement.encounter()).stream()
                 .filter(participant -> !participant.getSessionId().equals(sessionId))
                 .toList();
         if (remainingParticipants.isEmpty()) {
-            stopNpcTurn(encounter.getTarget().getId());
+            stopNpcTurn(engagement.encounter().getTarget().getId());
         }
     }
 
@@ -450,25 +511,33 @@ public class CombatLoopScheduler {
 
                 if (result.xpReward() > 0) {
                     LevelingService.XpGainResult xpResult = levelingService.addExperience(player, result.xpReward());
-                    broadcaster.sendToSession(session.getSessionId(),
+                    broadcaster.sendToSession(
+                            session.getSessionId(),
                             GameResponse.narrative(Messages.fmt("quest.xp_reward", "xp", String.valueOf(result.xpReward())))
-                                    .withPlayerStats(player, levelingService.getXpTables()));
+                                    .withPlayerStats(player, levelingService.getXpTables())
+                    );
                     if (xpResult.leveledUp()) {
-                        broadcaster.sendToSession(session.getSessionId(),
+                        broadcaster.sendToSession(
+                                session.getSessionId(),
                                 GameResponse.narrative(xpResult.levelUpMessage())
-                                        .withPlayerStats(player, levelingService.getXpTables()));
+                                        .withPlayerStats(player, levelingService.getXpTables())
+                        );
                     }
                 }
 
                 if (result.goldReward() > 0) {
-                    broadcaster.sendToSession(session.getSessionId(),
+                    broadcaster.sendToSession(
+                            session.getSessionId(),
                             GameResponse.narrative(Messages.fmt("quest.gold_reward", "gold", String.valueOf(result.goldReward())))
-                                    .withPlayerStats(player, levelingService.getXpTables()));
+                                    .withPlayerStats(player, levelingService.getXpTables())
+                    );
                 }
 
                 for (Item item : result.rewardItems()) {
-                    broadcaster.sendToSession(session.getSessionId(),
-                            GameResponse.narrative(Messages.fmt("quest.item_reward", "item", item.getName())));
+                    broadcaster.sendToSession(
+                            session.getSessionId(),
+                            GameResponse.narrative(Messages.fmt("quest.item_reward", "item", item.getName()))
+                    );
                 }
             }
             default -> {
@@ -481,19 +550,23 @@ public class CombatLoopScheduler {
                     .map(Item::getId)
                     .collect(Collectors.toSet());
             String narrativeHtml = narrative.isEmpty() ? "" : String.join("<br>", narrative);
-            broadcaster.sendToSession(session.getSessionId(),
+            broadcaster.sendToSession(
+                    session.getSessionId(),
                     GameResponse.roomUpdate(
                             currentRoom,
                             narrativeHtml,
                             List.of(),
                             session.getDiscoveredHiddenExits(currentRoom.getId()),
                             inventoryItemIds
-                    ).withPlayerStats(player, levelingService.getXpTables()));
+                    ).withPlayerStats(player, levelingService.getXpTables())
+            );
         }
 
         if (result.type() == QuestProgressResult.ResultType.QUEST_COMPLETE) {
-            broadcaster.sendToSession(session.getSessionId(),
-                    GameResponse.narrative(Messages.fmt("quest.completed", "quest", result.quest().name())));
+            broadcaster.sendToSession(
+                    session.getSessionId(),
+                    GameResponse.narrative(Messages.fmt("quest.completed", "quest", result.quest().name()))
+            );
         }
     }
 
@@ -536,5 +609,11 @@ public class CombatLoopScheduler {
             }
         }
         return builder.toString();
+    }
+
+    private record ActiveEncounterContext(String sessionId, GameSession session, CombatEncounter encounter) {
+    }
+
+    private record NpcTurnContext(CombatEncounter encounter, List<GameSession> participants, GameSession targetSession) {
     }
 }

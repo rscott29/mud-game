@@ -3,6 +3,14 @@ import { describe, expect, it } from 'vitest';
 import { renderMarkup } from './html';
 
 describe('renderMarkup', () => {
+  it('preserves safe class wrappers', () => {
+    const html = renderMarkup(
+      "<div class='quest-available'><strong>Quest</strong></div>"
+    );
+
+    expect(html).toContain('<div class="quest-available"><strong>Quest</strong></div>');
+  });
+
   it('preserves safe width styles for combat status fills', () => {
     const html = renderMarkup(
       "<span class='combat-status-fill' style='width: 6%'></span>"
@@ -18,5 +26,14 @@ describe('renderMarkup', () => {
 
     expect(html).toContain('<span class="combat-status-fill"></span>');
     expect(html).not.toContain('calc(100% - 4px)');
+  });
+
+  it('does not allow attribute injection through class markup', () => {
+    const html = renderMarkup(
+      `<div class='combat-status-fill" onclick="alert(1)'>trap</div>`
+    );
+
+    expect(html).not.toContain('<div class="combat-status-fill" onclick="alert(1)">');
+    expect(html).toContain('&lt;div class=&#39;combat-status-fill&quot; onclick=&quot;alert(1)&#39;&gt;trap</div>');
   });
 });

@@ -138,7 +138,8 @@ export class GameSocketService {
       return false;
     }
 
-    localStorage.setItem(TOKEN_KEY, message.token);
+    sessionStorage.setItem(TOKEN_KEY, message.token);
+    localStorage.removeItem(TOKEN_KEY);
     return true;
   }
 
@@ -169,9 +170,10 @@ export class GameSocketService {
   }
 
   private tryReconnectWithStoredToken(): void {
-    const token = localStorage.getItem(TOKEN_KEY);
+    const token = sessionStorage.getItem(TOKEN_KEY) ?? localStorage.getItem(TOKEN_KEY);
     if (!token) return;
 
+    sessionStorage.removeItem(TOKEN_KEY);
     localStorage.removeItem(TOKEN_KEY);
     this.sendJson({ reconnectToken: token });
   }

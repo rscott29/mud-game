@@ -68,14 +68,13 @@ public class PlayerPersistenceScheduler {
                 CachedPlayerState state = entry.getValue();
                 playerProfileService.saveFromCache(state);
                 inventoryService.saveInventoryByIds(entry.getKey(), state.inventoryItemIds());
+                stateCache.evict(entry.getKey());
                 saved++;
             } catch (Exception e) {
                 log.warn("Failed to flush profile for '{}': {}", entry.getKey(), e.getMessage());
             }
         }
-        
-        // Clear cache after successful flush
-        stateCache.clear();
+
         log.info("Periodic flush complete: {}/{} players written to DB", saved, cached.size());
     }
 
@@ -103,13 +102,13 @@ public class PlayerPersistenceScheduler {
                 CachedPlayerState state = entry.getValue();
                 playerProfileService.saveFromCache(state);
                 inventoryService.saveInventoryByIds(entry.getKey(), state.inventoryItemIds());
+                stateCache.evict(entry.getKey());
                 saved++;
             } catch (Exception e) {
                 log.error("Shutdown flush failed for '{}': {}", entry.getKey(), e.getMessage());
             }
         }
-        
-        stateCache.clear();
+
         log.info("Shutdown flush complete: {}/{} players saved", saved, cached.size());
     }
 }
