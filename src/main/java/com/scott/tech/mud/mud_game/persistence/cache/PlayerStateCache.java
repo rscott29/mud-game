@@ -36,14 +36,23 @@ import java.util.concurrent.ConcurrentHashMap;
 public class PlayerStateCache {
 
     private static final Logger log = LoggerFactory.getLogger(PlayerStateCache.class);
-    private static final Path CACHE_FILE = Path.of("target/player-state-cache.json");
+    private static final Path DEFAULT_CACHE_FILE = Path.of("target/player-state-cache.json");
 
     private final ObjectMapper objectMapper;
+    private final Path cacheFile;
     private final Map<String, CachedPlayerState> cache = new ConcurrentHashMap<>();
 
     public PlayerStateCache() {
-        this.objectMapper = new ObjectMapper();
-        this.objectMapper.registerModule(new JavaTimeModule());
+        this(createObjectMapper(), DEFAULT_CACHE_FILE);
+    }
+
+    PlayerStateCache(Path cacheFile) {
+        this(createObjectMapper(), cacheFile);
+    }
+
+    PlayerStateCache(ObjectMapper objectMapper, Path cacheFile) {
+        this.objectMapper = objectMapper;
+        this.cacheFile = cacheFile;
     }
 
     @PostConstruct
@@ -113,17 +122,33 @@ public class PlayerStateCache {
      * Get cached state for a player, if available and fresher than the given timestamp.
      */
     public CachedPlayerState get(String username, Instant dbTimestamp) {
+        if (username == null || username.isBlank()) {
+            return null;
+        }
         CachedPlayerState cached = cache.get(username.toLowerCase());
-        if (cached != null && (dbTimestamp == null || cached.cachedAt().isAfter(dbTimestamp))) {
+        if (cached == null) {
+            return null;
+        }
+        if (dbTimestamp == null) {
             return cached;
         }
-        return null;
+
+        Instant cachedAt = cached.cachedAt();
+        if (cachedAt == null) {
+            log.debug("Cached state for '{}' has no timestamp; ignoring timestamp-based lookup", username);
+            return null;
+        }
+
+        return cachedAt.isAfter(dbTimestamp) ? cached : null;
     }
 
     /**
      * Get cached state for a player regardless of timestamp.
      */
     public CachedPlayerState get(String username) {
+        if (username == null || username.isBlank()) {
+            return null;
+        }
         return cache.get(username.toLowerCase());
     }
 
@@ -131,6 +156,9 @@ public class PlayerStateCache {
      * Remove a player from the cache after successful DB flush.
      */
     public void evict(String username) {
+        if (username == null || username.isBlank()) {
+            return;
+        }
         cache.remove(username.toLowerCase());
         saveToFile();
     }
@@ -152,22 +180,25 @@ public class PlayerStateCache {
 
     private void saveToFile() {
         try {
-            Files.createDirectories(CACHE_FILE.getParent());
-            objectMapper.writeValue(CACHE_FILE.toFile(), cache);
+            Path parent = cacheFile.getParent();
+            if (parent != null) {
+                Files.createDirectories(parent);
+            }
+            objectMapper.writeValue(cacheFile.toFile(), cache);
         } catch (IOException e) {
             log.warn("Failed to write player state cache: {}", e.getMessage());
         }
     }
 
     private void loadFromFile() {
-        if (!Files.exists(CACHE_FILE)) {
+        if (!Files.exists(cacheFile)) {
             log.debug("No player state cache file found");
             return;
         }
         
         try {
             Map<String, CachedPlayerState> loaded = objectMapper.readValue(
-                    CACHE_FILE.toFile(),
+                    cacheFile.toFile(),
                     new TypeReference<Map<String, CachedPlayerState>>() {}
             );
             cache.putAll(loaded);
@@ -175,6 +206,12 @@ public class PlayerStateCache {
         } catch (IOException e) {
             log.warn("Failed to load player state cache: {}", e.getMessage());
         }
+    }
+
+    private static ObjectMapper createObjectMapper() {
+        ObjectMapper objectMapper = new ObjectMapper();
+        objectMapper.registerModule(new JavaTimeModule());
+        return objectMapper;
     }
 
     /**

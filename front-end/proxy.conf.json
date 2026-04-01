@@ -7,6 +7,9 @@
   "/game": {
     "target": "ws://localhost:8080",
     "ws": true,
-    "changeOrigin": true
+    "changeOrigin": true,
+    "headers": {
+      "Origin": "http://localhost:8080"
+    }
   }
 }

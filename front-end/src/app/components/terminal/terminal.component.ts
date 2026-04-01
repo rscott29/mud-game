@@ -68,8 +68,10 @@ export class TerminalComponent {
       return;
     }
 
-    const commandElement = target.closest<HTMLElement>('[data-command]');
-    const command = commandElement?.dataset['command']?.trim();
+    const commandElement = target.closest<HTMLElement>('[data-command], button[value], a[title]');
+    const command = commandElement?.getAttribute('data-command')?.trim()
+      ?? commandElement?.getAttribute('value')?.trim()
+      ?? commandElement?.getAttribute('title')?.trim();
     if (!command) {
       return;
     }

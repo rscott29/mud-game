@@ -69,7 +69,8 @@ describe('TerminalMessageInterpreterService', () => {
     });
     if (result.kind === 'display') {
       expect(result.message.cssClass).toBe(TERMINAL_MESSAGE_CLASSES.AUTH_PROMPT);
-      expect(result.message.html).toContain('The gatehouse asks');
+      expect(result.message.html).toContain('term-card--prompt');
+      expect(result.message.html).toContain('Enter your password:');
     }
   });
 

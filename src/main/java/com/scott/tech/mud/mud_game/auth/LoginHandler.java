@@ -8,6 +8,7 @@ import com.scott.tech.mud.mud_game.config.ExperienceTableService;
 import com.scott.tech.mud.mud_game.config.GlobalSettingsRegistry;
 import com.scott.tech.mud.mud_game.config.Messages;
 import com.scott.tech.mud.mud_game.dto.GameResponse;
+import com.scott.tech.mud.mud_game.model.Item;
 import com.scott.tech.mud.mud_game.model.Player;
 import com.scott.tech.mud.mud_game.model.SessionState;
 import com.scott.tech.mud.mud_game.persistence.cache.PlayerStateCache;
@@ -19,26 +20,28 @@ import com.scott.tech.mud.mud_game.session.GameSession;
 import com.scott.tech.mud.mud_game.websocket.WorldBroadcaster;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
+
 /**
  * Drives the pre-game authentication / character-creation state machine.
  *
  * <pre>
  * AWAITING_USERNAME
- *   → (known, not locked)    → AWAITING_PASSWORD
- *   → (known, locked)        → stays AWAITING_USERNAME
- *   → (unknown)              → AWAITING_CREATION_CONFIRM
+ *   -> (known, not locked)    -> AWAITING_PASSWORD
+ *   -> (known, locked)        -> stays AWAITING_USERNAME
+ *   -> (unknown)              -> AWAITING_CREATION_CONFIRM
  *
  * AWAITING_PASSWORD
- *   → (correct)              → PLAYING  (game begins)
- *   → (wrong, attempts left) → stays AWAITING_PASSWORD
- *   → (wrong, limit reached) → AWAITING_USERNAME  (account locked)
+ *   -> (correct)              -> PLAYING  (game begins)
+ *   -> (wrong, attempts left) -> stays AWAITING_PASSWORD
+ *   -> (wrong, limit reached) -> AWAITING_USERNAME  (account locked)
  *
  * AWAITING_CREATION_CONFIRM
- *   → "1" / "create"         → AWAITING_CREATION_PASSWORD
- *   → "2" / "exit"           → disconnect
+ *   -> "1" / "create"         -> AWAITING_CREATION_PASSWORD
+ *   -> "2" / "exit"           -> disconnect
  *
  * AWAITING_CREATION_PASSWORD
- *   → (valid password)       → PLAYING  (account created, game begins)
+ *   -> (valid password)       -> PLAYING  (account created, game begins)
  * </pre>
  */
 @Service
@@ -75,48 +78,48 @@ public class LoginHandler {
                         DisconnectGracePeriodService disconnectGracePeriod,
                         com.scott.tech.mud.mud_game.quest.QuestService questService,
                         GlobalSettingsRegistry globalSettingsRegistry) {
-        this.accountStore          = accountStore;
-        this.sessionManager        = sessionManager;
-        this.worldBroadcaster      = worldBroadcaster;
-        this.reconnectTokenStore   = reconnectTokenStore;
-        this.playerProfileService  = playerProfileService;
-        this.inventoryService      = inventoryService;
+        this.accountStore = accountStore;
+        this.sessionManager = sessionManager;
+        this.worldBroadcaster = worldBroadcaster;
+        this.reconnectTokenStore = reconnectTokenStore;
+        this.playerProfileService = playerProfileService;
+        this.inventoryService = inventoryService;
         this.discoveredExitService = discoveredExitService;
-        this.authUiRegistry       = authUiRegistry;
+        this.authUiRegistry = authUiRegistry;
         this.characterCreationOptions = characterCreationOptions;
-        this.classStatsRegistry    = classStatsRegistry;
-        this.xpTables              = xpTables;
-        this.stateCache            = stateCache;
+        this.classStatsRegistry = classStatsRegistry;
+        this.xpTables = xpTables;
+        this.stateCache = stateCache;
         this.disconnectGracePeriod = disconnectGracePeriod;
-        this.questService          = questService;
+        this.questService = questService;
         this.globalSettingsRegistry = globalSettingsRegistry;
     }
 
-    // ── Entry point ───────────────────────────────────────────────────────────
+    // -- Entry point --
 
     /** Produces the initial username prompt sent when a new WebSocket connects. */
     public CommandResult onConnect() {
         return CommandResult.of(
-            GameResponse.authPrompt(
-                authUiRegistry.banner() + "\n\n" + Messages.get("auth.prompt.enter_username"), false));
+                GameResponse.authPrompt(
+                        authUiRegistry.banner() + "\n\n" + Messages.get("auth.prompt.enter_username"), false));
     }
 
     /** Routes raw player input to the correct handler based on the session's login state. */
     public CommandResult handle(String rawInput, GameSession session) {
         return switch (session.getState()) {
-            case AWAITING_USERNAME          -> handleUsername(rawInput.trim(), session);
-            case AWAITING_PASSWORD          -> handlePassword(rawInput, session);
-            case AWAITING_CREATION_CONFIRM  -> handleCreationConfirm(rawInput.trim(), session);
+            case AWAITING_USERNAME -> handleUsername(rawInput.trim(), session);
+            case AWAITING_PASSWORD -> handlePassword(rawInput, session);
+            case AWAITING_CREATION_CONFIRM -> handleCreationConfirm(rawInput.trim(), session);
             case AWAITING_CREATION_PASSWORD -> handleCreationPassword(rawInput, session);
-            case AWAITING_RACE_CLASS        -> handleRaceClass(rawInput.trim(), session);
-            case AWAITING_PRONOUNS          -> handlePronouns(rawInput.trim(), session);
-            case AWAITING_DESCRIPTION       -> handleDescription(rawInput.trim(), session);
+            case AWAITING_RACE_CLASS -> handleRaceClass(rawInput.trim(), session);
+            case AWAITING_PRONOUNS -> handlePronouns(rawInput.trim(), session);
+            case AWAITING_DESCRIPTION -> handleDescription(rawInput.trim(), session);
             default -> CommandResult.of(GameResponse.error(
-                Messages.fmt("error.unexpected_auth_state", "state", session.getState().name())));
+                    Messages.fmt("error.unexpected_auth_state", "state", session.getState().name())));
         };
     }
 
-    // ── Phase: username ───────────────────────────────────────────────────────
+    // -- Phase: username --
 
     private CommandResult handleUsername(String username, GameSession session) {
         if (username.isBlank()) {
@@ -126,71 +129,49 @@ public class LoginHandler {
             return prompt(Messages.get("auth.error.username_invalid"), false);
         }
 
-        if (accountStore.exists(username)) {
-            if (accountStore.isLocked(username)) {
-                long secs = accountStore.lockRemainingSeconds(username);
-                return prompt(Messages.fmt("auth.error.account_locked",
-                    "username", username, "time", formatTime(secs)), false);
-            }
-            session.setPendingUsername(username.toLowerCase());
-            session.transition(SessionState.AWAITING_PASSWORD);
-            return prompt(Messages.get("auth.prompt.password"), true);
-        } else {
-            session.setPendingUsername(username.toLowerCase());
-            session.transition(SessionState.AWAITING_CREATION_CONFIRM);
-            return prompt(Messages.fmt("auth.prompt.create_or_exit", "username", username), false);
-        }
+        session.setPendingUsername(username.toLowerCase());
+        session.transition(SessionState.AWAITING_PASSWORD);
+        return prompt(Messages.get("auth.prompt.password"), true);
     }
 
-    // ── Phase: password ───────────────────────────────────────────────────────
+    // -- Phase: password --
 
     private CommandResult handlePassword(String rawPassword, GameSession session) {
         String username = session.getPendingUsername();
+        boolean accountExists = accountStore.exists(username);
+
+        if (!accountExists && rawPassword.trim().equalsIgnoreCase("create")) {
+            session.transition(SessionState.AWAITING_CREATION_CONFIRM);
+            return prompt(Messages.fmt("auth.prompt.create_or_exit", "username", capitalize(username)), false);
+        }
 
         // Re-check lock (could have been set by a separate concurrent session)
-        if (accountStore.isLocked(username)) {
-            long secs = accountStore.lockRemainingSeconds(username);
+        if (accountExists && accountStore.isLocked(username)) {
             session.setPendingUsername(null);
             session.transition(SessionState.AWAITING_USERNAME);
-            return prompt(Messages.fmt("auth.error.account_locked_recheck",
-                "time", formatTime(secs)), false);
+            return prompt(Messages.get("auth.error.login_unavailable"), false);
         }
 
         if (accountStore.verifyPassword(username, rawPassword)) {
+            if (playerProfileService.isNewPlayer(username) && stateCache.get(username) == null) {
+                return beginCharacterCreation(username, session);
+            }
             restoreAuthenticatedPlayerState(username, session);
-            session.transition(SessionState.PLAYING);
-            broadcastLogin(session);
-            java.util.List<String> others = othersInRoom(session);
-            String token = reconnectTokenStore.issue(username);
-            java.util.List<com.scott.tech.mud.mud_game.dto.GameResponse.ItemView> invViews =
-                session.getPlayer().getInventory().stream()
-                    .map(item -> com.scott.tech.mud.mud_game.dto.GameResponse.ItemView.from(item, session.getPlayer()))
-                    .toList();
-            java.util.Set<String> invIds = session.getPlayer().getInventory().stream()
-                    .map(com.scott.tech.mud.mud_game.model.Item::getId)
-                    .collect(java.util.stream.Collectors.toSet());
-            return CommandResult.of(
-                GameResponse.welcome(welcomeMessage(session.getPlayer().getName()), session.getCurrentRoom(), others,
-                        session.getDiscoveredHiddenExits(session.getPlayer().getCurrentRoomId()), invIds)
-                    .withInventory(invViews)
-                    .withPlayerStats(session.getPlayer(), xpTables),
-                GameResponse.sessionToken(token));
+            return enterWorld(username, session, true);
         }
 
         // Wrong password
-        if (accountStore.isLocked(username)) {
+        if (accountExists && accountStore.isLocked(username)) {
             // This failed attempt just triggered the lock
             session.setPendingUsername(null);
             session.transition(SessionState.AWAITING_USERNAME);
-            return prompt(Messages.get("auth.error.account_locked_now"), false);
+            return prompt(Messages.get("auth.error.login_unavailable"), false);
         }
 
-        int remaining = accountStore.getRemainingAttempts(username);
-        return prompt(Messages.fmt("auth.error.password_wrong",
-            "remaining", String.valueOf(remaining), "s", remaining == 1 ? "" : "s"), true);
+        return prompt(Messages.get("auth.error.password_wrong_generic"), true);
     }
 
-    // ── Phase: creation confirm ───────────────────────────────────────────────
+    // -- Phase: creation confirm --
 
     private CommandResult handleCreationConfirm(String input, GameSession session) {
         String lower = input.toLowerCase();
@@ -200,157 +181,138 @@ public class LoginHandler {
         }
         if (lower.equals("2") || lower.startsWith("exit") || lower.startsWith("quit")) {
             return CommandResult.disconnect(
-                GameResponse.authPrompt(Messages.get("auth.message.farewell"), false));
+                    GameResponse.authPrompt(Messages.get("auth.message.farewell"), false));
         }
         return prompt(Messages.get("auth.error.creation_confirm_invalid"), false);
     }
 
-    // ── Phase: creation password ──────────────────────────────────────────────
+    // -- Phase: creation password --
 
     private CommandResult handleCreationPassword(String rawPassword, GameSession session) {
-        if (rawPassword.isBlank() || rawPassword.length() < 4) {
+        if (rawPassword.isBlank() || rawPassword.length() < 8) {
             return prompt(Messages.get("auth.error.creation_password_short"), true);
         }
         String username = session.getPendingUsername();
         accountStore.createAccount(username, rawPassword);
         session.getPlayer().setName(capitalize(username));
-        
+
         // Check if this is a brand new character (no profile exists yet)
         if (playerProfileService.isNewPlayer(username)) {
-            session.transition(SessionState.AWAITING_RACE_CLASS);
-            return CommandResult.of(GameResponse.characterCreation(
-                "race_class",
-                characterCreationOptions.raceNames(),
-                classStatsRegistry.classNames(),
-                null
-            ));
+            return beginCharacterCreation(username, session);
         }
-        
-        // Existing profile — skip character creation and go straight to playing
-        session.transition(SessionState.PLAYING);
-        broadcastLogin(session);
-        java.util.List<String> others = othersInRoom(session);
-        String token = reconnectTokenStore.issue(username);
-        return CommandResult.of(
-            GameResponse.authPrompt(Messages.get("auth.message.character_created"), false),
-            GameResponse.welcome(welcomeMessage(session.getPlayer().getName()), session.getCurrentRoom(), others)
-                .withInventory(java.util.List.of())
-                .withPlayerStats(session.getPlayer(), xpTables),
-            GameResponse.sessionToken(token));
+
+        // Existing profile - skip character creation and go straight to playing
+        return enterWorld(
+                username,
+                session,
+                true,
+                GameResponse.authPrompt(Messages.get("auth.message.character_created"), false)
+        );
     }
 
-    // ── Phase: race/class selection ───────────────────────────────────────────
+    // -- Phase: race/class selection --
 
     private CommandResult handleRaceClass(String input, GameSession session) {
         if (input.isBlank()) {
             return prompt(Messages.get("auth.error.race_class_blank"), false);
         }
-        
+
         // Parse input format: "race class" or "race|class" or just numbers
         String[] parts = input.split("[\\s|,]+");
         if (parts.length < 2) {
             return prompt(Messages.get("auth.error.race_class_format"), false);
         }
-        
+
         String race = parts[0];
         String characterClass = parts[1];
-        
+
         var resolvedRace = characterCreationOptions.findRace(race);
         if (resolvedRace.isEmpty()) {
             return prompt(Messages.get("auth.error.race_invalid"), false);
         }
-        
+
         var classStats = classStatsRegistry.findByName(characterClass);
         if (classStats.isEmpty()) {
             return prompt(
-                Messages.fmt("auth.error.class_invalid", "classes", String.join(", ", classStatsRegistry.classNames())),
-                false);
+                    Messages.fmt("auth.error.class_invalid", "classes", String.join(", ", classStatsRegistry.classNames())),
+                    false);
         }
-        
+
         // Store temporarily in player object
         session.getPlayer().setRace(resolvedRace.get().name());
         session.getPlayer().setCharacterClass(classStats.get().name());
         setStats(session.getPlayer(), classStats.get().maxHealth(), classStats.get().maxMana(), classStats.get().maxMovement());
-        
+
         session.transition(SessionState.AWAITING_PRONOUNS);
         return CommandResult.of(GameResponse.characterCreation(
-            "pronouns",
-            null,
-            null,
-            characterCreationOptions.pronounOptions()
+                "pronouns",
+                null,
+                null,
+                characterCreationOptions.pronounOptions()
         ));
     }
 
-    // ── Phase: pronouns ───────────────────────────────────────────────────────
+    // -- Phase: pronouns --
 
     private CommandResult handlePronouns(String input, GameSession session) {
         if (input.isBlank()) {
             return prompt(Messages.get("auth.error.pronouns_blank"), false);
         }
-        
+
         var selection = characterCreationOptions.resolvePronouns(input);
         if (selection.isEmpty()) {
             return prompt(Messages.get("auth.error.pronouns_format"), false);
         }
-        
+
         // Store temporarily in player object
         session.getPlayer().setPronounsSubject(selection.get().subject());
         session.getPlayer().setPronounsObject(selection.get().object());
         session.getPlayer().setPronounsPossessive(selection.get().possessive());
-        
+
         session.transition(SessionState.AWAITING_DESCRIPTION);
         return CommandResult.of(GameResponse.characterCreation(
-            "description",
-            null,
-            null,
-            null
+                "description",
+                null,
+                null,
+                null
         ));
     }
 
-    // ── Phase: character description ──────────────────────────────────────────
+    // -- Phase: character description --
 
     private CommandResult handleDescription(String input, GameSession session) {
-        // Description is optional — allow skip
+        // Description is optional - allow skip
         String description = input.trim();
         if (description.equalsIgnoreCase("skip") || description.equalsIgnoreCase("none")) {
             description = null;
         }
-        
+
         session.getPlayer().setDescription(description);
-        
+
         // Save all character creation data to database
         String username = session.getPendingUsername();
         playerProfileService.saveCharacterCreation(
-            username,
-            session.getPlayer().getCurrentRoomId(),
-            session.getPlayer().getRace(),
-            session.getPlayer().getCharacterClass(),
-            session.getPlayer().getPronounsSubject(),
-            session.getPlayer().getPronounsObject(),
-            session.getPlayer().getPronounsPossessive(),
-            description
+                username,
+                session.getPlayer().getCurrentRoomId(),
+                session.getPlayer().getRace(),
+                session.getPlayer().getCharacterClass(),
+                session.getPlayer().getPronounsSubject(),
+                session.getPlayer().getPronounsObject(),
+                session.getPlayer().getPronounsPossessive(),
+                description
         );
         playerProfileService.saveProfile(session.getPlayer());
-        
+
         // Transition to playing
-        session.transition(SessionState.PLAYING);
-        broadcastLogin(session);
-        java.util.List<String> others = othersInRoom(session);
-        String token = reconnectTokenStore.issue(username);
-        return CommandResult.of(
-            GameResponse.authPrompt(Messages.get("auth.message.character_created"), false),
-            GameResponse.welcome(welcomeMessage(session.getPlayer().getName()), session.getCurrentRoom(), others)
-                .withInventory(java.util.List.of())
-                .withPlayerStats(session.getPlayer(), xpTables),
-            GameResponse.sessionToken(token));
+        return enterWorld(
+                username,
+                session,
+                true,
+                GameResponse.authPrompt(Messages.get("auth.message.character_created"), false)
+        );
     }
 
-    // ── Helpers ───────────────────────────────────────────────────────────────
-
-    /** Formats lock-remaining seconds as mm:ss. */
-    private static String formatTime(long secs) {
-        return String.format("%d:%02d", secs / 60, secs % 60);
-    }
+    // -- Helpers --
 
     private static CommandResult prompt(String message, boolean mask) {
         return CommandResult.of(GameResponse.authPrompt(message, mask));
@@ -365,47 +327,37 @@ public class LoginHandler {
         player.setMovement(maxMovement);
     }
 
+    private CommandResult beginCharacterCreation(String username, GameSession session) {
+        session.getPlayer().setName(capitalize(username));
+        session.transition(SessionState.AWAITING_RACE_CLASS);
+        return CommandResult.of(GameResponse.characterCreation(
+                "race_class",
+                characterCreationOptions.raceNames(),
+                classStatsRegistry.classNames(),
+                null
+        ));
+    }
+
     /**
      * Attempts to reconnect using a previously issued token.
      * If valid the session transitions directly to PLAYING and a fresh token is issued.
      */
     public CommandResult reconnect(String rawToken, GameSession session) {
         return reconnectTokenStore.consume(rawToken)
-            .map(username -> {
-                restoreAuthenticatedPlayerState(username, session);
-                session.transition(SessionState.PLAYING);
-                
-                // If reconnecting within the grace period, cancel the "left" broadcast
-                // and skip the "entered" broadcast (player never visibly left)
-                boolean wasQuickReconnect = disconnectGracePeriod.cancelPendingDisconnect(username);
-                if (!wasQuickReconnect) {
-                    broadcastLogin(session);
-                }
-                java.util.List<String> others = othersInRoom(session);
-                String newToken = reconnectTokenStore.issue(username);
-                java.util.List<com.scott.tech.mud.mud_game.dto.GameResponse.ItemView> invViews =
-                    session.getPlayer().getInventory().stream()
-                        .map(item -> com.scott.tech.mud.mud_game.dto.GameResponse.ItemView.from(item, session.getPlayer()))
-                        .toList();
-                java.util.Set<String> invIds = session.getPlayer().getInventory().stream()
-                        .map(com.scott.tech.mud.mud_game.model.Item::getId)
-                        .collect(java.util.stream.Collectors.toSet());
-                return CommandResult.of(
-                    GameResponse.welcome(welcomeMessage(session.getPlayer().getName()), session.getCurrentRoom(), others,
-                            session.getDiscoveredHiddenExits(session.getPlayer().getCurrentRoomId()), invIds)
-                        .withInventory(invViews)
-                        .withPlayerStats(session.getPlayer(), xpTables),
-                    GameResponse.sessionToken(newToken));
-            })
-            .orElseGet(() -> {
-                // Token expired or invalid — send nothing; the banner+prompt was already sent on connect
-                return CommandResult.of();
-            });
+                .map(username -> {
+                    restoreAuthenticatedPlayerState(username, session);
+                    boolean wasQuickReconnect = disconnectGracePeriod.cancelPendingDisconnect(username);
+                    return enterWorld(username, session, !wasQuickReconnect);
+                })
+                .orElseGet(() -> {
+                    // Token expired or invalid - send nothing; the banner+prompt was already sent on connect
+                    return CommandResult.of();
+                });
     }
 
     private void restoreAuthenticatedPlayerState(String username, GameSession session) {
         session.getPlayer().setName(capitalize(username));
-        
+
         // Check cache first - it may have fresher state than DB (e.g., after a dev restart)
         CachedPlayerState cached = stateCache.get(username);
         if (cached != null) {
@@ -446,7 +398,7 @@ public class LoginHandler {
             if (cached.activeQuests() != null) {
                 for (var aq : cached.activeQuests()) {
                     session.getPlayer().getQuestState().restoreActiveQuest(
-                            aq.questId(), aq.currentObjectiveId(), 
+                            aq.questId(), aq.currentObjectiveId(),
                             aq.objectiveProgress(), aq.dialogueStage());
                 }
             }
@@ -473,7 +425,7 @@ public class LoginHandler {
             session.getPlayer().setRecallRoomId(session.getWorldService().getDefaultRecallRoomId());
         }
         session.getPlayer().clearMissingEquipment();
-        
+
         session.getPlayer().setModerator(accountStore.isModerator(username));
         session.getPlayer().setGod(accountStore.isGod(username));
         if (session.getPlayer().isGod()) {
@@ -488,7 +440,9 @@ public class LoginHandler {
 
     /** Capitalizes the first character of a username for display. */
     private static String capitalize(String name) {
-        if (name == null || name.isEmpty()) return name;
+        if (name == null || name.isEmpty()) {
+            return name;
+        }
         return Character.toUpperCase(name.charAt(0)) + name.substring(1);
     }
 
@@ -500,13 +454,49 @@ public class LoginHandler {
         );
     }
 
+    private CommandResult enterWorld(String username,
+                                     GameSession session,
+                                     boolean broadcastArrival,
+                                     GameResponse... leadingResponses) {
+        session.transition(SessionState.PLAYING);
+        if (broadcastArrival) {
+            broadcastLogin(session);
+        }
+
+        ArrayList<GameResponse> responses = new ArrayList<>();
+        responses.addAll(java.util.List.of(leadingResponses));
+        responses.add(buildWelcomeResponse(session));
+        responses.add(GameResponse.sessionToken(reconnectTokenStore.issue(username)));
+        return CommandResult.of(responses.toArray(GameResponse[]::new));
+    }
+
+    private GameResponse buildWelcomeResponse(GameSession session) {
+        Player player = session.getPlayer();
+        java.util.List<String> others = othersInRoom(session);
+        java.util.List<GameResponse.ItemView> inventoryViews = player.getInventory().stream()
+                .map(item -> GameResponse.ItemView.from(item, player))
+                .toList();
+        java.util.Set<String> inventoryIds = player.getInventory().stream()
+                .map(Item::getId)
+                .collect(java.util.stream.Collectors.toSet());
+
+        return GameResponse.welcome(
+                        welcomeMessage(player.getName()),
+                        session.getCurrentRoom(),
+                        others,
+                        session.getDiscoveredHiddenExits(player.getCurrentRoomId()),
+                        inventoryIds)
+                .withInventory(inventoryViews)
+                .withPlayerStats(player, xpTables);
+    }
+
     /** Broadcasts login arrival to everyone else in the room. */
     private void broadcastLogin(GameSession session) {
         worldBroadcaster.broadcastToRoom(
-            session.getPlayer().getCurrentRoomId(),
-            GameResponse.roomAction(Messages.fmt("event.player.entered_world", "player", session.getPlayer().getName())),
-            session.getSessionId())
-        ;
+                session.getPlayer().getCurrentRoomId(),
+                GameResponse.roomAction(Messages.fmt("event.player.entered_world", "player", session.getPlayer().getName())),
+                session.getSessionId()
+        );
     }
 
     /** Names of all PLAYING players already in the same room as this session (excluding self). */
@@ -518,4 +508,3 @@ public class LoginHandler {
                 .collect(java.util.stream.Collectors.toList());
     }
 }
-

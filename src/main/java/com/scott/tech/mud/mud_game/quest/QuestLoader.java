@@ -5,6 +5,7 @@ import com.scott.tech.mud.mud_game.exception.WorldLoadException;
 import com.scott.tech.mud.mud_game.model.Direction;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Component;
 
@@ -29,10 +30,17 @@ public class QuestLoader {
     private static final String QUESTS_FILE = "world/quests.json";
 
     private final ObjectMapper objectMapper;
+    private final QuestDefinitionMapper questDefinitionMapper;
     private final Map<QuestObjectiveType, ObjectiveValidator> objectiveValidators;
 
+    @Autowired
     public QuestLoader(ObjectMapper objectMapper) {
+        this(objectMapper, new QuestDefinitionMapper());
+    }
+
+    QuestLoader(ObjectMapper objectMapper, QuestDefinitionMapper questDefinitionMapper) {
         this.objectMapper = objectMapper;
+        this.questDefinitionMapper = questDefinitionMapper;
         this.objectiveValidators = createObjectiveValidators();
     }
 
@@ -75,170 +83,7 @@ public class QuestLoader {
 
     private Quest buildQuest(QuestData def) {
         validateQuest(def);
-
-        List<QuestObjective> objectives = new ArrayList<>();
-        if (def.objectives != null) {
-            for (ObjectiveData objDef : def.objectives) {
-                objectives.add(buildObjective(objDef));
-            }
-        }
-
-        return new Quest(
-                def.id,
-                def.name,
-                def.description,
-                def.giver,
-                def.startDialogue,
-                buildPrerequisites(def.prerequisites),
-                objectives,
-                buildRewards(def.rewards),
-                def.completionDialogue,
-                buildCompletionEffects(def.completionEffects)
-        );
-    }
-
-    private QuestObjective buildObjective(ObjectiveData def) {
-        return new QuestObjective(
-                def.id,
-                parseObjectiveType(def.type),
-                def.description,
-                def.target,
-                def.itemId,
-                def.consumeItem,
-                def.spawnNpcs,
-                def.defeatCount,
-                def.failOnTargetDeath,
-            def.targetHealth,
-            def.timeLimitSeconds,
-                buildDialogue(def.dialogue),
-                def.requiresPrevious,
-                buildObjectiveEffects(def.onComplete)
-        );
-    }
-
-    private QuestObjective.DialogueData buildDialogue(DialogueChoiceData def) {
-        if (def == null) {
-            return null;
-        }
-
-        List<QuestObjective.DialogueChoice> choices = new ArrayList<>();
-        if (def.choices != null) {
-            for (ChoiceData choice : def.choices) {
-                choices.add(new QuestObjective.DialogueChoice(
-                        choice.text,
-                        choice.correct,
-                        choice.response
-                ));
-            }
-        }
-
-        QuestObjective.DialogueData followUp = null;
-        if (def.followUp != null) {
-            followUp = buildDialogue(def.followUp);
-        }
-
-        return new QuestObjective.DialogueData(def.question, choices, followUp);
-    }
-
-    private QuestPrerequisites buildPrerequisites(PrerequisitesData def) {
-        if (def == null) {
-            return QuestPrerequisites.NONE;
-        }
-
-        return new QuestPrerequisites(
-                def.minLevel,
-                def.completedQuests,
-                def.requiredItems
-        );
-    }
-
-    private QuestRewards buildRewards(RewardsData def) {
-        if (def == null) {
-            return QuestRewards.NONE;
-        }
-
-        return new QuestRewards(def.items, def.xp, def.gold);
-    }
-
-    private ObjectiveEffects buildObjectiveEffects(ObjectiveEffectsData def) {
-        if (def == null) {
-            return ObjectiveEffects.NONE;
-        }
-
-        ObjectiveEffects.RelocateItem relocate = null;
-        if (def.relocateItem != null) {
-            relocate = new ObjectiveEffects.RelocateItem(
-                    def.relocateItem.itemId,
-                    def.relocateItem.targetRooms
-            );
-        }
-
-        ObjectiveEffects.Encounter encounter = null;
-        if (def.encounter != null) {
-            encounter = new ObjectiveEffects.Encounter(
-                    def.encounter.spawnNpcs,
-                    safeList(def.encounter.blockExits).stream()
-                            .map(this::parseDirection)
-                            .toList()
-            );
-        }
-
-        if (relocate == null
-                && encounter == null
-                && isBlank(def.startFollowing)
-                && isBlank(def.stopFollowing)
-                && safeList(def.addItems).isEmpty()
-                && safeList(def.dialogue).isEmpty()) {
-            return ObjectiveEffects.NONE;
-        }
-
-        return new ObjectiveEffects(
-                relocate,
-                encounter,
-                def.startFollowing,
-                def.stopFollowing,
-                def.addItems,
-                def.dialogue
-        );
-    }
-
-    private QuestCompletionEffects buildCompletionEffects(CompletionEffectsData def) {
-        if (def == null) {
-            return QuestCompletionEffects.NONE;
-        }
-
-        QuestCompletionEffects.HiddenExitReveal exitReveal = buildHiddenExit(def.revealHiddenExit);
-
-        List<QuestCompletionEffects.NpcDescriptionUpdate> npcUpdates = new ArrayList<>();
-        for (NpcDescriptionUpdateData update : safeList(def.updateNpcDescriptions)) {
-            npcUpdates.add(new QuestCompletionEffects.NpcDescriptionUpdate(
-                    update.npcId,
-                    update.newDescription,
-                    update.originalDescription
-            ));
-        }
-
-        List<QuestCompletionEffects.HiddenExitReveal> resetExits = new ArrayList<>();
-        for (HiddenExitData exitData : safeList(def.resetDiscoveredExits)) {
-            resetExits.add(buildHiddenExit(exitData));
-        }
-
-        if (exitReveal == null && npcUpdates.isEmpty() && resetExits.isEmpty()) {
-            return QuestCompletionEffects.NONE;
-        }
-
-        return new QuestCompletionEffects(exitReveal, npcUpdates, resetExits);
-    }
-
-    private QuestCompletionEffects.HiddenExitReveal buildHiddenExit(HiddenExitData def) {
-        if (def == null) {
-            return null;
-        }
-
-        return new QuestCompletionEffects.HiddenExitReveal(
-                def.roomId,
-                parseDirection(def.direction)
-        );
+        return questDefinitionMapper.buildQuest(def);
     }
 
     private void validateQuest(QuestData def) {

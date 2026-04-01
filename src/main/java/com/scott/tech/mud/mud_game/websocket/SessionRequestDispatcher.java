@@ -39,12 +39,17 @@ public class SessionRequestDispatcher {
         String sessionId = wsSession.getId();
         String playerName = gameSession.getPlayer().getName();
         
-        log.debug("[{}] REQUEST_RECEIVED command='{}' input='{}' args={}",
-                playerName, request.getCommand(), request.getInput(), request.getArgs());
+        log.debug("[{}] REQUEST_RECEIVED command='{}' hasInput={} inputLength={} argsCount={} hasReconnectToken={}",
+                playerName,
+                request.getCommand(),
+                hasText(request.getInput()),
+                textLength(request.getInput()),
+                argCount(request),
+                hasText(request.getReconnectToken()));
 
         if (gameSession.getState() == SessionState.LOGOUT_CONFIRM) {
             String input = extractLoginInput(request).toLowerCase();
-            log.debug("[logout-confirm:{}] input='{}'", sessionId, input);
+            log.debug("[logout-confirm:{}] inputLength={}", sessionId, input.length());
             return handleLogoutConfirm(input, gameSession);
         }
 
@@ -55,7 +60,7 @@ public class SessionRequestDispatcher {
 
         if (gameSession.getState() != SessionState.PLAYING) {
             String input = extractLoginInput(request);
-            log.debug("[login:{}] input='{}' state={}", sessionId, input, gameSession.getState());
+            log.debug("[login:{}] state={} inputLength={}", sessionId, gameSession.getState(), input.length());
             return loginHandler.handle(input, gameSession);
         }
 
@@ -68,7 +73,7 @@ public class SessionRequestDispatcher {
         boolean isNatural = request.isNaturalLanguage();
         
         if (isNatural) {
-            log.debug("[{}] AI_RESOLVER input='{}'", playerName, request.getInput());
+            log.debug("[{}] AI_RESOLVER inputLength={}", playerName, textLength(request.getInput()));
             request = aiIntentResolver.resolve(request.getInput(), gameSession.getCurrentRoom());
             log.debug("[{}] AI_RESOLVER resolved='{}' args={}", 
                     playerName, request.getCommand(), request.getArgs());
@@ -106,5 +111,17 @@ public class SessionRequestDispatcher {
             }
         }
         return sb.toString().trim();
+    }
+
+    private static boolean hasText(String value) {
+        return value != null && !value.isBlank();
+    }
+
+    private static int textLength(String value) {
+        return value == null ? 0 : value.length();
+    }
+
+    private static int argCount(CommandRequest request) {
+        return request.getArgs() == null ? 0 : request.getArgs().size();
     }
 }

@@ -1,53 +1,12 @@
 package com.scott.tech.mud.mud_game.command.registry;
 
-import com.scott.tech.mud.mud_game.command.attack.AttackCommand;
-import com.scott.tech.mud.mud_game.command.bind.BindRecallCommand;
-import com.scott.tech.mud.mud_game.command.drop.DropCommand;
-import com.scott.tech.mud.mud_game.command.emote.EmoteCommand;
-import com.scott.tech.mud.mud_game.command.equip.EquipCommand;
-import com.scott.tech.mud.mud_game.command.equip.UnequipCommand;
-import com.scott.tech.mud.mud_game.command.follow.FollowCommand;
-import com.scott.tech.mud.mud_game.command.group.GroupCommand;
-import com.scott.tech.mud.mud_game.command.help.HelpCommand;
-import com.scott.tech.mud.mud_game.command.inventory.InventoryCommand;
-import com.scott.tech.mud.mud_game.command.investigate.InvestigateCommand;
-import com.scott.tech.mud.mud_game.command.look.LookCommand;
-import com.scott.tech.mud.mud_game.command.logout.LogoutCommand;
-import com.scott.tech.mud.mud_game.command.me.MeCommand;
-import com.scott.tech.mud.mud_game.command.moderation.ModerationCommand;
-import com.scott.tech.mud.mud_game.command.move.MoveCommand;
-import com.scott.tech.mud.mud_game.command.pickup.PickupCommand;
-import com.scott.tech.mud.mud_game.command.quest.AcceptCommand;
-import com.scott.tech.mud.mud_game.command.quest.GiveCommand;
-import com.scott.tech.mud.mud_game.command.quest.QuestCommand;
-import com.scott.tech.mud.mud_game.command.recall.RecallCommand;
-import com.scott.tech.mud.mud_game.command.respawn.RespawnCommand;
-import com.scott.tech.mud.mud_game.command.skills.SkillsCommand;
-import com.scott.tech.mud.mud_game.command.social.SocialAction;
-import com.scott.tech.mud.mud_game.command.social.SocialCommand;
-import com.scott.tech.mud.mud_game.command.shop.BuyCommand;
-import com.scott.tech.mud.mud_game.command.shop.ShopCommand;
-import com.scott.tech.mud.mud_game.command.talk.TalkCommand;
-import com.scott.tech.mud.mud_game.command.unknown.UnknownCommand;
-import com.scott.tech.mud.mud_game.command.who.WhoCommand;
-import com.scott.tech.mud.mud_game.command.admin.DeleteInventoryItemCommand;
-import com.scott.tech.mud.mud_game.command.admin.KickCommand;
-import com.scott.tech.mud.mud_game.command.admin.ResetQuestCommand;
-import com.scott.tech.mud.mud_game.command.admin.SetModeratorCommand;
-import com.scott.tech.mud.mud_game.command.admin.SetLevelCommand;
-import com.scott.tech.mud.mud_game.command.admin.SmiteCommand;
-import com.scott.tech.mud.mud_game.command.admin.SpawnCommand;
-import com.scott.tech.mud.mud_game.command.admin.SummonCommand;
-import com.scott.tech.mud.mud_game.command.admin.TeleportCommand;
-import com.scott.tech.mud.mud_game.command.communication.dm.DirectMessageCommand;
-import com.scott.tech.mud.mud_game.command.communication.speak.SpeakCommand;
-import com.scott.tech.mud.mud_game.command.communication.world.WorldCommand;
-import com.scott.tech.mud.mud_game.model.Direction;
-
-import java.util.*;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
-
-import static com.scott.tech.mud.mud_game.command.registry.CommandCategory.*;
 
 /**
  * Central registry of all command definitions.
@@ -75,10 +34,10 @@ public final class CommandRegistry {
     public static final String INVENTORY = "inventory";
     public static final String ME = "me";
     public static final String INVESTIGATE = "investigate";
-        public static final String FOLLOW = "follow";
-        public static final String GROUP = "group";
-        public static final String SHOP = "shop";
-        public static final String BUY = "buy";
+    public static final String FOLLOW = "follow";
+    public static final String GROUP = "group";
+    public static final String SHOP = "shop";
+    public static final String BUY = "buy";
     public static final String SKILLS = "skills";
     public static final String MODERATION = "moderation";
     public static final String RECALL = "recall";
@@ -105,16 +64,22 @@ public final class CommandRegistry {
     private static final Map<String, String> ALIAS_MAP = buildAliasMap();
     private static final Map<String, CommandCreator> CREATOR_MAP = buildCreatorMap();
 
-    private CommandRegistry() {}
+    private CommandRegistry() {
+    }
 
     /**
      * Normalizes raw input to a canonical command name.
      * Lowercases, preserves exact slash aliases, and falls back to bare aliases.
      */
     public static String canonicalize(String raw) {
-        if (raw == null) return "";
+        if (raw == null) {
+            return "";
+        }
+
         String normalized = raw.trim().toLowerCase(Locale.ROOT);
-        if (normalized.isEmpty()) return "";
+        if (normalized.isEmpty()) {
+            return "";
+        }
 
         String exactMatch = ALIAS_MAP.get(normalized);
         if (exactMatch != null) {
@@ -134,7 +99,7 @@ public final class CommandRegistry {
      */
     public static Optional<CommandMetadata> getMetadata(String canonicalName) {
         return ALL_COMMANDS.stream()
-                .filter(m -> m.canonicalName().equals(canonicalName))
+                .filter(metadata -> metadata.canonicalName().equals(canonicalName))
                 .findFirst();
     }
 
@@ -157,7 +122,7 @@ public final class CommandRegistry {
      */
     public static List<CommandMetadata> getByCategory(CommandCategory category) {
         return ALL_COMMANDS.stream()
-                .filter(m -> m.category() == category)
+                .filter(metadata -> metadata.category() == category)
                 .toList();
     }
 
@@ -183,7 +148,6 @@ public final class CommandRegistry {
     public static String helpText() {
         StringBuilder sb = new StringBuilder("Available commands:\n");
 
-        // Group by category, maintaining order
         Map<CommandCategory, List<CommandMetadata>> byCategory = ALL_COMMANDS.stream()
                 .filter(CommandMetadata::showInHelp)
                 .collect(Collectors.groupingBy(
@@ -194,14 +158,16 @@ public final class CommandRegistry {
 
         for (CommandCategory category : CommandCategory.values()) {
             List<CommandMetadata> commands = byCategory.get(category);
-            if (commands == null || commands.isEmpty()) continue;
+            if (commands == null || commands.isEmpty()) {
+                continue;
+            }
 
-            for (CommandMetadata cmd : commands) {
-                String prefix = cmd.godOnly() ? "[god] " : "";
+            for (CommandMetadata command : commands) {
+                String prefix = command.godOnly() ? "[god] " : "";
                 sb.append(String.format("  %-22s - %s%s%n",
-                        cmd.usage(),
+                        command.usage(),
                         prefix,
-                        cmd.description()));
+                        command.description()));
             }
         }
 
@@ -214,16 +180,16 @@ public final class CommandRegistry {
     public static String aiCommandGuide() {
         StringBuilder sb = new StringBuilder("Available commands:\n");
 
-        for (CommandMetadata cmd : ALL_COMMANDS) {
-            if (!cmd.showInAiGuide()) continue;
+        for (CommandMetadata command : ALL_COMMANDS) {
+            if (!command.showInAiGuide()) {
+                continue;
+            }
 
-            // Show usage and description
-            sb.append(String.format("  %-22s - %s", cmd.usage(), cmd.description()));
+            sb.append(String.format("  %-22s - %s", command.usage(), command.description()));
 
-            // Add alias hints for AI
-            List<String> aliases = cmd.aliases().stream()
-                    .filter(a -> !a.equals(cmd.canonicalName()))
-                    .filter(a -> !a.startsWith("/"))
+            List<String> aliases = command.aliases().stream()
+                    .filter(alias -> !alias.equals(command.canonicalName()))
+                    .filter(alias -> !alias.startsWith("/"))
                     .limit(3)
                     .toList();
             if (!aliases.isEmpty()) {
@@ -235,538 +201,23 @@ public final class CommandRegistry {
         return sb.toString();
     }
 
-    // -------------------------------------------------------------------------
-    // Internal: Build command definitions
-    // -------------------------------------------------------------------------
-
     private static List<CommandDefinition> buildDefinitions() {
         List<CommandDefinition> commands = new ArrayList<>();
-
-        // Exploration commands
-        commands.add(CommandDefinition.builder(LOOK)
-                .aliases("look", "l", "examine", "x")
-                .category(EXPLORATION)
-                .usage("look [target]")
-                .description("Describe surroundings or examine something")
-                .naturalLanguage()
-                .creator(ctx -> new LookCommand(
-                        ctx.hasNoArgs() ? null : ctx.joinedArgs(),
-                        ctx.deps().sessionManager(),
-                        ctx.deps().questService()
-                ))
-                .build());
-
-        commands.add(CommandDefinition.builder(GO)
-                .aliases(goAliases())
-                .category(EXPLORATION)
-                .usage("go <direction>")
-                .description("Move in a direction (n/s/e/w/u/d)")
-                .creator(ctx -> {
-                    Direction dir = Direction.fromString(ctx.hasNoArgs() ? ctx.rawCommand() : ctx.firstArg());
-                    if (dir == null) {
-                        return new UnknownCommand(ctx.hasNoArgs() ? ctx.rawCommand() : "go " + ctx.firstArg());
-                    }
-                    return new MoveCommand(dir, ctx.deps().taskScheduler(), ctx.deps().worldBroadcaster(), ctx.deps().sessionManager(),
-                            ctx.deps().partyService(), ctx.deps().questService(), ctx.deps().levelingService(), ctx.deps().worldService(),
-                            ctx.deps().ambientEventService(), ctx.deps().aiTextPolisher(), ctx.deps().playerDeathService());
-                })
-                .build());
-
-        commands.add(CommandDefinition.builder(INVENTORY)
-                .aliases("inventory", "inv", "i")
-                .category(EXPLORATION)
-                .usage("inventory")
-                .description("List what you are carrying")
-                .creator(ctx -> new InventoryCommand())
-                .build());
-
-        commands.add(CommandDefinition.builder(SHOP)
-                .aliases("shop", "browse", "wares", "trade")
-                .category(INTERACTION)
-                .usage("shop")
-                .description("Browse the merchant stock in the current room")
-                .creator(ctx -> new ShopCommand(ctx.deps().shopService()))
-                .build());
-
-        commands.add(CommandDefinition.builder(BUY)
-                .aliases("buy", "purchase")
-                .category(INTERACTION)
-                .usage("buy <item>")
-                .description("Buy an item from the current room's merchant")
-                .creator(ctx -> new BuyCommand(
-                        ctx.hasNoArgs() ? null : ctx.joinedArgs(),
-                        ctx.deps().shopService(),
-                        ctx.deps().xpTables()
-                ))
-                .build());
-
-        commands.add(CommandDefinition.builder(ME)
-                .aliases("me", "profile", "sheet", "gear", "equipment")
-                .category(SESSION)
-                .usage("me")
-                .description("Show your character sheet and equipped gear")
-                .creator(ctx -> new MeCommand(
-                        ctx.deps().xpTables(),
-                        ctx.deps().combatStatsResolver()
-                ))
-                .build());
-
-        commands.add(CommandDefinition.builder(INVESTIGATE)
-                .aliases("investigate", "search", "inspect")
-                .category(EXPLORATION)
-                .usage("investigate")
-                .description("Search for hidden exits or secrets")
-                .naturalLanguage()
-                .creator(ctx -> new InvestigateCommand(ctx.deps().discoveredExitService()))
-                .build());
-
-        // Interaction commands
-        commands.add(CommandDefinition.builder(TALK)
-                .aliases("talk", "greet")
-                .category(INTERACTION)
-                .usage("talk <npc>")
-                .description("Talk to an NPC in the room")
-                .naturalLanguage()
-                .creator(ctx -> new TalkCommand(
-                        ctx.hasNoArgs() ? null : ctx.joinedArgs(),
-                        ctx.deps().talkValidator(),
-                        ctx.deps().talkService(),
-                        ctx.deps().questService()
-                ))
-                .build());
-
-        commands.add(CommandDefinition.builder(PICKUP)
-                .aliases("take", "get", "pickup", "pick", "grab", "snatch", "lift", "collect", "steal")
-                .category(INTERACTION)
-                .usage("take <item>")
-                .description("Pick up an item from the room")
-                .naturalLanguage()
-                .creator(ctx -> new PickupCommand(
-                        ctx.hasNoArgs() ? null : ctx.joinedArgs(),
-                        ctx.deps().pickupValidator(),
-                        ctx.deps().pickupService(),
-                        ctx.deps().questService(),
-                        ctx.deps().objectiveEncounterRuntimeService()
-                ))
-                .build());
-
-        commands.add(CommandDefinition.builder(DROP)
-                .aliases("drop", "discard", "toss", "leave")
-                .category(INTERACTION)
-                .usage("drop <item>")
-                .description("Drop an item from your inventory")
-                .naturalLanguage()
-                .creator(ctx -> new DropCommand(
-                        ctx.hasNoArgs() ? null : ctx.joinedArgs(),
-                        ctx.deps().dropValidator(),
-                        ctx.deps().dropService()
-                ))
-                .build());
-
-        commands.add(CommandDefinition.builder(EQUIP)
-                .aliases("equip", "wield", "arm", "ready")
-                .category(INTERACTION)
-                .usage("equip <item>")
-                .description("Equip a weapon or piece of gear from your inventory")
-                .creator(ctx -> new EquipCommand(
-                        ctx.hasNoArgs() ? null : ctx.joinedArgs(),
-                        ctx.deps().equipValidator(),
-                        ctx.deps().equipService()
-                ))
-                .build());
-
-        commands.add(CommandDefinition.builder(UNEQUIP)
-                .aliases("unequip", "remove", "unwear", "unwield")
-                .category(INTERACTION)
-                .usage("remove <item|slot>")
-                .description("Unequip a weapon or piece of gear")
-                .creator(ctx -> new UnequipCommand(
-                        ctx.hasNoArgs() ? null : ctx.joinedArgs(),
-                        ctx.deps().equipService()
-                ))
-                .build());
-
-        // Combat commands
-        commands.add(CommandDefinition.builder(ATTACK)
-                .aliases("attack", "kill", "fight", "hit", "strike", "slay")
-                .category(INTERACTION)
-                .usage("attack <target>")
-                .description("Attack an NPC in combat")
-                .creator(ctx -> new AttackCommand(
-                        ctx.hasNoArgs() ? null : ctx.joinedArgs(),
-                        ctx.deps().attackValidator(),
-                        ctx.deps().combatService(),
-                        ctx.deps().combatLoopScheduler(),
-                        ctx.deps().combatState(),
-                        ctx.deps().xpTables(),
-                        ctx.deps().sessionManager(),
-                        ctx.deps().partyService(),
-                        ctx.deps().worldBroadcaster(),
-                        ctx.deps().levelingService(),
-                        ctx.deps().worldService()
-                ))
-                .build());
-
-        commands.add(CommandDefinition.builder(BIND)
-                .aliases("bind", "setrecall", "sethome")
-                .category(INTERACTION)
-                .usage("bind")
-                .description("Bind your recall point in a sanctified room")
-                .creator(ctx -> new BindRecallCommand())
-                .build());
-
-
-        // Social commands
-        commands.add(CommandDefinition.builder(SPEAK)
-                .aliases("speak", "/speak", "/say", "say")
-                .category(SOCIAL)
-                .usage("say <message>")
-                .description("Chat to players in your room")
-                .creator(ctx -> new SpeakCommand(
-                        ctx.joinedArgs(),
-                        ctx.deps().worldBroadcaster(),
-                        ctx.deps().playerTextModerator(),
-                        ctx.deps().worldModerationPolicyService()
-                ))
-                .build());
-
-        commands.add(CommandDefinition.builder(WORLD)
-                .aliases("world", "/world")
-                .category(SOCIAL)
-                .usage("/world <message>")
-                .description("Chat to all online players")
-                .creator(ctx -> new WorldCommand(
-                        ctx.joinedArgs(),
-                        ctx.deps().worldBroadcaster(),
-                        ctx.deps().playerTextModerator(),
-                        ctx.deps().worldModerationPolicyService()
-                ))
-                .build());
-
-        commands.add(CommandDefinition.builder(DM)
-                .aliases("dm", "/dm", "tell", "whisper")
-                .category(SOCIAL)
-                .usage("/dm <player> <msg>")
-                .description("Send a private message")
-                .creator(ctx -> new DirectMessageCommand(
-                        ctx.hasNoArgs() ? null : ctx.firstArg(),
-                        ctx.argsAfterFirst().isEmpty() ? null : ctx.argsAfterFirst(),
-                        ctx.deps().worldBroadcaster(),
-                        ctx.deps().sessionManager(),
-                        ctx.deps().playerTextModerator(),
-                        ctx.deps().worldModerationPolicyService()
-                ))
-                .build());
-
-        commands.add(CommandDefinition.builder(WHO)
-                .aliases("who", "/who")
-                .category(SOCIAL)
-                .usage("who")
-                .description("List online players")
-                .creator(ctx -> new WhoCommand(ctx.deps().sessionManager()))
-                .build());
-
-        commands.add(CommandDefinition.builder(FOLLOW)
-                .aliases("follow", "party")
-                .category(SOCIAL)
-                .usage("follow <player|stop>")
-                .description("Follow a player and join their group")
-                .creator(ctx -> new FollowCommand(
-                        ctx.hasNoArgs() ? null : ctx.joinedArgs(),
-                        ctx.deps().sessionManager(),
-                        ctx.deps().partyService()
-                ))
-                .build());
-
-        commands.add(CommandDefinition.builder(GROUP)
-                .aliases("group", "grp")
-                .category(SOCIAL)
-                .usage("group")
-                .description("Show your current group")
-                .creator(ctx -> new GroupCommand(
-                        ctx.deps().partyService(),
-                        ctx.deps().sessionManager(),
-                        ctx.deps().combatState()
-                ))
-                .build());
-
-        // Emote commands
-        commands.add(CommandDefinition.builder(EMOTE)
-                .aliases("emote", "em", "/emote", "/em", "/me")
-                .category(CommandCategory.EMOTE)
-                .usage("/em <action>")
-                .description("Custom emote (e.g., /em dances, /em waves at Bob)")
-                .creator(ctx -> new EmoteCommand(
-                        ctx.joinedArgs(),
-                        ctx.deps().sessionManager(),
-                        ctx.deps().emotePerspectiveResolver(),
-                        ctx.deps().playerTextModerator(),
-                        ctx.deps().worldModerationPolicyService()
-                ))
-                .build());
-
-        commands.addAll(buildSocialDefinitions());
-
-        // Session commands
-        commands.add(CommandDefinition.builder(HELP)
-                .aliases("help", "?", "commands")
-                .category(SESSION)
-                .usage("help")
-                .description("Show this message")
-                .creator(ctx -> new HelpCommand())
-                .build());
-
-        commands.add(CommandDefinition.builder(SKILLS)
-                .aliases("skills", "sk", "progression", "abilities")
-                .category(SESSION)
-                .usage("skills")
-                .description("View your class skill progression")
-                .creator(ctx -> new SkillsCommand())
-                .build());
-
-        commands.add(CommandDefinition.builder(RESPAWN)
-                .aliases("respawn", "revive", "recover")
-                .category(SESSION)
-                .usage("respawn")
-                .description("Return to your recall point after being defeated")
-                .creator(ctx -> new RespawnCommand(ctx.deps().playerRespawnService()))
-                .build());
-
-        commands.add(CommandDefinition.builder(RECALL)
-                .aliases("recall", "home")
-                .category(SESSION)
-                .usage("recall")
-                .description("Teleport to your bound recall point")
-                .creator(ctx -> new RecallCommand(
-                        ctx.deps().playerRespawnService(),
-                        ctx.deps().combatState(),
-                        ctx.deps().combatLoopScheduler()
-                ))
-                .build());
-
-        commands.add(CommandDefinition.builder(MODERATION)
-                .aliases("moderation", "filter", "filters")
-                .category(SESSION)
-                .usage("moderation [show|allow|block <category|all>]")
-                .description("View or configure the world's broadcast moderation policy")
-                .creator(ctx -> new ModerationCommand(
-                        ctx.joinedArgs(),
-                        ctx.deps().worldModerationPolicyService()
-                ))
-                .build());
-
-        commands.add(CommandDefinition.builder(LOGOUT)
-                .aliases("logout", "logoff", "quit", "exit")
-                .category(SESSION)
-                .usage("logout")
-                .description("Log out of the game")
-                .creator(ctx -> new LogoutCommand())
-                .build());
-
-        // God commands
-        commands.add(CommandDefinition.builder(SPAWN)
-                .aliases("spawn")
-                .category(GOD)
-                .usage("spawn <item> [inv]")
-                .description("Spawn an item by ID")
-                .godOnly()
-                .creator(ctx -> new SpawnCommand(ctx.joinedArgs(), ctx.deps().inventoryService()))
-                .build());
-
-        commands.add(CommandDefinition.builder(DELETE_ITEM)
-                .aliases("deleteitem", "delitem", "deleteinv", "destroyitem")
-                .category(GOD)
-                .usage("deleteitem <item>")
-                .description("Delete an item from inventory")
-                .godOnly()
-                .creator(ctx -> new DeleteInventoryItemCommand(ctx.joinedArgs(), ctx.deps().inventoryService()))
-                .build());
-
-        commands.add(CommandDefinition.builder(TELEPORT)
-                .aliases("teleport", "tp", "warp", "goto", "telport", "teleprot")
-                .category(GOD)
-                .usage("teleport <target>")
-                .description("Teleport to a player or NPC")
-                .godOnly()
-                .creator(ctx -> new TeleportCommand(
-                        ctx.joinedArgs(),
-                        ctx.deps().sessionManager(),
-                        ctx.deps().worldBroadcaster()
-                ))
-                .build());
-
-        commands.add(CommandDefinition.builder(SUMMON)
-                .aliases("summon", "call")
-                .category(GOD)
-                .usage("summon <player>")
-                .description("Summon a player to your location")
-                .godOnly()
-                .creator(ctx -> new SummonCommand(
-                        ctx.joinedArgs(),
-                        ctx.deps().sessionManager(),
-                        ctx.deps().worldBroadcaster()
-                ))
-                .build());
-
-        commands.add(CommandDefinition.builder(KICK)
-                .aliases("kick", "boot")
-                .category(GOD)
-                .usage("kick <player>")
-                .description("Kick a player from the game")
-                .godOnly()
-                .creator(ctx -> new KickCommand(
-                        ctx.joinedArgs(),
-                        ctx.deps().sessionManager(),
-                        ctx.deps().worldBroadcaster(),
-                        ctx.deps().accountStore(),
-                        ctx.deps().reconnectTokenStore()
-                ))
-                .build());
-
-        commands.add(CommandDefinition.builder(SMITE)
-                .aliases("smite", "smote")
-                .category(GOD)
-                .usage("smite <player>")
-                .description("Instantly defeat a player for testing")
-                .godOnly()
-                .creator(ctx -> new SmiteCommand(
-                        ctx.joinedArgs(),
-                        ctx.deps().sessionManager(),
-                        ctx.deps().worldBroadcaster(),
-                        ctx.deps().playerDeathService(),
-                        ctx.deps().combatState(),
-                        ctx.deps().combatLoopScheduler(),
-                        ctx.deps().xpTables()
-                ))
-                .build());
-
-        commands.add(CommandDefinition.builder(SET_LEVEL)
-                .aliases("setlevel", "setlvl", "level")
-                .category(GOD)
-                .usage("setlevel [player] <level>")
-                .description("Set a player's level (or your own if no player specified)")
-                .godOnly()
-                .creator(ctx -> new SetLevelCommand(
-                        ctx.joinedArgs(),
-                        ctx.deps().sessionManager(),
-                        ctx.deps().worldBroadcaster(),
-                        ctx.deps().xpTables(),
-                        ctx.deps().levelingService(),
-                        ctx.deps().playerProfileService(),
-                        ctx.deps().stateCache()
-                ))
-                .build());
-
-        commands.add(CommandDefinition.builder(RESET_QUEST)
-                .aliases("resetquest", "resetq", "questreset")
-                .category(GOD)
-                .usage("resetquest [player] <questId>")
-                .description("Reset a quest's completion status for testing")
-                .godOnly()
-                .creator(ctx -> new ResetQuestCommand(
-                        ctx.joinedArgs(),
-                        ctx.deps().sessionManager(),
-                        ctx.deps().questService(),
-                        ctx.deps().playerProfileService(),
-                        ctx.deps().stateCache(),
-                        ctx.deps().discoveredExitService(),
-                        ctx.deps().inventoryService(),
-                        ctx.deps().worldService()
-                ))
-                .build());
-
-        commands.add(CommandDefinition.builder(SET_MODERATOR)
-                .aliases("setmoderator", "setmod", "grantmod")
-                .category(GOD)
-                .usage("setmoderator <player> <on|off>")
-                .description("Grant or revoke moderator access")
-                .godOnly()
-                .creator(ctx -> new SetModeratorCommand(
-                        ctx.joinedArgs(),
-                        ctx.deps().accountStore(),
-                        ctx.deps().sessionManager(),
-                        ctx.deps().worldBroadcaster()
-                ))
-                .build());
-
-        // Quest commands
-        commands.add(CommandDefinition.builder(QUEST)
-                .aliases("quest", "quests", "journal", "log", "questlog")
-                .category(INTERACTION)
-                .usage("quest")
-                .description("View your active quests")
-                .creator(ctx -> new QuestCommand(ctx.deps().questService()))
-                .build());
-
-        commands.add(CommandDefinition.builder(ACCEPT)
-                .aliases("accept", "start")
-                .category(INTERACTION)
-                .usage("accept [quest/npc]")
-                .description("Accept a quest from an NPC")
-                .creator(ctx -> new AcceptCommand(
-                        ctx.hasNoArgs() ? null : ctx.joinedArgs(),
-                        ctx.deps().questService(),
-                        ctx.deps().defendObjectiveRuntimeService()
-                ))
-                .build());
-
-        commands.add(CommandDefinition.builder(GIVE)
-                .aliases("give", "hand", "offer", "present")
-                .category(INTERACTION)
-                .usage("give <item> to <npc>")
-                .description("Give an item to an NPC")
-                .creator(ctx -> new GiveCommand(
-                        ctx.hasNoArgs() ? null : ctx.joinedArgs(),
-                        ctx.deps().questService(),
-                        ctx.deps().levelingService(),
-                        ctx.deps().worldService()
-                ))
-                .build());
-
+        ExplorationCommandDefinitions.addTo(commands);
+        InteractionCommandDefinitions.addTo(commands);
+        CombatCommandDefinitions.addTo(commands);
+        SocialCommandDefinitions.addTo(commands);
+        SessionCommandDefinitions.addTo(commands);
+        GodCommandDefinitions.addTo(commands);
+        QuestCommandDefinitions.addTo(commands);
         return List.copyOf(commands);
-    }
-
-    private static List<String> goAliases() {
-        List<String> aliases = new ArrayList<>();
-        aliases.add("go");
-        aliases.add("move");
-
-        for (Direction direction : Direction.values()) {
-            String word = direction.name().toLowerCase(Locale.ROOT);
-            aliases.add(word);
-            aliases.add(word.substring(0, 1));
-        }
-
-        return List.copyOf(aliases);
-    }
-
-    private static List<CommandDefinition> buildSocialDefinitions() {
-        return SocialAction.ordered().stream()
-                .map(CommandRegistry::socialDefinition)
-                .toList();
-    }
-
-    private static CommandDefinition socialDefinition(SocialAction action) {
-        return CommandDefinition.builder(action.name())
-                .aliases(action.aliases())
-                .category(CommandCategory.EMOTE)
-                .usage(action.usage())
-                .description(action.helpDescription())
-                .creator(ctx -> new SocialCommand(
-                        action,
-                        ctx.joinedArgs(),
-                        ctx.deps().sessionManager(),
-                        ctx.deps().socialValidator(),
-                        ctx.deps().socialService()
-                ))
-                .build();
     }
 
     private static Map<String, String> buildAliasMap() {
         Map<String, String> map = new LinkedHashMap<>();
-        for (CommandMetadata cmd : ALL_COMMANDS) {
-            for (String alias : cmd.aliases()) {
-                putAlias(map, alias, cmd.canonicalName());
+        for (CommandMetadata command : ALL_COMMANDS) {
+            for (String alias : command.aliases()) {
+                putAlias(map, alias, command.canonicalName());
             }
         }
         return Map.copyOf(map);
@@ -786,7 +237,9 @@ public final class CommandRegistry {
     private static void putAlias(Map<String, String> aliasMap, String alias, String canonicalName) {
         String previous = aliasMap.put(alias, canonicalName);
         if (previous != null && !previous.equals(canonicalName)) {
-            throw new IllegalStateException("Alias '" + alias + "' is mapped to both '" + previous + "' and '" + canonicalName + "'");
+            throw new IllegalStateException(
+                    "Alias '" + alias + "' is mapped to both '" + previous + "' and '" + canonicalName + "'"
+            );
         }
     }
 }

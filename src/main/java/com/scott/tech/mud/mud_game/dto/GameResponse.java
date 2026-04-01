@@ -136,7 +136,7 @@ public record GameResponse(
     }
 
     public static GameResponse roomUpdate(Room room, String message, List<String> players, Set<Direction> discoveredHiddenExits, Set<String> excludeItemIds) {
-        return new GameResponse(Type.ROOM_UPDATE, message, RoomView.from(room, players, discoveredHiddenExits, excludeItemIds));
+        return roomResponse(Type.ROOM_UPDATE, room, message, players, discoveredHiddenExits, excludeItemIds);
     }
 
     public static GameResponse roomRefresh(Room room, String message) {
@@ -152,7 +152,7 @@ public record GameResponse(
     }
 
     public static GameResponse roomRefresh(Room room, String message, List<String> players, Set<Direction> discoveredHiddenExits, Set<String> excludeItemIds) {
-        return new GameResponse(Type.ROOM_REFRESH, message, RoomView.from(room, players, discoveredHiddenExits, excludeItemIds));
+        return roomResponse(Type.ROOM_REFRESH, room, message, players, discoveredHiddenExits, excludeItemIds);
     }
 
     public static GameResponse welcome(String message, Room room) {
@@ -168,11 +168,7 @@ public record GameResponse(
     }
 
     public static GameResponse welcome(String message, Room room, List<String> otherPlayers, Set<Direction> discoveredHiddenExits, Set<String> excludeItemIds) {
-        return new GameResponse(
-                Type.WELCOME,
-                message,
-                RoomView.from(room, otherPlayers, discoveredHiddenExits, excludeItemIds)
-        );
+        return roomResponse(Type.WELCOME, room, message, otherPlayers, discoveredHiddenExits, excludeItemIds);
     }
 
     public static GameResponse authPrompt(String msg, boolean mask) {
@@ -182,15 +178,15 @@ public record GameResponse(
     // ----- chat factory methods -----
 
     public static GameResponse chatRoom(String from, String message) {
-        return new GameResponse(Type.CHAT_ROOM, message, null, false, from);
+        return chat(Type.CHAT_ROOM, from, message);
     }
 
     public static GameResponse chatWorld(String from, String message) {
-        return new GameResponse(Type.CHAT_WORLD, message, null, false, from);
+        return chat(Type.CHAT_WORLD, from, message);
     }
 
     public static GameResponse chatDm(String from, String message) {
-        return new GameResponse(Type.CHAT_DM, message, null, false, from);
+        return chat(Type.CHAT_DM, from, message);
     }
 
     public static GameResponse sessionToken(String token) {
@@ -202,19 +198,11 @@ public record GameResponse(
     }
 
     public static GameResponse playerOverview(Player player) {
-        List<ItemView> items = player.getInventory().stream()
-                .map(item -> ItemView.from(item, player))
-                .toList();
-        return new GameResponse(Type.PLAYER_OVERVIEW, player.getName(), null, false, null, null,
-                items, null, PlayerStatsView.from(player), null, null);
+        return playerOverview(player, PlayerStatsView.from(player), null);
     }
 
     public static GameResponse playerOverview(Player player, com.scott.tech.mud.mud_game.config.ExperienceTableService xpTables) {
-        List<ItemView> items = player.getInventory().stream()
-                .map(item -> ItemView.from(item, player))
-                .toList();
-        return new GameResponse(Type.PLAYER_OVERVIEW, player.getName(), null, false, null, null,
-                items, null, PlayerStatsView.from(player, xpTables), null, null);
+        return playerOverview(player, PlayerStatsView.from(player, xpTables), null);
     }
 
     public static GameResponse playerOverview(
@@ -222,19 +210,15 @@ public record GameResponse(
             com.scott.tech.mud.mud_game.config.ExperienceTableService xpTables,
             PlayerCombatStats combatStats
     ) {
-        List<ItemView> items = player.getInventory().stream()
-                .map(item -> ItemView.from(item, player))
-                .toList();
-        return new GameResponse(Type.PLAYER_OVERVIEW, player.getName(), null, false, null, null,
-                items, null, PlayerStatsView.from(player, xpTables), CombatStatsView.from(combatStats), null);
+        return playerOverview(player, PlayerStatsView.from(player, xpTables), CombatStatsView.from(combatStats));
     }
 
     public static GameResponse playerStatsUpdate(Player player) {
-        return new GameResponse(Type.STAT_UPDATE, null, null, false, null, null, null, null, PlayerStatsView.from(player), null, null);
+        return playerStatsUpdate(PlayerStatsView.from(player));
     }
 
     public static GameResponse playerStatsUpdate(Player player, com.scott.tech.mud.mud_game.config.ExperienceTableService xpTables) {
-        return new GameResponse(Type.STAT_UPDATE, null, null, false, null, null, null, null, PlayerStatsView.from(player, xpTables), null, null);
+        return playerStatsUpdate(PlayerStatsView.from(player, xpTables));
     }
 
     public static GameResponse whoList(List<WhoPlayerView> players) {
@@ -244,6 +228,47 @@ public record GameResponse(
     public static GameResponse characterCreation(String step, List<String> races, List<String> classes, List<PronounOption> pronounOptions) {
         return new GameResponse(Type.CHARACTER_CREATION, null, null, false, null, null, null, null, null, null,
                 new CharacterCreationData(step, races, classes, pronounOptions));
+    }
+
+    private static GameResponse roomResponse(Type type,
+                                             Room room,
+                                             String message,
+                                             List<String> players,
+                                             Set<Direction> discoveredHiddenExits,
+                                             Set<String> excludeItemIds) {
+        return new GameResponse(type, message, RoomView.from(room, players, discoveredHiddenExits, excludeItemIds));
+    }
+
+    private static GameResponse chat(Type type, String from, String message) {
+        return new GameResponse(type, message, null, false, from);
+    }
+
+    private static GameResponse playerOverview(Player player,
+                                               PlayerStatsView playerStats,
+                                               CombatStatsView combatStats) {
+        return new GameResponse(
+                Type.PLAYER_OVERVIEW,
+                player.getName(),
+                null,
+                false,
+                null,
+                null,
+                inventoryView(player),
+                null,
+                playerStats,
+                combatStats,
+                null
+        );
+    }
+
+    private static GameResponse playerStatsUpdate(PlayerStatsView playerStats) {
+        return new GameResponse(Type.STAT_UPDATE, null, null, false, null, null, null, null, playerStats, null, null);
+    }
+
+    private static List<ItemView> inventoryView(Player player) {
+        return player.getInventory().stream()
+                .map(item -> ItemView.from(item, player))
+                .toList();
     }
 
     // ----- nested views -----

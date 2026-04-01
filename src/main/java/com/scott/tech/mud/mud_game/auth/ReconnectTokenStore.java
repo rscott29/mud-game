@@ -3,6 +3,7 @@ package com.scott.tech.mud.mud_game.auth;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
@@ -30,8 +31,10 @@ public class ReconnectTokenStore {
      */
     public String issue(String username) {
         purgeExpired();
+        String normalizedUsername = normalizeUsername(username);
+        revokeForUser(normalizedUsername);
         String token = UUID.randomUUID().toString();
-        tokens.put(token, new TokenEntry(username, Instant.now().plusSeconds(TTL_SECONDS)));
+        tokens.put(token, new TokenEntry(normalizedUsername, Instant.now().plusSeconds(TTL_SECONDS)));
         return token;
     }
 
@@ -52,11 +55,19 @@ public class ReconnectTokenStore {
      * Revokes all tokens issued for the given username (e.g. on explicit logout).
      */
     public void revokeForUser(String username) {
-        tokens.entrySet().removeIf(e -> e.getValue().username().equals(username));
+        String normalizedUsername = normalizeUsername(username);
+        tokens.entrySet().removeIf(e -> e.getValue().username().equals(normalizedUsername));
     }
 
     private void purgeExpired() {
         Instant now = Instant.now();
         tokens.entrySet().removeIf(e -> now.isAfter(e.getValue().expiresAt()));
+    }
+
+    private String normalizeUsername(String username) {
+        if (username == null) {
+            return "";
+        }
+        return username.trim().toLowerCase(Locale.ROOT);
     }
 }

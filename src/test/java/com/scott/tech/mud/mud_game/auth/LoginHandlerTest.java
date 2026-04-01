@@ -39,6 +39,7 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -131,21 +132,53 @@ class LoginHandlerTest {
         assertThat(session.getPendingUsername()).isEqualTo("alice");
         assertThat(singleResponse(result).type()).isEqualTo(GameResponse.Type.AUTH_PROMPT);
         assertThat(singleResponse(result).mask()).isTrue();
-        assertThat(singleResponse(result).message()).contains("Password:");
+        assertThat(singleResponse(result).message()).contains("Password");
+        assertThat(singleResponse(result).message()).contains("create");
     }
 
     @Test
-    void handleUsername_newAccount_transitionsToCreationConfirm() {
+    void handleUsername_newAccount_stillTransitionsToAwaitingPassword() {
         GameSession session = newSession("s1", "start");
         when(accountStore.exists("Alice")).thenReturn(false);
 
         CommandResult result = loginHandler.handle("Alice", session);
 
-        assertThat(session.getState()).isEqualTo(SessionState.AWAITING_CREATION_CONFIRM);
+        assertThat(session.getState()).isEqualTo(SessionState.AWAITING_PASSWORD);
         assertThat(session.getPendingUsername()).isEqualTo("alice");
+        assertThat(singleResponse(result).type()).isEqualTo(GameResponse.Type.AUTH_PROMPT);
+        assertThat(singleResponse(result).mask()).isTrue();
+        assertThat(singleResponse(result).message()).contains("type 'create' if you're new");
+    }
+
+    @Test
+    void handlePassword_unknownAccountCreate_transitionsToCreationConfirm() {
+        GameSession session = newSession("s1", "start");
+        session.setPendingUsername("alice");
+        session.transition(SessionState.AWAITING_PASSWORD);
+        when(accountStore.exists("alice")).thenReturn(false);
+
+        CommandResult result = loginHandler.handle("create", session);
+
+        assertThat(session.getState()).isEqualTo(SessionState.AWAITING_CREATION_CONFIRM);
         assertThat(singleResponse(result).type()).isEqualTo(GameResponse.Type.AUTH_PROMPT);
         assertThat(singleResponse(result).mask()).isFalse();
         assertThat(singleResponse(result).message()).contains("Create a new character");
+    }
+
+    @Test
+    void handlePassword_unknownAccountWithoutCreate_staysOnPasswordPrompt() {
+        GameSession session = newSession("s1", "start");
+        session.setPendingUsername("alice");
+        session.transition(SessionState.AWAITING_PASSWORD);
+        when(accountStore.exists("alice")).thenReturn(false);
+        when(accountStore.verifyPassword("alice", "secret")).thenReturn(false);
+
+        CommandResult result = loginHandler.handle("secret", session);
+
+        assertThat(session.getState()).isEqualTo(SessionState.AWAITING_PASSWORD);
+        assertThat(singleResponse(result).type()).isEqualTo(GameResponse.Type.AUTH_PROMPT);
+        assertThat(singleResponse(result).mask()).isTrue();
+        assertThat(singleResponse(result).message()).contains("Unable to sign in with those details");
     }
 
     @Test
@@ -160,6 +193,7 @@ class LoginHandlerTest {
         when(other.getPlayer()).thenReturn(otherPlayer);
         when(otherPlayer.getName()).thenReturn("Bob");
 
+        when(accountStore.exists("alice")).thenReturn(true);
         when(accountStore.isLocked("alice")).thenReturn(false);
         when(accountStore.verifyPassword("alice", "secret")).thenReturn(true);
         when(playerProfileService.getSavedRoomId("alice")).thenReturn(Optional.of("tavern"));
@@ -189,6 +223,7 @@ class LoginHandlerTest {
         session.setPendingUsername("alice");
         session.transition(SessionState.AWAITING_PASSWORD);
 
+        when(accountStore.exists("alice")).thenReturn(true);
         when(accountStore.isLocked("alice")).thenReturn(false, true);
         when(accountStore.verifyPassword("alice", "bad-password")).thenReturn(false);
 
@@ -197,7 +232,7 @@ class LoginHandlerTest {
         assertThat(session.getState()).isEqualTo(SessionState.AWAITING_USERNAME);
         assertThat(session.getPendingUsername()).isNull();
         assertThat(singleResponse(result).type()).isEqualTo(GameResponse.Type.AUTH_PROMPT);
-        assertThat(singleResponse(result).message()).contains("Too many failed attempts");
+        assertThat(singleResponse(result).message()).contains("Unable to sign in right now");
     }
 
     @Test
@@ -222,9 +257,9 @@ class LoginHandlerTest {
         when(reconnectTokenStore.issue("newuser")).thenReturn("new-token");
         when(sessionManager.getSessionsInRoom("start")).thenReturn(List.of(session));
 
-        CommandResult result = loginHandler.handle("abcd", session);
+        CommandResult result = loginHandler.handle("abcd1234", session);
 
-        verify(accountStore).createAccount("newuser", "abcd");
+        verify(accountStore).createAccount("newuser", "abcd1234");
         assertThat(session.getState()).isEqualTo(SessionState.PLAYING);
         assertThat(session.getPlayer().getName()).isEqualTo("Newuser");
         assertThat(result.getResponses()).hasSize(3);
@@ -243,7 +278,7 @@ class LoginHandlerTest {
         when(playerProfileService.isNewPlayer("newuser")).thenReturn(true);
         when(classStatsRegistry.classNames()).thenReturn(List.of("Warrior", "Mage"));
 
-        CommandResult result = loginHandler.handle("abcd", session);
+        CommandResult result = loginHandler.handle("abcd1234", session);
 
         assertThat(session.getState()).isEqualTo(SessionState.AWAITING_RACE_CLASS);
         assertThat(singleResponse(result).type()).isEqualTo(GameResponse.Type.CHARACTER_CREATION);
@@ -312,6 +347,7 @@ class LoginHandlerTest {
         session.setPendingUsername("alice");
         session.transition(SessionState.AWAITING_PASSWORD);
 
+        when(accountStore.exists("alice")).thenReturn(true);
         when(accountStore.isLocked("alice")).thenReturn(false);
         when(accountStore.verifyPassword("alice", "secret")).thenReturn(true);
         when(playerProfileService.getSavedRoomId("alice")).thenReturn(Optional.of("tavern"));
@@ -326,6 +362,30 @@ class LoginHandlerTest {
     }
 
     @Test
+    void handlePassword_existingAccountWithoutProfile_resumesCharacterCreation() {
+        GameSession session = newSession("s1", "start");
+        session.setPendingUsername("alice");
+        session.transition(SessionState.AWAITING_PASSWORD);
+
+        when(accountStore.exists("alice")).thenReturn(true);
+        when(accountStore.isLocked("alice")).thenReturn(false);
+        when(accountStore.verifyPassword("alice", "secret")).thenReturn(true);
+        when(playerProfileService.isNewPlayer("alice")).thenReturn(true);
+        when(stateCache.get("alice")).thenReturn(null);
+        when(classStatsRegistry.classNames()).thenReturn(List.of("Warrior", "Mage"));
+
+        CommandResult result = loginHandler.handle("secret", session);
+
+        assertThat(session.getState()).isEqualTo(SessionState.AWAITING_RACE_CLASS);
+        assertThat(session.getPlayer().getName()).isEqualTo("Alice");
+        assertThat(singleResponse(result).type()).isEqualTo(GameResponse.Type.CHARACTER_CREATION);
+        assertThat(singleResponse(result).characterCreation().step()).isEqualTo("race_class");
+        assertThat(singleResponse(result).characterCreation().classes()).containsExactly("Warrior", "Mage");
+        verify(reconnectTokenStore, never()).issue("alice");
+        verify(worldBroadcaster, never()).broadcastToRoom(anyString(), any(), anyString());
+    }
+
+    @Test
     void handlePassword_success_restoresEquippedWeaponAndRecallPointFromCache() {
         GameSession session = newSession("s1", "start");
         session.setPendingUsername("alice");
@@ -333,6 +393,7 @@ class LoginHandlerTest {
 
         Item sword = new Item("iron_sword", "Iron Sword", "A steel blade.", List.of("sword"), true, Rarity.COMMON);
 
+        when(accountStore.exists("alice")).thenReturn(true);
         when(accountStore.isLocked("alice")).thenReturn(false);
         when(accountStore.verifyPassword("alice", "secret")).thenReturn(true);
         when(accountStore.isModerator("alice")).thenReturn(true);

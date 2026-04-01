@@ -189,7 +189,7 @@ class QuestServiceTest {
         }
 
         @Test
-        void onDefeatNpc_spawnedNpcInstanceCountsTowardDefendObjective() throws Exception {
+    void onDefeatNpc_spawnedNpcInstanceCountsTowardDefendObjective() throws Exception {
         Quest quest = quest("quest_defend_progress", List.of(
             defendObjective("defend_traveler", "npc_lost_traveler", List.of("npc_forest_wolf", "npc_forest_wolf"), 2)
         ));
@@ -218,6 +218,39 @@ class QuestServiceTest {
         assertThat(second.get().type()).isEqualTo(QuestService.QuestProgressResult.ResultType.QUEST_COMPLETE);
         assertThat(player.getQuestState().isQuestCompleted(quest.id())).isTrue();
         }
+
+    @Test
+    void prerequisiteChecks_filterUnavailableQuestsAndReturnHelpfulMessages() throws Exception {
+        Quest introQuest = quest("quest_intro", List.of(visitObjective("visit_square", "town_square")));
+        Quest gatedQuest = new Quest(
+                "quest_gated",
+                "Quest quest_gated",
+                "A quest for testing prerequisites.",
+                "npc_giver",
+                List.of("Not yet."),
+                new QuestPrerequisites(2, List.of("quest_intro"), List.of("item_pass")),
+                List.of(visitObjective("visit_gate", "moon_gate")),
+                QuestRewards.NONE,
+                List.of("Done."),
+                QuestCompletionEffects.NONE
+        );
+
+        when(worldService.getItemById("item_pass")).thenReturn(item("item_pass"));
+
+        QuestService service = questServiceWith(introQuest, gatedQuest);
+        Player player = player();
+        player.setLevel(2);
+
+        assertThat(service.getAvailableQuestsForNpc(player, "npc_giver"))
+                .extracting(Quest::id)
+                .containsExactly("quest_intro");
+        assertThat(service.getPrerequisiteMessage(player, gatedQuest)).contains("Quest quest_intro");
+
+        player.getQuestState().completeQuest("quest_intro");
+
+        assertThat(service.getPrerequisiteMessage(player, gatedQuest)).contains("item_pass");
+        assertThat(service.meetsPrerequisites(player, gatedQuest)).isFalse();
+    }
 
     @Test
     void init_rethrowsQuestLoadFailures() throws Exception {

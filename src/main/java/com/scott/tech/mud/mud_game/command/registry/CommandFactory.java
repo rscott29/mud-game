@@ -41,6 +41,7 @@ import com.scott.tech.mud.mud_game.service.WorldModerationPolicyService;
 import com.scott.tech.mud.mud_game.world.WorldService;
 import com.scott.tech.mud.mud_game.session.GameSessionManager;
 import com.scott.tech.mud.mud_game.websocket.WorldBroadcaster;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.stereotype.Component;
 
@@ -61,6 +62,11 @@ public class CommandFactory {
 
     private final CommandDependencies deps;
 
+    public CommandFactory(CommandDependencies deps) {
+        this.deps = deps;
+    }
+
+    @Autowired
     public CommandFactory(TaskScheduler taskScheduler, WorldBroadcaster worldBroadcaster,
                           GameSessionManager sessionManager,
                           InventoryService inventoryService,
@@ -92,7 +98,89 @@ public class CommandFactory {
                           WorldService worldService,
                           AmbientEventService ambientEventService,
                           ShopService shopService) {
-        this.deps = new CommandDependencies(
+        this(buildDependencies(
+                taskScheduler,
+                worldBroadcaster,
+                sessionManager,
+                inventoryService,
+                discoveredExitService,
+                pickupValidator,
+                pickupService,
+                dropValidator,
+                dropService,
+                aiTextPolisher,
+                playerTextModerator,
+                emotePerspectiveResolver,
+                equipValidator,
+                equipService,
+                attackValidator,
+                combatService,
+                combatState,
+                combatLoopScheduler,
+                playerDeathService,
+                playerRespawnService,
+                talkValidator,
+                talkService,
+                socialValidator,
+                socialService,
+                accountStore,
+                reconnectTokenStore,
+                xpTables,
+                combatStatsResolver,
+                levelingService,
+                worldModerationPolicyService,
+                playerProfileService,
+                stateCache,
+                partyService,
+                questService,
+                defendObjectiveRuntimeService,
+                objectiveEncounterRuntimeService,
+                worldService,
+                ambientEventService,
+                shopService
+        ));
+    }
+
+    private static CommandDependencies buildDependencies(TaskScheduler taskScheduler,
+                                                         WorldBroadcaster worldBroadcaster,
+                                                         GameSessionManager sessionManager,
+                                                         InventoryService inventoryService,
+                                                         DiscoveredExitService discoveredExitService,
+                                                         PickupValidator pickupValidator,
+                                                         PickupService pickupService,
+                                                         DropValidator dropValidator,
+                                                         DropService dropService,
+                                                         AiTextPolisher aiTextPolisher,
+                                                         PlayerTextModerator playerTextModerator,
+                                                         EmotePerspectiveResolver emotePerspectiveResolver,
+                                                         EquipValidator equipValidator,
+                                                         EquipService equipService,
+                                                         AttackValidator attackValidator,
+                                                         CombatService combatService,
+                                                         CombatState combatState,
+                                                         CombatLoopScheduler combatLoopScheduler,
+                                                         PlayerDeathService playerDeathService,
+                                                         PlayerRespawnService playerRespawnService,
+                                                         TalkValidator talkValidator,
+                                                         TalkService talkService,
+                                                         SocialValidator socialValidator,
+                                                         SocialService socialService,
+                                                         AccountStore accountStore,
+                                                         ReconnectTokenStore reconnectTokenStore,
+                                                         ExperienceTableService xpTables,
+                                                         CombatStatsResolver combatStatsResolver,
+                                                         LevelingService levelingService,
+                                                         WorldModerationPolicyService worldModerationPolicyService,
+                                                         PlayerProfileService playerProfileService,
+                                                         PlayerStateCache stateCache,
+                                                         PartyService partyService,
+                                                         QuestService questService,
+                                                         DefendObjectiveRuntimeService defendObjectiveRuntimeService,
+                                                         ObjectiveEncounterRuntimeService objectiveEncounterRuntimeService,
+                                                         WorldService worldService,
+                                                         AmbientEventService ambientEventService,
+                                                         ShopService shopService) {
+        return new CommandDependencies(
                 taskScheduler,
                 worldBroadcaster,
                 sessionManager,

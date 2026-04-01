@@ -28,6 +28,7 @@ public class AccountStore {
 
     private final AccountRepository accountRepository;
     private final BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
+    private final String dummyPasswordHash = encoder.encode("mud-dummy-password");
 
     public AccountStore(AccountRepository accountRepository) {
         this.accountRepository = accountRepository;
@@ -136,7 +137,10 @@ public class AccountStore {
                     }
                     return false;
                 })
-                .orElse(false);
+                .orElseGet(() -> {
+                    encoder.matches(rawPassword, dummyPasswordHash);
+                    return false;
+                });
     }
 
     /** Temporarily locks an account (e.g., after being kicked). Account will auto-unlock after lock duration. */

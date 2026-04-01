@@ -8,6 +8,7 @@ import com.scott.tech.mud.mud_game.model.Player;
 import com.scott.tech.mud.mud_game.world.WorldService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import jakarta.annotation.PostConstruct;
@@ -26,15 +27,25 @@ public class QuestService {
     private final QuestLoader questLoader;
     private final WorldService worldService;
     private final DefendObjectiveRuntimeService defendObjectiveRuntimeService;
+    private final QuestPrerequisiteEvaluator prerequisiteEvaluator;
     private final Map<QuestObjectiveType, ObjectiveProgressHandler> objectiveHandlers;
     private Map<String, Quest> quests = new HashMap<>();
 
+    @Autowired
     public QuestService(QuestLoader questLoader,
                         WorldService worldService,
                         DefendObjectiveRuntimeService defendObjectiveRuntimeService) {
+        this(questLoader, worldService, defendObjectiveRuntimeService, new QuestPrerequisiteEvaluator(worldService));
+    }
+
+    QuestService(QuestLoader questLoader,
+                 WorldService worldService,
+                 DefendObjectiveRuntimeService defendObjectiveRuntimeService,
+                 QuestPrerequisiteEvaluator prerequisiteEvaluator) {
         this.questLoader = questLoader;
         this.worldService = worldService;
         this.defendObjectiveRuntimeService = defendObjectiveRuntimeService;
+        this.prerequisiteEvaluator = prerequisiteEvaluator;
         this.objectiveHandlers = createObjectiveHandlers();
     }
 
@@ -84,58 +95,11 @@ public class QuestService {
     // ----- Prerequisites -----
 
     public boolean meetsPrerequisites(Player player, Quest quest) {
-        QuestPrerequisites prereqs = quest.prerequisites();
-        
-        // Check level
-        if (player.getLevel() < prereqs.minLevel()) {
-            return false;
-        }
-        
-        // Check completed quests
-        for (String requiredQuest : prereqs.completedQuests()) {
-            if (!player.getQuestState().isQuestCompleted(requiredQuest)) {
-                return false;
-            }
-        }
-        
-        // Check required items
-        for (String requiredItem : prereqs.requiredItems()) {
-            boolean hasItem = player.getInventory().stream()
-                    .anyMatch(i -> i.getId().equals(requiredItem));
-            if (!hasItem) {
-                return false;
-            }
-        }
-        
-        return true;
+        return prerequisiteEvaluator.meets(player, quest);
     }
 
     public String getPrerequisiteMessage(Player player, Quest quest) {
-        QuestPrerequisites prereqs = quest.prerequisites();
-        
-        if (player.getLevel() < prereqs.minLevel()) {
-            return Messages.fmt("quest.prereq.level", "level", String.valueOf(prereqs.minLevel()));
-        }
-        
-        for (String requiredQuest : prereqs.completedQuests()) {
-            if (!player.getQuestState().isQuestCompleted(requiredQuest)) {
-                Quest req = quests.get(requiredQuest);
-                String questName = req != null ? req.name() : requiredQuest;
-                return Messages.fmt("quest.prereq.quest", "quest", questName);
-            }
-        }
-        
-        for (String requiredItem : prereqs.requiredItems()) {
-            boolean hasItem = player.getInventory().stream()
-                    .anyMatch(i -> i.getId().equals(requiredItem));
-            if (!hasItem) {
-                Item item = worldService.getItemById(requiredItem);
-                String itemName = item != null ? item.getName() : requiredItem;
-                return Messages.fmt("quest.prereq.item", "item", itemName);
-            }
-        }
-        
-        return null;
+        return prerequisiteEvaluator.prerequisiteMessage(player, quest, quests);
     }
 
     // ----- Quest Acceptance -----

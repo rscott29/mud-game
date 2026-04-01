@@ -1,897 +1,103 @@
 import { Injectable, inject } from '@angular/core';
 
-import {
-  CombatStatsDto,
-  GAME_MESSAGE_TYPES,
-  GameMessage,
-  ItemDto,
-  ShopDto,
-  TERMINAL_MESSAGE_CLASSES,
-  type TerminalMessageClass,
-  WhoPlayerDto,
-} from '../models/game-message';
-import { escapeHtml, renderMarkup } from '../utils/html';
-import { CommandCatalogService } from './command-catalog.service';
-import { SkillDto } from './skill-progression.service';
+import { GameMessage, type TerminalMessageClass } from '../models/game-message';
+import { type FormattedMessage } from './message-format.types';
+import { TerminalCoreFormatterService } from './terminal-core-formatter.service';
+import { TerminalProfileFormatterService } from './terminal-profile-formatter.service';
+import { TerminalReferenceFormatterService } from './terminal-reference-formatter.service';
+import { TerminalRoomFormatterService } from './terminal-room-formatter.service';
 
-export interface FormattedMessage {
-  cssClass: TerminalMessageClass;
-  html: string;
-}
-
-const PLAYER_OVERVIEW_SLOTS = [
-  { id: 'main_weapon', label: 'Main weapon' },
-  { id: 'off_hand', label: 'Off hand / shield' },
-  { id: 'head', label: 'Head' },
-  { id: 'chest', label: 'Chest' },
-  { id: 'hands', label: 'Hands' },
-  { id: 'legs', label: 'Legs' },
-] as const;
+export type { FormattedMessage } from './message-format.types';
 
 @Injectable({ providedIn: 'root' })
 export class MessageFormatterService {
-  private readonly commandCatalog = inject(CommandCatalogService);
-
-  constructor() {
-    this.commandCatalog.load();
-  }
+  private readonly coreFormatter = inject(TerminalCoreFormatterService);
+  private readonly profileFormatter = inject(TerminalProfileFormatterService);
+  private readonly referenceFormatter = inject(TerminalReferenceFormatterService);
+  private readonly roomFormatter = inject(TerminalRoomFormatterService);
 
   formatSystem(text: string): FormattedMessage {
-    return {
-      cssClass: TERMINAL_MESSAGE_CLASSES.SYSTEM,
-      html: `
-        <div class="term-inline term-inline--system">
-          <span class="term-tag">realm</span>
-          <span class="term-inline__text">${escapeHtml(text)}</span>
-        </div>
-      `,
-    };
+    return this.coreFormatter.formatSystem(text);
   }
 
   formatRoomDisplay(msg: GameMessage): FormattedMessage {
-    return {
-      cssClass: msg.type ?? GAME_MESSAGE_TYPES.ROOM_UPDATE,
-      html: this.renderRoom(msg),
-    };
+    return this.roomFormatter.formatRoomDisplay(msg);
   }
 
   formatAuthPrompt(message: string): FormattedMessage {
-    return {
-      cssClass: TERMINAL_MESSAGE_CLASSES.AUTH_PROMPT,
-      html: this.renderPrompt(message),
-    };
+    return this.coreFormatter.formatAuthPrompt(message);
   }
 
   formatChatMessage(msg: GameMessage): FormattedMessage {
-    return {
-      cssClass: msg.type ?? GAME_MESSAGE_TYPES.CHAT_ROOM,
-      html: this.renderChat(msg),
-    };
+    return this.coreFormatter.formatChatMessage(msg);
   }
 
-  formatWhoList(players: WhoPlayerDto[]): FormattedMessage {
-    return {
-      cssClass: TERMINAL_MESSAGE_CLASSES.WHO_LIST,
-      html: this.renderWho(players),
-    };
+  formatWhoList(players: Parameters<TerminalProfileFormatterService['formatWhoList']>[0]): FormattedMessage {
+    return this.profileFormatter.formatWhoList(players);
   }
 
-  formatInventoryUpdate(items: ItemDto[]): FormattedMessage {
-    return {
-      cssClass: TERMINAL_MESSAGE_CLASSES.INVENTORY_UPDATE,
-      html: this.renderInventory(items),
-    };
+  formatInventoryUpdate(
+    items: Parameters<TerminalProfileFormatterService['formatInventoryUpdate']>[0]
+  ): FormattedMessage {
+    return this.profileFormatter.formatInventoryUpdate(items);
   }
 
-  formatPlayerOverview(msg: GameMessage): FormattedMessage {
-    return {
-      cssClass: TERMINAL_MESSAGE_CLASSES.PLAYER_OVERVIEW,
-      html: this.renderPlayerOverview(msg),
-    };
+  formatPlayerOverview(
+    msg: Parameters<TerminalProfileFormatterService['formatPlayerOverview']>[0]
+  ): FormattedMessage {
+    return this.profileFormatter.formatPlayerOverview(msg);
   }
 
   formatHelpCard(isGod: boolean): FormattedMessage {
-    return {
-      cssClass: TERMINAL_MESSAGE_CLASSES.HELP,
-      html: this.renderHelp(isGod),
-    };
+    return this.referenceFormatter.formatHelpCard(isGod);
   }
 
   formatNarrativeInlineMessage(message: string): FormattedMessage {
-    return {
-      cssClass: TERMINAL_MESSAGE_CLASSES.NARRATIVE,
-      html: this.isCombatMarkup(message)
-        ? this.renderCombatNarrative(message)
-        : this.renderInlineNarrative(message),
-    };
+    return this.roomFormatter.formatNarrativeInlineMessage(message);
   }
 
   formatRoomActionMessage(message: string): FormattedMessage {
-    return {
-      cssClass: TERMINAL_MESSAGE_CLASSES.ROOM_ACTION,
-      html: this.wrapInlineNarrative(
-        this.formatInlineEventContent('Traveler', message, 'term-inline-event--player-action')
-      ),
-    };
+    return this.roomFormatter.formatRoomActionMessage(message);
   }
 
   formatSocialActionMessage(message: string): FormattedMessage {
-    return {
-      cssClass: TERMINAL_MESSAGE_CLASSES.SOCIAL_ACTION,
-      html: this.wrapInlineNarrative(
-        this.formatInlineEventContent('Social', message, 'term-inline-event--social-action')
-      ),
-    };
+    return this.roomFormatter.formatSocialActionMessage(message);
   }
 
   formatModerationNotice(message: string): FormattedMessage {
-    return {
-      cssClass: TERMINAL_MESSAGE_CLASSES.MODERATION_NOTICE,
-      html: `
-        <section class="term-card term-card--moderation">
-          <div class="term-card__header">
-            <div>
-              <div class="term-card__eyebrow">Moderation</div>
-              <h2 class="term-card__title">Message withheld</h2>
-            </div>
-            <span class="term-badge term-badge--warning">broadcast blocked</span>
-          </div>
-          <div class="term-callout term-callout--moderation">${escapeHtml(message)}</div>
-          <div class="term-copy term-copy--muted">
-            Nothing was sent to the room, world chat, whispers, or emote feed.
-          </div>
-        </section>
-      `,
-    };
+    return this.coreFormatter.formatModerationNotice(message);
   }
 
   formatAmbientEventMessage(message: string): FormattedMessage {
-    return {
-      cssClass: TERMINAL_MESSAGE_CLASSES.AMBIENT_EVENT,
-      html: this.renderNarrative('Whispers', message),
-    };
+    return this.roomFormatter.formatAmbientEventMessage(message);
   }
 
   formatCompanionDialogueMessage(message: string): FormattedMessage {
-    return {
-      cssClass: TERMINAL_MESSAGE_CLASSES.COMPANION_DIALOGUE,
-      html: this.renderNarrative('Companion voice', message),
-    };
+    return this.roomFormatter.formatCompanionDialogueMessage(message);
   }
 
   formatFallbackMessage(label: TerminalMessageClass, message: string): FormattedMessage {
-    return {
-      cssClass: label,
-      html: this.renderNarrative(label, message),
-    };
+    return this.roomFormatter.formatFallbackMessage(label, message);
   }
 
   formatRoomInlineFragment(msg: GameMessage): string {
-    if ((msg.message ?? '').trim() === '') {
-      return '';
-    }
-
-    switch (msg.type) {
-      case GAME_MESSAGE_TYPES.ROOM_ACTION:
-        return this.formatInlineEventContent(
-          'Traveler',
-          msg.message ?? '',
-          'term-inline-event--player-action'
-        );
-      case GAME_MESSAGE_TYPES.SOCIAL_ACTION:
-        return this.formatInlineEventContent(
-          'Social',
-          msg.message ?? '',
-          'term-inline-event--social-action'
-        );
-      case GAME_MESSAGE_TYPES.AMBIENT_EVENT:
-      case GAME_MESSAGE_TYPES.COMPANION_DIALOGUE:
-        return renderMarkup(msg.message ?? '');
-      default:
-        return msg.message ?? '';
-    }
+    return this.roomFormatter.formatRoomInlineFragment(msg);
   }
 
   formatClassProgressionLoading(characterClass: string): FormattedMessage {
-    return this.notice(
-      TERMINAL_MESSAGE_CLASSES.CLASS_PROGRESSION,
-      'Unfurling the skill ledger',
-      `Drawing the ${escapeHtml(this.formatClassName(characterClass))} arts into the ledger...`
-    );
+    return this.referenceFormatter.formatClassProgressionLoading(characterClass);
   }
 
   formatClassProgressionError(characterClass: string): FormattedMessage {
-    return this.notice(
-      TERMINAL_MESSAGE_CLASSES.ERROR,
-      'The skill ledger is quiet',
-      `The ${escapeHtml(this.formatClassName(characterClass))} arts could not be drawn into view just now.`
-    );
+    return this.referenceFormatter.formatClassProgressionError(characterClass);
   }
 
   formatClassProgression(
     characterClass: string,
     playerLevel: number,
     maxLevel: number,
-    skills: SkillDto[]
+    skills: Parameters<TerminalReferenceFormatterService['formatClassProgression']>[3]
   ): FormattedMessage {
-    const unlocked = skills
-      .filter(skill => skill.unlockLevel <= playerLevel)
-      .sort((left, right) => left.unlockLevel - right.unlockLevel || left.name.localeCompare(right.name));
-    const locked = skills
-      .filter(skill => skill.unlockLevel > playerLevel)
-      .sort((left, right) => left.unlockLevel - right.unlockLevel || left.name.localeCompare(right.name));
-    const progressPercent = skills.length === 0 ? 0 : Math.round((unlocked.length / skills.length) * 100);
-
-    return {
-      cssClass: TERMINAL_MESSAGE_CLASSES.CLASS_PROGRESSION,
-      html: `
-        <section class="term-card term-card--progression">
-          <div class="term-card__header">
-            <div>
-              <div class="term-card__eyebrow">Path of mastery</div>
-              <h2 class="term-card__title">${escapeHtml(this.formatClassName(characterClass))} arts</h2>
-            </div>
-            <span class="term-badge">${escapeHtml(String(unlocked.length))}/${escapeHtml(String(skills.length))} unlocked</span>
-          </div>
-          <div class="term-progress">
-            <div class="term-progress__bar">
-              <div class="term-progress__fill" style="width: ${progressPercent}%"></div>
-            </div>
-            <div class="term-progress__meta">
-              <span>Level ${escapeHtml(String(playerLevel))}${maxLevel > 0 ? ` / ${escapeHtml(String(maxLevel))}` : ''}</span>
-              <span>${escapeHtml(String(progressPercent))}% awakened</span>
-            </div>
-          </div>
-          ${skills.length === 0 ? `
-            <div class="term-empty">No skills found for this class.</div>
-          ` : `
-            <div class="term-columns">
-              <section class="term-section">
-                <div class="term-section__title">Awakened</div>
-                ${this.formatSkillList(unlocked, playerLevel, false)}
-              </section>
-              <section class="term-section">
-                <div class="term-section__title">Awaiting</div>
-                ${this.formatSkillList(locked, playerLevel, true)}
-              </section>
-            </div>
-          `}
-        </section>
-      `,
-    };
-  }
-
-  private renderPrompt(message: string): string {
-    const authScreen = this.parseAuthWelcome(message);
-    if (authScreen) {
-      return `
-        <section class="term-card term-card--prompt term-card--prompt-auth">
-          <div class="term-auth-layout">
-            <pre class="term-copy term-copy--preformatted term-auth-banner">${escapeHtml(authScreen.banner)}</pre>
-            <div class="term-auth-sidebar">
-              <div class="term-auth-kicker">Sign in</div>
-              <div class="term-auth-prompt">${escapeHtml(authScreen.prompt)}</div>
-              <div class="term-auth-note">New usernames will guide you through creating a character.</div>
-            </div>
-          </div>
-        </section>
-      `;
-    }
-
-    return `
-      <section class="term-card term-card--prompt">
-        <pre class="term-copy term-copy--preformatted">${this.formatPlainText(message)}</pre>
-      </section>
-    `;
-  }
-
-  private parseAuthWelcome(message: string): { banner: string; prompt: string } | null {
-    const normalized = message.replace(/\r\n/g, '\n').trimEnd();
-    const segments = normalized.split(/\n{2,}/).filter(segment => segment.trim() !== '');
-    if (segments.length < 2) {
-      return null;
-    }
-
-    const prompt = segments.at(-1)?.trim() ?? '';
-    const banner = segments.slice(0, -1).join('\n\n').replace(/\n+$/, '');
-    if (!banner || !prompt) {
-      return null;
-    }
-
-    return { banner, prompt };
-  }
-
-  private renderNarrative(label: string, message: string): string {
-    if (this.isCombatMarkup(message)) {
-      return this.renderCombatNarrative(message);
-    }
-
-    return `
-      <section class="term-card term-card--narrative">
-        <div class="term-card__header">
-          <div>
-            <div class="term-card__eyebrow">${escapeHtml(label)}</div>
-            <h2 class="term-card__title">Story thread</h2>
-          </div>
-        </div>
-        <div class="term-copy">${renderMarkup(message)}</div>
-      </section>
-    `;
-  }
-
-  private renderCombatNarrative(message: string): string {
-    return `
-      <section class="term-card term-card--combat">
-        <div class="term-card__header">
-          <div>
-            <div class="term-card__eyebrow">Combat</div>
-            <h2 class="term-card__title">Combat feed</h2>
-          </div>
-          <span class="term-badge term-badge--warning">live</span>
-        </div>
-        <div class="term-copy term-copy--combat">${renderMarkup(message)}</div>
-      </section>
-    `;
-  }
-
-  private renderInlineNarrative(message: string): string {
-    return this.wrapInlineNarrative(renderMarkup(message));
-  }
-
-  private isCombatMarkup(message: string): boolean {
-    return message.includes('combat-log') || message.includes('combat-line');
-  }
-
-  private formatPlainText(message: string): string {
-    return escapeHtml(message);
-  }
-
-  private wrapInlineNarrative(content: string): string {
-    return `<div class="term-inline-narrative">${content}</div>`;
-  }
-
-  private formatInlineEventContent(label: string, message: string, variantClass: string): string {
-    return `
-      <span class="term-inline-event ${variantClass}">
-        <span class="term-inline-event__label">${label}</span>
-        <span class="term-inline-event__text">${message}</span>
-      </span>
-    `;
-  }
-
-  private renderChat(msg: GameMessage): string {
-    const type = msg.type ?? GAME_MESSAGE_TYPES.CHAT_ROOM;
-    const label =
-      type === GAME_MESSAGE_TYPES.CHAT_ROOM ? 'room' :
-      type === GAME_MESSAGE_TYPES.CHAT_WORLD ? 'realm' :
-      'whisper';
-
-    return `
-      <div class="term-inline term-inline--chat">
-        <span class="term-tag term-tag--${label}">${escapeHtml(label)}</span>
-        <span class="term-inline__from">${escapeHtml(msg.from ?? 'unknown')}</span>
-        <span class="term-inline__text">${escapeHtml(msg.message ?? '')}</span>
-      </div>
-    `;
-  }
-
-  private renderRoom(msg: GameMessage): string {
-    const room = msg.room;
-    if (!room) {
-      return this.renderNarrative(msg.type ?? GAME_MESSAGE_TYPES.NARRATIVE, msg.message ?? '');
-    }
-
-    const fullMessage = msg.message ?? '';
-    const splitIndex = fullMessage.indexOf('<br><br>');
-    const leadText = splitIndex === -1 ? fullMessage : fullMessage.slice(0, splitIndex);
-    const trailingText = splitIndex === -1 ? '' : fullMessage.slice(splitIndex + 8);
-
-    return `
-      <section class="term-card term-card--room">
-        <div class="term-card__header">
-          <div>
-            <div class="term-card__eyebrow">${this.roomEyebrow(msg.type)}</div>
-            <h2 class="term-card__title">${escapeHtml(room.name)}</h2>
-          </div>
-        </div>
-        <div class="term-copy">${renderMarkup(room.description)}</div>
-        <div class="term-columns">
-          <section class="term-section">
-            <div class="term-section__title">Paths</div>
-            ${this.formatChipList(room.exits ?? [], 'term-chip--exit')}
-          </section>
-          <section class="term-section">
-            <div class="term-section__title">Treasures</div>
-            ${this.formatChipList((room.items ?? []).map(item => this.formatItemChip(item.name, item.rarity)), 'term-chip--item', true)}
-          </section>
-          <section class="term-section">
-            <div class="term-section__title">Folk</div>
-            ${this.formatChipList((room.npcs ?? []).map(npc => this.formatNpcChip(npc.name, npc.sentient, npc.hasAvailableQuest ?? false)), 'term-chip--npc', true)}
-          </section>
-          <section class="term-section">
-            <div class="term-section__title">Travelers</div>
-            ${this.formatChipList(room.players ?? [], 'term-chip--player')}
-          </section>
-        </div>
-        ${this.renderShop(room.shop ?? null)}
-        ${leadText ? `<div class="term-inline-narrative">${renderMarkup(leadText)}</div>` : ''}
-        ${trailingText ? `<div class="term-inline-narrative">${renderMarkup(trailingText)}</div>` : ''}
-      </section>
-    `;
-  }
-
-  private renderShop(shop: ShopDto | null): string {
-    if (!shop || (shop.listings?.length ?? 0) === 0) {
-      return '';
-    }
-
-    return `
-      <section class="term-shop" aria-label="Merchant inventory">
-        <div class="term-shop__header">
-          <div>
-            <div class="term-card__eyebrow">Merchant</div>
-            <h3 class="term-shop__title">${escapeHtml(shop.merchantName)}</h3>
-          </div>
-          <span class="term-badge">${escapeHtml(String(shop.listings.length))} wares</span>
-        </div>
-        <div class="term-shop__grid">
-          ${shop.listings.map(listing => `
-            <article class="term-shop__item">
-              <div class="term-shop__item-header">
-                <div>
-                  <div class="term-shop__item-title">${escapeHtml(listing.name)}</div>
-                  <div class="term-shop__item-price">${escapeHtml(String(listing.price))} gold</div>
-                </div>
-                <span class="term-pill term-pill--rarity term-pill--${escapeHtml(listing.rarity)}">${escapeHtml(this.toTitleCase(listing.rarity))}</span>
-              </div>
-              <div class="term-copy term-copy--muted">${renderMarkup(listing.description ?? '')}</div>
-              <button type="button" class="term-shop__buy" data-command="${escapeHtml(`buy ${listing.itemId}`)}">
-                Buy now
-              </button>
-            </article>
-          `).join('')}
-        </div>
-      </section>
-    `;
-  }
-
-  private renderInventory(items: ItemDto[]): string {
-    return `
-      <section class="term-card term-card--inventory">
-        <div class="term-card__header">
-          <div>
-            <div class="term-card__eyebrow">Satchel</div>
-            <h2 class="term-card__title">Travel pack</h2>
-          </div>
-          <span class="term-badge">${escapeHtml(String(items.length))} item${items.length === 1 ? '' : 's'}</span>
-        </div>
-        ${items.length === 0 ? `
-          <div class="term-empty">Your satchel is light.</div>
-        ` : `
-          <ul class="term-list">
-            ${items.map(item => `
-              <li class="term-list__item">
-                <div class="term-list__header">
-                  <span class="term-list__title">${escapeHtml(item.name)}</span>
-                  <div class="term-list__badges">
-                    <span class="term-pill term-pill--rarity term-pill--${escapeHtml(item.rarity)}">${escapeHtml(this.toTitleCase(item.rarity))}</span>
-                    ${item.equipped ? `<span class="term-pill term-pill--equipped">Equipped${item.equippedSlot ? `: ${escapeHtml(item.equippedSlot)}` : ''}</span>` : ''}
-                  </div>
-                </div>
-                <div class="term-copy term-copy--muted">${renderMarkup(item.description ?? '')}</div>
-              </li>
-            `).join('')}
-          </ul>
-        `}
-      </section>
-    `;
-  }
-
-  private renderPlayerOverview(msg: GameMessage): string {
-    const stats = msg.playerStats;
-    const combat = msg.combatStats;
-    const items = msg.inventory ?? [];
-    const playerName = msg.message?.trim() || 'Traveler';
-    const slots = PLAYER_OVERVIEW_SLOTS.map(slot => {
-      const equippedItem = this.findEquippedItem(items, slot.id, slot.label);
-      return {
-        ...slot,
-        itemName: equippedItem?.name ?? 'Empty',
-        rarityLabel: equippedItem ? this.toTitleCase(equippedItem.rarity) : null,
-        isEmpty: equippedItem == null,
-      };
-    });
-    const equippedCount = slots.filter(slot => !slot.isEmpty).length;
-    const progressPercent = !stats
-      ? 0
-      : stats.level >= stats.maxLevel || stats.xpForNextLevel <= 0
-        ? 100
-        : Math.max(0, Math.min(100, Math.round((stats.xpProgress / stats.xpForNextLevel) * 100)));
-    const classLabel = this.formatClassName(stats?.characterClass ?? 'adventurer');
-    const levelLabel = !stats
-      ? 'Level unknown'
-      : stats.isGod || stats.maxLevel <= 0 || stats.level > stats.maxLevel
-        ? `Level ${stats.level}`
-        : `Level ${stats.level} / ${stats.maxLevel}`;
-    const progressLabel = !stats
-      ? 'XP unknown'
-      : stats.level >= stats.maxLevel || stats.xpForNextLevel <= 0
-        ? 'Max level'
-        : `${stats.xpProgress} / ${stats.xpForNextLevel} XP`;
-
-    return `
-      <section class="term-card term-card--player-overview">
-        <div class="term-card__header">
-          <div>
-            <div class="term-card__eyebrow">Character sheet</div>
-            <h2 class="term-card__title">${escapeHtml(playerName)}</h2>
-          </div>
-          <span class="term-badge">${escapeHtml(String(equippedCount))}/${escapeHtml(String(slots.length))} readied</span>
-        </div>
-        <div class="term-columns">
-          <section class="term-section">
-            <div class="term-section__title">Condition</div>
-            <div class="term-meta-row">
-              <span class="term-label">Calling</span>
-              <span class="term-value">${escapeHtml(classLabel)}</span>
-            </div>
-            <div class="term-meta-row">
-              <span class="term-label">Level</span>
-              <span class="term-value">${escapeHtml(levelLabel)}</span>
-            </div>
-            <div class="term-meta-row">
-              <span class="term-label">Health</span>
-              <span class="term-value${stats?.isGod ? ' term-value--infinite' : ''}">${this.renderSheetStatResourceValue(stats?.health, stats?.maxHealth, stats?.isGod ?? false)}</span>
-            </div>
-            <div class="term-meta-row">
-              <span class="term-label">Mana</span>
-              <span class="term-value${stats?.isGod ? ' term-value--infinite' : ''}">${this.renderSheetStatResourceValue(stats?.mana, stats?.maxMana, stats?.isGod ?? false)}</span>
-            </div>
-            <div class="term-meta-row">
-              <span class="term-label">Movement</span>
-              <span class="term-value${stats?.isGod ? ' term-value--infinite' : ''}">${this.renderSheetStatResourceValue(stats?.movement, stats?.maxMovement, stats?.isGod ?? false)}</span>
-            </div>
-            ${stats ? `
-              <div class="term-meta-row">
-                <span class="term-label">Total XP</span>
-                <span class="term-value">${escapeHtml(String(stats.totalXp))}</span>
-              </div>
-              <div class="term-meta-row">
-                <span class="term-label">Gold</span>
-                <span class="term-value">${escapeHtml(String(stats.gold ?? 0))}</span>
-              </div>
-            ` : ''}
-            <div class="term-progress">
-              <div class="term-progress__bar">
-                <div class="term-progress__fill" style="width: ${progressPercent}%"></div>
-              </div>
-              <div class="term-progress__meta">
-                <span>Progress</span>
-                <span>${escapeHtml(progressLabel)}</span>
-              </div>
-            </div>
-          </section>
-          <section class="term-section">
-            <div class="term-section__title">Combat profile</div>
-            <div class="term-meta-row">
-              <span class="term-label">Armor</span>
-              <span class="term-value">${escapeHtml(this.formatArmorValue(combat))}</span>
-            </div>
-            <div class="term-meta-row">
-              <span class="term-label">Attack damage</span>
-              <span class="term-value">${escapeHtml(this.formatDamageRange(combat))}</span>
-            </div>
-            <div class="term-meta-row">
-              <span class="term-label">Hit chance</span>
-              <span class="term-value">${escapeHtml(this.formatPercent(combat?.hitChance))}</span>
-            </div>
-            <div class="term-meta-row">
-              <span class="term-label">Critical hit</span>
-              <span class="term-value">${escapeHtml(this.formatPercent(combat?.critChance))}</span>
-            </div>
-          </section>
-          <section class="term-section">
-            <div class="term-section__title">Readied gear</div>
-            <div class="term-profile-slots">
-              ${slots.map(slot => `
-                <div class="term-profile-slot${slot.isEmpty ? ' is-empty' : ''}">
-                  <div class="term-profile-slot__label">${escapeHtml(slot.label)}</div>
-                  <div class="term-profile-slot__item">${escapeHtml(slot.itemName)}</div>
-                  ${slot.rarityLabel ? `<div class="term-profile-slot__meta">${escapeHtml(slot.rarityLabel)}</div>` : ''}
-                </div>
-              `).join('')}
-            </div>
-          </section>
-        </div>
-        <div class="term-footnote">Carrying ${escapeHtml(String(items.length))} item${items.length === 1 ? '' : 's'} in total.</div>
-      </section>
-    `;
-  }
-
-  private renderWho(players: WhoPlayerDto[]): string {
-    return `
-      <section class="term-card term-card--who">
-        <div class="term-card__header">
-          <div>
-            <div class="term-card__eyebrow">Lantern census</div>
-            <h2 class="term-card__title">Across the realm</h2>
-          </div>
-          <span class="term-badge">${escapeHtml(String(players.length))} online</span>
-        </div>
-        ${players.length === 0 ? `
-          <div class="term-empty">The roads are quiet.</div>
-        ` : `
-          <ul class="term-list">
-            ${players.map(player => `
-              <li class="term-list__item${player.isGod ? ' term-list__item--god' : ''}">
-                <div class="term-list__header">
-                  <span class="term-list__title">${escapeHtml(player.name)}</span>
-                  <div class="term-list__badges">
-                    ${player.isGod ? '<span class="term-pill term-pill--god-presence">Divine</span>' : ''}
-                    <span class="term-pill${player.isGod ? ' term-pill--god-level' : ''}">Level ${escapeHtml(String(player.level))}</span>
-                  </div>
-                </div>
-                <div class="term-copy term-copy--muted">${escapeHtml(player.title)}</div>
-                <div class="term-meta-row">
-                  <span class="term-label">Location</span>
-                  <span class="term-value">${escapeHtml(player.location)}</span>
-                </div>
-              </li>
-            `).join('')}
-          </ul>
-        `}
-      </section>
-    `;
-  }
-
-  private renderHelp(isGod: boolean): string {
-    const categories = this.commandCatalog.helpCategories(isGod);
-    const tips = this.commandCatalog.helpTips();
-
-    return `
-      <section class="term-card term-card--help">
-        <div class="term-card__header">
-          <div>
-            <div class="term-card__eyebrow">Field notes</div>
-            <h2 class="term-card__title">Traveler's handbook</h2>
-          </div>
-          <span class="term-badge">${isGod ? "warden's sight" : "traveler's sight"}</span>
-        </div>
-        <div class="term-help">
-          <div class="term-help__body">
-            ${categories.length === 0 ? `
-              <div class="term-empty">Command reference is still loading.</div>
-            ` : `
-              <div class="term-columns">
-                ${categories.map(category => `
-                  <section class="term-section">
-                    <div class="term-section__title">${escapeHtml(category.title)}</div>
-                    <div class="term-kv-list">
-                      ${category.entries.map(entry => `
-                        <div class="term-kv">
-                          <div class="term-kv__key">${escapeHtml(entry.cmd)}</div>
-                          <div class="term-kv__value">${escapeHtml(entry.desc)}</div>
-                          ${entry.aliasesText ? `<div class="term-copy term-copy--muted">Also: ${escapeHtml(entry.aliasesText)}</div>` : ''}
-                          ${entry.example ? `<div class="term-copy term-copy--muted">Try: ${escapeHtml(entry.example)}</div>` : ''}
-                        </div>
-                      `).join('')}
-                    </div>
-                  </section>
-                `).join('')}
-              </div>
-            `}
-          </div>
-          <div class="term-footnote term-help__footer">
-            Natural language still works. Plain speech is welcome when a formal command feels clumsy.
-            ${tips.length > 0 ? `<br>${escapeHtml(tips.join(' '))}` : ''}
-          </div>
-        </div>
-      </section>
-    `;
-  }
-
-  private formatSkillList(skills: SkillDto[], playerLevel: number, locked: boolean): string {
-    if (skills.length === 0) {
-      return `<div class="term-empty">${locked ? 'Everything in this column has already awakened.' : 'No arts have awakened yet.'}</div>`;
-    }
-
-    return `
-      <ul class="term-list">
-        ${skills.map(skill => `
-          <li class="term-list__item${locked ? ' is-locked' : ''}">
-            <div class="term-list__header">
-              <span class="term-list__title">${escapeHtml(skill.name)}</span>
-              <span class="term-pill">${locked ? `Level ${escapeHtml(String(skill.unlockLevel))}` : 'Awakened'}</span>
-            </div>
-            <div class="term-meta-row">
-              <span class="term-label">Type</span>
-              <span class="term-value">${escapeHtml(skill.type)}</span>
-            </div>
-            ${skill.passiveBonuses ? `
-              <div class="term-bonus-list">
-                ${this.formatBonuses(skill).map(bonus => `
-                  <span class="term-bonus">${escapeHtml(bonus.label)} +${escapeHtml(String(bonus.value))}</span>
-                `).join('')}
-              </div>
-            ` : `
-              <div class="term-copy term-copy--muted">
-                ${locked ? `Ripens in ${escapeHtml(String(skill.unlockLevel - playerLevel))} level${skill.unlockLevel - playerLevel === 1 ? '' : 's'}.` : 'No passive blessing is recorded here.'}
-              </div>
-            `}
-          </li>
-        `).join('')}
-      </ul>
-    `;
-  }
-
-  private formatBonuses(skill: SkillDto): Array<{ label: string; value: number }> {
-    const bonuses = skill.passiveBonuses;
-    if (!bonuses) {
-      return [];
-    }
-
-    const rows: Array<{ label: string; value: number }> = [];
-    if (bonuses.minDamageBonus) rows.push({ label: 'Min damage', value: bonuses.minDamageBonus });
-    if (bonuses.maxDamageBonus) rows.push({ label: 'Max damage', value: bonuses.maxDamageBonus });
-    if (bonuses.hitChanceBonus) rows.push({ label: 'Hit chance', value: bonuses.hitChanceBonus });
-    if (bonuses.armorBonus) rows.push({ label: 'Armor', value: bonuses.armorBonus });
-    return rows;
-  }
-
-  private formatChipList(entries: string[], variant: string, entriesAreMarkup = false): string {
-    if (entries.length === 0) {
-      return '<div class="term-empty term-empty--inline">None</div>';
-    }
-
-    return `
-      <div class="term-chip-grid">
-        ${entries.map(entry => `
-          <span class="term-chip ${variant}">
-            ${entriesAreMarkup ? entry : escapeHtml(entry)}
-          </span>
-        `).join('')}
-      </div>
-    `;
-  }
-
-  private formatItemChip(name: string, rarity: string): string {
-    return `
-      <span class="term-chip__body">${escapeHtml(name)}</span>
-      <span class="term-chip__meta">${escapeHtml(this.toTitleCase(rarity))}</span>
-    `;
-  }
-
-  private formatNpcChip(name: string, sentient: boolean, hasAvailableQuest: boolean): string {
-    const meta = hasAvailableQuest
-      ? `${sentient ? 'sentient' : 'creature'} · quest ready`
-      : (sentient ? 'sentient' : 'creature');
-
-    return `
-      ${hasAvailableQuest ? '<span class="term-chip__marker term-chip__marker--quest" aria-hidden="true">!</span>' : ''}
-      <span class="term-chip__body">${escapeHtml(name)}</span>
-      <span class="term-chip__meta">${escapeHtml(meta)}</span>
-    `;
-  }
-
-  private notice(cssClass: TerminalMessageClass, title: string, body: string): FormattedMessage {
-    return {
-      cssClass,
-      html: `
-        <section class="term-card term-card--notice">
-          <div class="term-card__header">
-            <div>
-              <div class="term-card__eyebrow">Lantern</div>
-              <h2 class="term-card__title">${escapeHtml(title)}</h2>
-            </div>
-          </div>
-          <div class="term-copy">${body}</div>
-        </section>
-      `,
-    };
-  }
-
-  private formatClassName(value: string): string {
-    return this.toTitleCase(value.replace(/[_-]+/g, ' '));
-  }
-
-  private findEquippedItem(items: ItemDto[], slotId: string, slotLabel: string): ItemDto | undefined {
-    return items.find(item =>
-      item.equipped
-      && this.normalizeSlotName(item.equippedSlot) === this.normalizeSlotName(slotId)
-    ) ?? items.find(item =>
-      item.equipped
-      && this.normalizeSlotName(item.equippedSlot) === this.normalizeSlotName(slotLabel)
-    );
-  }
-
-  private normalizeSlotName(value?: string | null): string {
-    return (value ?? '')
-      .trim()
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, '_')
-      .replace(/^_+|_+$/g, '');
-  }
-
-  private formatStatResource(
-    label: string,
-    current: number | undefined,
-    max: number | undefined,
-    isGod: boolean
-  ): string {
-    if (isGod) {
-      return `${label} ∞`;
-    }
-    if (current == null || max == null) {
-      return `${label} --`;
-    }
-    return `${label} ${current}/${max}`;
-  }
-
-  private renderStatResourceValue(
-    label: string,
-    current: number | undefined,
-    max: number | undefined,
-    isGod: boolean
-  ): string {
-    if (isGod) {
-      return `${escapeHtml(label)} <span class="term-infinity" aria-label="Infinite">∞</span>`;
-    }
-    return escapeHtml(this.formatStatResource(label, current, max, false));
-  }
-
-  private renderSheetStatResourceValue(
-    current: number | undefined,
-    max: number | undefined,
-    isGod: boolean
-  ): string {
-    if (isGod) {
-      return '<span class="term-infinity" aria-label="Infinite">&infin;</span>';
-    }
-    if (current == null || max == null) {
-      return '--';
-    }
-    return escapeHtml(`${current}/${max}`);
-  }
-
-  private formatArmorValue(combat?: CombatStatsDto): string {
-    if (!combat) {
-      return '--';
-    }
-    return String(combat.armor);
-  }
-
-  private formatDamageRange(combat?: CombatStatsDto): string {
-    if (!combat) {
-      return '--';
-    }
-    return combat.minDamage === combat.maxDamage
-      ? String(combat.minDamage)
-      : `${combat.minDamage}-${combat.maxDamage}`;
-  }
-
-  private formatPercent(value?: number): string {
-    if (value == null) {
-      return '--';
-    }
-    return `${value}%`;
-  }
-
-  private roomEyebrow(type?: string): string {
-    switch (type) {
-      case GAME_MESSAGE_TYPES.WELCOME:
-        return 'The road opens';
-      case GAME_MESSAGE_TYPES.ROOM_REFRESH:
-        return 'You look around';
-      default:
-        return 'You arrive';
-    }
-  }
-
-  private toTitleCase(value: string): string {
-    return value
-      .split(/\s+/)
-      .filter(Boolean)
-      .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
-      .join(' ');
+    return this.referenceFormatter.formatClassProgression(characterClass, playerLevel, maxLevel, skills);
   }
 }
