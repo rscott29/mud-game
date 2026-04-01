@@ -132,7 +132,8 @@ class LoginHandlerTest {
         assertThat(session.getPendingUsername()).isEqualTo("alice");
         assertThat(singleResponse(result).type()).isEqualTo(GameResponse.Type.AUTH_PROMPT);
         assertThat(singleResponse(result).mask()).isTrue();
-        assertThat(singleResponse(result).message()).contains("Password:");
+        assertThat(singleResponse(result).message()).contains("Password");
+        assertThat(singleResponse(result).message()).contains("create");
     }
 
     @Test
