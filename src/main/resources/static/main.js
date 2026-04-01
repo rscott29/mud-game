@@ -36654,6 +36654,265 @@ function takeUntilDestroyed(destroyRef) {
   };
 }
 
+// src/app/services/command-catalog.service.ts
+var COMMAND_DISPATCH_MODES = {
+  DIRECT: "DIRECT",
+  NATURAL_LANGUAGE: "NATURAL_LANGUAGE"
+};
+var RECONNECT_TOKEN_KEY = "mudReconnectToken";
+var RECONNECT_TOKEN_HEADER = "X-Mud-Reconnect-Token";
+var COMMAND_HELP_CATEGORIES = {
+  EXPLORATION: "Exploration",
+  INTERACTION: "Interaction",
+  COMMUNICATION: "Communication",
+  SOCIAL: "Social",
+  SESSION: "Session",
+  GOD: "God"
+};
+var CommandCatalogService = class _CommandCatalogService {
+  http = inject2(HttpClient);
+  catalog = signal([], ...ngDevMode ? [{ debugName: "catalog" }] : (
+    /* istanbul ignore next */
+    []
+  ));
+  loadedToken;
+  loadingToken;
+  load(force = false) {
+    const reconnectToken = this.readReconnectToken();
+    if (!force && (this.loadedToken === reconnectToken || this.loadingToken === reconnectToken)) {
+      return;
+    }
+    this.loadingToken = reconnectToken;
+    this.http.get("/api/commands", {
+      headers: this.catalogHeaders(reconnectToken)
+    }).pipe(take(1)).subscribe({
+      next: (response) => {
+        this.loadedToken = reconnectToken;
+        this.loadingToken = void 0;
+        this.catalog.set((response?.commands ?? []).map((command) => this.normalizeCommand(command)));
+      },
+      error: () => {
+        this.loadingToken = void 0;
+      }
+    });
+  }
+  refresh() {
+    this.loadedToken = void 0;
+    this.load(true);
+  }
+  findByAlias(alias) {
+    this.load();
+    const normalized = alias.trim().toLowerCase();
+    if (!normalized) {
+      return void 0;
+    }
+    return this.catalog().find((command) => command.aliases.some((candidate) => candidate.toLowerCase() === normalized));
+  }
+  autocompleteMatches(input2, isGod) {
+    this.load();
+    const parsedInput = this.parseAutocompleteInput(input2);
+    if (!parsedInput) {
+      return [];
+    }
+    const { leadingWhitespace, partialToken, suffix } = parsedInput;
+    const matches = /* @__PURE__ */ new Set();
+    for (const command of this.catalog()) {
+      if (command.godOnly && !isGod) {
+        continue;
+      }
+      for (const alias of command.aliases) {
+        const normalizedAlias = alias.trim().toLowerCase();
+        if (!normalizedAlias || normalizedAlias === partialToken || !normalizedAlias.startsWith(partialToken)) {
+          continue;
+        }
+        matches.add(`${leadingWhitespace}${normalizedAlias}${suffix}`);
+      }
+    }
+    return [...matches].sort((left, right) => left.length - right.length || left.localeCompare(right));
+  }
+  autocompleteSuggestion(input2, isGod) {
+    return this.autocompleteMatches(input2, isGod)[0];
+  }
+  helpCategories(isGod) {
+    this.load();
+    const categories = [];
+    const byTitle = /* @__PURE__ */ new Map();
+    for (const command of this.catalog()) {
+      if (!command.showInHelp) {
+        continue;
+      }
+      if (command.godOnly && !isGod) {
+        continue;
+      }
+      let category = byTitle.get(command.category);
+      if (!category) {
+        category = { title: command.category, entries: [] };
+        byTitle.set(command.category, category);
+        categories.push(category);
+      }
+      category.entries.push({
+        cmd: command.usage,
+        desc: command.description,
+        aliasesText: this.aliasSummary(command),
+        example: this.helpExample(command)
+      });
+    }
+    return categories;
+  }
+  helpTips() {
+    this.load();
+    const tips = [];
+    if (this.findByAlias("n") && this.findByAlias("u")) {
+      tips.push("Use n, s, e, w, u, and d for quick travel.");
+    }
+    if (this.findByAlias("l")) {
+      tips.push("Look supports shortcuts like l and x, and plain language works for contextual actions.");
+    }
+    if (this.findByAlias("wave")) {
+      tips.push("Social actions support self-targets: wave self, wave me, or wave at Mira.");
+    }
+    return tips;
+  }
+  normalizeCommand(command) {
+    return {
+      canonicalName: command.canonicalName,
+      aliases: command.aliases ?? [],
+      category: this.normalizeCategory(command.category),
+      usage: command.usage,
+      description: command.description,
+      godOnly: command.godOnly,
+      showInHelp: command.showInHelp,
+      dispatchMode: this.normalizeDispatchMode(command.dispatchMode)
+    };
+  }
+  aliasSummary(command) {
+    const usageToken = (command.usage.trim().split(/\s+/)[0] ?? "").toLowerCase();
+    const usageBare = usageToken.replace(/^\//, "");
+    const filtered = /* @__PURE__ */ new Map();
+    for (const alias of command.aliases) {
+      const normalized = alias.trim().toLowerCase();
+      const bare = normalized.replace(/^\//, "");
+      if (!bare || bare === usageBare) {
+        continue;
+      }
+      const existing = filtered.get(bare);
+      if (!existing || existing.startsWith("/") && !normalized.startsWith("/")) {
+        filtered.set(bare, normalized);
+      }
+    }
+    const aliases = [...filtered.values()];
+    if (aliases.length === 0) {
+      return void 0;
+    }
+    if (aliases.length <= 6) {
+      return aliases.join(", ");
+    }
+    return `${aliases.slice(0, 6).join(", ")} +${aliases.length - 6} more`;
+  }
+  helpExample(command) {
+    const usageToken = (command.usage.trim().split(/\s+/)[0] ?? "").replace(/^\//, "");
+    switch (command.canonicalName) {
+      case "go":
+        return "n";
+      case "look":
+        return "look fountain";
+      case "talk":
+        return "talk pilgrim";
+      case "take":
+        return "take lantern";
+      case "drop":
+        return "drop lantern";
+      case "equip":
+        return "equip iron sword";
+      case "attack":
+        return "attack wolf";
+      case "world":
+        return "/world anyone near the market?";
+      case "dm":
+        return "/dm Mira meet me at the gate";
+      case "emote":
+        return "/em smiles warmly";
+      case "quest":
+        return "quest";
+      case "give":
+        return "give bread to pilgrim";
+      case "skills":
+        return "skills";
+      case "me":
+        return "me";
+      default:
+        if (command.category === COMMAND_HELP_CATEGORIES.SOCIAL && command.usage.includes("[target|self]")) {
+          return `${usageToken} self`;
+        }
+        if (usageToken === "say") {
+          return "say hello there";
+        }
+        return void 0;
+    }
+  }
+  normalizeDispatchMode(dispatchMode) {
+    return dispatchMode === COMMAND_DISPATCH_MODES.NATURAL_LANGUAGE ? COMMAND_DISPATCH_MODES.NATURAL_LANGUAGE : COMMAND_DISPATCH_MODES.DIRECT;
+  }
+  normalizeCategory(category) {
+    const normalized = category?.trim() ?? "";
+    if (!normalized) {
+      return COMMAND_HELP_CATEGORIES.EXPLORATION;
+    }
+    const knownCategory = Object.values(COMMAND_HELP_CATEGORIES).find((value) => value === normalized);
+    return knownCategory ?? normalized;
+  }
+  parseAutocompleteInput(input2) {
+    const leadingWhitespace = input2.match(/^\s*/)?.[0] ?? "";
+    const trimmedLeading = input2.slice(leadingWhitespace.length);
+    if (!trimmedLeading) {
+      return null;
+    }
+    const tokenMatch = trimmedLeading.match(/^(\S+)([\s\S]*)$/);
+    if (!tokenMatch) {
+      return null;
+    }
+    const partialToken = tokenMatch[1].toLowerCase();
+    if (!partialToken) {
+      return null;
+    }
+    return {
+      leadingWhitespace,
+      partialToken,
+      suffix: tokenMatch[2] ?? ""
+    };
+  }
+  catalogHeaders(reconnectToken) {
+    if (!reconnectToken) {
+      return void 0;
+    }
+    return new HttpHeaders({
+      [RECONNECT_TOKEN_HEADER]: reconnectToken
+    });
+  }
+  readReconnectToken() {
+    if (typeof sessionStorage !== "undefined") {
+      const sessionToken = sessionStorage.getItem(RECONNECT_TOKEN_KEY);
+      if (sessionToken) {
+        return sessionToken;
+      }
+    }
+    if (typeof localStorage !== "undefined") {
+      return localStorage.getItem(RECONNECT_TOKEN_KEY);
+    }
+    return null;
+  }
+  static \u0275fac = function CommandCatalogService_Factory(__ngFactoryType__) {
+    return new (__ngFactoryType__ || _CommandCatalogService)();
+  };
+  static \u0275prov = /* @__PURE__ */ \u0275\u0275defineInjectable({ token: _CommandCatalogService, factory: _CommandCatalogService.\u0275fac, providedIn: "root" });
+};
+(() => {
+  (typeof ngDevMode === "undefined" || ngDevMode) && setClassMetadata(CommandCatalogService, [{
+    type: Injectable,
+    args: [{ providedIn: "root" }]
+  }], null, null);
+})();
+
 // src/app/services/game-socket.service.ts
 var TOKEN_KEY = "mudReconnectToken";
 var RECONNECT_BASE_MS = 1e3;
@@ -36661,6 +36920,7 @@ var RECONNECT_MAX_MS = 3e4;
 var RECONNECT_MAX_TRIES = 10;
 var GameSocketService = class _GameSocketService {
   zone;
+  commandCatalog = inject2(CommandCatalogService);
   socket = null;
   reconnectAttempt = 0;
   reconnectTimer = null;
@@ -36768,6 +37028,7 @@ var GameSocketService = class _GameSocketService {
     }
     sessionStorage.setItem(TOKEN_KEY, message.token);
     localStorage.removeItem(TOKEN_KEY);
+    this.commandCatalog.refresh();
     return true;
   }
   /**
@@ -36786,6 +37047,7 @@ var GameSocketService = class _GameSocketService {
       case GAME_MESSAGE_TYPES.AUTH_PROMPT:
         if ((message.message ?? "").toLowerCase().includes("username")) {
           this.playerStats.set(null);
+          this.commandCatalog.refresh();
         }
         break;
       default:
@@ -37242,233 +37504,6 @@ var TerminalProfileFormatterService = class _TerminalProfileFormatterService {
 };
 (() => {
   (typeof ngDevMode === "undefined" || ngDevMode) && setClassMetadata(TerminalProfileFormatterService, [{
-    type: Injectable,
-    args: [{ providedIn: "root" }]
-  }], null, null);
-})();
-
-// src/app/services/command-catalog.service.ts
-var COMMAND_DISPATCH_MODES = {
-  DIRECT: "DIRECT",
-  NATURAL_LANGUAGE: "NATURAL_LANGUAGE"
-};
-var COMMAND_HELP_CATEGORIES = {
-  EXPLORATION: "Exploration",
-  INTERACTION: "Interaction",
-  COMMUNICATION: "Communication",
-  SOCIAL: "Social",
-  SESSION: "Session",
-  GOD: "God"
-};
-var CommandCatalogService = class _CommandCatalogService {
-  http = inject2(HttpClient);
-  catalog = signal([], ...ngDevMode ? [{ debugName: "catalog" }] : (
-    /* istanbul ignore next */
-    []
-  ));
-  loadStarted = false;
-  load() {
-    if (this.loadStarted) {
-      return;
-    }
-    this.loadStarted = true;
-    this.http.get("/api/commands").pipe(take(1)).subscribe({
-      next: (response) => {
-        this.catalog.set((response?.commands ?? []).map((command) => this.normalizeCommand(command)));
-      },
-      error: () => {
-        this.loadStarted = false;
-      }
-    });
-  }
-  findByAlias(alias) {
-    this.load();
-    const normalized = alias.trim().toLowerCase();
-    if (!normalized) {
-      return void 0;
-    }
-    return this.catalog().find((command) => command.aliases.some((candidate) => candidate.toLowerCase() === normalized));
-  }
-  autocompleteMatches(input2, isGod) {
-    this.load();
-    const parsedInput = this.parseAutocompleteInput(input2);
-    if (!parsedInput) {
-      return [];
-    }
-    const { leadingWhitespace, partialToken, suffix } = parsedInput;
-    const matches = /* @__PURE__ */ new Set();
-    for (const command of this.catalog()) {
-      if (command.godOnly && !isGod) {
-        continue;
-      }
-      for (const alias of command.aliases) {
-        const normalizedAlias = alias.trim().toLowerCase();
-        if (!normalizedAlias || normalizedAlias === partialToken || !normalizedAlias.startsWith(partialToken)) {
-          continue;
-        }
-        matches.add(`${leadingWhitespace}${normalizedAlias}${suffix}`);
-      }
-    }
-    return [...matches].sort((left, right) => left.length - right.length || left.localeCompare(right));
-  }
-  autocompleteSuggestion(input2, isGod) {
-    return this.autocompleteMatches(input2, isGod)[0];
-  }
-  helpCategories(isGod) {
-    this.load();
-    const categories = [];
-    const byTitle = /* @__PURE__ */ new Map();
-    for (const command of this.catalog()) {
-      if (!command.showInHelp) {
-        continue;
-      }
-      if (command.godOnly && !isGod) {
-        continue;
-      }
-      let category = byTitle.get(command.category);
-      if (!category) {
-        category = { title: command.category, entries: [] };
-        byTitle.set(command.category, category);
-        categories.push(category);
-      }
-      category.entries.push({
-        cmd: command.usage,
-        desc: command.description,
-        aliasesText: this.aliasSummary(command),
-        example: this.helpExample(command)
-      });
-    }
-    return categories;
-  }
-  helpTips() {
-    this.load();
-    const tips = [];
-    if (this.findByAlias("n") && this.findByAlias("u")) {
-      tips.push("Use n, s, e, w, u, and d for quick travel.");
-    }
-    if (this.findByAlias("l")) {
-      tips.push("Look supports shortcuts like l and x, and plain language works for contextual actions.");
-    }
-    if (this.findByAlias("wave")) {
-      tips.push("Social actions support self-targets: wave self, wave me, or wave at Mira.");
-    }
-    return tips;
-  }
-  normalizeCommand(command) {
-    return {
-      canonicalName: command.canonicalName,
-      aliases: command.aliases ?? [],
-      category: this.normalizeCategory(command.category),
-      usage: command.usage,
-      description: command.description,
-      godOnly: command.godOnly,
-      showInHelp: command.showInHelp,
-      dispatchMode: this.normalizeDispatchMode(command.dispatchMode)
-    };
-  }
-  aliasSummary(command) {
-    const usageToken = (command.usage.trim().split(/\s+/)[0] ?? "").toLowerCase();
-    const usageBare = usageToken.replace(/^\//, "");
-    const filtered = /* @__PURE__ */ new Map();
-    for (const alias of command.aliases) {
-      const normalized = alias.trim().toLowerCase();
-      const bare = normalized.replace(/^\//, "");
-      if (!bare || bare === usageBare) {
-        continue;
-      }
-      const existing = filtered.get(bare);
-      if (!existing || existing.startsWith("/") && !normalized.startsWith("/")) {
-        filtered.set(bare, normalized);
-      }
-    }
-    const aliases = [...filtered.values()];
-    if (aliases.length === 0) {
-      return void 0;
-    }
-    if (aliases.length <= 6) {
-      return aliases.join(", ");
-    }
-    return `${aliases.slice(0, 6).join(", ")} +${aliases.length - 6} more`;
-  }
-  helpExample(command) {
-    const usageToken = (command.usage.trim().split(/\s+/)[0] ?? "").replace(/^\//, "");
-    switch (command.canonicalName) {
-      case "go":
-        return "n";
-      case "look":
-        return "look fountain";
-      case "talk":
-        return "talk pilgrim";
-      case "take":
-        return "take lantern";
-      case "drop":
-        return "drop lantern";
-      case "equip":
-        return "equip iron sword";
-      case "attack":
-        return "attack wolf";
-      case "world":
-        return "/world anyone near the market?";
-      case "dm":
-        return "/dm Mira meet me at the gate";
-      case "emote":
-        return "/em smiles warmly";
-      case "quest":
-        return "quest";
-      case "give":
-        return "give bread to pilgrim";
-      case "skills":
-        return "skills";
-      case "me":
-        return "me";
-      default:
-        if (command.category === COMMAND_HELP_CATEGORIES.SOCIAL && command.usage.includes("[target|self]")) {
-          return `${usageToken} self`;
-        }
-        if (usageToken === "say") {
-          return "say hello there";
-        }
-        return void 0;
-    }
-  }
-  normalizeDispatchMode(dispatchMode) {
-    return dispatchMode === COMMAND_DISPATCH_MODES.NATURAL_LANGUAGE ? COMMAND_DISPATCH_MODES.NATURAL_LANGUAGE : COMMAND_DISPATCH_MODES.DIRECT;
-  }
-  normalizeCategory(category) {
-    const normalized = category?.trim() ?? "";
-    if (!normalized) {
-      return COMMAND_HELP_CATEGORIES.EXPLORATION;
-    }
-    const knownCategory = Object.values(COMMAND_HELP_CATEGORIES).find((value) => value === normalized);
-    return knownCategory ?? normalized;
-  }
-  parseAutocompleteInput(input2) {
-    const leadingWhitespace = input2.match(/^\s*/)?.[0] ?? "";
-    const trimmedLeading = input2.slice(leadingWhitespace.length);
-    if (!trimmedLeading) {
-      return null;
-    }
-    const tokenMatch = trimmedLeading.match(/^(\S+)([\s\S]*)$/);
-    if (!tokenMatch) {
-      return null;
-    }
-    const partialToken = tokenMatch[1].toLowerCase();
-    if (!partialToken) {
-      return null;
-    }
-    return {
-      leadingWhitespace,
-      partialToken,
-      suffix: tokenMatch[2] ?? ""
-    };
-  }
-  static \u0275fac = function CommandCatalogService_Factory(__ngFactoryType__) {
-    return new (__ngFactoryType__ || _CommandCatalogService)();
-  };
-  static \u0275prov = /* @__PURE__ */ \u0275\u0275defineInjectable({ token: _CommandCatalogService, factory: _CommandCatalogService.\u0275fac, providedIn: "root" });
-};
-(() => {
-  (typeof ngDevMode === "undefined" || ngDevMode) && setClassMetadata(CommandCatalogService, [{
     type: Injectable,
     args: [{ providedIn: "root" }]
   }], null, null);

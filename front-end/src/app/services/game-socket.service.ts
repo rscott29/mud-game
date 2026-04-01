@@ -1,4 +1,4 @@
-import { Injectable, NgZone, signal } from '@angular/core';
+import { Injectable, NgZone, inject, signal } from '@angular/core';
 import { Subject } from 'rxjs';
 import {
   CONNECTION_STATUSES,
@@ -7,6 +7,7 @@ import {
   ConnectionStatus,
   PlayerStatsDto,
 } from '../models/game-message';
+import { CommandCatalogService } from './command-catalog.service';
 
 const TOKEN_KEY = 'mudReconnectToken';
 const RECONNECT_BASE_MS = 1_000;
@@ -17,6 +18,7 @@ type OutboundPayload = Record<string, unknown>;
 
 @Injectable({ providedIn: 'root' })
 export class GameSocketService {
+  private readonly commandCatalog = inject(CommandCatalogService);
   private socket: WebSocket | null = null;
   private reconnectAttempt = 0;
   private reconnectTimer: ReturnType<typeof setTimeout> | null = null;
@@ -140,6 +142,7 @@ export class GameSocketService {
 
     sessionStorage.setItem(TOKEN_KEY, message.token);
     localStorage.removeItem(TOKEN_KEY);
+    this.commandCatalog.refresh();
     return true;
   }
 
@@ -161,6 +164,7 @@ export class GameSocketService {
         // Only reset UI state when we're back at the login screen (username prompt)
         if ((message.message ?? '').toLowerCase().includes('username')) {
           this.playerStats.set(null);
+          this.commandCatalog.refresh();
         }
         break;
 

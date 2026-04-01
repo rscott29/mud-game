@@ -1,11 +1,14 @@
 import { Injectable, inject, signal } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { take } from 'rxjs';
 
 export const COMMAND_DISPATCH_MODES = {
   DIRECT: 'DIRECT',
   NATURAL_LANGUAGE: 'NATURAL_LANGUAGE',
 } as const;
+
+const RECONNECT_TOKEN_KEY = 'mudReconnectToken';
+const RECONNECT_TOKEN_HEADER = 'X-Mud-Reconnect-Token';
 
 export type CommandDispatchMode =
   typeof COMMAND_DISPATCH_MODES[keyof typeof COMMAND_DISPATCH_MODES];
@@ -72,24 +75,35 @@ interface ParsedAutocompleteInput {
 export class CommandCatalogService {
   private readonly http = inject(HttpClient);
   private readonly catalog = signal<CommandCatalogEntry[]>([]);
-  private loadStarted = false;
+  private loadedToken: string | null | undefined;
+  private loadingToken: string | null | undefined;
 
-  load(): void {
-    if (this.loadStarted) {
+  load(force = false): void {
+    const reconnectToken = this.readReconnectToken();
+    if (!force && (this.loadedToken === reconnectToken || this.loadingToken === reconnectToken)) {
       return;
     }
 
-    this.loadStarted = true;
-    this.http.get<CommandCatalogResponse>('/api/commands')
+    this.loadingToken = reconnectToken;
+    this.http.get<CommandCatalogResponse>('/api/commands', {
+      headers: this.catalogHeaders(reconnectToken),
+    })
       .pipe(take(1))
       .subscribe({
         next: response => {
+          this.loadedToken = reconnectToken;
+          this.loadingToken = undefined;
           this.catalog.set((response?.commands ?? []).map(command => this.normalizeCommand(command)));
         },
         error: () => {
-          this.loadStarted = false;
+          this.loadingToken = undefined;
         },
       });
+  }
+
+  refresh(): void {
+    this.loadedToken = undefined;
+    this.load(true);
   }
 
   findByAlias(alias: string): CommandCatalogEntry | undefined {
@@ -311,5 +325,30 @@ export class CommandCatalogService {
       partialToken,
       suffix: tokenMatch[2] ?? '',
     };
+  }
+
+  private catalogHeaders(reconnectToken: string | null): HttpHeaders | undefined {
+    if (!reconnectToken) {
+      return undefined;
+    }
+
+    return new HttpHeaders({
+      [RECONNECT_TOKEN_HEADER]: reconnectToken,
+    });
+  }
+
+  private readReconnectToken(): string | null {
+    if (typeof sessionStorage !== 'undefined') {
+      const sessionToken = sessionStorage.getItem(RECONNECT_TOKEN_KEY);
+      if (sessionToken) {
+        return sessionToken;
+      }
+    }
+
+    if (typeof localStorage !== 'undefined') {
+      return localStorage.getItem(RECONNECT_TOKEN_KEY);
+    }
+
+    return null;
   }
 }
