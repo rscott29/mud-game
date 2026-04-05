@@ -10,6 +10,9 @@ import com.scott.tech.mud.mud_game.model.Room;
 import com.scott.tech.mud.mud_game.model.Shop;
 import com.scott.tech.mud.mud_game.session.GameSession;
 
+import java.util.List;
+import java.util.Set;
+
 public class ShopCommand implements GameCommand {
 
     private final ShopService shopService;
@@ -34,7 +37,14 @@ public class ShopCommand implements GameCommand {
 
         return CommandResult.withAction(
                 RoomAction.inCurrentRoom(Messages.fmt("action.shop.browse", "player", session.getPlayer().getName())),
-                GameResponse.roomRefresh(room, Messages.fmt("command.shop.browse", "merchant", merchant))
+                GameResponse.roomRefresh(
+                        room,
+                        Messages.fmt("command.shop.browse", "merchant", merchant),
+                        List.of(),
+                        session.getDiscoveredHiddenExits(room.getId()),
+                        Set.of(),
+                        true
+                )
         );
     }
 }

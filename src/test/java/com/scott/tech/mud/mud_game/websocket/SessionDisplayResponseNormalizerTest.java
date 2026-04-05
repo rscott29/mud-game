@@ -6,6 +6,7 @@ import com.scott.tech.mud.mud_game.model.Npc;
 import com.scott.tech.mud.mud_game.model.Player;
 import com.scott.tech.mud.mud_game.model.Room;
 import com.scott.tech.mud.mud_game.model.SessionState;
+import com.scott.tech.mud.mud_game.model.Shop;
 import com.scott.tech.mud.mud_game.quest.Quest;
 import com.scott.tech.mud.mud_game.quest.QuestCompletionEffects;
 import com.scott.tech.mud.mud_game.quest.QuestPrerequisites;
@@ -18,6 +19,7 @@ import org.junit.jupiter.api.Test;
 
 import java.util.EnumMap;
 import java.util.List;
+import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
@@ -57,6 +59,65 @@ class SessionDisplayResponseNormalizerTest {
         assertThat(merged.room()).isNotNull();
         assertThat(merged.room().players()).containsExactly("Rogue");
         assertThat(merged.playerStats()).isNotNull();
+    }
+
+    @Test
+    void normalize_preservesShopPayloadWhenRoomRefreshExplicitlyIncludesIt() {
+        GameSessionManager sessionManager = new GameSessionManager();
+        WorldService worldService = mock(WorldService.class);
+
+        Npc merchant = new Npc(
+                "npc_shopkeeper_rona",
+                "Shopkeeper Rona",
+                "A patient merchant.",
+                List.of("rona"),
+                "they",
+                "their",
+                0,
+                0,
+                List.of(),
+                List.of(),
+                List.of(),
+                List.of(),
+                true,
+                List.of(),
+                null,
+                false,
+                false,
+                0,
+                0,
+                0,
+                0,
+                false
+        );
+        Room room = new Room("store", "General Store", "A tidy shop.", new EnumMap<>(Direction.class), List.of(), List.of(merchant));
+        room.setShop(new Shop("npc_shopkeeper_rona", List.of(
+                new Shop.Listing(
+                        "item_rope",
+                        new com.scott.tech.mud.mud_game.model.Item("item_rope", "Travel Rope", "A stout rope.", List.of("rope"), true, com.scott.tech.mud.mud_game.model.Rarity.COMMON),
+                        8
+                )
+        )));
+        when(worldService.getRoom("store")).thenReturn(room);
+
+        Player player = new Player("p1", "Hero", "store");
+        GameSession session = new GameSession("session-1", player, worldService);
+        session.transition(SessionState.PLAYING);
+        sessionManager.register(session);
+
+        QuestService questService = mock(QuestService.class);
+        SessionDisplayResponseNormalizer normalizer = new SessionDisplayResponseNormalizer(sessionManager, questService);
+
+        List<GameResponse> normalized = normalizer.normalize(
+                session,
+                List.of(GameResponse.roomRefresh(room, "You browse the wares.", List.of(), Set.of(), Set.of(), true))
+        );
+
+        assertThat(normalized).hasSize(1);
+        assertThat(normalized.getFirst().room()).isNotNull();
+        assertThat(normalized.getFirst().room().shop()).isNotNull();
+        assertThat(normalized.getFirst().room().shop().merchantName()).isEqualTo("Shopkeeper Rona");
+        assertThat(normalized.getFirst().room().shop().listings()).hasSize(1);
     }
 
     @Test

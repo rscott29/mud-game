@@ -141,7 +141,16 @@ public record GameResponse(
     }
 
     public static GameResponse roomUpdate(Room room, String message, List<String> players, Set<Direction> discoveredHiddenExits, Set<String> excludeItemIds) {
-        return roomResponse(Type.ROOM_UPDATE, room, message, players, discoveredHiddenExits, excludeItemIds);
+        return roomResponse(Type.ROOM_UPDATE, room, message, players, discoveredHiddenExits, excludeItemIds, false);
+    }
+
+    public static GameResponse roomUpdate(Room room,
+                                          String message,
+                                          List<String> players,
+                                          Set<Direction> discoveredHiddenExits,
+                                          Set<String> excludeItemIds,
+                                          boolean includeShop) {
+        return roomResponse(Type.ROOM_UPDATE, room, message, players, discoveredHiddenExits, excludeItemIds, includeShop);
     }
 
     public static GameResponse roomRefresh(Room room, String message) {
@@ -157,7 +166,16 @@ public record GameResponse(
     }
 
     public static GameResponse roomRefresh(Room room, String message, List<String> players, Set<Direction> discoveredHiddenExits, Set<String> excludeItemIds) {
-        return roomResponse(Type.ROOM_REFRESH, room, message, players, discoveredHiddenExits, excludeItemIds);
+        return roomResponse(Type.ROOM_REFRESH, room, message, players, discoveredHiddenExits, excludeItemIds, false);
+    }
+
+    public static GameResponse roomRefresh(Room room,
+                                           String message,
+                                           List<String> players,
+                                           Set<Direction> discoveredHiddenExits,
+                                           Set<String> excludeItemIds,
+                                           boolean includeShop) {
+        return roomResponse(Type.ROOM_REFRESH, room, message, players, discoveredHiddenExits, excludeItemIds, includeShop);
     }
 
     public static GameResponse welcome(String message, Room room) {
@@ -173,7 +191,16 @@ public record GameResponse(
     }
 
     public static GameResponse welcome(String message, Room room, List<String> otherPlayers, Set<Direction> discoveredHiddenExits, Set<String> excludeItemIds) {
-        return roomResponse(Type.WELCOME, room, message, otherPlayers, discoveredHiddenExits, excludeItemIds);
+        return roomResponse(Type.WELCOME, room, message, otherPlayers, discoveredHiddenExits, excludeItemIds, false);
+    }
+
+    public static GameResponse welcome(String message,
+                                       Room room,
+                                       List<String> otherPlayers,
+                                       Set<Direction> discoveredHiddenExits,
+                                       Set<String> excludeItemIds,
+                                       boolean includeShop) {
+        return roomResponse(Type.WELCOME, room, message, otherPlayers, discoveredHiddenExits, excludeItemIds, includeShop);
     }
 
     public static GameResponse authPrompt(String msg, boolean mask) {
@@ -240,8 +267,9 @@ public record GameResponse(
                                              String message,
                                              List<String> players,
                                              Set<Direction> discoveredHiddenExits,
-                                             Set<String> excludeItemIds) {
-        return new GameResponse(type, message, RoomView.from(room, players, discoveredHiddenExits, excludeItemIds));
+                                             Set<String> excludeItemIds,
+                                             boolean includeShop) {
+        return new GameResponse(type, message, RoomView.from(room, players, discoveredHiddenExits, excludeItemIds, includeShop));
     }
 
     private static GameResponse chat(Type type, String from, String message) {
@@ -289,19 +317,27 @@ public record GameResponse(
             ShopView shop
     ) {
         public static RoomView from(Room room) {
-            return from(room, List.of(), Set.of());
+            return from(room, List.of(), Set.of(), Set.of(), false);
         }
 
         public static RoomView from(Room room, List<String> playerNames) {
-            return from(room, playerNames, Set.of());
+            return from(room, playerNames, Set.of(), Set.of(), false);
         }
 
         public static RoomView from(Room room, List<String> playerNames, Set<Direction> discoveredHiddenExits) {
-            return from(room, playerNames, discoveredHiddenExits, Set.of());
+            return from(room, playerNames, discoveredHiddenExits, Set.of(), false);
         }
 
         public static RoomView from(Room room, List<String> playerNames, Set<Direction> discoveredHiddenExits, Set<String> excludeItemIds) {
-            return from(room, playerNames, discoveredHiddenExits, excludeItemIds, Set.of());
+            return from(room, playerNames, discoveredHiddenExits, excludeItemIds, false);
+        }
+
+        public static RoomView from(Room room,
+                                    List<String> playerNames,
+                                    Set<Direction> discoveredHiddenExits,
+                                    Set<String> excludeItemIds,
+                                    boolean includeShop) {
+            return from(room, playerNames, discoveredHiddenExits, excludeItemIds, Set.of(), includeShop);
         }
 
         public static RoomView from(Room room,
@@ -309,6 +345,15 @@ public record GameResponse(
                                     Set<Direction> discoveredHiddenExits,
                                     Set<String> excludeItemIds,
                                     Set<String> questNpcIds) {
+            return from(room, playerNames, discoveredHiddenExits, excludeItemIds, questNpcIds, false);
+        }
+
+        public static RoomView from(Room room,
+                                    List<String> playerNames,
+                                    Set<Direction> discoveredHiddenExits,
+                                    Set<String> excludeItemIds,
+                                    Set<String> questNpcIds,
+                                    boolean includeShop) {
             var exits = Stream.concat(
                     room.getExits().keySet().stream(),
                     room.getHiddenExits().keySet().stream()
@@ -326,7 +371,7 @@ public record GameResponse(
 
             var players = List.copyOf(playerNames);
 
-            ShopView shop = ShopView.from(room.getShop(), room);
+            ShopView shop = includeShop ? ShopView.from(room.getShop(), room) : null;
 
             return new RoomView(
                     room.getId(),

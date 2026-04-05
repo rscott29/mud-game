@@ -155,13 +155,15 @@ public class SessionDisplayResponseNormalizer {
                         .filter(npc -> !questService.getAvailableQuestsForNpc(session.getPlayer(), npc.getId()).isEmpty())
                         .map(npc -> npc.getId())
                         .collect(Collectors.toSet());
+        boolean includeShop = response.room() != null && response.room().shop() != null;
 
         GameResponse.RoomView roomView = GameResponse.RoomView.from(
                 room,
                 others,
                 session.getDiscoveredHiddenExits(room.getId()),
                 inventoryItemIds,
-                questNpcIds
+                questNpcIds,
+                includeShop
         );
 
         return new GameResponse(
