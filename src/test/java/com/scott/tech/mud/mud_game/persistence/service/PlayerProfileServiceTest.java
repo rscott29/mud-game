@@ -97,6 +97,7 @@ class PlayerProfileServiceTest {
                         1,
                         0)),
                 List.of("quest_road_report"),
+                List.of(),
                 List.of()
         );
 

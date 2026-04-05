@@ -5,6 +5,8 @@ import com.fasterxml.jackson.core.JsonToken;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
+import com.scott.tech.mud.mud_game.consumable.ConsumableEffect;
+import com.scott.tech.mud.mud_game.consumable.ConsumableEffectType;
 import com.scott.tech.mud.mud_game.model.ItemTrigger;
 import com.scott.tech.mud.mud_game.model.NpcSceneOverride;
 import com.scott.tech.mud.mud_game.model.Rarity;
@@ -42,6 +44,8 @@ public class ItemData {
     private CombatStatsData combatStats;
     /** Optional equipment slot for equippable items. */
     private String equipmentSlot;
+    /** Optional data-driven consumable behavior. */
+    private List<ConsumableEffectData> consumableEffects = List.of();
 
     public String getId()                          { return id; }
     public String getName()                        { return name; }
@@ -57,6 +61,7 @@ public class ItemData {
     public List<PickupNpcSceneData> getPickupNpcScenes() { return pickupNpcScenes; }
     public CombatStatsData getCombatStats()        { return combatStats; }
     public String getEquipmentSlot()               { return equipmentSlot; }
+    public List<ConsumableEffectData> getConsumableEffects() { return consumableEffects; }
 
     public void setId(String id)                              { this.id = id; }
     public void setName(String name)                          { this.name = name; }
@@ -72,6 +77,9 @@ public class ItemData {
     public void setPickupNpcScenes(List<PickupNpcSceneData> pickupNpcScenes) { this.pickupNpcScenes = pickupNpcScenes != null ? pickupNpcScenes : List.of(); }
     public void setCombatStats(CombatStatsData combatStats)      { this.combatStats = combatStats; }
     public void setEquipmentSlot(String equipmentSlot)           { this.equipmentSlot = equipmentSlot; }
+    public void setConsumableEffects(List<ConsumableEffectData> consumableEffects) {
+        this.consumableEffects = consumableEffects != null ? consumableEffects : List.of();
+    }
 
     public static class PickupNpcSceneData {
         private String npcId;
@@ -144,6 +152,50 @@ public class ItemData {
         public void setHitChance(int hitChance)     { this.hitChance = hitChance; }
         public void setArmor(int armor)             { this.armor = armor; }
         public void setAttackVerb(String attackVerb) { this.attackVerb = attackVerb; }
+    }
+
+    public static class ConsumableEffectData {
+        private String type;
+        private int amount;
+        private long durationSeconds;
+        private long tickSeconds;
+        private String name;
+        @JsonDeserialize(using = DescriptionDeserializer.class)
+        private String description;
+        @JsonDeserialize(using = DescriptionDeserializer.class)
+        private String endDescription;
+        private List<String> shoutTemplates = List.of();
+
+        public String getType() { return type; }
+        public int getAmount() { return amount; }
+        public long getDurationSeconds() { return durationSeconds; }
+        public long getTickSeconds() { return tickSeconds; }
+        public String getName() { return name; }
+        public String getDescription() { return description; }
+        public String getEndDescription() { return endDescription; }
+        public List<String> getShoutTemplates() { return shoutTemplates; }
+
+        public void setType(String type) { this.type = type; }
+        public void setAmount(int amount) { this.amount = amount; }
+        public void setDurationSeconds(long durationSeconds) { this.durationSeconds = durationSeconds; }
+        public void setTickSeconds(long tickSeconds) { this.tickSeconds = tickSeconds; }
+        public void setName(String name) { this.name = name; }
+        public void setDescription(String description) { this.description = description; }
+        public void setEndDescription(String endDescription) { this.endDescription = endDescription; }
+        public void setShoutTemplates(List<String> shoutTemplates) {
+            this.shoutTemplates = shoutTemplates != null ? shoutTemplates : List.of();
+        }
+
+        public ConsumableEffectType resolveType() {
+            return ConsumableEffectType.fromString(type);
+        }
+
+        public ConsumableEffect toConsumableEffect() {
+            ConsumableEffectType resolvedType = resolveType();
+            return resolvedType == null
+                    ? null
+                    : new ConsumableEffect(resolvedType, amount, durationSeconds, tickSeconds, name, description, endDescription, shoutTemplates);
+        }
     }
 
     /** Flat DTO for a trigger entry in items.json. */

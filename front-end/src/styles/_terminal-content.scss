@@ -235,6 +235,25 @@
   border-radius: 0 6px 6px 0;
 }
 
+.term-effect {
+  display: inline;
+  font-family: var(--font-mono);
+  font-size: 0.94em;
+  font-style: italic;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+}
+
+.term-effect--positive {
+  color: #dbe9cf;
+  text-shadow: 0 0 12px rgba(183, 200, 161, 0.14);
+}
+
+.term-effect--negative {
+  color: #f2cbc4;
+  text-shadow: 0 0 12px rgba(183, 122, 116, 0.12);
+}
+
 .message--narrative-echo {
   margin-top: 0.7rem;
   padding: 0.35rem 0 0.35rem 0.9rem;;

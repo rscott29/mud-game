@@ -6,6 +6,8 @@ import com.scott.tech.mud.mud_game.config.AuthUiRegistry;
 import com.scott.tech.mud.mud_game.config.CharacterCreationOptionsRegistry;
 import com.scott.tech.mud.mud_game.config.CharacterClassStatsRegistry;
 import com.scott.tech.mud.mud_game.config.GlobalSettingsRegistry;
+import com.scott.tech.mud.mud_game.consumable.ActiveConsumableEffect;
+import com.scott.tech.mud.mud_game.consumable.ConsumableEffectType;
 import com.scott.tech.mud.mud_game.dto.GameResponse;
 import com.scott.tech.mud.mud_game.model.Direction;
 import com.scott.tech.mud.mud_game.model.Item;
@@ -489,7 +491,18 @@ class LoginHandlerTest {
                 java.time.Instant.now(),
                 List.of(),
                 List.of(),
-                List.of()
+                List.of(),
+                List.of(new ActiveConsumableEffect(
+                        "item_odd_mushroom",
+                        "Odd Mushroom",
+                        ConsumableEffectType.DAMAGE_OVER_TIME,
+                        6,
+                        5,
+                        3,
+                        java.time.Instant.now().plusSeconds(5),
+                        List.of(),
+                        null
+                ))
         ));
         when(worldService.getItemById("iron_sword")).thenReturn(sword);
         when(sessionManager.getSessionsInRoom("tavern")).thenReturn(List.of(session));
@@ -500,6 +513,8 @@ class LoginHandlerTest {
         assertThat(session.getPlayer().getInventory()).containsExactly(sword);
         assertThat(session.getPlayer().getEquippedWeaponId()).isEqualTo("iron_sword");
         assertThat(session.getPlayer().getRecallRoomId()).isEqualTo("town_square");
+        assertThat(session.getActiveConsumableEffects()).hasSize(1);
+        assertThat(session.getActiveConsumableEffects().getFirst().type()).isEqualTo(ConsumableEffectType.DAMAGE_OVER_TIME);
         assertThat(session.getPlayer().isModerator()).isTrue();
         assertThat(session.getPlayer().blocksModerationCategory(com.scott.tech.mud.mud_game.model.ModerationCategory.HATE_SPEECH)).isTrue();
         assertThat(session.getPlayer().blocksModerationCategory(com.scott.tech.mud.mud_game.model.ModerationCategory.PROFANITY)).isFalse();

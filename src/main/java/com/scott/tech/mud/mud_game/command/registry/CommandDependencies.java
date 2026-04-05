@@ -24,6 +24,7 @@ import com.scott.tech.mud.mud_game.command.shop.ShopService;
 import com.scott.tech.mud.mud_game.command.talk.TalkService;
 import com.scott.tech.mud.mud_game.command.talk.TalkValidator;
 import com.scott.tech.mud.mud_game.config.ExperienceTableService;
+import com.scott.tech.mud.mud_game.consumable.ConsumableEffectService;
 import com.scott.tech.mud.mud_game.party.PartyService;
 import com.scott.tech.mud.mud_game.persistence.cache.PlayerStateCache;
 import com.scott.tech.mud.mud_game.persistence.service.DiscoveredExitService;
@@ -83,6 +84,7 @@ public record CommandDependencies(
         ObjectiveEncounterRuntimeService objectiveEncounterRuntimeService,
         WorldService worldService,
         AmbientEventService ambientEventService,
-        ShopService shopService
+        ShopService shopService,
+        ConsumableEffectService consumableEffectService
 ) {
 }

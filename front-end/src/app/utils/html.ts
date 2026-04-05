@@ -50,7 +50,12 @@ export function renderMarkup(str: string): string {
     .replace(CLASS_OPEN_DOUBLE_RE, (_, tag: string, className: string) =>
       renderClassOnly(tag, className)
     )
-    .replace(CLASS_CLOSE_RE, '</$1>');
+    .replace(CLASS_CLOSE_RE, '</$1>')
+    // Room-card updates can pass already-rendered fragments back through this helper.
+    // Collapse double-escaped quote entities so visible text stays human-readable.
+    .replace(/&amp;quot;/g, '&quot;')
+    .replace(/&amp;#39;/g, '&#39;')
+    .replace(/&amp;apos;/g, '&apos;');
 }
 
 function renderClassOnly(tag: string, className: string): string {

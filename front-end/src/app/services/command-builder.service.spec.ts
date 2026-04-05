@@ -26,6 +26,16 @@ class MockCommandCatalogService {
       showInHelp: true,
       dispatchMode: COMMAND_DISPATCH_MODES.NATURAL_LANGUAGE,
     },
+    {
+      canonicalName: 'use',
+      aliases: ['use', 'eat', 'drink', 'consume'],
+      category: 'Interaction',
+      usage: 'use <item>',
+      description: 'Consume an item from your inventory',
+      godOnly: false,
+      showInHelp: true,
+      dispatchMode: COMMAND_DISPATCH_MODES.DIRECT,
+    },
   ]);
 
   load(): void {
@@ -68,6 +78,27 @@ describe('CommandBuilderService', () => {
 
     expect(JSON.parse(result.payload)).toEqual({
       input: 'look at fountain',
+    });
+  });
+
+  it('builds use commands as direct payloads', () => {
+    const result = service.build('use mushroom', false);
+
+    expect(JSON.parse(result.payload)).toEqual({
+      command: 'use',
+      args: ['mushroom'],
+    });
+  });
+
+  it('builds eat and drink aliases as direct payloads', () => {
+    expect(JSON.parse(service.build('eat mushroom', false).payload)).toEqual({
+      command: 'eat',
+      args: ['mushroom'],
+    });
+
+    expect(JSON.parse(service.build('drink potion', false).payload)).toEqual({
+      command: 'drink',
+      args: ['potion'],
     });
   });
 });

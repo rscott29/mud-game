@@ -112,6 +112,7 @@ class PlayerPersistenceSchedulerTest {
                 Instant.now(),
                 List.of(),
                 List.of(),
+                List.of(),
                 List.of()
         );
     }

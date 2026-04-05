@@ -3,6 +3,7 @@ package com.scott.tech.mud.mud_game.persistence.cache;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import com.scott.tech.mud.mud_game.consumable.ActiveConsumableEffect;
 import com.scott.tech.mud.mud_game.model.Item;
 import com.scott.tech.mud.mud_game.model.Player;
 import com.scott.tech.mud.mud_game.quest.PlayerQuestState;
@@ -71,6 +72,7 @@ public class PlayerStateCache {
         
         // Capture following NPCs
         List<String> followingNpcIds = new ArrayList<>(session.getFollowingNpcs());
+        List<ActiveConsumableEffect> activeConsumableEffects = new ArrayList<>(session.getActiveConsumableEffects());
         
         // Serialize quest state
         List<CachedActiveQuest> cachedQuests = new ArrayList<>();
@@ -110,7 +112,8 @@ public class PlayerStateCache {
                 Instant.now(),
                 cachedQuests,
                 completedQuests,
-                followingNpcIds
+                followingNpcIds,
+                activeConsumableEffects
         );
         
         cache.put(key, state);
@@ -244,7 +247,8 @@ public class PlayerStateCache {
             Instant cachedAt,
             List<CachedActiveQuest> activeQuests,
             List<String> completedQuests,
-            List<String> followingNpcIds
+            List<String> followingNpcIds,
+            List<ActiveConsumableEffect> activeConsumableEffects
     ) {}
     
     /**

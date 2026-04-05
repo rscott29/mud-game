@@ -26,6 +26,7 @@ import com.scott.tech.mud.mud_game.command.shop.ShopService;
 import com.scott.tech.mud.mud_game.command.talk.TalkService;
 import com.scott.tech.mud.mud_game.command.talk.TalkValidator;
 import com.scott.tech.mud.mud_game.command.unknown.UnknownCommand;
+import com.scott.tech.mud.mud_game.consumable.ConsumableEffectService;
 import com.scott.tech.mud.mud_game.dto.CommandRequest;
 import com.scott.tech.mud.mud_game.party.PartyService;
 import com.scott.tech.mud.mud_game.persistence.cache.PlayerStateCache;
@@ -97,7 +98,8 @@ public class CommandFactory {
                           ObjectiveEncounterRuntimeService objectiveEncounterRuntimeService,
                           WorldService worldService,
                           AmbientEventService ambientEventService,
-                          ShopService shopService) {
+                          ShopService shopService,
+                          ConsumableEffectService consumableEffectService) {
         this(buildDependencies(
                 taskScheduler,
                 worldBroadcaster,
@@ -137,7 +139,8 @@ public class CommandFactory {
                 objectiveEncounterRuntimeService,
                 worldService,
                 ambientEventService,
-                shopService
+                shopService,
+                consumableEffectService
         ));
     }
 
@@ -179,7 +182,8 @@ public class CommandFactory {
                                                          ObjectiveEncounterRuntimeService objectiveEncounterRuntimeService,
                                                          WorldService worldService,
                                                          AmbientEventService ambientEventService,
-                                                         ShopService shopService) {
+                                                         ShopService shopService,
+                                                         ConsumableEffectService consumableEffectService) {
         return new CommandDependencies(
                 taskScheduler,
                 worldBroadcaster,
@@ -219,7 +223,8 @@ public class CommandFactory {
                 objectiveEncounterRuntimeService,
                 worldService,
                 ambientEventService,
-                shopService
+                shopService,
+                consumableEffectService
         );
     }
 
