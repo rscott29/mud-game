@@ -4,9 +4,6 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.scott.tech.mud.mud_game.consumable.ActiveConsumableEffect;
-import com.scott.tech.mud.mud_game.model.Item;
-import com.scott.tech.mud.mud_game.model.Player;
-import com.scott.tech.mud.mud_game.quest.PlayerQuestState;
 import com.scott.tech.mud.mud_game.session.GameSession;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,7 +14,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Instant;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -65,60 +61,15 @@ public class PlayerStateCache {
      * Cache a player's current state including followers. Writes to temp file immediately.
      */
     public void cache(GameSession session) {
-        Player player = session.getPlayer();
-        if (player == null || player.getName() == null) return;
-        
-        String key = player.getName().toLowerCase();
-        
-        // Capture following NPCs
-        List<String> followingNpcIds = new ArrayList<>(session.getFollowingNpcs());
-        List<ActiveConsumableEffect> activeConsumableEffects = new ArrayList<>(session.getActiveConsumableEffects());
-        
-        // Serialize quest state
-        List<CachedActiveQuest> cachedQuests = new ArrayList<>();
-        for (PlayerQuestState.ActiveQuest aq : player.getQuestState().getActiveQuests()) {
-            cachedQuests.add(new CachedActiveQuest(
-                    aq.getQuestId(),
-                    aq.getCurrentObjectiveId(),
-                    aq.getObjectiveProgress(),
-                    aq.getDialogueStage()));
+        CachedPlayerState state = PlayerStateSnapshotMapper.snapshot(session, Instant.now());
+        if (state == null || state.name() == null) {
+            return;
         }
-        List<String> completedQuests = new ArrayList<>(player.getQuestState().getCompletedQuests());
-        
-        CachedPlayerState state = new CachedPlayerState(
-                player.getName(),
-                player.getCurrentRoomId(),
-                player.getLevel(),
-                player.getTitle(),
-                player.getRace(),
-                player.getCharacterClass(),
-                player.getPronounsSubject(),
-                player.getPronounsObject(),
-                player.getPronounsPossessive(),
-                player.getDescription(),
-                player.getModerationFilters(),
-                player.getHealth(),
-                player.getMaxHealth(),
-                player.getMana(),
-                player.getMaxMana(),
-                player.getMovement(),
-                player.getMaxMovement(),
-                player.getExperience(),
-                player.getGold(),
-                player.getInventory().stream().map(Item::getId).toList(),
-                player.getEquippedWeaponId(),
-                player.getEquippedItemsSerialized(),
-                player.getRecallRoomId(),
-                Instant.now(),
-                cachedQuests,
-                completedQuests,
-                followingNpcIds,
-                activeConsumableEffects
-        );
-        
+
+        String key = state.name().toLowerCase();
         cache.put(key, state);
         saveToFile();
-        log.trace("Cached state for '{}' in room '{}'", player.getName(), player.getCurrentRoomId());
+        log.trace("Cached state for '{}' in room '{}'", state.name(), state.currentRoomId());
     }
 
     /**

@@ -15,6 +15,7 @@ import com.scott.tech.mud.mud_game.quest.QuestService;
 import com.scott.tech.mud.mud_game.session.GameSession;
 import com.scott.tech.mud.mud_game.session.GameSessionManager;
 import com.scott.tech.mud.mud_game.world.WorldService;
+import com.scott.tech.mud.mud_game.config.ExperienceTableService;
 import org.junit.jupiter.api.Test;
 
 import java.util.EnumMap;
@@ -46,9 +47,10 @@ class SessionDisplayResponseNormalizerTest {
 
         QuestService questService = mock(QuestService.class);
         SessionDisplayResponseNormalizer normalizer = new SessionDisplayResponseNormalizer(sessionManager, questService);
+        ExperienceTableService xpTables = xpTablesFor(player);
 
         GameResponse roomUpdate = GameResponse.roomUpdate(room, "You head north.", List.of("Rogue"));
-        GameResponse narrative = GameResponse.narrative("Quest objective complete.").withPlayerStats(player);
+        GameResponse narrative = GameResponse.narrative("Quest objective complete.").withPlayerStats(player, xpTables);
 
         List<GameResponse> normalized = normalizer.normalize(session, List.of(roomUpdate, narrative));
 
@@ -134,10 +136,11 @@ class SessionDisplayResponseNormalizerTest {
 
         QuestService questService = mock(QuestService.class);
         SessionDisplayResponseNormalizer normalizer = new SessionDisplayResponseNormalizer(sessionManager, questService);
+        ExperienceTableService xpTables = xpTablesFor(player);
 
         List<GameResponse> normalized = normalizer.normalize(
                 session,
-                List.of(GameResponse.narrative("You strike the goblin.").withPlayerStats(player))
+                List.of(GameResponse.narrative("You strike the goblin.").withPlayerStats(player, xpTables))
         );
 
         assertThat(normalized).hasSize(1);
@@ -236,4 +239,12 @@ class SessionDisplayResponseNormalizerTest {
         assertThat(normalized.getFirst().room().npcs()).hasSize(1);
         assertThat(normalized.getFirst().room().npcs().getFirst().hasAvailableQuest()).isTrue();
         }
+
+    private static ExperienceTableService xpTablesFor(Player player) {
+        ExperienceTableService xpTables = mock(ExperienceTableService.class);
+        when(xpTables.getMaxLevel(player.getCharacterClass())).thenReturn(88);
+        when(xpTables.getXpProgressInLevel(player.getCharacterClass(), player.getExperience(), player.getLevel())).thenReturn(12);
+        when(xpTables.getXpToNextLevel(player.getCharacterClass(), player.getLevel())).thenReturn(150);
+        return xpTables;
+    }
 }

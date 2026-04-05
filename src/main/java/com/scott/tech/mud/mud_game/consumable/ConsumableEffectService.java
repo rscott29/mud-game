@@ -18,8 +18,11 @@ import org.springframework.stereotype.Service;
 
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.EnumMap;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.regex.Matcher;
@@ -28,7 +31,40 @@ import java.util.regex.Pattern;
 @Service
 public class ConsumableEffectService {
 
-    private record TimedEffectTickOutcome(boolean statsChanged, ActiveConsumableEffect updatedEffect) {
+    private record ConsumePresentation(String commandMessageKey, String actionMessageKey) {
+    }
+
+    private record EffectResolution(String mechanicMessage, boolean statsChanged, boolean fatal) {
+        private static EffectResolution of(String mechanicMessage, boolean statsChanged) {
+            return new EffectResolution(mechanicMessage, statsChanged, false);
+        }
+
+        private static EffectResolution fatal(String mechanicMessage) {
+            return new EffectResolution(mechanicMessage, true, true);
+        }
+    }
+
+    private record TimedEffectTickOutcome(String mechanicMessage, boolean statsChanged, ActiveConsumableEffect updatedEffect) {
+    }
+
+    private interface EffectBehavior {
+        ConsumableEffectType type();
+
+        default EffectResolution applyInstant(GameSession session, ConsumableEffect effect, String sourceItemName) {
+            return new EffectResolution(null, false, false);
+        }
+
+        default TimedEffectTickOutcome applyTimedTick(GameSession session, ActiveConsumableEffect effect, Instant now) {
+            return new TimedEffectTickOutcome(null, false, effect.afterTick(now));
+        }
+
+        default String startMessage(ConsumableEffect effect) {
+            return null;
+        }
+
+        default String completionMessage(ActiveConsumableEffect effect) {
+            return effect == null ? null : effect.endDescription();
+        }
     }
 
     public record ConsumeOutcome(List<GameResponse> responses, RoomAction roomAction) {
@@ -42,6 +78,7 @@ public class ConsumableEffectService {
     private final PlayerDeathService playerDeathService;
     private final CombatState combatState;
     private final CombatLoopScheduler combatLoopScheduler;
+    private final Map<ConsumableEffectType, EffectBehavior> effectBehaviors;
 
     public ConsumableEffectService(InventoryService inventoryService,
                                    PlayerStateCache stateCache,
@@ -59,27 +96,39 @@ public class ConsumableEffectService {
         this.playerDeathService = playerDeathService;
         this.combatState = combatState;
         this.combatLoopScheduler = combatLoopScheduler;
+        this.effectBehaviors = createEffectBehaviors();
     }
 
-    public ConsumeOutcome consume(GameSession session, Item item) {
+    public ConsumeOutcome consume(GameSession session, Item item, String verb) {
+        return consume(session, item, verb, true);
+    }
+
+    public ConsumeOutcome consumeInPlace(GameSession session, Item item, String verb) {
+        return consume(session, item, verb, false);
+    }
+
+    private ConsumeOutcome consume(GameSession session, Item item, String verb, boolean consumeItem) {
         Player player = session.getPlayer();
-        player.removeFromInventory(item);
+        if (consumeItem) {
+            player.removeFromInventory(item);
+        }
 
         List<String> effectMessages = new ArrayList<>();
         boolean playerDied = applyItemEffects(session, item, effectMessages, Instant.now());
+        ConsumePresentation presentation = consumePresentation(verb, consumeItem);
         if (playerDied) {
-            return new ConsumeOutcome(buildFatalResponses(session, buildUseMessage(item.getName(), effectMessages)), null);
+            return new ConsumeOutcome(buildFatalResponses(session, buildUseMessage(item.getName(), effectMessages, presentation)), null);
         }
 
-        persistInventoryAndCache(session);
+        persistState(session, consumeItem);
 
         return new ConsumeOutcome(
                 List.of(
-                        GameResponse.narrative(buildUseMessage(item.getName(), effectMessages)),
+                        GameResponse.narrative(buildUseMessage(item.getName(), effectMessages, presentation)),
                         buildStatsResponse(session)
                 ),
                 RoomAction.inCurrentRoom(Messages.fmt(
-                        "action.use",
+                        presentation.actionMessageKey(),
                         "player", player.getName(),
                         "item", item.getName()
                 ))
@@ -115,7 +164,8 @@ public class ConsumableEffectService {
             }
 
             effectsChanged = true;
-            TimedEffectTickOutcome tickOutcome = applyTimedEffectTick(session, effect, messages, now);
+            TimedEffectTickOutcome tickOutcome = applyTimedEffectTick(session, effect, now);
+            addIfPresent(messages, tickOutcome.mechanicMessage());
             statsChanged |= tickOutcome.statsChanged();
             if (session.getPlayer().isDead()) {
                 return buildFatalResponses(session, String.join("<br>", messages));
@@ -159,24 +209,15 @@ public class ConsumableEffectService {
             if (effect.isTimed()) {
                 session.addActiveConsumableEffect(effect.activate(item.getId(), item.getName(), now));
                 addIfPresent(effectMessages, formatEffectDescription(effect));
-                effectMessages.add(startMessage(effect));
+                addIfPresent(effectMessages, behaviorFor(effect.type()).startMessage(effect));
                 continue;
             }
 
-            switch (effect.type()) {
-                case RESTORE_HEALTH -> addEffectMessage(effectMessages, effect, restoreHealth(session.getPlayer(), effect.amount()));
-                case RESTORE_MANA -> addEffectMessage(effectMessages, effect, restoreMana(session.getPlayer(), effect.amount()));
-                case RESTORE_MOVEMENT -> addEffectMessage(effectMessages, effect, restoreMovement(session.getPlayer(), effect.amount()));
-                case DAMAGE_HEALTH -> {
-                    addEffectMessage(effectMessages, effect, damageHealth(session.getPlayer(), effect.amount(), item.getName()));
-                    if (session.getPlayer().isDead()) {
-                        session.clearActiveConsumableEffects();
-                        return true;
-                    }
-                }
-                case HEAL_OVER_TIME, DAMAGE_OVER_TIME, INTOXICATION -> {
-                    // Timed effects are handled above.
-                }
+            EffectResolution resolution = behaviorFor(effect.type()).applyInstant(session, effect, item.getName());
+            addEffectMessage(effectMessages, effect, resolution.mechanicMessage());
+            if (resolution.fatal()) {
+                session.clearActiveConsumableEffects();
+                return true;
             }
         }
         return false;
@@ -184,30 +225,8 @@ public class ConsumableEffectService {
 
     private TimedEffectTickOutcome applyTimedEffectTick(GameSession session,
                                                         ActiveConsumableEffect effect,
-                                                        List<String> messages,
                                                         Instant now) {
-        Player player = session.getPlayer();
-        return switch (effect.type()) {
-            case HEAL_OVER_TIME -> {
-                String message = restoreHealth(player, effect.amount());
-                addIfPresent(messages, message);
-                yield new TimedEffectTickOutcome(message != null, effect.afterTick(now));
-            }
-            case DAMAGE_OVER_TIME -> {
-                String message = damageHealth(player, effect.amount(), effect.sourceItemName());
-                addIfPresent(messages, message);
-                yield new TimedEffectTickOutcome(message != null, effect.afterTick(now));
-            }
-            case INTOXICATION -> {
-                String message = intoxicationShout(session, effect);
-                addIfPresent(messages, message);
-                yield new TimedEffectTickOutcome(
-                        false,
-                        effect.afterTick(now, randomIntoxicationDelay(effect.tickSeconds()), extractShout(message))
-                );
-            }
-            default -> new TimedEffectTickOutcome(false, effect.afterTick(now));
-        };
+        return behaviorFor(effect.type()).applyTimedTick(session, effect, now);
     }
 
     private String restoreHealth(Player player, int amount) {
@@ -251,46 +270,14 @@ public class ConsumableEffectService {
         );
     }
 
-    private String startMessage(ConsumableEffect effect) {
-        return switch (effect.type()) {
-            case HEAL_OVER_TIME -> Messages.fmt(
-                    "consumable.effect.heal_over_time.start",
-                    "amount", String.valueOf(effect.amount()),
-                    "tickSeconds", String.valueOf(effect.tickSeconds()),
-                    "durationSeconds", String.valueOf(effect.durationSeconds())
-            );
-            case DAMAGE_OVER_TIME -> Messages.fmt(
-                    "consumable.effect.damage_over_time.start",
-                    "amount", String.valueOf(effect.amount()),
-                    "tickSeconds", String.valueOf(effect.tickSeconds()),
-                    "durationSeconds", String.valueOf(effect.durationSeconds())
-            );
-            case INTOXICATION -> Messages.fmt(
-                    "consumable.effect.intoxication.start",
-                    "durationSeconds", String.valueOf(effect.durationSeconds())
-            );
-            default -> "";
-        };
-    }
-
     private String completionMessage(ActiveConsumableEffect effect) {
-        if (effect == null || effect.type() == null) {
-            return null;
-        }
-        if (effect.endDescription() != null && !effect.endDescription().isBlank()) {
-            return effect.endDescription();
-        }
-
-        return switch (effect.type()) {
-            case HEAL_OVER_TIME -> Messages.get("consumable.effect.heal_over_time.end");
-            case DAMAGE_OVER_TIME -> Messages.get("consumable.effect.damage_over_time.end");
-            case INTOXICATION -> Messages.get("consumable.effect.intoxication.end");
-            default -> null;
-        };
+        return effect == null || effect.type() == null
+                ? null
+                : behaviorFor(effect.type()).completionMessage(effect);
     }
 
-    private String buildUseMessage(String itemName, List<String> effectMessages) {
-        String baseMessage = Messages.fmt("command.use.success", "item", itemName);
+    private String buildUseMessage(String itemName, List<String> effectMessages, ConsumePresentation presentation) {
+        String baseMessage = Messages.fmt(presentation.commandMessageKey(), "item", itemName);
         if (effectMessages == null || effectMessages.isEmpty()) {
             return baseMessage + " " + Messages.get("command.use.no_obvious_effect");
         }
@@ -301,12 +288,32 @@ public class ConsumableEffectService {
         return GameResponse.playerStatsUpdate(session.getPlayer(), xpTables);
     }
 
-    private void persistInventoryAndCache(GameSession session) {
-        inventoryService.saveInventory(
-                session.getPlayer().getName().toLowerCase(Locale.ROOT),
-                session.getPlayer().getInventory()
-        );
+    private void persistState(GameSession session, boolean inventoryChanged) {
+        if (inventoryChanged) {
+            inventoryService.saveInventory(
+                    session.getPlayer().getName().toLowerCase(Locale.ROOT),
+                    session.getPlayer().getInventory()
+            );
+        }
         stateCache.cache(session);
+    }
+
+    private static ConsumePresentation consumePresentation(String verb, boolean consumeItem) {
+        String normalizedVerb = verb == null || verb.isBlank()
+                ? "use"
+                : verb.trim().toLowerCase(Locale.ROOT);
+
+        return switch (normalizedVerb) {
+            case "drink" -> consumeItem
+                    ? new ConsumePresentation("command.use.success.drink", "action.use.drink")
+                    : new ConsumePresentation("command.use.success.drink.from", "action.use.drink.from");
+            case "quaff" -> consumeItem
+                    ? new ConsumePresentation("command.use.success.quaff", "action.use.quaff")
+                    : new ConsumePresentation("command.use.success.quaff.from", "action.use.quaff.from");
+            case "eat" -> new ConsumePresentation("command.use.success.eat", "action.use.eat");
+            case "consume" -> new ConsumePresentation("command.use.success.consume", "action.use.consume");
+            default -> new ConsumePresentation("command.use.success", "action.use");
+        };
     }
 
     private List<GameResponse> buildFatalResponses(GameSession session, String leadingMessage) {
@@ -384,6 +391,187 @@ public class ConsumableEffectService {
         }
 
         return Messages.fmt("consumable.effect.intoxication.self", "shout", shout);
+    }
+
+    private Map<ConsumableEffectType, EffectBehavior> createEffectBehaviors() {
+        EnumMap<ConsumableEffectType, EffectBehavior> behaviors = new EnumMap<>(ConsumableEffectType.class);
+        registerBehavior(behaviors, new RestoreHealthBehavior());
+        registerBehavior(behaviors, new RestoreManaBehavior());
+        registerBehavior(behaviors, new RestoreMovementBehavior());
+        registerBehavior(behaviors, new DamageHealthBehavior());
+        registerBehavior(behaviors, new HealOverTimeBehavior());
+        registerBehavior(behaviors, new DamageOverTimeBehavior());
+        registerBehavior(behaviors, new IntoxicationBehavior());
+
+        EnumSet<ConsumableEffectType> missing = EnumSet.allOf(ConsumableEffectType.class);
+        missing.removeAll(behaviors.keySet());
+        if (!missing.isEmpty()) {
+            throw new IllegalStateException("Missing consumable effect handlers for: " + missing);
+        }
+
+        return Map.copyOf(behaviors);
+    }
+
+    private static void registerBehavior(Map<ConsumableEffectType, EffectBehavior> behaviors, EffectBehavior behavior) {
+        EffectBehavior previous = behaviors.putIfAbsent(behavior.type(), behavior);
+        if (previous != null) {
+            throw new IllegalStateException("Duplicate consumable effect handler registered for " + behavior.type());
+        }
+    }
+
+    private EffectBehavior behaviorFor(ConsumableEffectType type) {
+        EffectBehavior behavior = effectBehaviors.get(type);
+        if (behavior == null) {
+            throw new IllegalStateException("No consumable effect handler registered for " + type);
+        }
+        return behavior;
+    }
+
+    private final class RestoreHealthBehavior implements EffectBehavior {
+        @Override
+        public ConsumableEffectType type() {
+            return ConsumableEffectType.RESTORE_HEALTH;
+        }
+
+        @Override
+        public EffectResolution applyInstant(GameSession session, ConsumableEffect effect, String sourceItemName) {
+            String message = restoreHealth(session.getPlayer(), effect.amount());
+            return EffectResolution.of(message, message != null);
+        }
+    }
+
+    private final class RestoreManaBehavior implements EffectBehavior {
+        @Override
+        public ConsumableEffectType type() {
+            return ConsumableEffectType.RESTORE_MANA;
+        }
+
+        @Override
+        public EffectResolution applyInstant(GameSession session, ConsumableEffect effect, String sourceItemName) {
+            String message = restoreMana(session.getPlayer(), effect.amount());
+            return EffectResolution.of(message, message != null);
+        }
+    }
+
+    private final class RestoreMovementBehavior implements EffectBehavior {
+        @Override
+        public ConsumableEffectType type() {
+            return ConsumableEffectType.RESTORE_MOVEMENT;
+        }
+
+        @Override
+        public EffectResolution applyInstant(GameSession session, ConsumableEffect effect, String sourceItemName) {
+            String message = restoreMovement(session.getPlayer(), effect.amount());
+            return EffectResolution.of(message, message != null);
+        }
+    }
+
+    private final class DamageHealthBehavior implements EffectBehavior {
+        @Override
+        public ConsumableEffectType type() {
+            return ConsumableEffectType.DAMAGE_HEALTH;
+        }
+
+        @Override
+        public EffectResolution applyInstant(GameSession session, ConsumableEffect effect, String sourceItemName) {
+            String message = damageHealth(session.getPlayer(), effect.amount(), sourceItemName);
+            if (session.getPlayer().isDead()) {
+                return EffectResolution.fatal(message);
+            }
+            return EffectResolution.of(message, message != null);
+        }
+    }
+
+    private final class HealOverTimeBehavior implements EffectBehavior {
+        @Override
+        public ConsumableEffectType type() {
+            return ConsumableEffectType.HEAL_OVER_TIME;
+        }
+
+        @Override
+        public TimedEffectTickOutcome applyTimedTick(GameSession session, ActiveConsumableEffect effect, Instant now) {
+            String message = restoreHealth(session.getPlayer(), effect.amount());
+            return new TimedEffectTickOutcome(message, message != null, effect.afterTick(now));
+        }
+
+        @Override
+        public String startMessage(ConsumableEffect effect) {
+            return Messages.fmt(
+                    "consumable.effect.heal_over_time.start",
+                    "amount", String.valueOf(effect.amount()),
+                    "tickSeconds", String.valueOf(effect.tickSeconds()),
+                    "durationSeconds", String.valueOf(effect.durationSeconds())
+            );
+        }
+
+        @Override
+        public String completionMessage(ActiveConsumableEffect effect) {
+            return effect.endDescription() != null && !effect.endDescription().isBlank()
+                    ? effect.endDescription()
+                    : Messages.get("consumable.effect.heal_over_time.end");
+        }
+    }
+
+    private final class DamageOverTimeBehavior implements EffectBehavior {
+        @Override
+        public ConsumableEffectType type() {
+            return ConsumableEffectType.DAMAGE_OVER_TIME;
+        }
+
+        @Override
+        public TimedEffectTickOutcome applyTimedTick(GameSession session, ActiveConsumableEffect effect, Instant now) {
+            String message = damageHealth(session.getPlayer(), effect.amount(), effect.sourceItemName());
+            return new TimedEffectTickOutcome(message, message != null, effect.afterTick(now));
+        }
+
+        @Override
+        public String startMessage(ConsumableEffect effect) {
+            return Messages.fmt(
+                    "consumable.effect.damage_over_time.start",
+                    "amount", String.valueOf(effect.amount()),
+                    "tickSeconds", String.valueOf(effect.tickSeconds()),
+                    "durationSeconds", String.valueOf(effect.durationSeconds())
+            );
+        }
+
+        @Override
+        public String completionMessage(ActiveConsumableEffect effect) {
+            return effect.endDescription() != null && !effect.endDescription().isBlank()
+                    ? effect.endDescription()
+                    : Messages.get("consumable.effect.damage_over_time.end");
+        }
+    }
+
+    private final class IntoxicationBehavior implements EffectBehavior {
+        @Override
+        public ConsumableEffectType type() {
+            return ConsumableEffectType.INTOXICATION;
+        }
+
+        @Override
+        public TimedEffectTickOutcome applyTimedTick(GameSession session, ActiveConsumableEffect effect, Instant now) {
+            String message = intoxicationShout(session, effect);
+            return new TimedEffectTickOutcome(
+                    message,
+                    false,
+                    effect.afterTick(now, randomIntoxicationDelay(effect.tickSeconds()), extractShout(message))
+            );
+        }
+
+        @Override
+        public String startMessage(ConsumableEffect effect) {
+            return Messages.fmt(
+                    "consumable.effect.intoxication.start",
+                    "durationSeconds", String.valueOf(effect.durationSeconds())
+            );
+        }
+
+        @Override
+        public String completionMessage(ActiveConsumableEffect effect) {
+            return effect.endDescription() != null && !effect.endDescription().isBlank()
+                    ? effect.endDescription()
+                    : Messages.get("consumable.effect.intoxication.end");
+        }
     }
 
     private static String formatEffectName(ConsumableEffect effect) {

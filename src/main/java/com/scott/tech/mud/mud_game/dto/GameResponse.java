@@ -2,6 +2,7 @@ package com.scott.tech.mud.mud_game.dto;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.scott.tech.mud.mud_game.combat.PlayerCombatStats;
+import com.scott.tech.mud.mud_game.config.ExperienceTableService;
 import com.scott.tech.mud.mud_game.model.Direction;
 import com.scott.tech.mud.mud_game.model.EquipmentSlot;
 import com.scott.tech.mud.mud_game.model.Item;
@@ -77,11 +78,7 @@ public record GameResponse(
         return new GameResponse(type, newMessage, room, mask, from, token, inventory, whoPlayers, playerStats, combatStats, characterCreation);
     }
 
-    public GameResponse withPlayerStats(Player player) {
-        return new GameResponse(type, message, room, mask, from, token, inventory, whoPlayers, PlayerStatsView.from(player), combatStats, characterCreation);
-    }
-
-    public GameResponse withPlayerStats(Player player, com.scott.tech.mud.mud_game.config.ExperienceTableService xpTables) {
+    public GameResponse withPlayerStats(Player player, ExperienceTableService xpTables) {
         return new GameResponse(type, message, room, mask, from, token, inventory, whoPlayers, PlayerStatsView.from(player, xpTables), combatStats, characterCreation);
     }
 
@@ -229,27 +226,19 @@ public record GameResponse(
         return new GameResponse(Type.INVENTORY_UPDATE, null, null, false, null, null, items, null, null, null, null);
     }
 
-    public static GameResponse playerOverview(Player player) {
-        return playerOverview(player, PlayerStatsView.from(player), null);
-    }
-
-    public static GameResponse playerOverview(Player player, com.scott.tech.mud.mud_game.config.ExperienceTableService xpTables) {
+    public static GameResponse playerOverview(Player player, ExperienceTableService xpTables) {
         return playerOverview(player, PlayerStatsView.from(player, xpTables), null);
     }
 
     public static GameResponse playerOverview(
             Player player,
-            com.scott.tech.mud.mud_game.config.ExperienceTableService xpTables,
+            ExperienceTableService xpTables,
             PlayerCombatStats combatStats
     ) {
         return playerOverview(player, PlayerStatsView.from(player, xpTables), CombatStatsView.from(combatStats));
     }
 
-    public static GameResponse playerStatsUpdate(Player player) {
-        return playerStatsUpdate(PlayerStatsView.from(player));
-    }
-
-    public static GameResponse playerStatsUpdate(Player player, com.scott.tech.mud.mud_game.config.ExperienceTableService xpTables) {
+    public static GameResponse playerStatsUpdate(Player player, ExperienceTableService xpTables) {
         return playerStatsUpdate(PlayerStatsView.from(player, xpTables));
     }
 
@@ -461,38 +450,7 @@ public record GameResponse(
             boolean isGod,
             String characterClass
     ) {
-        /**
-         * Creates a PlayerStatsView without XP table data (uses formula-based fallback).
-         * Prefer using from(Player, ExperienceTableService) when available.
-         */
-        public static PlayerStatsView from(Player player) {
-            int level = player.getLevel();
-            int currentLevelXp = (level - 1) * 100; // Fallback formula
-            int nextLevelXp = level * 100;
-            int totalXp = Math.max(0, player.getExperience());
-            int xpProgress = totalXp - currentLevelXp;
-            int xpForNext = nextLevelXp - currentLevelXp;
-            return new PlayerStatsView(
-                    player.getHealth(),
-                    player.getMaxHealth(),
-                    player.getMana(),
-                    player.getMaxMana(),
-                    player.getMovement(),
-                    player.getMaxMovement(),
-                    level,
-                    70, // Fallback max level
-                    Math.max(0, xpProgress),
-                    xpForNext,
-                    totalXp,
-                    player.getGold(),
-                    player.isGod(),
-                    player.getCharacterClass());
-        }
-
-        /**
-         * Creates a PlayerStatsView with accurate XP data from the experience table.
-         */
-        public static PlayerStatsView from(Player player, com.scott.tech.mud.mud_game.config.ExperienceTableService xpTables) {
+        public static PlayerStatsView from(Player player, ExperienceTableService xpTables) {
             int level = player.getLevel();
             String charClass = player.getCharacterClass();
             int maxLevel = xpTables.getMaxLevel(charClass);

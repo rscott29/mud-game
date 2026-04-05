@@ -393,10 +393,6 @@ public class WorldLoader {
         }
 
         String itemId = item.getId();
-        if (!item.isTakeable()) {
-            throw new WorldLoadException("Item '" + itemId + "' has consumable effects but is not takeable");
-        }
-
         for (int i = 0; i < item.getConsumableEffects().size(); i++) {
             ItemData.ConsumableEffectData effect = item.getConsumableEffects().get(i);
             String effectLabel = "Item '" + itemId + "' consumableEffects[" + i + "]";
@@ -408,11 +404,11 @@ public class WorldLoader {
                 throw new WorldLoadException(effectLabel + " must define amount > 0");
             }
             boolean hasShoutTemplates = effect.getShoutTemplates() != null && !effect.getShoutTemplates().isEmpty();
-            if (type == ConsumableEffectType.INTOXICATION && !hasShoutTemplates) {
+            if (type.requiresShoutTemplates() && !hasShoutTemplates) {
                 throw new WorldLoadException(effectLabel + " must define at least one shoutTemplate");
             }
-            if (type != ConsumableEffectType.INTOXICATION && hasShoutTemplates) {
-                throw new WorldLoadException(effectLabel + " defines shoutTemplates but type is not INTOXICATION");
+            if (!type.allowsShoutTemplates() && hasShoutTemplates) {
+                throw new WorldLoadException(effectLabel + " defines shoutTemplates but type does not support them");
             }
             if (!type.isTimed()) {
                 if (effect.getDurationSeconds() > 0 || effect.getTickSeconds() > 0) {

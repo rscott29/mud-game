@@ -26,7 +26,15 @@
     "description": "A stone fountain carved with leaping fish and swirling wave motifs. Cool, clear water bubbles up from a central spout and spills into the basin below. A few copper coins glint at the bottom.",
     "keywords": ["fountain", "water", "basin", "coins"],
     "takeable": false,
-    "rarity": "COMMON"
+    "rarity": "COMMON",
+    "consumableEffects": [
+      {
+        "type": "RESTORE_HEALTH",
+        "amount": 999999,
+        "name": "Refreshing Drink",
+        "description": "The cool water soothes your throat and refreshes your body. A powerful warmth travels through you, knitting every wound closed."
+      }
+    ]
   },
   {
     "id": "item_ale_mug",

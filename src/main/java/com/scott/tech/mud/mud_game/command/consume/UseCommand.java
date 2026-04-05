@@ -14,10 +14,12 @@ import java.util.Optional;
 public class UseCommand implements GameCommand {
 
     private final String target;
+    private final String verb;
     private final ConsumableEffectService consumableEffectService;
 
-    public UseCommand(String target, ConsumableEffectService consumableEffectService) {
-        this.target = stripArticle(target);
+    public UseCommand(String verb, String target, ConsumableEffectService consumableEffectService) {
+        this.verb = verb == null || verb.isBlank() ? "use" : verb.trim().toLowerCase();
+        this.target = normalizeTarget(target, this.verb);
         this.consumableEffectService = consumableEffectService;
     }
 
@@ -29,6 +31,23 @@ public class UseCommand implements GameCommand {
 
         Optional<Item> found = session.getPlayer().findInInventory(target);
         if (found.isEmpty()) {
+            Optional<Item> roomFixture = Optional.ofNullable(session.getCurrentRoom())
+                    .flatMap(room -> room.findItemByKeyword(target))
+                    .filter(item -> !item.isTakeable());
+            if (roomFixture.isPresent()) {
+                Item item = roomFixture.get();
+                if (!item.isConsumable()) {
+                    return CommandResult.of(GameResponse.error(
+                            Messages.fmt("command.use.not_consumable", "item", item.getName())
+                    ));
+                }
+
+                ConsumableEffectService.ConsumeOutcome outcome = consumableEffectService.consumeInPlace(session, item, verb);
+                return outcome.roomAction() == null
+                        ? CommandResult.of(outcome.responses().toArray(GameResponse[]::new))
+                        : CommandResult.withAction(outcome.roomAction(), outcome.responses().toArray(GameResponse[]::new));
+            }
+
             String inventory = session.getPlayer().getInventory().stream()
                     .map(Item::getName)
                     .reduce((left, right) -> left + ", " + right)
@@ -47,23 +66,35 @@ public class UseCommand implements GameCommand {
             ));
         }
 
-        ConsumableEffectService.ConsumeOutcome outcome = consumableEffectService.consume(session, item);
+        ConsumableEffectService.ConsumeOutcome outcome = consumableEffectService.consume(session, item, verb);
         return outcome.roomAction() == null
                 ? CommandResult.of(outcome.responses().toArray(GameResponse[]::new))
                 : CommandResult.withAction(outcome.roomAction(), outcome.responses().toArray(GameResponse[]::new));
     }
 
-    private static String stripArticle(String input) {
+    private static String normalizeTarget(String input, String verb) {
         if (input == null) {
             return null;
         }
-        String trimmed = input.trim();
-        String lower = trimmed.toLowerCase();
-        for (String article : List.of("a ", "an ", "the ")) {
-            if (lower.startsWith(article)) {
-                return trimmed.substring(article.length()).trim();
-            }
+
+        String normalized = input.trim();
+        if (verb != null && List.of("drink", "quaff").contains(verb.toLowerCase()) && normalized.toLowerCase().startsWith("from ")) {
+            normalized = normalized.substring("from ".length()).trim();
         }
-        return trimmed;
+
+        boolean stripped;
+        do {
+            stripped = false;
+            String lower = normalized.toLowerCase();
+            for (String article : List.of("a ", "an ", "the ")) {
+                if (lower.startsWith(article)) {
+                    normalized = normalized.substring(article.length()).trim();
+                    stripped = true;
+                    break;
+                }
+            }
+        } while (stripped);
+
+        return normalized;
     }
 }

@@ -83,6 +83,7 @@ class GameResponseTest {
     void playerOverview_marksEquippedItemsAndIncludesCombatStats() {
         ExperienceTableService xpTables = mock(ExperienceTableService.class);
         Player player = new Player("player-1", "Axi", "grove");
+        player.setExperience(245);
         Item sword = new Item(
                 "item_sword",
                 "Iron Sword",
@@ -98,9 +99,9 @@ class GameResponseTest {
         );
         player.addToInventory(sword);
         player.setEquippedWeaponId("item_sword");
-        when(xpTables.getMaxLevel(player.getCharacterClass())).thenReturn(70);
-        when(xpTables.getXpProgressInLevel(player.getCharacterClass(), player.getExperience(), player.getLevel())).thenReturn(0);
-        when(xpTables.getXpToNextLevel(player.getCharacterClass(), player.getLevel())).thenReturn(100);
+        when(xpTables.getMaxLevel(player.getCharacterClass())).thenReturn(99);
+        when(xpTables.getXpProgressInLevel(player.getCharacterClass(), player.getExperience(), player.getLevel())).thenReturn(45);
+        when(xpTables.getXpToNextLevel(player.getCharacterClass(), player.getLevel())).thenReturn(155);
 
         GameResponse response = GameResponse.playerOverview(
                 player,
@@ -114,6 +115,11 @@ class GameResponseTest {
         assertThat(response.inventory().get(0).equippedSlot()).isEqualTo("Main weapon");
         assertThat(response.combatStats()).isNotNull();
         assertThat(response.combatStats().armor()).isEqualTo(3);
+        assertThat(response.playerStats()).isNotNull();
+        assertThat(response.playerStats().maxLevel()).isEqualTo(99);
+        assertThat(response.playerStats().xpProgress()).isEqualTo(45);
+        assertThat(response.playerStats().xpForNextLevel()).isEqualTo(155);
+        assertThat(response.playerStats().totalXp()).isEqualTo(245);
     }
 
     private static EnumMap<Direction, String> exits(Direction direction, String roomId) {

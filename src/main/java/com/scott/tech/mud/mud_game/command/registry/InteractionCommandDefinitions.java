@@ -97,8 +97,9 @@ final class InteractionCommandDefinitions {
                 .aliases("use", "consume", "drink", "quaff", "eat")
                 .category(INTERACTION)
                 .usage("use <item>")
-                .description("Consume an item from your inventory")
+                .description("Consume an item or use a consumable room fixture")
                 .creator(ctx -> new UseCommand(
+                        ctx.rawCommand(),
                         ctx.hasNoArgs() ? null : ctx.joinedArgs(),
                         ctx.deps().consumableEffectService()
                 ))
