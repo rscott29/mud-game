@@ -89,6 +89,22 @@ public class PartyService {
         return leaveGroup(sessionId);
     }
 
+    public void transferSession(String oldSessionId, String newSessionId) {
+        if (oldSessionId == null || oldSessionId.isBlank()
+                || newSessionId == null || newSessionId.isBlank()
+                || Objects.equals(oldSessionId, newSessionId)) {
+            return;
+        }
+
+        String leaderSessionId = leaderByMemberSessionId.remove(oldSessionId);
+        if (leaderSessionId != null) {
+            leaderByMemberSessionId.put(newSessionId, leaderSessionId);
+        }
+
+        leaderByMemberSessionId.replaceAll((memberSessionId, mappedLeaderSessionId) ->
+                Objects.equals(mappedLeaderSessionId, oldSessionId) ? newSessionId : mappedLeaderSessionId);
+    }
+
     public boolean isLeader(String sessionId) {
         return leaderByMemberSessionId.containsValue(sessionId);
     }

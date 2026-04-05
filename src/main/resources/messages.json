@@ -9,6 +9,7 @@
   "auth.prompt.password"                : "Password:",
   "auth.prompt.password_existing"       : "Password for {username}:",
   "auth.error.password_wrong_generic"   : "Unable to sign in with those details.\nPassword:",
+  "auth.error.account_already_online"   : "That account is already online.\nEnter your username:",
   "auth.error.login_unavailable"        : "Unable to sign in right now.\nEnter your username:",
   "auth.error.password_wrong"           : "Incorrect password. {remaining} attempt{s} remaining.\nPassword:",
   "auth.prompt.create_or_exit"          : "Username '{username}' is not registered.\n[1] Create a new character\n[2] Exit",
@@ -35,6 +36,7 @@
   "event.player.entered_world"          : "{player} has entered the world.",
   "event.player.left_world"             : "{player} has left the world.",
   "event.player.idle_timeout"           : "{player} has been disconnected due to inactivity.",
+  "session.replaced.player_message"     : "This connection was replaced by a newer session.",
   "session.inactivity.player_message"   : "You have been disconnected due to inactivity.",
 
   "command.move.cannot_go"              : "You can't go {direction} from here.",

@@ -13,6 +13,7 @@ import com.scott.tech.mud.mud_game.model.Player;
 import com.scott.tech.mud.mud_game.model.Rarity;
 import com.scott.tech.mud.mud_game.model.Room;
 import com.scott.tech.mud.mud_game.model.SessionState;
+import com.scott.tech.mud.mud_game.party.PartyService;
 import com.scott.tech.mud.mud_game.persistence.cache.PlayerStateCache;
 import com.scott.tech.mud.mud_game.persistence.service.DiscoveredExitService;
 import com.scott.tech.mud.mud_game.persistence.service.InventoryService;
@@ -60,6 +61,7 @@ class LoginHandlerTest {
     private ExperienceTableService xpTables;
     private QuestService questService;
     private GlobalSettingsRegistry globalSettingsRegistry;
+    private PartyService partyService;
     private LoginHandler loginHandler;
     private WorldService worldService;
     private Room startRoom;
@@ -82,6 +84,7 @@ class LoginHandlerTest {
         xpTables = mock(ExperienceTableService.class);
         questService = mock(QuestService.class);
         globalSettingsRegistry = mock(GlobalSettingsRegistry.class);
+        partyService = mock(PartyService.class);
         worldService = mock(WorldService.class);
         when(globalSettingsRegistry.settings())
                 .thenReturn(new GlobalSettingsRegistry.GlobalSettings(
@@ -100,11 +103,12 @@ class LoginHandlerTest {
         when(worldService.getRoom("start")).thenReturn(startRoom);
         when(worldService.getRoom("tavern")).thenReturn(tavernRoom);
         when(sessionManager.getSessionsInRoom(anyString())).thenReturn(List.of());
+        when(sessionManager.findReservedAccountSession(anyString(), anyString())).thenReturn(Optional.empty());
 
         loginHandler = new LoginHandler(
                 accountStore, sessionManager, worldBroadcaster, reconnectTokenStore, playerProfileService,
                 inventoryService, discoveredExitService, authUiRegistry, characterCreationOptions, classStatsRegistry, xpTables, stateCache,
-                disconnectGracePeriod, questService, globalSettingsRegistry);
+                disconnectGracePeriod, questService, globalSettingsRegistry, partyService);
     }
 
     @Test
@@ -204,6 +208,7 @@ class LoginHandlerTest {
         assertThat(session.getState()).isEqualTo(SessionState.PLAYING);
         assertThat(session.getPlayer().getName()).isEqualTo("Alice");
         assertThat(session.getPlayer().getCurrentRoomId()).isEqualTo("tavern");
+        assertThat(session.getPendingUsername()).isNull();
         assertThat(result.getResponses()).hasSize(3);
         assertThat(result.getResponses().get(0).type()).isEqualTo(GameResponse.Type.AUTH_PROMPT);
         assertThat(result.getResponses().get(0).mask()).isFalse();
@@ -235,6 +240,31 @@ class LoginHandlerTest {
         assertThat(session.getPendingUsername()).isNull();
         assertThat(singleResponse(result).type()).isEqualTo(GameResponse.Type.AUTH_PROMPT);
         assertThat(singleResponse(result).message()).contains("Unable to sign in right now");
+    }
+
+    @Test
+    void handlePassword_whenAccountAlreadyOnline_resetsToUsernamePrompt() {
+        GameSession session = newSession("s1", "start");
+        session.setPendingUsername("alice");
+        session.transition(SessionState.AWAITING_PASSWORD);
+
+        GameSession existingSession = newSession("s2", "tavern");
+        existingSession.getPlayer().setName("Alice");
+        existingSession.transition(SessionState.PLAYING);
+
+        when(accountStore.exists("alice")).thenReturn(true);
+        when(accountStore.isLocked("alice")).thenReturn(false);
+        when(accountStore.verifyPassword("alice", "secret")).thenReturn(true);
+        when(sessionManager.findReservedAccountSession("alice", "s1")).thenReturn(Optional.of(existingSession));
+
+        CommandResult result = loginHandler.handle("secret", session);
+
+        assertThat(session.getState()).isEqualTo(SessionState.AWAITING_USERNAME);
+        assertThat(session.getPendingUsername()).isNull();
+        assertThat(singleResponse(result).type()).isEqualTo(GameResponse.Type.AUTH_PROMPT);
+        assertThat(singleResponse(result).message()).contains("already online");
+        verify(reconnectTokenStore, never()).issue("alice");
+        verify(worldBroadcaster, never()).broadcastToRoom(anyString(), any(), anyString());
     }
 
     @Test
@@ -341,6 +371,39 @@ class LoginHandlerTest {
         assertThat(result.getResponses().get(0).type()).isEqualTo(GameResponse.Type.WELCOME);
         assertThat(result.getResponses().get(1).type()).isEqualTo(GameResponse.Type.SESSION_TOKEN);
         assertThat(result.getResponses().get(1).token()).isEqualTo("fresh-token");
+    }
+
+    @Test
+    void reconnect_validToken_replacesExistingSessionWithoutBroadcastingArrival() {
+        GameSession session = newSession("s1", "start");
+        GameSession existingSession = newSession("s-old", "tavern");
+        existingSession.getPlayer().setName("Alice");
+        existingSession.transition(SessionState.PLAYING);
+
+        when(reconnectTokenStore.consume("stale-token")).thenReturn(Optional.of("alice"));
+        when(sessionManager.findReservedAccountSession("alice", "s1")).thenReturn(Optional.of(existingSession));
+        when(playerProfileService.getSavedRoomId("alice")).thenReturn(Optional.of("tavern"));
+        when(sessionManager.getSessionsInRoom("tavern")).thenReturn(List.of(session));
+        when(reconnectTokenStore.issue("alice")).thenReturn("fresh-token");
+
+        CommandResult result = loginHandler.reconnect("stale-token", session);
+
+        assertThat(session.getState()).isEqualTo(SessionState.PLAYING);
+        assertThat(existingSession.getState()).isEqualTo(SessionState.DISCONNECTED);
+        assertThat(existingSession.isSuppressDisconnectCleanup()).isTrue();
+        assertThat(result.getResponses()).hasSize(2);
+        assertThat(result.getResponses().get(0).type()).isEqualTo(GameResponse.Type.WELCOME);
+        assertThat(result.getResponses().get(1).type()).isEqualTo(GameResponse.Type.SESSION_TOKEN);
+        verify(stateCache).cache(existingSession);
+        verify(playerProfileService).saveProfile(existingSession.getPlayer());
+        verify(inventoryService).saveInventory("alice", existingSession.getPlayer().getInventory());
+        verify(partyService).transferSession("s-old", "s1");
+        verify(worldBroadcaster).kickSession(
+                eq("s-old"),
+                argThat(response -> response.type() == GameResponse.Type.NARRATIVE
+                        && response.message().contains("replaced"))
+        );
+        verify(worldBroadcaster, never()).broadcastToRoom(anyString(), any(), anyString());
     }
 
     @Test
