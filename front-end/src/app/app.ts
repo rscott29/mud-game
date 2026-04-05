@@ -1,6 +1,5 @@
 import { Component, inject } from '@angular/core';
 import { TerminalComponent } from './components/terminal/terminal.component';
-import { CommandCatalogService } from './services/command-catalog.service';
 import { ZoomService } from './services/zoom.service';
 
 @Component({
@@ -31,10 +30,5 @@ import { ZoomService } from './services/zoom.service';
   `],
 })
 export class App {
-  private readonly commandCatalog = inject(CommandCatalogService);
   readonly zoomService = inject(ZoomService);
-
-  constructor() {
-    this.commandCatalog.load();
-  }
 }

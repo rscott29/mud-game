@@ -75,8 +75,11 @@ interface ParsedAutocompleteInput {
 export class CommandCatalogService {
   private readonly http = inject(HttpClient);
   private readonly catalog = signal<CommandCatalogEntry[]>([]);
+  private readonly catalogVersionState = signal(0);
   private loadedToken: string | null | undefined;
   private loadingToken: string | null | undefined;
+
+  readonly catalogVersion = this.catalogVersionState.asReadonly();
 
   load(force = false): void {
     const reconnectToken = this.readReconnectToken();
@@ -94,6 +97,7 @@ export class CommandCatalogService {
           this.loadedToken = reconnectToken;
           this.loadingToken = undefined;
           this.catalog.set((response?.commands ?? []).map(command => this.normalizeCommand(command)));
+          this.catalogVersionState.update(version => version + 1);
         },
         error: () => {
           this.loadingToken = undefined;

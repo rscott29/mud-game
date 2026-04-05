@@ -53,7 +53,7 @@
               ],
               "optimization": {
                 "styles": {
-                  "inlineCritical": false
+                  "inlineCritical": true
                 }
               },
               "outputHashing": "all"

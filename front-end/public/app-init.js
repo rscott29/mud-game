@@ -1,4 +1,37 @@
 (function () {
+  function loadUiSettings() {
+    fetch('/api/ui/settings', { cache: 'no-store' })
+      .then(function (response) {
+        if (!response.ok) {
+          return null;
+        }
+        return response.json();
+      })
+      .then(function (settings) {
+        if (!settings) {
+          return;
+        }
+
+        if (typeof settings.title === 'string' && settings.title.trim()) {
+          document.title = settings.title.trim();
+        }
+
+        applyFavicon(settings.faviconUrl, settings.faviconType);
+      })
+      .catch(function () {
+        // Keep the static fallback title and favicon when the backend config is unavailable.
+      });
+  }
+
+  function scheduleUiSettingsLoad() {
+    if (typeof window.requestIdleCallback === 'function') {
+      window.requestIdleCallback(loadUiSettings, { timeout: 2000 });
+      return;
+    }
+
+    window.setTimeout(loadUiSettings, 0);
+  }
+
   function applyFavicon(url, type) {
     if (typeof url !== 'string' || !url.trim()) {
       return;
@@ -31,25 +64,9 @@
     }
   }
 
-  fetch('/api/ui/settings', { cache: 'no-store' })
-    .then(function (response) {
-      if (!response.ok) {
-        return null;
-      }
-      return response.json();
-    })
-    .then(function (settings) {
-      if (!settings) {
-        return;
-      }
-
-      if (typeof settings.title === 'string' && settings.title.trim()) {
-        document.title = settings.title.trim();
-      }
-
-      applyFavicon(settings.faviconUrl, settings.faviconType);
-    })
-    .catch(function () {
-      // Keep the static fallback title and favicon when the backend config is unavailable.
-    });
+  if (document.readyState === 'complete') {
+    scheduleUiSettingsLoad();
+  } else {
+    window.addEventListener('load', scheduleUiSettingsLoad, { once: true });
+  }
 })();

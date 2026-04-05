@@ -50,6 +50,8 @@ class MockZoomService {
 }
 
 class MockCommandCatalogService {
+  readonly catalogVersion = signal(0);
+
   private readonly commands: CommandCatalogEntry[] = [
     {
       canonicalName: 'go',

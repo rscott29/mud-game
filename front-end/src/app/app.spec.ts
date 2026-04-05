@@ -34,6 +34,8 @@ class MockZoomService {
 }
 
 class MockCommandCatalogService {
+  readonly catalogVersion = signal(0);
+
   load(): void {}
 }
 

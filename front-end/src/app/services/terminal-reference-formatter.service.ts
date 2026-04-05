@@ -10,10 +10,6 @@ import { SkillDto } from './skill-progression.service';
 export class TerminalReferenceFormatterService {
   private readonly commandCatalog = inject(CommandCatalogService);
 
-  constructor() {
-    this.commandCatalog.load();
-  }
-
   formatHelpCard(isGod: boolean): FormattedMessage {
     return {
       cssClass: TERMINAL_MESSAGE_CLASSES.HELP,

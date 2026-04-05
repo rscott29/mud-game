@@ -40,8 +40,7 @@ export class TerminalMessageStore {
 
   constructor() {
     effect(() => {
-      this.commandCatalog.helpCategories(false);
-      this.commandCatalog.helpCategories(true);
+      this.commandCatalog.catalogVersion();
       untracked(() => this.refreshHelpMessages());
     });
   }
