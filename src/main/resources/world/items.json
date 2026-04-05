@@ -504,6 +504,42 @@
     "takeable": true,
     "rarity": "LEGENDARY",
     "requiredItemIds": ["item_obis_tag"],
+    "pickupSpawnNpcIds": ["npc_dog_Obi"],
+    "pickupNarrative": [
+      "As you approach, the brass tag you carry gives a single answering pulse.",
+      "At once, the grove falls still. Leaves stop whispering overhead. Even the light between the branches seems to hold its breath.",
+      "When your hand closes around the hilt, <strong>{item}</strong> slides free without resistance, as if it has been waiting for you all along.",
+      "Amber fire wakes in the runes along the blade, and a familiar warmth gathers beneath the roots nearby.",
+      "The Keeper of the Bond lowers his head. \"Then let it be witnessed, {player}. Not by conquest. Not by blood. But by love that remained.\"",
+      "Warmth travels from the hilt into your palm, deep and familiar, like a heartbeat answering another across a great distance.",
+      "<strong>You do not merely claim the oath. You are entrusted with it.</strong>"
+    ],
+    "pickupNpcScenes": [
+      {
+        "npcId": "npc_dog_Obi",
+        "description": [
+          "Obi rests beneath the roots of the ancient oak, golden coat bright against the moss and leaf-fall.",
+          "The usual restlessness in {pronounPossessive} limbs has given way to a deep, peaceful stillness.",
+          "{pronounSubjectCap} watches you with bright amber eyes, tail thumping softly now and then as though content simply to share the moment."
+        ],
+        "talkTemplates": [
+          "Obi rises at your voice, pads close, and presses his brow gently against your hand before settling again beneath the oak.",
+          "For once Obi does not bark. {pronounSubjectCap} sits beside you in companionable silence, then gives the ground a single, contented tail-thump.",
+          "Obi looks from you to the sword and back again, then lowers {pronounPossessive} head in a solemn bow that feels strangely like recognition.",
+          "Obi circles once around your feet, touches {pronounPossessive} nose to the blade's hilt, and returns to the roots with a satisfied huff."
+        ],
+        "interactTemplates": [
+          "A soft rush of leaves stirs beneath the ancient oak as Obi rises to greet {player}, tail thumping once like a quiet salute to the oath now carried forward.",
+          "Obi lifts {pronounPossessive} head as {player} approaches, then bows it with solemn grace, as though honoring both the bearer and the vow they have claimed.",
+          "Beneath the roots, Obi watches {player} with bright, steady eyes, and for a moment the whole grove seems to acknowledge what {player} has achieved.",
+          "Obi pads once around {player}, touches {pronounPossessive} muzzle to the hilt at their side, and settles again beneath the oak with the air of a guardian finally at peace."
+        ],
+        "durationSeconds": 120,
+        "resetOnMove": true,
+        "suppressWander": true,
+        "orderedInteractionSequence": true
+      }
+    ],
     "prerequisiteFailMessage": "The sword does not stir. Something about you feels... incomplete. As if the oath demands a witness — one that has not yet been found.",
     "triggers": [
       { "event": "PREREQUISITE_FAIL", "npcId": "npc_keeper_of_the_bond", "templateIndex": 0 }
@@ -586,9 +622,7 @@
     ],
     "keywords": ["collar tag", "tag", "brass tag", "obi's tag", "complete tag"],
     "takeable": true,
-    "rarity": "EPIC",
-    "requiredItemIds": ["item_tag_shard_paw", "item_tag_shard_heart", "item_tag_shard_ball", "item_tag_shard_compass"],
-    "prerequisiteFailMessage": "The tag's fragments refuse to unite. You sense that something is missing — a piece of the journey left incomplete."
+    "rarity": "EPIC"
   },
   {
     "id": "item_weapon_rack",

@@ -160,7 +160,8 @@ class AttackCommandTest {
                 List.of(reward),
                 50,
                 25,
-                QuestCompletionEffects.NONE
+                QuestCompletionEffects.NONE,
+                com.scott.tech.mud.mud_game.quest.ObjectiveEffects.NONE
         );
 
         when(attackValidator.validate(leader, "wolf")).thenReturn(AttackValidationResult.allow(wolf));
@@ -188,6 +189,10 @@ class AttackCommandTest {
         );
 
         var result = command.execute(leader);
+        String combinedMessages = result.getResponses().stream()
+                .map(GameResponse::message)
+                .filter(message -> message != null && !message.isBlank())
+                .reduce("", (left, right) -> left + "\n" + right);
 
         assertThat(result.getResponses())
                 .extracting(GameResponse::message)
@@ -196,6 +201,21 @@ class AttackCommandTest {
                 .anyMatch(message -> message != null && message.contains("50"))
                 .anyMatch(message -> message != null && message.contains("25"))
                 .anyMatch(message -> message != null && message.contains("Paw Shard"));
+        assertThat(countOccurrences(combinedMessages, "The traveler sinks to their knees, trembling but alive.")).isEqualTo(1);
+        assertThat(countOccurrences(combinedMessages, "🏆 Quest Complete: <strong>The Path of Loyalty</strong>!")).isEqualTo(1);
+        assertThat(countOccurrences(combinedMessages, "✨ You gain <span class='xp-value'>50</span> experience points.")).isEqualTo(1);
+        assertThat(countOccurrences(combinedMessages, "💰 You receive <span class='gold-value'>25</span> gold.")).isEqualTo(1);
+        assertThat(countOccurrences(combinedMessages, "📦 You receive: <strong>Paw Shard</strong>")).isEqualTo(1);
+    }
+
+    private static int countOccurrences(String text, String needle) {
+        int count = 0;
+        int index = 0;
+        while ((index = text.indexOf(needle, index)) >= 0) {
+            count++;
+            index += needle.length();
+        }
+        return count;
     }
 
     private static Npc npc(String id) {

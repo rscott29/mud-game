@@ -148,7 +148,11 @@ export class TerminalMessageStore {
       const mergedSource: GameMessage = {
         type: existing.roomType ?? GAME_MESSAGE_TYPES.ROOM_UPDATE,
         room: existing.room,
-        message: this.joinRoomMessages(existing.roomMessage, inlineFragment),
+        message: this.joinRoomMessages(
+          existing.roomMessage,
+          inlineFragment,
+          this.inlineSeparatorFor(source)
+        ),
       };
       const formatted = this.formatter.formatRoomDisplay(mergedSource);
 
@@ -222,13 +226,17 @@ export class TerminalMessageStore {
     return updated;
   }
 
-  private joinRoomMessages(existing?: string, incoming?: string): string {
+  private inlineSeparatorFor(message: GameMessage): string {
+    return message.type === GAME_MESSAGE_TYPES.NARRATIVE_ECHO ? '<br>' : '<br><br>';
+  }
+
+  private joinRoomMessages(existing?: string, incoming?: string, separator = '<br><br>'): string {
     if (!existing?.trim()) {
       return incoming ?? '';
     }
     if (!incoming?.trim()) {
       return existing;
     }
-    return `${existing}<br><br>${incoming}`;
+    return `${existing}${separator}${incoming}`;
   }
 }

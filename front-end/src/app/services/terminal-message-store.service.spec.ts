@@ -125,6 +125,36 @@ describe('TerminalMessageStore', () => {
     expect(store.messages()[0].html).toContain('You dance.');
   });
 
+  it('appends narrative echoes into the active room entry with their own echo class', () => {
+    const store = TestBed.inject(TerminalMessageStore);
+    const room = {
+      id: 'town_square',
+      name: 'Town Square',
+      description: 'A lively square.',
+      exits: ['north'],
+      items: [],
+      npcs: [],
+      players: [],
+    };
+
+    store.upsertRoomMessage({ type: GAME_MESSAGE_TYPES.ROOM_UPDATE, message: 'You arrive.', room });
+    store.appendToActiveRoomMessage(
+      { type: GAME_MESSAGE_TYPES.NARRATIVE_ECHO, message: 'Obi bows his head.' },
+      '<div class="message--narrative-echo">Obi bows his head.</div>',
+      {
+        cssClass: TERMINAL_MESSAGE_CLASSES.NARRATIVE_ECHO,
+        html: '<div class="message--narrative-echo">Obi bows his head.</div>',
+      }
+    );
+
+    expect(store.messages()).toHaveLength(1);
+    expect(store.messages()[0].html).toContain('You arrive.');
+    expect(store.messages()[0].html).toContain('message--narrative-echo');
+    expect(store.messages()[0].html).toContain('Obi bows his head.');
+    expect(store.messages()[0].html).toContain('<br><div class="message--narrative-echo">');
+    expect(store.messages()[0].html).not.toContain('<br><br><div class="message--narrative-echo">');
+  });
+
   it('moves the active room entry back to the bottom when it receives a later update', () => {
     const store = TestBed.inject(TerminalMessageStore);
     const room = {

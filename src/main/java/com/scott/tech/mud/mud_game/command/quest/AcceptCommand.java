@@ -11,6 +11,7 @@ import com.scott.tech.mud.mud_game.model.Player;
 import com.scott.tech.mud.mud_game.model.Room;
 import com.scott.tech.mud.mud_game.quest.DefendObjectiveRuntimeService;
 import com.scott.tech.mud.mud_game.quest.Quest;
+import com.scott.tech.mud.mud_game.quest.QuestPresentation;
 import com.scott.tech.mud.mud_game.quest.QuestService;
 import com.scott.tech.mud.mud_game.quest.QuestService.QuestStartResult;
 import com.scott.tech.mud.mud_game.session.GameSession;
@@ -167,6 +168,10 @@ public class AcceptCommand implements GameCommand {
         List<GameResponse> responses = new ArrayList<>();
         List<String> narrativeParts = new ArrayList<>(result.dialogue());
         narrativeParts.addAll(result.objectiveStartMessages());
+        String underlevelWarning = QuestPresentation.buildUnderlevelWarning(match.quest, player.getLevel());
+        if (!underlevelWarning.isBlank()) {
+            narrativeParts.addFirst(underlevelWarning);
+        }
         String narrative = String.join("<br>", narrativeParts);
         responses.add(roomUpdateWithNarrative(session, narrative));
         responses.add(GameResponse.narrative(
@@ -183,6 +188,7 @@ public class AcceptCommand implements GameCommand {
     }
 
     private CommandResult showAvailableQuests(GameSession session, List<AvailableQuest> quests) {
+        int playerLevel = session.getPlayer().getLevel();
         StringBuilder sb = new StringBuilder();
         sb.append("<div class='quest-available'>📜 <strong>Available Quests:</strong></div>");
 
@@ -198,8 +204,9 @@ public class AcceptCommand implements GameCommand {
             sb.append("<strong>").append(aq.npc.getName()).append("</strong> offers: ");
             sb.append("<em>").append(aq.quest.name()).append("</em>");
             sb.append("<br><small>").append(aq.quest.description()).append("</small>");
-            sb.append("<br><small>Use <strong>accept ").append(aq.npc.getName().toLowerCase())
-                    .append("</strong> or <strong>accept ").append(aq.quest.name().toLowerCase())
+            sb.append(QuestPresentation.buildMetaBadges(aq.quest, playerLevel));
+            sb.append("<br><small>Use <strong>accept ").append(aq.npc.getName().toLowerCase(Locale.ROOT))
+                    .append("</strong> or <strong>accept ").append(aq.quest.name().toLowerCase(Locale.ROOT))
                     .append("</strong>.</small>");
             sb.append("</div>");
         }

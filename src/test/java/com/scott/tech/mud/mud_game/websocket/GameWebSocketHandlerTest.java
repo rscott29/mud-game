@@ -75,6 +75,8 @@ class GameWebSocketHandlerTest {
         verify(broadcaster).broadcastToRoom(eq("room_start"), any(), eq("leader-session"));
         verify(broadcaster).broadcastToRoom(eq("room_grove"), any(), eq("follower-session"));
         verify(broadcaster).sendToSession(eq("follower-session"), any());
+        verify(stateCache).cache(leader);
+        verify(playerProfileService).saveProfile(leader.getPlayer());
         verify(gameEngine).onDisconnect(leader);
     }
 

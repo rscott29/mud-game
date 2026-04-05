@@ -38,6 +38,12 @@ public class Item {
     private final String prerequisiteFailMessage;
     /** Side-effects fired on specific interaction events (e.g. an NPC speaks on prereq fail). */
     private final List<ItemTrigger> triggers;
+    /** Extra narrative shown when this item is successfully taken. */
+    private final List<String> pickupNarrative;
+    /** NPC templates to spawn the first time this item is meaningfully claimed. */
+    private final List<String> pickupSpawnNpcIds;
+    /** Temporary NPC presentation overrides applied when this item is claimed. */
+    private final List<NpcSceneOverride> pickupNpcScenes;
     /** Combat stats for this item (damage, armor, etc.) */
     private final CombatStats combatStats;
     /** Optional equipment slot for equippable items. */
@@ -48,38 +54,76 @@ public class Item {
     private final List<Item> containedItems;
 
     public Item(String id, String name, String description, List<String> keywords, boolean takeable, Rarity rarity) {
-        this(id, name, description, keywords, takeable, rarity, List.of(), null, List.of(), CombatStats.NONE, null, false, List.of());
+        this(id, name, description, keywords, takeable, rarity, List.of(), null, List.of(), List.of(), List.of(), CombatStats.NONE, null, false, List.of());
     }
 
     public Item(String id, String name, String description, List<String> keywords, boolean takeable, Rarity rarity,
                 List<String> requiredItemIds) {
-        this(id, name, description, keywords, takeable, rarity, requiredItemIds, null, List.of(), CombatStats.NONE, null, false, List.of());
+        this(id, name, description, keywords, takeable, rarity, requiredItemIds, null, List.of(), List.of(), List.of(), CombatStats.NONE, null, false, List.of());
     }
 
     public Item(String id, String name, String description, List<String> keywords, boolean takeable, Rarity rarity,
                 List<String> requiredItemIds, String prerequisiteFailMessage) {
-        this(id, name, description, keywords, takeable, rarity, requiredItemIds, prerequisiteFailMessage, List.of(), CombatStats.NONE, null, false, List.of());
+        this(id, name, description, keywords, takeable, rarity, requiredItemIds, prerequisiteFailMessage, List.of(), List.of(), List.of(), CombatStats.NONE, null, false, List.of());
     }
 
     public Item(String id, String name, String description, List<String> keywords, boolean takeable, Rarity rarity,
                 List<String> requiredItemIds, String prerequisiteFailMessage, List<ItemTrigger> triggers) {
-        this(id, name, description, keywords, takeable, rarity, requiredItemIds, prerequisiteFailMessage, triggers, CombatStats.NONE, null, false, List.of());
+        this(id, name, description, keywords, takeable, rarity, requiredItemIds, prerequisiteFailMessage, triggers, List.of(), List.of(), CombatStats.NONE, null, false, List.of());
     }
 
     public Item(String id, String name, String description, List<String> keywords, boolean takeable, Rarity rarity,
                 List<String> requiredItemIds, String prerequisiteFailMessage, List<ItemTrigger> triggers, CombatStats combatStats) {
-        this(id, name, description, keywords, takeable, rarity, requiredItemIds, prerequisiteFailMessage, triggers, combatStats, null, false, List.of());
+        this(id, name, description, keywords, takeable, rarity, requiredItemIds, prerequisiteFailMessage, triggers, List.of(), List.of(), List.of(), combatStats, null, false, List.of());
     }
 
     public Item(String id, String name, String description, List<String> keywords, boolean takeable, Rarity rarity,
                 List<String> requiredItemIds, String prerequisiteFailMessage, List<ItemTrigger> triggers,
                 CombatStats combatStats, EquipmentSlot equipmentSlot) {
         this(id, name, description, keywords, takeable, rarity, requiredItemIds, prerequisiteFailMessage,
-                triggers, combatStats, equipmentSlot, false, List.of());
+                triggers, List.of(), List.of(), List.of(), combatStats, equipmentSlot, false, List.of());
     }
 
     public Item(String id, String name, String description, List<String> keywords, boolean takeable, Rarity rarity,
                 List<String> requiredItemIds, String prerequisiteFailMessage, List<ItemTrigger> triggers,
+                CombatStats combatStats, EquipmentSlot equipmentSlot, boolean container, List<Item> containedItems) {
+        this(id, name, description, keywords, takeable, rarity, requiredItemIds, prerequisiteFailMessage,
+                triggers, List.of(), List.of(), List.of(), combatStats, equipmentSlot, container, containedItems);
+    }
+
+    public Item(String id, String name, String description, List<String> keywords, boolean takeable, Rarity rarity,
+                List<String> requiredItemIds, String prerequisiteFailMessage, List<ItemTrigger> triggers,
+                List<String> pickupNarrative, CombatStats combatStats, EquipmentSlot equipmentSlot) {
+        this(id, name, description, keywords, takeable, rarity, requiredItemIds, prerequisiteFailMessage,
+                triggers, pickupNarrative, List.of(), List.of(), combatStats, equipmentSlot, false, List.of());
+    }
+
+    public Item(String id, String name, String description, List<String> keywords, boolean takeable, Rarity rarity,
+                List<String> requiredItemIds, String prerequisiteFailMessage, List<ItemTrigger> triggers,
+                List<String> pickupNarrative, List<String> pickupSpawnNpcIds, CombatStats combatStats, EquipmentSlot equipmentSlot) {
+        this(id, name, description, keywords, takeable, rarity, requiredItemIds, prerequisiteFailMessage,
+                triggers, pickupNarrative, pickupSpawnNpcIds, List.of(), combatStats, equipmentSlot, false, List.of());
+    }
+
+    public Item(String id, String name, String description, List<String> keywords, boolean takeable, Rarity rarity,
+                List<String> requiredItemIds, String prerequisiteFailMessage, List<ItemTrigger> triggers,
+                List<String> pickupNarrative, List<String> pickupSpawnNpcIds, List<NpcSceneOverride> pickupNpcScenes,
+                CombatStats combatStats, EquipmentSlot equipmentSlot) {
+        this(id, name, description, keywords, takeable, rarity, requiredItemIds, prerequisiteFailMessage,
+                triggers, pickupNarrative, pickupSpawnNpcIds, pickupNpcScenes, combatStats, equipmentSlot, false, List.of());
+    }
+
+    public Item(String id, String name, String description, List<String> keywords, boolean takeable, Rarity rarity,
+                List<String> requiredItemIds, String prerequisiteFailMessage, List<ItemTrigger> triggers,
+                List<String> pickupNarrative, List<String> pickupSpawnNpcIds,
+                CombatStats combatStats, EquipmentSlot equipmentSlot, boolean container, List<Item> containedItems) {
+        this(id, name, description, keywords, takeable, rarity, requiredItemIds, prerequisiteFailMessage,
+                triggers, pickupNarrative, pickupSpawnNpcIds, List.of(), combatStats, equipmentSlot, container, containedItems);
+    }
+
+    public Item(String id, String name, String description, List<String> keywords, boolean takeable, Rarity rarity,
+                List<String> requiredItemIds, String prerequisiteFailMessage, List<ItemTrigger> triggers,
+                List<String> pickupNarrative, List<String> pickupSpawnNpcIds, List<NpcSceneOverride> pickupNpcScenes,
                 CombatStats combatStats, EquipmentSlot equipmentSlot, boolean container, List<Item> containedItems) {
         this.id              = id;
         this.name            = name;
@@ -90,6 +134,9 @@ public class Item {
         this.requiredItemIds = requiredItemIds != null ? requiredItemIds : List.of();
         this.prerequisiteFailMessage = prerequisiteFailMessage;
         this.triggers        = triggers != null ? triggers : List.of();
+        this.pickupNarrative = pickupNarrative != null ? pickupNarrative : List.of();
+        this.pickupSpawnNpcIds = pickupSpawnNpcIds != null ? pickupSpawnNpcIds : List.of();
+        this.pickupNpcScenes = pickupNpcScenes != null ? List.copyOf(pickupNpcScenes) : List.of();
         this.combatStats     = combatStats != null ? combatStats : CombatStats.NONE;
         this.equipmentSlot   = equipmentSlot;
         this.container       = container;
@@ -105,6 +152,9 @@ public class Item {
     public List<String> getRequiredItemIds()      { return requiredItemIds; }
     public String getPrerequisiteFailMessage()     { return prerequisiteFailMessage; }
     public List<ItemTrigger> getTriggers()         { return triggers; }
+    public List<String> getPickupNarrative()       { return pickupNarrative; }
+    public List<String> getPickupSpawnNpcIds()     { return pickupSpawnNpcIds; }
+    public List<NpcSceneOverride> getPickupNpcScenes() { return pickupNpcScenes; }
     public CombatStats getCombatStats()            { return combatStats; }
     public EquipmentSlot getEquipmentSlot()        { return equipmentSlot; }
     public boolean isEquippable()                  { return equipmentSlot != null; }
@@ -148,7 +198,7 @@ public class Item {
      */
     public Item withDescription(String newDescription) {
         return new Item(id, name, newDescription, keywords, takeable, rarity,
-                requiredItemIds, prerequisiteFailMessage, triggers, combatStats, equipmentSlot, container, getContainedItems());
+                requiredItemIds, prerequisiteFailMessage, triggers, pickupNarrative, pickupSpawnNpcIds, pickupNpcScenes, combatStats, equipmentSlot, container, getContainedItems());
     }
 
     /**

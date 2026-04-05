@@ -4,8 +4,8 @@
     "name": "Obi",
     "description": [
       "A boisterous young Labrador with a golden coat and boundless energy.",
-      "He fixes you with intelligent amber eyes, tail wagging furiously.",
-      "His collar tag reads: <br><br><em>I run ahead but never leave.<br>I guard the path though I cannot speak.<br>Where the loyal wait and the lost find home,<br>Seek the place where two paths become one.</em><br>",
+      "{pronounSubjectCap} fixes you with intelligent amber eyes, tail wagging furiously.",
+      "{pronounPossessiveCap} collar tag reads: <br><br><em>I run ahead but never leave.<br>I guard the path though I cannot speak.<br>Where the loyal wait and the lost find home,<br>Seek the place where two paths become one.</em><br>",
       "<br>",
       "On the reverse side, worn almost smooth with time, are four faint symbols:",
       "<br><br>",
@@ -16,27 +16,27 @@
       "<li>A compass.</li>",
       "</ul>",
         "<br>",
-      "He seems to be waiting for something — or someone."
+      "{pronounSubjectCap} seems to be waiting for something â€” or someone."
     ],
     "keywords": ["obi", "dog", "labrador", "lab", "puppy", "hound"],
     "pronoun": "he",
     "possessive": "his",
     "humorous": true,
     "talkTemplates": [
-      "Obi stares at you with his head tilted to one side, clearly delighted by the attention.",
+      "Obi stares at you with {pronounPossessive} head tilted to one side, clearly delighted by the attention.",
       "Obi responds to your words with a single, very decisive bark.",
-      "Obi wags his tail so hard his whole back end swings. He has no idea what you said, but he's thrilled you said it.",
+      "Obi wags {pronounPossessive} tail so hard {pronounPossessive} whole back end swings. {pronounSubjectCap} has no idea what you said, but {pronounSubject} seems thrilled you said it.",
       "Obi licks your hand enthusiastically. Probably not the response you were looking for.",
-      "Obi sits very straight and fixes you with an attentive gaze, as though he understands every single word. He does not.",
-      "Obi's ears flatten and he lets out a soft whine, gazing up at you with enormous amber eyes.",
-      "Obi nudges your hand with his cold nose and looks up expectantly. The conversation is going well, from his perspective."
+      "Obi sits very straight and fixes you with an attentive gaze, as though {pronounSubject} understands every single word. {pronounSubjectCap} does not.",
+      "Obi's ears flatten and {pronounSubject} lets out a soft whine, gazing up at you with enormous amber eyes.",
+      "Obi nudges your hand with {pronounPossessive} cold nose and looks up expectantly. The conversation is going well, from {pronounPossessive} perspective."
     ],
     "interactTemplates": [
-      "Obi's head snaps up the moment {player} enters. His tail becomes a golden blur.",
+      "Obi's head snaps up the moment {player} enters. {pronounPossessiveCap} tail becomes a golden blur.",
       "Obi spots {player} and immediately trots over, sniffing their boots with great enthusiasm.",
       "Obi lets out a short, happy bark as {player} walks in, then circles them twice.",
-      "Obi lifts his head from his paws and watches {player} with bright, hopeful eyes.",
-      "Obi scrambles to his feet and presses his cold nose into {player}'s hand.",
+      "Obi lifts {pronounPossessive} head from {pronounPossessive} paws and watches {player} with bright, hopeful eyes.",
+      "Obi scrambles to {pronounPossessive} feet and presses {pronounPossessive} cold nose into {player}'s hand.",
       "At the sight of {player}, Obi's entire back end wiggles furiously.",
       "Obi yawns an enormous yawn, stretches, then pads over to greet {player} as if they've been gone for years."
     ],
@@ -54,22 +54,22 @@
         "town_square"
       ],
       "departureTemplates": [
-        "Obi's ears prick up — he sniffs the air and trots off to the {dir}.",
+        "Obi's ears prick up â€” {pronounSubject} sniffs the air and trots off to the {dir}.",
         "Obi spots something interesting and bolts {dir} before you can blink.",
         "Obi gives you an apologetic tail-wag, then pads off to the {dir}.",
         "Obi suddenly barks at nothing in particular and disappears to the {dir}.",
-        "With a wag of his tail, Obi trots {dir} and is gone.",
+        "With a wag of {pronounPossessive} tail, Obi trots {dir} and is gone.",
         "Obi gets distracted by something you can't see and scampers off to the {dir}.",
         "Obi sneezes, looks embarrassed, then trots off to the {dir} with great purpose.",
-        "Something catches Obi's eye to the {dir} and he's off like a shot."
+        "Something catches Obi's eye to the {dir} and Obi is off like a shot."
       ],
       "arrivalTemplates": [
         "Obi bounds in from the {from}, tongue lolling, tail spinning furiously.",
-        "A familiar golden blur skids in from the {from} — it's Obi, looking very pleased with himself.",
+        "A familiar golden blur skids in from the {from} â€” it's Obi, looking very pleased with {pronounReflexive}.",
         "Obi trots in from the {from} and immediately sniffs everything in sight.",
         "Obi pads in from the {from}, ears perked, eyes bright.",
         "Obi charges in from the {from} and nearly knocks you over in excitement.",
-        "Obi saunters in from the {from}, tail held high, acting as though he owns the place.",
+        "Obi saunters in from the {from}, tail held high, acting as though {pronounSubject} owns the place.",
         "There's a clatter from the {from} and then Obi appears, utterly unrepentant."
       ]
     }
@@ -77,7 +77,7 @@
   {
   "id": "npc_keeper_of_the_bond",
   "name": "Keeper of the Bond",
-  "description": "A silent knight stands watch beside the ancient stone of the grove. His armour is old but immaculately kept, etched with the faint image of a hound's paw upon the breastplate. A long cloak hangs from his shoulders, unmoving despite the breeze. Though his face is hidden behind a simple steel helm, you feel the unmistakable weight of his attention. <br><br>When he finally speaks, his voice is calm and steady.<br><br><em>\"Many claim loyalty. Few understand it.\"</em><br><br>He gestures toward the path beyond the grove as though inviting you to prove something.",
+  "description": "A silent knight stands watch beside the ancient stone of the grove. {pronounPossessiveCap} armour is old but immaculately kept, etched with the faint image of a hound's paw upon the breastplate. A long cloak hangs from {pronounPossessive} shoulders, unmoving despite the breeze. Though {pronounPossessive} face is hidden behind a simple steel helm, you feel the unmistakable weight of {pronounPossessive} attention. <br><br>When {pronounSubject} finally speaks, {pronounPossessive} voice is calm and steady.<br><br><em>\"Many claim loyalty. Few understand it.\"</em><br><br>{pronounSubjectCap} gestures toward the path beyond the grove as though inviting you to prove something.",
   "keywords": ["keeper", "knight", "bond", "guardian", "watcher"],
   "pronoun": "he",
   "possessive": "his",
@@ -85,19 +85,19 @@
     "Loyalty is not claimed. It is proven.",
     "The Keeper of the Bond regards you silently for a long moment before speaking. \"Loyalty is not sworn. It is shown.\"",
     "\"Many speak of loyalty,\" the Keeper says quietly. \"Few remain when it is tested.\"",
-    "The Keeper rests a gauntleted hand on the pommel of his sword. \"Would you stand when another depends on you?\"",
-    "The Keeper tilts his head slightly. \"The faithful do not ask what they gain.\"",
+    "The Keeper rests a gauntleted hand on the pommel of {pronounPossessive} sword. \"Would you stand when another depends on you?\"",
+    "The Keeper tilts {pronounPossessive} head slightly. \"The faithful do not ask what they gain.\"",
     "\"Once,\" the Keeper says softly, \"there was a hound who understood loyalty better than kings.\"",
     "The Keeper watches you with quiet patience, as though weighing your character rather than your strength.",
     "\"The world was shaped by great hands,\" the Keeper says. \"But even the maker walked beside a companion.\""
   ],
   "interactTemplates": [
     "The Keeper of the Bond shifts slightly as {player} approaches, armour softly creaking.",
-    "The Keeper inclines his head respectfully toward {player}.",
+    "The Keeper inclines {pronounPossessive} head respectfully toward {player}.",
     "The Keeper studies {player} in silence, as though measuring something unseen.",
     "The Keeper stands unmoving as {player} enters the grove.",
-    "The Keeper turns his gaze toward {player}, his presence calm but imposing.",
-    "The Keeper folds his arms across his chest and waits patiently.",
+    "The Keeper turns {pronounPossessive} gaze toward {player}, {pronounPossessive} presence calm but imposing.",
+    "The Keeper folds {pronounPossessive} arms across {pronounPossessive} chest and waits patiently.",
     "The Keeper nods once toward {player}, acknowledging their presence."
   ],
   "wander": null
@@ -105,12 +105,12 @@
 {
   "id": "npc_waystation_caretaker",
   "name": "Waystation Caretaker",
-  "description": "A broad-shouldered warden wrapped in a weather-faded cloak stands beside the cold watchfire brazier. Soot stains their hands and sleeves, and their tired eyes keep drifting toward the ledge above the trail. <br><br><em>\"The light went out three nights ago,\"</em> they say. <em>\"If the old ember lantern still rests above, we may yet guide the lost home.\"</em>",
+  "description": "A broad-shouldered warden wrapped in a weather-faded cloak stands beside the cold watchfire brazier. Soot stains {pronounPossessive} hands and sleeves, and {pronounPossessive} tired eyes keep drifting toward the ledge above the trail. <br><br><em>\"The light went out three nights ago,\"</em> comes the weary explanation. <em>\"If the old ember lantern still rests above, we may yet guide the lost home.\"</em>",
   "keywords": ["caretaker", "warden", "waystation", "watcher", "guide"],
   "pronoun": "they",
   "possessive": "their",
   "talkTemplates": [
-    "The caretaker rubs ash between their fingers. \"This trail used to shine all night. Now the dark takes travelers before dawn.\"",
+    "The caretaker rubs ash between {pronounPossessive} fingers. \"This trail used to shine all night. Now the dark takes travelers before dawn.\"",
     "\"The lantern should be somewhere on the prayer ledge,\" the caretaker says. \"I am too old to scramble up there in this wind.\"",
     "The caretaker glances toward the grove below. \"The Keeper sent me here when the old road began to fail. I have kept watch ever since.\"",
     "\"Bring me the ember lantern and I can wake the beacon again,\" the caretaker says. \"That is all I ask.\"",
@@ -120,21 +120,21 @@
     "The caretaker straightens as {player} approaches, one soot-dark hand resting on the empty brazier.",
     "The caretaker looks up from the cold beacon and gives {player} a weary nod.",
     "A gust rattles the waystation timbers as the caretaker turns toward {player}.",
-    "The caretaker brushes ash from their cloak and studies {player} hopefully."
+    "The caretaker brushes ash from {pronounPossessive} cloak and studies {player} hopefully."
   ],
   "wander": null
 },
 {
   "id": "npc_restless_wayfarer",
   "name": "Restless Undead Wayfarer",
-  "description": "A traveler-shaped shade draped in torn road-cloth, its face half-lost behind a sheen of grave-cold mist. Blue fire leaks from the cracks in its ribs each time it stirs.",
+  "description": "A traveler-shaped shade draped in torn road-cloth, {pronounPossessive} face half-lost behind a sheen of grave-cold mist. Blue fire leaks from the cracks in {pronounPossessive} ribs each time {pronounSubject} stirs.",
   "keywords": ["wayfarer", "restless wayfarer", "restless undead wayfarer", "shade", "undead", "spirit"],
   "pronoun": "it",
   "possessive": "its",
   "talkTemplates": [
-    "The shade answers with a wet rattle, as if water is sloshing in lungs it no longer possesses.",
-    "A whisper slips out of the dead thing, thin as winter wind. It is not a language you know.",
-    "The restless wayfarer tilts its head, empty eyes burning brighter for a heartbeat."
+    "The shade answers with a wet rattle, as if water is sloshing in lungs {pronounSubject} no longer possesses.",
+    "A whisper slips out of the dead thing, thin as winter wind. {pronounSubjectCap} is not speaking any language you know.",
+    "The restless wayfarer tilts {pronounPossessive} head, empty eyes burning brighter for a heartbeat."
   ],
   "interactTemplates": [
     "The restless wayfarer drifts toward {player}, leaving frost across the stone.",
@@ -155,19 +155,19 @@
 {
   "id": "npc_ashen_pilgrim",
   "name": "Ashen Undead Pilgrim",
-  "description": "A prayer-worn corpse wrapped in charred ribbons and shrine ash. Its hands are locked in a supplicant pose until it lunges, leaving a trail of soot behind it.",
+  "description": "A prayer-worn corpse wrapped in charred ribbons and shrine ash. {pronounPossessiveCap} hands are locked in a supplicant pose until {pronounSubject} lunges, leaving a trail of soot behind {pronounObject}.",
   "keywords": ["pilgrim", "ashen pilgrim", "ashen undead pilgrim", "undead", "corpse", "shade"],
   "pronoun": "it",
   "possessive": "its",
   "talkTemplates": [
-    "Ash dribbles from the pilgrim's jaw as it opens its mouth in a soundless plea.",
+    "Ash dribbles from the pilgrim's jaw as {pronounSubject} opens {pronounPossessive} mouth in a soundless plea.",
     "The dead pilgrim bows once, then jerks upright with a hiss like a dying coal.",
     "Nothing living answers from the pilgrim, only the dry scrape of bone against cloth."
   ],
   "interactTemplates": [
     "The ashen pilgrim lurches toward {player}, ribbons snapping like burnt paper.",
-    "Soot swirls around the pilgrim's feet as it drags itself closer to {player}.",
-    "The pilgrim raises its head toward {player}, eyes glowing like buried coals."
+    "Soot swirls around the pilgrim's feet as {pronounSubject} drags {pronounReflexive} closer to {player}.",
+    "The pilgrim raises {pronounPossessive} head toward {player}, eyes glowing like buried coals."
   ],
   "wander": null,
   "combatTarget": true,
@@ -183,15 +183,15 @@
 {
   "id": "npc_drill_instructor",
   "name": "Drill Instructor Magnus",
-  "description": "A battle-scarred veteran with a shaved head and arms like tree trunks. His voice carries across the yard like a thunderclap. Despite his gruff exterior, there's a patient wisdom in his eyes — he's trained hundreds of recruits, and he'll train hundreds more.",
+  "description": "A battle-scarred veteran with a shaved head and arms like tree trunks. {pronounPossessiveCap} voice carries across the yard like a thunderclap. Despite {pronounPossessive} gruff exterior, there's a patient wisdom in {pronounPossessive} eyes â€” {pronounSubject} {pronounHave} trained hundreds of recruits, and {pronounSubject} will train hundreds more.",
   "keywords": ["instructor", "magnus", "drill", "veteran", "trainer", "teacher"],
   "pronoun": "he",
   "possessive": "his",
   "talkTemplates": [
-    "Magnus crosses his arms and studies you. \"Want to learn to fight? First, learn to survive. Attack those dummies until your arms burn.\"",
+    "Magnus crosses {pronounPossessive} arms and studies you. \"Want to learn to fight? First, learn to survive. Attack those dummies until your arms burn.\"",
     "\"Combat isn't about strength alone,\" Magnus growls. \"It's about knowing when to strike and when to defend.\"",
     "Magnus snorts. \"You think a real enemy will wait? Practice your attacks on those dummies until it becomes instinct.\"",
-    "\"To attack, type <strong>attack</strong> followed by your target,\" Magnus explains. \"Try it on a training dummy — they don't hit back. Much.\"",
+    "\"To attack, type <strong>attack</strong> followed by your target,\" Magnus explains. \"Try it on a training dummy â€” they don't hit back. Much.\"",
     "Magnus nods approvingly. \"Good. You're here to learn. Hit the dummies, watch your stamina, and remember: a tired fighter is a dead fighter.\"",
     "\"Every great warrior started right here,\" Magnus says, gesturing at the training yard. \"Show me what you've got.\"",
     "Magnus cracks his knuckles. \"Combat is simple: attack your enemy before they attack you. These dummies are perfect for practice.\""
@@ -208,7 +208,7 @@
 {
   "id": "npc_training_dummy_1",
   "name": "Straw Training Dummy",
-  "description": "A man-shaped figure stuffed with straw, mounted on a wooden post. Its burlap face is painted with a crude, menacing expression. Deep gashes and sword cuts cover its torso — evidence of countless practice sessions. A sign hangs around its neck: <em>\"Attack me to practice combat!\"</em>",
+  "description": "A man-shaped figure stuffed with straw, mounted on a wooden post. {pronounPossessiveCap} burlap face is painted with a crude, menacing expression. Deep gashes and sword cuts cover {pronounPossessive} torso â€” evidence of countless practice sessions. A sign hangs around {pronounPossessive} neck: <em>\"Attack me to practice combat!\"</em>",
   "keywords": ["dummy", "training", "straw", "target", "practice", "straw dummy"],
   "pronoun": "it",
   "possessive": "its",
@@ -239,7 +239,7 @@
 {
   "id": "npc_training_dummy_2",
   "name": "Armored Training Dummy",
-  "description": "A reinforced training dummy wearing dented iron plates strapped over its straw body. This one is clearly meant for practicing against armored opponents. The metal is scratched and battered from countless blows.",
+  "description": "A reinforced training dummy wearing dented iron plates strapped over {pronounPossessive} straw body. This one is clearly meant for practicing against armored opponents. The metal is scratched and battered from countless blows.",
   "keywords": ["dummy", "armored", "training", "iron", "metal", "armored dummy"],
   "pronoun": "it",
   "possessive": "its",
@@ -268,7 +268,7 @@
 {
   "id": "npc_training_dummy_3",
   "name": "Spinning Training Dummy",
-  "description": "An advanced training mechanism — a wooden mannequin mounted on a swivel with weighted arms that spin when struck. One wrong move and those arms will swing back at you. A plaque reads: <em>\"Hit it, then dodge!\"</em>",
+  "description": "An advanced training mechanism â€” a wooden mannequin mounted on a swivel with weighted arms that spin when struck. One wrong move and those arms will swing back at you. A plaque reads: <em>\"Hit it, then dodge!\"</em>",
   "keywords": ["dummy", "spinning", "wooden", "swivel", "advanced", "spinning dummy"],
   "pronoun": "it",
   "possessive": "its",
@@ -297,7 +297,7 @@
 {
   "id": "npc_lost_traveler",
   "name": "Lost Traveler",
-  "description": "A weary figure huddles against a tree, their traveling cloak torn and muddy. They look utterly exhausted, eyes darting nervously at every forest sound. When they notice you, relief floods their face. <br><br><em>\"Please — I've been lost for days. I can't find my way back to town.\"</em>",
+  "description": "A weary figure huddles against a tree, {pronounPossessive} traveling cloak torn and muddy. Nervous eyes dart at every forest sound, and relief floods {pronounPossessive} face the moment you draw near. <br><br><em>\"Please â€” I've been lost for days. I can't find my way back to town.\"</em>",
   "keywords": ["traveler", "lost", "wanderer", "stranger", "figure"],
   "pronoun": "they",
   "possessive": "their",
@@ -306,21 +306,21 @@
     "\"I was following the road when the mist came,\" the traveler says. \"Before I knew it, I was hopelessly turned around.\"",
     "The traveler's voice breaks. \"My family must be so worried. I just want to go home.\"",
     "\"The forest plays tricks,\" the traveler whispers. \"Paths that lead nowhere. Sounds that aren't there.\"",
-    "The traveler nods eagerly. \"West. I remember now — town is to the west. Will you walk with me?\"",
-    "\"I had this once,\" the traveler says, pressing something brass into your hand. \"A keepsake from better days. Take it — for your kindness.\""
+    "The traveler nods eagerly. \"West. I remember now â€” town is to the west. Will you walk with me?\"",
+    "\"I had this once,\" the traveler says, pressing something brass into your hand. \"A keepsake from better days. Take it â€” for your kindness.\""
   ],
   "interactTemplates": [
     "The lost traveler looks up hopefully as {player} approaches.",
-    "The traveler wrings their hands nervously, watching {player}.",
-    "The traveler takes a tentative step toward {player}, uncertainty in their eyes.",
-    "A flicker of hope crosses the traveler's face as they see {player}."
+    "The traveler wrings {pronounPossessive} hands nervously, watching {player}.",
+    "The traveler takes a tentative step toward {player}, uncertainty in {pronounPossessive} eyes.",
+    "A flicker of hope crosses the traveler's face at the sight of {player}."
   ],
   "wander": null
 },
 {
   "id": "npc_wounded_pilgrim",
   "name": "Wounded Pilgrim",
-  "description": "A pilgrim in simple robes lies propped against a rock, one hand pressed against a bloody wound in their side. Their face is pale but their eyes are calm. <br><br><em>\"Fear not for me, traveler. The wound looks worse than it is. But... I could use aid, if you're willing to offer it.\"</em>",
+  "description": "A pilgrim in simple robes lies propped against a rock, one hand pressed against a bloody wound in {pronounPossessive} side. {pronounPossessiveCap} face is pale but {pronounPossessive} eyes are calm. <br><br><em>\"Fear not for me, traveler. The wound looks worse than it is. But... I could use aid, if you're willing to offer it.\"</em>",
   "keywords": ["pilgrim", "wounded", "injured", "robed", "hurt"],
   "pronoun": "they",
   "possessive": "their",
@@ -329,7 +329,7 @@
     "\"I was set upon by wolves,\" the pilgrim explains. \"I outran them, but not their teeth.\"",
     "The pilgrim studies your face. \"You have a good heart. I can see it.\"",
     "\"A healing potion would mend this wound,\" the pilgrim admits. \"But I won't beg for what isn't freely given.\"",
-    "The pilgrim nods gratefully. \"To help a stranger when you could walk past — that is true courage.\"",
+    "The pilgrim nods gratefully. \"To help a stranger when you could walk past â€” that is true courage.\"",
     "The pilgrim presses a brass fragment into your palm. \"I found this on the road. It feels... important. Perhaps it was meant for someone braver than me.\""
   ],
   "interactTemplates": [],
@@ -338,7 +338,7 @@
 {
   "id": "npc_joyful_child",
   "name": "Joyful Child",
-  "description": "A young child sits on the fountain's edge, swinging their legs and humming a cheerful tune. A worn leather ball rests in their lap, and they keep glancing around as if looking for someone to play with. <br><br><em>\"Hey! You look fun! Wanna play catch? Please please please?\"</em>",
+  "description": "A young child sits on the fountain's edge, swinging {pronounPossessive} legs and humming a cheerful tune. A worn leather ball rests in {pronounPossessive} lap, and bright eyes keep darting around in search of someone to play with. <br><br><em>\"Hey! You look fun! Wanna play catch? Please please please?\"</em>",
   "keywords": ["child", "kid", "joyful", "young", "little one"],
   "pronoun": "they",
   "possessive": "their",
@@ -346,7 +346,7 @@
     "The child bounces excitedly. \"If you find my lucky ball, I'll give you something special! I lost it somewhere in the market!\"",
     "\"Games are the best!\" the child declares. \"My grandma says even heroes need to play sometimes.\"",
     "The child giggles. \"Do you know any dogs? I love dogs! They always want to play!\"",
-    "\"I found this shiny thing once,\" the child says, pulling a brass fragment from their pocket. \"But I'd trade it for my ball!\"",
+    "\"I found this shiny thing once,\" the child says, pulling a brass fragment from {pronounPossessive} pocket. \"But I'd trade it for my ball!\"",
     "The child's eyes light up. \"You'll help me find it? You're the BEST!\"",
     "\"Grown-ups forget how to have fun,\" the child says sagely. \"Don't be like that, okay?\""
   ],
@@ -361,10 +361,10 @@
 {
   "id": "npc_town_clerk_elin",
   "name": "Clerk Elin",
-  "description": "A brisk clerk in ink-smudged sleeves stands behind a stack of ledgers almost as tall as the desk itself. Their expression says they have already answered the same question six times today, but they still manage a professional smile. <br><br><em>\"If you need records, permits, or directions, speak clearly and one at a time.\"</em>",
+  "description": "A brisk clerk in ink-smudged sleeves stands behind a stack of ledgers almost as tall as the desk itself. {pronounPossessiveCap} expression suggests the same question has already been asked six times today, but {pronounSubject} still offers a professional smile. <br><br><em>\"If you need records, permits, or directions, speak clearly and one at a time.\"</em>",
   "keywords": ["clerk", "elin", "town clerk", "scribe", "official"],
-  "pronoun": "they",
-  "possessive": "their",
+  "pronoun": "she",
+  "possessive": "her",
   "talkTemplates": [
     "Elin taps a ledger. \"Most problems in town begin as paperwork and end as twice as much paperwork.\"",
     "\"The market complains, the watch complains, and the mayor complains about both,\" Elin says. \"So the day proceeds normally.\"",
@@ -381,14 +381,14 @@
 {
   "id": "npc_banker_merrow",
   "name": "Banker Merrow",
-  "description": "A careful, silver-haired banker watches the room over half-moon spectacles, one hand always resting near the day's ledger key. Their coat is modest, but every seam suggests precise taste and older money. <br><br><em>\"Coin is only trust stamped in metal. Spend either carelessly and you soon go hungry.\"</em>",
+  "description": "A careful, silver-haired banker watches the room over half-moon spectacles, one hand always resting near the day's ledger key. {pronounPossessiveCap} coat is modest, but every seam suggests precise taste and older money. <br><br><em>\"Coin is only trust stamped in metal. Spend either carelessly and you soon go hungry.\"</em>",
   "keywords": ["banker", "merrow", "bank", "teller", "cashier"],
   "pronoun": "they",
   "possessive": "their",
   "talkTemplates": [
-    "Merrow folds their hands. \"Harvest loans, rebuilding loans, winter advances. A town survives because people trust tomorrow enough to borrow from it.\"",
+    "Merrow folds {pronounPossessive} hands. \"Harvest loans, rebuilding loans, winter advances. A town survives because people trust tomorrow enough to borrow from it.\"",
     "\"The road to the forest takes more coin from this town than bandits ever did,\" Merrow murmurs. \"Repairs are expensive. So are funerals.\"",
-    "Merrow inclines their head. \"If you carry valuables, remember that confidence is not the same thing as security.\"",
+    "Merrow inclines {pronounPossessive} head. \"If you carry valuables, remember that confidence is not the same thing as security.\"",
     "\"Captain Hale worries about blades. I worry about roofs, grain, and debt,\" Merrow says. \"All three can ruin a family.\""
   ],
   "interactTemplates": [
@@ -401,12 +401,12 @@
 {
   "id": "npc_captain_hale",
   "name": "Captain Hale",
-  "description": "A broad-shouldered watch captain in a weather-creased cloak stands in the barracks yard, reading the road reports with a soldier's patience and a parent's fatigue. Old scars vanish into their collar. <br><br><em>\"If you're heading outside the walls, keep your eyes up and your route simple. The wild only surprises fools once.\"</em>",
+  "description": "A broad-shouldered watch captain in a weather-creased cloak stands in the barracks yard, reading the road reports with a soldier's patience and a parent's fatigue. Old scars vanish into {pronounPossessive} collar. <br><br><em>\"If you're heading outside the walls, keep your eyes up and your route simple. The wild only surprises fools once.\"</em>",
   "keywords": ["captain", "hale", "watch captain", "guard", "officer"],
   "pronoun": "they",
   "possessive": "their",
   "talkTemplates": [
-    "Hale jerks their chin toward the gate. \"We keep the road open. Most days, that's the same as keeping people alive.\"",
+    "Hale jerks {pronounPossessive} chin toward the gate. \"We keep the road open. Most days, that's the same as keeping people alive.\"",
     "\"The forest isn't evil,\" Hale says. \"It just doesn't care whether you come back out. Plan accordingly.\"",
     "Hale taps the duty board. \"Half the work is patrols. The other half is convincing townsfolk they don't need three escorts to visit a cousin.\"",
     "\"If trouble starts inside the walls, I hear of it by noon. If it starts outside the walls, I hear of it when someone limps home,\" Hale says grimly."
@@ -441,7 +441,7 @@
 {
   "id": "npc_baker_tomas",
   "name": "Baker Tomas",
-  "description": "A flour-dusted baker with strong forearms and a permanently warm face moves between the oven and the cooling racks as if he has been doing it since childhood. Which, judging by the confidence in his hands, he probably has. <br><br><em>\"Fresh bread forgives a lot. Not everything, but a lot.\"</em>",
+  "description": "A flour-dusted baker with strong forearms and a permanently warm face moves between the oven and the cooling racks as if {pronounSubject} {pronounHave} been doing it since childhood. Which, judging by the confidence in {pronounPossessive} hands, {pronounSubject} probably {pronounHave}. <br><br><em>\"Fresh bread forgives a lot. Not everything, but a lot.\"</em>",
   "keywords": ["baker", "tomas", "bread", "cook", "bakery"],
   "pronoun": "he",
   "possessive": "his",
@@ -453,7 +453,7 @@
   ],
   "interactTemplates": [
     "Baker Tomas looks up from a peel of fresh loaves as {player} approaches.",
-    "Tomas dusts flour from his hands and smiles toward {player}.",
+    "Tomas dusts flour from {pronounPossessive} hands and smiles toward {player}.",
     "The baker shifts a tray off the rack and nods to {player}."
   ],
   "wander": null
@@ -461,7 +461,7 @@
 {
   "id": "npc_shopkeeper_rona",
   "name": "Shopkeeper Rona",
-  "description": "A practical merchant with measuring twine looped around one wrist keeps the general store in immaculate order. They have the gaze of someone who can tell at once whether you need lamp oil, rope, or better judgment. <br><br><em>\"If I don't stock it, you probably don't need it before supper. Probably.\"</em>",
+  "description": "A practical merchant with measuring twine looped around one wrist keeps the general store in immaculate order. {pronounSubjectCap} {pronounHave} the gaze of someone who can tell at once whether you need lamp oil, rope, or better judgment. <br><br><em>\"If I don't stock it, you probably don't need it before supper. Probably.\"</em>",
   "keywords": ["shopkeeper", "rona", "merchant", "storekeeper", "grocer"],
   "pronoun": "they",
   "possessive": "their",
@@ -481,12 +481,12 @@
 {
   "id": "npc_blacksmith_bram",
   "name": "Blacksmith Bram",
-  "description": "A soot-dark blacksmith with forearms like hammered iron works the forge with steady, economical force. Sparks leap around him, but he scarcely seems to notice. <br><br><em>\"Steel doesn't care what you intend. Only what you do to it.\"</em>",
+  "description": "A soot-dark blacksmith with forearms like hammered iron works the forge with steady, economical force. Sparks leap around {pronounObject}, but {pronounSubject} scarcely seems to notice. <br><br><em>\"Steel doesn't care what you intend. Only what you do to it.\"</em>",
   "keywords": ["blacksmith", "bram", "smith", "forgemaster", "armorer"],
   "pronoun": "he",
   "possessive": "his",
   "talkTemplates": [
-    "Bram eyes the blade on his anvil. \"Every weapon tells you when you've rushed it. Usually by failing at the worst possible time.\"",
+    "Bram eyes the blade on {pronounPossessive} anvil. \"Every weapon tells you when you've rushed it. Usually by failing at the worst possible time.\"",
     "\"Magnus trains people to swing,\" Bram says. \"I make sure what they're swinging survives the lesson.\"",
     "Bram grunts toward the market. \"Coin comes from the square. Good ore comes from patience. I prefer the second.\"",
     "\"If your gear rattles, slips, or bends, bring it back before it gets you killed,\" Bram says."
@@ -494,7 +494,75 @@
   "interactTemplates": [
     "Blacksmith Bram looks up from the anvil as {player} steps into the forge.",
     "Bram sets down his hammer and studies {player} through the sparks.",
-    "The blacksmith wipes soot from his brow and acknowledges {player}."
+    "The blacksmith wipes soot from {pronounPossessive} brow and acknowledges {player}."
+  ],
+  "wander": null
+},
+{
+  "id": "npc_relicsmith_elira",
+  "name": "Relicsmith Elira",
+  "description": "A silver-haired relicsmith works at a sidebench crowded with jeweler's files, tiny tongs, and shallow brass trays. Older marks than the forge-fire itself scar {pronounPossessive} apron, and a blue spirit flame dances in the cup of a narrow lamp beside {pronounObject}. <br><br><em>\"Bring me honest metal and a fair fee,\"</em> {pronounSubject} says without looking up, <em>\"and I'll see whether it remembers the shape it was meant to keep.\"</em>",
+  "keywords": ["elira", "relicsmith", "smith", "oathsmith", "forger"],
+  "pronoun": "she",
+  "possessive": "her",
+  "talkTemplates": [
+    "\"Old oathwork doesn't answer to brute force,\" Elira says. \"It answers to heat, patience, and a hand that knows what promise the metal was made to hold.\"",
+    "\"If you've gathered the four brass shards tied to Obi's name, bring me one of them when the set is complete,\" Elira says. \"Hand me the work and <strong>60 gold</strong>, and I'll reforge the tag.\"",
+    "Elira turns a fragment of brass beneath the lamp. \"Most relics want polishing. The good ones want remembering.\"",
+    "\"Four shards, one tag,\" Elira murmurs. \"That much I can mend. What wakes after that is between you and the oath.\""
+  ],
+  "giveInteractions": [
+    {
+      "acceptedItemIds": [
+        "item_tag_shard_paw",
+        "item_tag_shard_heart",
+        "item_tag_shard_ball",
+        "item_tag_shard_compass"
+      ],
+      "requiredItemIds": [
+        "item_tag_shard_paw",
+        "item_tag_shard_heart",
+        "item_tag_shard_ball",
+        "item_tag_shard_compass"
+      ],
+      "consumedItemIds": [
+        "item_tag_shard_paw",
+        "item_tag_shard_heart",
+        "item_tag_shard_ball",
+        "item_tag_shard_compass"
+      ],
+      "rewardItemId": "item_obis_tag",
+      "denyIfPlayerHasItemId": "item_obis_tag",
+      "goldCost": 60,
+      "alreadyOwnedDialogue": [
+        "\"The tag is already whole,\" Elira says. \"If the oath will answer you now, it will answer at the stone.\""
+      ],
+      "missingRequiredItemsDialogue": [
+        "\"I can mend Obi's tag, but I need all four shards on my bench at once,\" Elira says. \"Bring me the full set.\""
+      ],
+      "insufficientGoldDialogue": [
+        "\"The brass is ready, but the work will cost <strong>{costGold} gold</strong>,\" Elira says. \"Come back when you can pay for the fire and the craft.\""
+      ],
+      "successDialogue": [
+        "Elira sets the four shards upon the anvil and arranges them with ritual care. As her fingers leave the metal, the forge flares bright of its own accord.",
+        "White fire coils around the fragments. The workshop falls still. Even the bellows seem to hold their breath.",
+        "{name} raises {pronounPossessive} hammer and strikes.",
+        "The sound rings out like a bell through a chapel.",
+        "A second blow follows, and light spills through the cracks in the shards like molten gold. Faint shapes flicker within the glow -- a paw, a heart, a winding road, the ghost of a ball tumbling through sunlit grass.",
+        "A third and final blow falls.",
+        "The broken pieces lift from the anvil and draw together, not as metal forced into shape, but as something long separated at last made whole.",
+        "When the light fades, a single shining tag remains.",
+        "{name} threads the finished piece onto fresh leather and places <strong>{rewardItem}</strong> gently in your hand. The brass is warm, and for the briefest moment, it seems to pulse.",
+        "\"Some things are forged,\" {name} murmurs. \"And some are returned.\"",
+        "<br><em>You pay <strong>{costGold} gold</strong> for the work.</em>"
+      ],
+      "missingRewardItemMessage": "\"The work is ready, but the finished tag isn't where I left it,\" Elira says, frowning at the bench."
+    }
+  ],
+  "interactTemplates": [
+    "Elira glances up from her sidebench as {player} nears, blue flame reflecting in her spectacles.",
+    "The relicsmith brushes brass filings from {pronounPossessive} apron and studies {player} with measured curiosity.",
+    "Elira sets down a pair of tongs and gives {player} a small, professional nod."
   ],
   "wander": null
 },
@@ -512,8 +580,8 @@
     "\"If something glows, stings, or smells sweet in the wilds, assume it wants respect,\" Selin advises."
   ],
   "interactTemplates": [
-    "Apothecary Selin looks up from her herb bundles as {player} enters.",
-    "Selin corks a vial and turns her attention to {player}.",
+    "Apothecary Selin looks up from {pronounPossessive} herb bundles as {player} enters.",
+    "Selin corks a vial and turns {pronounPossessive} attention to {player}.",
     "The apothecary watches {player} with thoughtful reserve."
   ],
   "wander": null
@@ -521,19 +589,19 @@
 {
   "id": "npc_stablehand_elsie",
   "name": "Stablehand Elsie",
-  "description": "A wiry stablehand with hay in her hair and mud on her boots moves easily between the stalls, calming horses with a touch and a word. She smells of leather, oats, and open weather. <br><br><em>\"A horse knows before you do whether the road ahead is a good idea. Shame riders don't listen half as well.\"</em>",
+  "description": "A wiry stablehand with hay in {pronounPossessive} hair and mud on {pronounPossessive} boots moves easily between the stalls, calming horses with a touch and a word. {pronounSubjectCap} smells of leather, oats, and open weather. <br><br><em>\"A horse knows before you do whether the road ahead is a good idea. Shame riders don't listen half as well.\"</em>",
   "keywords": ["stablehand", "elsie", "groom", "stable", "handler"],
   "pronoun": "she",
   "possessive": "her",
   "talkTemplates": [
     "Elsie pats a mare's neck. \"Road horses hate the east wind. Means rain or worse. Usually both.\"",
     "\"If you're sleeping at the inn and leaving at dawn, tell Mira to wake you before I start saddling,\" Elsie says.",
-    "Elsie jerks her head toward the gate. \"Everything that leaves town passes me first. Wagons, patrols, bad ideas.\"",
+    "Elsie jerks {pronounPossessive} head toward the gate. \"Everything that leaves town passes me first. Wagons, patrols, bad ideas.\"",
     "\"This stable hears more secrets than Town Hall,\" Elsie says. \"Horses never repeat them.\""
   ],
   "interactTemplates": [
     "Stablehand Elsie glances over a stall door as {player} enters the yard.",
-    "Elsie brushes hay from her sleeves and nods to {player}.",
+    "Elsie brushes hay from {pronounPossessive} sleeves and nods to {player}.",
     "A gelding snorts softly while Elsie looks toward {player}."
   ],
   "wander": null
@@ -541,19 +609,19 @@
 {
   "id": "npc_temple_keeper_sera",
   "name": "Keeper Sera",
-  "description": "A quiet temple keeper in layered grey-blue robes tends the court candles with patient hands. Their voice is low, but it carries with the same calm steadiness as the bells above the eaves. <br><br><em>\"Not every prayer asks for rescue. Some only ask to be remembered.\"</em>",
+  "description": "A quiet temple keeper in layered grey-blue robes tends the court candles with patient hands. {pronounPossessiveCap} voice is low, but it carries with the same calm steadiness as the bells above the eaves. <br><br><em>\"Not every prayer asks for rescue. Some only ask to be remembered.\"</em>",
   "keywords": ["keeper", "sera", "priest", "temple keeper", "acolyte"],
   "pronoun": "they",
   "possessive": "their",
   "talkTemplates": [
     "Sera lights another candle. \"The old district remembers longer than the rest of town cares to. That is both burden and gift.\"",
     "\"The ruined shrine still draws offerings,\" Sera says. \"Faith rarely leaves just because the roof does.\"",
-    "Sera inclines their head. \"If you walk the graveyard, do so gently. Grief lingers even where bodies do not.\"",
+    "Sera inclines {pronounPossessive} head. \"If you walk the graveyard, do so gently. Grief lingers even where bodies do not.\"",
     "\"Most travelers ask for safety,\" Sera says softly. \"Most towns ask for endurance.\""
   ],
   "interactTemplates": [
     "Keeper Sera looks up from the prayer candles as {player} enters the court.",
-    "Sera folds their hands and offers {player} a calm greeting.",
+    "Sera folds {pronounPossessive} hands and offers {player} a calm greeting.",
     "The temple keeper pauses beside the bells and turns toward {player}."
   ],
   "wander": null
@@ -561,7 +629,7 @@
 {
   "id": "npc_groundskeeper_orrow",
   "name": "Groundskeeper Orrow",
-  "description": "An older groundskeeper in a patched coat tends the graveyard paths with a rake over one shoulder and rosemary tucked into a breast pocket. Their back is bent by years, but their gaze is unflinching. <br><br><em>\"The dead ask little. Clean paths, steady names, and someone to notice when the living forget them.\"</em>",
+  "description": "An older groundskeeper in a patched coat tends the graveyard paths with a rake over one shoulder and rosemary tucked into a breast pocket. {pronounPossessiveCap} back is bent by years, but {pronounPossessive} gaze is unflinching. <br><br><em>\"The dead ask little. Clean paths, steady names, and someone to notice when the living forget them.\"</em>",
   "keywords": ["groundskeeper", "orrow", "gravedigger", "caretaker", "gravekeeper"],
   "pronoun": "they",
   "possessive": "their",
@@ -573,7 +641,7 @@
   ],
   "interactTemplates": [
     "Groundskeeper Orrow looks up from a headstone as {player} approaches.",
-    "Orrow leans on their rake and studies {player} in thoughtful silence.",
+    "Orrow leans on {pronounPossessive} rake and studies {player} in thoughtful silence.",
     "The graveyard keeper nods once toward {player}."
   ],
   "wander": null
@@ -594,19 +662,19 @@
   "interactTemplates": [
     "Gatewarden Holt shifts beneath the arch as {player} nears the gate.",
     "Holt glances from the road back to {player} with practiced caution.",
-    "The gatewarden gives {player} a brief nod without taking their eyes off the frontier for long."
+    "The gatewarden gives {player} a brief nod without taking {pronounPossessive} eyes off the frontier for long."
   ],
   "wander": null
 },
 {
   "id": "npc_blind_guide",
   "name": "Blind Guide",
-  "description": "An elderly figure sits cross-legged at the fork in the path, a worn walking staff across their knees. Their eyes are milky and sightless, yet they turn unerringly toward you as you approach. <br><br><em>\"Lost?\"</em> they ask with a knowing smile. <em>\"Many are. The forest tests those who seek its heart. But those who follow loyalty's path always find their way.\"</em>",
+  "description": "An elderly figure sits cross-legged at the fork in the path, a worn walking staff across {pronounPossessive} knees. {pronounPossessiveCap} eyes are milky and sightless, yet they still seem to find you unerringly as you approach. <br><br><em>\"Lost?\"</em> comes the question with a knowing smile. <em>\"Many are. The forest tests those who seek its heart. But those who follow loyalty's path always find their way.\"</em>",
   "keywords": ["guide", "blind", "elder", "old", "seer", "wise"],
   "pronoun": "they",
   "possessive": "their",
   "talkTemplates": [
-    "The guide tilts their head. \"The paw marks the faithful. Have you walked beside one who never left your side?\"",
+    "The guide tilts {pronounPossessive} head. \"The paw marks the faithful. Have you walked beside one who never left your side?\"",
     "\"The heart knows courage,\" the guide says. \"Did you offer aid when you could have walked past?\"",
     "\"Joy is often forgotten by those who think themselves too important for play.\" The guide chuckles softly.",
     "\"The compass points true for those who know their purpose. Why do you seek the grove?\"",
@@ -616,7 +684,7 @@
   "interactTemplates": [
     "The blind guide turns toward {player}, somehow sensing their presence.",
     "The guide's sightless eyes seem to look through {player}.",
-    "The guide inclines their head as {player} approaches the fork.",
+    "The guide inclines {pronounPossessive} head as {player} approaches the fork.",
     "The guide smiles knowingly as {player} arrives."
   ],
   "wander": null
@@ -624,7 +692,7 @@
 {
   "id": "npc_forest_wolf",
   "name": "Forest Wolf",
-  "description": "A lean grey wolf with hungry yellow eyes and scarred muzzle. Its lips curl back to reveal yellowed fangs, a low growl rumbling from deep in its chest. This predator has clearly survived many battles.",
+  "description": "A lean grey wolf with hungry yellow eyes and scarred muzzle. {pronounPossessiveCap} lips curl back to reveal yellowed fangs, a low growl rumbling from deep in {pronounPossessive} chest. This predator has clearly survived many battles.",
   "keywords": ["wolf", "grey wolf", "forest wolf", "predator", "beast"],
   "pronoun": "it",
   "possessive": "its",
@@ -643,12 +711,12 @@
   "wander": null,
   "combatTarget": true,
   "respawns": false,
-  "maxHealth": 40,
-  "level": 5,
-  "xpReward": 15,
-  "goldReward": 7,
-  "minDamage": 4,
-  "maxDamage": 8,
+  "maxHealth": 46,
+  "level": 6,
+  "xpReward": 18,
+  "goldReward": 9,
+  "minDamage": 5,
+  "maxDamage": 9,
   "playerDeathEnabled": true
 }
 ]

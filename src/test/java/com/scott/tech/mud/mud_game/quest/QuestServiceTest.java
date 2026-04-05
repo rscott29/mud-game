@@ -91,6 +91,44 @@ class QuestServiceTest {
     }
 
     @Test
+    void onEnterRoom_finalObjectiveCarriesObjectiveEffectsIntoQuestComplete() throws Exception {
+        ObjectiveEffects finalEffects = new ObjectiveEffects(
+                null,
+                null,
+                null,
+                "npc_wounded_pilgrim",
+                List.of("item_tag_shard_heart"),
+                List.of("The pilgrim places a glowing shard in your palm.")
+        );
+        Quest quest = quest("quest_courage", List.of(
+                new QuestObjective(
+                        "reach_heart",
+                        QuestObjectiveType.VISIT,
+                        "Reach the Heart of the Cave",
+                        "cave_heart",
+                        null,
+                        false,
+                        List.of(),
+                        0,
+                        false,
+                        null,
+                        false,
+                        finalEffects
+                )
+        ));
+        QuestService service = questServiceWith(quest);
+        Player player = player();
+        service.startQuest(player, quest.id());
+
+        Optional<QuestService.QuestProgressResult> result = service.onEnterRoom(player, "cave_heart");
+
+        assertThat(result).isPresent();
+        assertThat(result.get().type()).isEqualTo(QuestService.QuestProgressResult.ResultType.QUEST_COMPLETE);
+        assertThat(result.get().objectiveEffects()).isEqualTo(finalEffects);
+        assertThat(player.getQuestState().isQuestCompleted(quest.id())).isTrue();
+    }
+
+    @Test
     void completeQuest_awardsGoldToPlayer() throws Exception {
         Quest quest = new Quest(
                 "quest_gold",

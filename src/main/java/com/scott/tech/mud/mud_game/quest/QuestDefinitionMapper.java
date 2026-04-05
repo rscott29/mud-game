@@ -18,6 +18,8 @@ final class QuestDefinitionMapper {
                 def.giver,
                 def.startDialogue,
                 buildPrerequisites(def.prerequisites),
+                def.recommendedLevel != null ? def.recommendedLevel : 0,
+                QuestChallengeRating.fromString(def.challengeRating),
                 objectives,
                 buildRewards(def.rewards),
                 def.completionDialogue,

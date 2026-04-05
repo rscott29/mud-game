@@ -776,6 +776,29 @@ describe('TerminalComponent', () => {
     expect(component.view.messages()[0].html).toContain('Quentor arrives from the east.');
   });
 
+  it('folds narrative echo messages into the active room card with echo styling', () => {
+    const fixture = TestBed.createComponent(TerminalComponent);
+    const component = fixture.componentInstance;
+
+    const room = {
+      id: 'town_square',
+      name: 'Town Square',
+      description: 'A lively square.',
+      exits: ['north'],
+      items: [],
+      npcs: [],
+      players: [],
+    };
+
+    socket.messages$.next({ type: GAME_MESSAGE_TYPES.ROOM_UPDATE, message: 'You arrive.', room });
+    socket.messages$.next({ type: GAME_MESSAGE_TYPES.NARRATIVE_ECHO, message: 'Obi bows his head.' });
+
+    expect(component.view.messages().length).toBe(1);
+    expect(component.view.messages()[0].cssClass).toBe(TERMINAL_MESSAGE_CLASSES.ROOM_UPDATE);
+    expect(component.view.messages()[0].html).toContain('message--narrative-echo');
+    expect(component.view.messages()[0].html).toContain('Obi bows his head.');
+  });
+
   it('folds room action messages into the active room card with distinct styling', () => {
     const fixture = TestBed.createComponent(TerminalComponent);
     const component = fixture.componentInstance;

@@ -1,15 +1,23 @@
 package com.scott.tech.mud.mud_game.persistence.service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.scott.tech.mud.mud_game.model.Player;
+import com.scott.tech.mud.mud_game.persistence.cache.PlayerStateCache.CachedActiveQuest;
 import com.scott.tech.mud.mud_game.persistence.cache.PlayerStateCache.CachedPlayerState;
 import com.scott.tech.mud.mud_game.persistence.entity.PlayerProfileEntity;
 import com.scott.tech.mud.mud_game.persistence.repository.PlayerProfileRepository;
+import com.scott.tech.mud.mud_game.quest.PlayerQuestState;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.io.IOException;
 import java.time.Instant;
+import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -30,6 +38,8 @@ import java.util.Optional;
 public class PlayerProfileService {
 
     private static final Logger log = LoggerFactory.getLogger(PlayerProfileService.class);
+    private static final ObjectMapper ACTIVE_QUESTS_MAPPER = new ObjectMapper();
+    private static final TypeReference<List<PersistedActiveQuest>> ACTIVE_QUESTS_TYPE = new TypeReference<>() {};
 
     private final PlayerProfileRepository profileRepository;
 
@@ -82,6 +92,7 @@ public class PlayerProfileService {
             if (p.getRecallRoomId() != null && !p.getRecallRoomId().isBlank()) {
                 player.setRecallRoomId(p.getRecallRoomId());
             }
+            restoreActiveQuests(player, p.getActiveQuests(), username);
             // Restore completed quests
             if (p.getCompletedQuests() != null && !p.getCompletedQuests().isBlank()) {
                 for (String questId : p.getCompletedQuests().split(",")) {
@@ -165,6 +176,7 @@ public class PlayerProfileService {
         profile.setRecallRoomId(player.getRecallRoomId());
         profile.setExperience(player.getExperience());
         profile.setGold(player.getGold());
+        profile.setActiveQuests(serializeActiveQuests(player.getQuestState().getActiveQuests(), key));
         // Save completed quests as comma-separated string
         var completedQuests = player.getQuestState().getCompletedQuests();
         profile.setCompletedQuests(completedQuests.isEmpty() ? null : String.join(",", completedQuests));
@@ -222,6 +234,7 @@ public class PlayerProfileService {
         profile.setRecallRoomId(state.recallRoomId());
         profile.setExperience(state.experience());
         profile.setGold(state.gold() == null ? 0 : state.gold());
+        profile.setActiveQuests(serializeCachedActiveQuests(state.activeQuests(), key));
         // Save completed quests as comma-separated string
         var completedQuests = state.completedQuests();
         profile.setCompletedQuests(completedQuests == null || completedQuests.isEmpty() ? null : String.join(",", completedQuests));
@@ -243,4 +256,66 @@ public class PlayerProfileService {
             log.debug("Updated completed quests for '{}': {}", key, completedQuests);
         });
     }
+
+    private void restoreActiveQuests(Player player, String serializedActiveQuests, String username) {
+        if (serializedActiveQuests == null || serializedActiveQuests.isBlank()) {
+            return;
+        }
+        try {
+            List<PersistedActiveQuest> activeQuests =
+                    ACTIVE_QUESTS_MAPPER.readValue(serializedActiveQuests, ACTIVE_QUESTS_TYPE);
+            for (PersistedActiveQuest activeQuest : activeQuests) {
+                player.getQuestState().restoreActiveQuest(
+                        activeQuest.questId(),
+                        activeQuest.currentObjectiveId(),
+                        activeQuest.objectiveProgress(),
+                        activeQuest.dialogueStage());
+            }
+        } catch (IOException e) {
+            log.warn("Failed to restore active quests for '{}': {}", username, e.getMessage());
+        }
+    }
+
+    private String serializeActiveQuests(Collection<PlayerQuestState.ActiveQuest> activeQuests, String username) {
+        if (activeQuests == null || activeQuests.isEmpty()) {
+            return null;
+        }
+        List<PersistedActiveQuest> persisted = activeQuests.stream()
+                .map(activeQuest -> new PersistedActiveQuest(
+                        activeQuest.getQuestId(),
+                        activeQuest.getCurrentObjectiveId(),
+                        activeQuest.getObjectiveProgress(),
+                        activeQuest.getDialogueStage()))
+                .toList();
+        return writeActiveQuestJson(persisted, username);
+    }
+
+    private String serializeCachedActiveQuests(List<CachedActiveQuest> activeQuests, String username) {
+        if (activeQuests == null || activeQuests.isEmpty()) {
+            return null;
+        }
+        List<PersistedActiveQuest> persisted = activeQuests.stream()
+                .map(activeQuest -> new PersistedActiveQuest(
+                        activeQuest.questId(),
+                        activeQuest.currentObjectiveId(),
+                        activeQuest.objectiveProgress(),
+                        activeQuest.dialogueStage()))
+                .toList();
+        return writeActiveQuestJson(persisted, username);
+    }
+
+    private String writeActiveQuestJson(List<PersistedActiveQuest> activeQuests, String username) {
+        try {
+            return ACTIVE_QUESTS_MAPPER.writeValueAsString(activeQuests);
+        } catch (JsonProcessingException e) {
+            throw new IllegalStateException("Failed to serialize active quests for '" + username + "'", e);
+        }
+    }
+
+    private record PersistedActiveQuest(
+            String questId,
+            String currentObjectiveId,
+            int objectiveProgress,
+            int dialogueStage
+    ) {}
 }

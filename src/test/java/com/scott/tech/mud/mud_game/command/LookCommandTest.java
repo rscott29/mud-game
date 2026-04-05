@@ -10,6 +10,7 @@ import com.scott.tech.mud.mud_game.model.Player;
 import com.scott.tech.mud.mud_game.model.Rarity;
 import com.scott.tech.mud.mud_game.model.Room;
 import com.scott.tech.mud.mud_game.quest.Quest;
+import com.scott.tech.mud.mud_game.quest.QuestChallengeRating;
 import com.scott.tech.mud.mud_game.quest.QuestCompletionEffects;
 import com.scott.tech.mud.mud_game.quest.QuestPrerequisites;
 import com.scott.tech.mud.mud_game.quest.QuestRewards;
@@ -57,6 +58,7 @@ class LookCommandTest {
         Player player = mock(Player.class);
         when(player.getCurrentRoomId()).thenReturn(room.getId());
         when(player.getName()).thenReturn("TestPlayer");
+        when(player.getLevel()).thenReturn(2);
         when(player.getInventory()).thenReturn(List.of());
         when(session.getPlayer()).thenReturn(player);
 
@@ -162,6 +164,8 @@ class LookCommandTest {
                 "npc_dog_Obi",
                 List.of(),
                 QuestPrerequisites.NONE,
+                4,
+                QuestChallengeRating.HIGH,
                 List.of(),
                 QuestRewards.NONE,
                 List.of(),
@@ -173,7 +177,24 @@ class LookCommandTest {
 
         assertThat(singleResponse(result).message())
                 .contains("The Path of Loyalty")
+                .contains("CR III High")
+                .contains("Recommended Lv. 4")
                 .contains("accept</strong>");
+    }
+
+    @Test
+    void lookingAtNpc_rendersConfiguredPronounTokensInDescription() {
+        Npc elin = npc("npc_elin", "Elin",
+                "{pronounPossessiveCap} expression says {pronounSubject} {pronounHave} answered this already.",
+                List.of("elin"));
+        room = new Room("town_square", "Town Square", "A cobblestone plaza.",
+                new EnumMap<>(Direction.class), List.of(), List.of(elin));
+        when(session.getCurrentRoom()).thenReturn(room);
+
+        CommandResult result = new LookCommand("elin", sessionManager).execute(session);
+
+        assertThat(singleResponse(result).message())
+                .contains("His expression says he has answered this already.");
     }
 
     @Test

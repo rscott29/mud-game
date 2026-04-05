@@ -16,7 +16,10 @@ import java.util.List;
  * <p>
  * The {@code description} field accepts either a plain JSON string or an array
  * of strings (joined with a single space), so long descriptions can be split
- * across multiple lines in the JSON file without losing validity.
+ * across multiple lines in the JSON file without losing validity. Description
+ * and template text may include reusable NPC tokens such as
+ * {@code {pronounSubject}}, {@code {pronounPossessive}},
+ * {@code {pronounSubjectCap}}, and {@code {pronounHave}}.
  */
 public class NpcData {
 
@@ -33,7 +36,8 @@ public class NpcData {
     private WanderConfig wander;
     /**
      * Optional reactions shown to a player who walks into the NPC's room.
-     * Tokens: {name} = NPC name, {player} = player name.
+     * Tokens include {name}, {player}, {pronounSubject}, {pronounPossessive},
+     * and their capitalized forms.
      */
     private List<String> interactTemplates = List.of();
     /**
@@ -51,6 +55,8 @@ public class NpcData {
      * for sentient NPCs. Ignored when {@code sentient = false}.
      */
     private String personality;
+    /** Optional give-command interactions (crafting, reforging, exchanges, etc.). */
+    private List<GiveInteractionData> giveInteractions = List.of();
     /** If true, AI-polished lines for this NPC should lean a little more playful/funny. */
     private boolean humorous = false;
 
@@ -85,6 +91,7 @@ public class NpcData {
     public boolean isSentient()                    { return sentient; }
     public List<String> getTalkTemplates()         { return talkTemplates; }
     public String getPersonality()                 { return personality; }
+    public List<GiveInteractionData> getGiveInteractions() { return giveInteractions; }
     public boolean isHumorous()                    { return humorous; }
     public boolean isCombatTarget()                { return combatTarget; }
     public boolean isRespawns()                    { return respawns; }
@@ -107,6 +114,9 @@ public class NpcData {
     public void setSentient(boolean s)                     { this.sentient = s; }
     public void setTalkTemplates(List<String> t)           { this.talkTemplates = t != null ? t : List.of(); }
     public void setPersonality(String p)                   { this.personality = p; }
+    public void setGiveInteractions(List<GiveInteractionData> giveInteractions) {
+        this.giveInteractions = giveInteractions != null ? giveInteractions : List.of();
+    }
     public void setHumorous(boolean humorous)              { this.humorous = humorous; }
     public void setCombatTarget(boolean c)                 { this.combatTarget = c; }
     public void setRespawns(boolean r)                     { this.respawns = r; }
@@ -139,12 +149,15 @@ public class NpcData {
         private long minSeconds = 30;
         private long maxSeconds = 90;
         /**
-         * Optional per-NPC departure messages. Tokens: {name}, {pronoun}, {dir}.
+         * Optional per-NPC departure messages. Tokens include {name}, {dir},
+         * {pronoun} (legacy possessive alias), {pronounSubject}, and
+         * {pronounPossessive}.
          * Falls back to the scheduler's built-in defaults when empty.
          */
         private List<String> departureTemplates = List.of();
         /**
-         * Optional per-NPC arrival messages. Tokens: {name}, {from}.
+         * Optional per-NPC arrival messages. Tokens include {name}, {from},
+         * and reusable pronoun placeholders.
          * Falls back to the scheduler's built-in defaults when empty.
          */
         private List<String> arrivalTemplates = List.of();
@@ -165,5 +178,75 @@ public class NpcData {
         public void setDepartureTemplates(List<String> t)   { this.departureTemplates = t != null ? t : List.of(); }
         public void setArrivalTemplates(List<String> t)     { this.arrivalTemplates   = t != null ? t : List.of(); }
         public void setPath(List<String> p)                 { this.path               = p != null ? p : List.of(); }
+    }
+
+    public static class GiveInteractionData {
+        private List<String> acceptedItemIds = List.of();
+        private List<String> requiredItemIds = List.of();
+        private List<String> consumedItemIds = List.of();
+        private String rewardItemId;
+        private String denyIfPlayerHasItemId;
+        private int goldCost = 0;
+        private List<String> alreadyOwnedDialogue = List.of();
+        private List<String> missingRequiredItemsDialogue = List.of();
+        private List<String> insufficientGoldDialogue = List.of();
+        private List<String> successDialogue = List.of();
+        private String missingRewardItemMessage;
+
+        public List<String> getAcceptedItemIds() { return acceptedItemIds; }
+        public List<String> getRequiredItemIds() { return requiredItemIds; }
+        public List<String> getConsumedItemIds() { return consumedItemIds; }
+        public String getRewardItemId() { return rewardItemId; }
+        public String getDenyIfPlayerHasItemId() { return denyIfPlayerHasItemId; }
+        public int getGoldCost() { return goldCost; }
+        public List<String> getAlreadyOwnedDialogue() { return alreadyOwnedDialogue; }
+        public List<String> getMissingRequiredItemsDialogue() { return missingRequiredItemsDialogue; }
+        public List<String> getInsufficientGoldDialogue() { return insufficientGoldDialogue; }
+        public List<String> getSuccessDialogue() { return successDialogue; }
+        public String getMissingRewardItemMessage() { return missingRewardItemMessage; }
+
+        public void setAcceptedItemIds(List<String> acceptedItemIds) {
+            this.acceptedItemIds = acceptedItemIds != null ? acceptedItemIds : List.of();
+        }
+
+        public void setRequiredItemIds(List<String> requiredItemIds) {
+            this.requiredItemIds = requiredItemIds != null ? requiredItemIds : List.of();
+        }
+
+        public void setConsumedItemIds(List<String> consumedItemIds) {
+            this.consumedItemIds = consumedItemIds != null ? consumedItemIds : List.of();
+        }
+
+        public void setRewardItemId(String rewardItemId) {
+            this.rewardItemId = rewardItemId;
+        }
+
+        public void setDenyIfPlayerHasItemId(String denyIfPlayerHasItemId) {
+            this.denyIfPlayerHasItemId = denyIfPlayerHasItemId;
+        }
+
+        public void setGoldCost(int goldCost) {
+            this.goldCost = goldCost;
+        }
+
+        public void setAlreadyOwnedDialogue(List<String> alreadyOwnedDialogue) {
+            this.alreadyOwnedDialogue = alreadyOwnedDialogue != null ? alreadyOwnedDialogue : List.of();
+        }
+
+        public void setMissingRequiredItemsDialogue(List<String> missingRequiredItemsDialogue) {
+            this.missingRequiredItemsDialogue = missingRequiredItemsDialogue != null ? missingRequiredItemsDialogue : List.of();
+        }
+
+        public void setInsufficientGoldDialogue(List<String> insufficientGoldDialogue) {
+            this.insufficientGoldDialogue = insufficientGoldDialogue != null ? insufficientGoldDialogue : List.of();
+        }
+
+        public void setSuccessDialogue(List<String> successDialogue) {
+            this.successDialogue = successDialogue != null ? successDialogue : List.of();
+        }
+
+        public void setMissingRewardItemMessage(String missingRewardItemMessage) {
+            this.missingRewardItemMessage = missingRewardItemMessage;
+        }
     }
 }

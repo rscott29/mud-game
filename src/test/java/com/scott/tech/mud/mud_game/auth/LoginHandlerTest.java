@@ -131,21 +131,22 @@ class LoginHandlerTest {
         assertThat(session.getPendingUsername()).isEqualTo("alice");
         assertThat(singleResponse(result).type()).isEqualTo(GameResponse.Type.AUTH_PROMPT);
         assertThat(singleResponse(result).mask()).isTrue();
-        assertThat(singleResponse(result).message()).isEqualTo("Welcome back, Alice.");
+        assertThat(singleResponse(result).message()).isEqualTo("Password for Alice:");
     }
 
     @Test
-    void handleUsername_newAccount_stillTransitionsToAwaitingPassword() {
+    void handleUsername_newAccount_transitionsToCreationConfirm() {
         GameSession session = newSession("s1", "start");
         when(accountStore.exists("alice")).thenReturn(false);
 
         CommandResult result = loginHandler.handle("Alice", session);
 
-        assertThat(session.getState()).isEqualTo(SessionState.AWAITING_PASSWORD);
+        assertThat(session.getState()).isEqualTo(SessionState.AWAITING_CREATION_CONFIRM);
         assertThat(session.getPendingUsername()).isEqualTo("alice");
         assertThat(singleResponse(result).type()).isEqualTo(GameResponse.Type.AUTH_PROMPT);
-        assertThat(singleResponse(result).mask()).isTrue();
-        assertThat(singleResponse(result).message()).contains("type 'create' if you're new");
+        assertThat(singleResponse(result).mask()).isFalse();
+        assertThat(singleResponse(result).message()).contains("Username 'Alice' is not registered.");
+        assertThat(singleResponse(result).message()).contains("Create a new character");
     }
 
     @Test
@@ -164,19 +165,19 @@ class LoginHandlerTest {
     }
 
     @Test
-    void handlePassword_unknownAccountWithoutCreate_staysOnPasswordPrompt() {
+    void handlePassword_unknownAccountWithoutCreate_returnsCreationConfirmPrompt() {
         GameSession session = newSession("s1", "start");
         session.setPendingUsername("alice");
         session.transition(SessionState.AWAITING_PASSWORD);
         when(accountStore.exists("alice")).thenReturn(false);
-        when(accountStore.verifyPassword("alice", "secret")).thenReturn(false);
 
         CommandResult result = loginHandler.handle("secret", session);
 
-        assertThat(session.getState()).isEqualTo(SessionState.AWAITING_PASSWORD);
+        assertThat(session.getState()).isEqualTo(SessionState.AWAITING_CREATION_CONFIRM);
         assertThat(singleResponse(result).type()).isEqualTo(GameResponse.Type.AUTH_PROMPT);
-        assertThat(singleResponse(result).mask()).isTrue();
-        assertThat(singleResponse(result).message()).contains("Unable to sign in with those details");
+        assertThat(singleResponse(result).mask()).isFalse();
+        assertThat(singleResponse(result).message()).contains("Username 'Alice' is not registered.");
+        assertThat(singleResponse(result).message()).contains("Create a new character");
     }
 
     @Test
@@ -203,11 +204,14 @@ class LoginHandlerTest {
         assertThat(session.getState()).isEqualTo(SessionState.PLAYING);
         assertThat(session.getPlayer().getName()).isEqualTo("Alice");
         assertThat(session.getPlayer().getCurrentRoomId()).isEqualTo("tavern");
-        assertThat(result.getResponses()).hasSize(2);
-        assertThat(result.getResponses().get(0).type()).isEqualTo(GameResponse.Type.WELCOME);
-        assertThat(result.getResponses().get(0).message()).isEqualTo("Welcome to Obsidian Kingdom, Alice! Type 'help' for a list of commands.");
-        assertThat(result.getResponses().get(1).type()).isEqualTo(GameResponse.Type.SESSION_TOKEN);
-        assertThat(result.getResponses().get(1).token()).isEqualTo("token-123");
+        assertThat(result.getResponses()).hasSize(3);
+        assertThat(result.getResponses().get(0).type()).isEqualTo(GameResponse.Type.AUTH_PROMPT);
+        assertThat(result.getResponses().get(0).mask()).isFalse();
+        assertThat(result.getResponses().get(0).message()).isEqualTo("Welcome back, Alice.");
+        assertThat(result.getResponses().get(1).type()).isEqualTo(GameResponse.Type.WELCOME);
+        assertThat(result.getResponses().get(1).message()).isEqualTo("Welcome to Obsidian Kingdom, Alice! Type 'help' for a list of commands.");
+        assertThat(result.getResponses().get(2).type()).isEqualTo(GameResponse.Type.SESSION_TOKEN);
+        assertThat(result.getResponses().get(2).token()).isEqualTo("token-123");
 
         verify(worldBroadcaster).broadcastToRoom(
                 eq("tavern"),

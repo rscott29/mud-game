@@ -131,15 +131,16 @@ public class LoginHandler {
 
         String normalizedUsername = username.toLowerCase();
         session.setPendingUsername(normalizedUsername);
-        session.transition(SessionState.AWAITING_PASSWORD);
 
         if (accountStore.exists(normalizedUsername)) {
+            session.transition(SessionState.AWAITING_PASSWORD);
             return prompt(Messages.fmt(
                     "auth.prompt.password_existing",
                     "username", capitalize(normalizedUsername)), true);
         }
 
-        return prompt(Messages.get("auth.prompt.password"), true);
+        session.transition(SessionState.AWAITING_CREATION_CONFIRM);
+        return prompt(Messages.fmt("auth.prompt.create_or_exit", "username", capitalize(normalizedUsername)), false);
     }
 
     // -- Phase: password --
@@ -148,7 +149,7 @@ public class LoginHandler {
         String username = session.getPendingUsername();
         boolean accountExists = accountStore.exists(username);
 
-        if (!accountExists && rawPassword.trim().equalsIgnoreCase("create")) {
+        if (!accountExists) {
             session.transition(SessionState.AWAITING_CREATION_CONFIRM);
             return prompt(Messages.fmt("auth.prompt.create_or_exit", "username", capitalize(username)), false);
         }
@@ -165,7 +166,14 @@ public class LoginHandler {
                 return beginCharacterCreation(username, session);
             }
             restoreAuthenticatedPlayerState(username, session);
-            return enterWorld(username, session, true);
+            return enterWorld(
+                    username,
+                    session,
+                    true,
+                    GameResponse.authPrompt(Messages.fmt(
+                            "auth.message.welcome_back",
+                            "username", capitalize(username)), false)
+            );
         }
 
         // Wrong password

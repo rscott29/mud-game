@@ -100,6 +100,23 @@ public class QuestLoader {
         if (def.prerequisites != null && def.prerequisites.minLevel < 1) {
             errors.add("quest '" + safeLabel(def.id) + "' prerequisites.minLevel must be at least 1");
         }
+        if (def.recommendedLevel != null && def.recommendedLevel < 1) {
+            errors.add("quest '" + safeLabel(def.id) + "' recommendedLevel must be at least 1");
+        }
+        if (def.prerequisites != null
+                && def.recommendedLevel != null
+                && def.recommendedLevel < def.prerequisites.minLevel) {
+            errors.add("quest '" + safeLabel(def.id)
+                    + "' recommendedLevel cannot be below prerequisites.minLevel");
+        }
+        if (!isBlank(def.challengeRating)) {
+            try {
+                QuestChallengeRating.fromString(def.challengeRating);
+            } catch (IllegalArgumentException e) {
+                errors.add("quest '" + safeLabel(def.id) + "' challengeRating must be one of "
+                        + Arrays.toString(QuestChallengeRating.values()));
+            }
+        }
 
         if (def.rewards != null && def.rewards.xp < 0) {
             errors.add("quest '" + safeLabel(def.id) + "' rewards.xp cannot be negative");
@@ -393,6 +410,8 @@ public class QuestLoader {
         public String giver;
         public List<String> startDialogue;
         public PrerequisitesData prerequisites;
+        public Integer recommendedLevel;
+        public String challengeRating;
         public List<ObjectiveData> objectives;
         public RewardsData rewards;
         public List<String> completionDialogue;

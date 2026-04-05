@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
 import com.scott.tech.mud.mud_game.model.ItemTrigger;
+import com.scott.tech.mud.mud_game.model.NpcSceneOverride;
 import com.scott.tech.mud.mud_game.model.Rarity;
 
 import java.io.IOException;
@@ -34,6 +35,9 @@ public class ItemData {
     private List<String> requiredItemIds = List.of();
     private String prerequisiteFailMessage;
     private List<TriggerData> triggers = List.of();
+    private List<String> pickupNarrative = List.of();
+    private List<String> pickupSpawnNpcIds = List.of();
+    private List<PickupNpcSceneData> pickupNpcScenes = List.of();
     /** Combat stats (optional, defaults to zeros). */
     private CombatStatsData combatStats;
     /** Optional equipment slot for equippable items. */
@@ -48,6 +52,9 @@ public class ItemData {
     public List<String> getRequiredItemIds()       { return requiredItemIds; }
     public String getPrerequisiteFailMessage()     { return prerequisiteFailMessage; }
     public List<TriggerData> getTriggers()         { return triggers; }
+    public List<String> getPickupNarrative()       { return pickupNarrative; }
+    public List<String> getPickupSpawnNpcIds()     { return pickupSpawnNpcIds; }
+    public List<PickupNpcSceneData> getPickupNpcScenes() { return pickupNpcScenes; }
     public CombatStatsData getCombatStats()        { return combatStats; }
     public String getEquipmentSlot()               { return equipmentSlot; }
 
@@ -60,8 +67,60 @@ public class ItemData {
     public void setRequiredItemIds(List<String> requiredItemIds) { this.requiredItemIds = requiredItemIds != null ? requiredItemIds : List.of(); }
     public void setPrerequisiteFailMessage(String msg)           { this.prerequisiteFailMessage = msg; }
     public void setTriggers(List<TriggerData> triggers)          { this.triggers = triggers != null ? triggers : List.of(); }
+    public void setPickupNarrative(List<String> pickupNarrative) { this.pickupNarrative = pickupNarrative != null ? pickupNarrative : List.of(); }
+    public void setPickupSpawnNpcIds(List<String> pickupSpawnNpcIds) { this.pickupSpawnNpcIds = pickupSpawnNpcIds != null ? pickupSpawnNpcIds : List.of(); }
+    public void setPickupNpcScenes(List<PickupNpcSceneData> pickupNpcScenes) { this.pickupNpcScenes = pickupNpcScenes != null ? pickupNpcScenes : List.of(); }
     public void setCombatStats(CombatStatsData combatStats)      { this.combatStats = combatStats; }
     public void setEquipmentSlot(String equipmentSlot)           { this.equipmentSlot = equipmentSlot; }
+
+    public static class PickupNpcSceneData {
+        private String npcId;
+        @JsonDeserialize(using = DescriptionDeserializer.class)
+        private String description;
+        private List<String> talkTemplates = List.of();
+        private List<String> interactTemplates = List.of();
+        private long durationSeconds = 90;
+        private boolean resetOnMove = true;
+        private boolean suppressWander = false;
+        private boolean orderedInteractionSequence = false;
+
+        public String getNpcId() { return npcId; }
+        public String getDescription() { return description; }
+        public List<String> getTalkTemplates() { return talkTemplates; }
+        public List<String> getInteractTemplates() { return interactTemplates; }
+        public long getDurationSeconds() { return durationSeconds; }
+        public boolean isResetOnMove() { return resetOnMove; }
+        public boolean isSuppressWander() { return suppressWander; }
+        public boolean isOrderedInteractionSequence() { return orderedInteractionSequence; }
+
+        public void setNpcId(String npcId) { this.npcId = npcId; }
+        public void setDescription(String description) { this.description = description; }
+        public void setTalkTemplates(List<String> talkTemplates) {
+            this.talkTemplates = talkTemplates != null ? talkTemplates : List.of();
+        }
+        public void setInteractTemplates(List<String> interactTemplates) {
+            this.interactTemplates = interactTemplates != null ? interactTemplates : List.of();
+        }
+        public void setDurationSeconds(long durationSeconds) { this.durationSeconds = durationSeconds; }
+        public void setResetOnMove(boolean resetOnMove) { this.resetOnMove = resetOnMove; }
+        public void setSuppressWander(boolean suppressWander) { this.suppressWander = suppressWander; }
+        public void setOrderedInteractionSequence(boolean orderedInteractionSequence) {
+            this.orderedInteractionSequence = orderedInteractionSequence;
+        }
+
+        public NpcSceneOverride toNpcSceneOverride() {
+            return new NpcSceneOverride(
+                    npcId,
+                    description,
+                    talkTemplates,
+                    interactTemplates,
+                    durationSeconds,
+                    resetOnMove,
+                    suppressWander,
+                    orderedInteractionSequence
+            );
+        }
+    }
 
     /** Flat DTO for combat stats in items.json. */
     public static class CombatStatsData {

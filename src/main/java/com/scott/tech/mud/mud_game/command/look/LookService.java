@@ -9,6 +9,8 @@ import com.scott.tech.mud.mud_game.model.EquipmentSlot;
 import com.scott.tech.mud.mud_game.model.Item;
 import com.scott.tech.mud.mud_game.model.Player;
 import com.scott.tech.mud.mud_game.model.Room;
+import com.scott.tech.mud.mud_game.model.NpcTextRenderer;
+import com.scott.tech.mud.mud_game.quest.QuestPresentation;
 import com.scott.tech.mud.mud_game.quest.QuestService;
 import com.scott.tech.mud.mud_game.session.GameSession;
 import com.scott.tech.mud.mud_game.session.GameSessionManager;
@@ -74,7 +76,9 @@ public class LookService {
     private CommandResult npcResult(GameSession session, LookValidationResult validation, String playerName) {
         var npc = validation.npc();
         StringBuilder description = new StringBuilder();
-        description.append(npc.getName()).append(": ").append(npc.getDescription());
+        description.append(npc.getName())
+                .append(": ")
+                .append(NpcTextRenderer.render(npc.getDescription(), npc));
         
         // Add quest indicator if NPC has available quests
         if (questService != null) {
@@ -92,11 +96,22 @@ public class LookService {
                         .append(quest.name())
                         .append("</strong><br><small>")
                         .append(quest.description())
-                        .append("</small></div>")
+                        .append("</small>")
+                        .append(QuestPresentation.buildMetaBadges(quest, session.getPlayer().getLevel()))
+                        .append("</div>")
                         .append("<div class='quest-hint'>Try <strong>talk ")
                         .append(npc.getName().toLowerCase())
                         .append("</strong> for details, then <strong>accept</strong>.</div>");
                 } else {
+                    for (var quest : availableQuests) {
+                        description.append("<div class='quest-offer'><strong>")
+                                .append(quest.name())
+                                .append("</strong><br><small>")
+                                .append(quest.description())
+                                .append("</small>")
+                                .append(QuestPresentation.buildMetaBadges(quest, session.getPlayer().getLevel()))
+                                .append("</div>");
+                    }
                     description.append("<div class='quest-hint'>Talk to ")
                         .append(npc.getName())
                         .append(" and use <strong>accept ")

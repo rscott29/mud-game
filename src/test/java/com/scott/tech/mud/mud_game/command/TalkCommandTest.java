@@ -9,6 +9,7 @@ import com.scott.tech.mud.mud_game.model.Npc;
 import com.scott.tech.mud.mud_game.model.Player;
 import com.scott.tech.mud.mud_game.model.Room;
 import com.scott.tech.mud.mud_game.quest.Quest;
+import com.scott.tech.mud.mud_game.quest.QuestChallengeRating;
 import com.scott.tech.mud.mud_game.quest.QuestCompletionEffects;
 import com.scott.tech.mud.mud_game.quest.QuestPrerequisites;
 import com.scott.tech.mud.mud_game.quest.QuestRewards;
@@ -57,6 +58,7 @@ class TalkCommandTest {
     void setUp() {
         player = mock(Player.class);
         when(player.getName()).thenReturn("Adventurer");
+        when(player.getLevel()).thenReturn(2);
 
         session = mock(GameSession.class);
         when(session.getPlayer()).thenReturn(player);
@@ -138,6 +140,8 @@ class TalkCommandTest {
                 "obi",
                 List.of(),
                 QuestPrerequisites.NONE,
+                4,
+                QuestChallengeRating.HIGH,
                 List.of(),
                 QuestRewards.NONE,
                 List.of(),
@@ -155,9 +159,60 @@ class TalkCommandTest {
 
             assertThat(singleResponse(result).message())
                 .contains("The Path of Loyalty")
+                .contains("CR III High")
+                .contains("Recommended Lv. 4")
                 .contains("Type <strong>accept</strong> now");
             verify(session).setLastTalkedNpcId("obi");
             }
+
+    @Test
+    void talkingToQuestGiver_showsQuestCompletionDialogueAndBadge() {
+        QuestService questService = mock(QuestService.class);
+        TalkValidator talkValidator = mock(TalkValidator.class);
+        TalkService talkService = mock(TalkService.class);
+        Npc elin = nonSentientNpc("elin", List.of("Elin gives {player} a clipped nod."));
+        Quest quest = new Quest(
+                "quest_road_report",
+                "Road Report",
+                "Bring the road report back to Elin.",
+                "elin",
+                List.of(),
+                QuestPrerequisites.NONE,
+                1,
+                QuestChallengeRating.LOW,
+                List.of(),
+                QuestRewards.NONE,
+                List.of("Elin pins a fresh notice to the board."),
+                QuestCompletionEffects.NONE
+        );
+        QuestService.QuestProgressResult questResult = QuestService.QuestProgressResult.questComplete(
+                quest,
+                List.of("Elin pins a fresh notice to the board."),
+                List.of(),
+                0,
+                0,
+                QuestCompletionEffects.NONE,
+                com.scott.tech.mud.mud_game.quest.ObjectiveEffects.NONE
+        );
+        setRoom(List.of(elin));
+        when(questService.getAvailableQuestsForNpc(player, "elin")).thenReturn(List.of());
+        when(questService.onTalkToNpc(player, elin)).thenReturn(java.util.Optional.of(questResult));
+        when(talkValidator.validate(session, "elin")).thenReturn(
+                com.scott.tech.mud.mud_game.command.talk.TalkValidationResult.allow("elin", elin));
+        when(talkService.buildDialogue(session, elin)).thenReturn("Elin looks up from the ledger.");
+
+        CommandResult result = new TalkCommand("elin", talkValidator, talkService, questService)
+                .execute(session);
+
+        assertThat(result.getResponses()).hasSize(2);
+        assertThat(result.getResponses().get(0).type()).isEqualTo(GameResponse.Type.ROOM_UPDATE);
+        assertThat(result.getResponses().get(0).message())
+                .contains("Elin looks up from the ledger.")
+                .contains("Elin pins a fresh notice to the board.");
+        assertThat(result.getResponses().get(1).type()).isEqualTo(GameResponse.Type.NARRATIVE);
+        assertThat(result.getResponses().get(1).message()).contains("Road Report");
+        verify(session).setLastTalkedNpcId("elin");
+    }
 
     @Test
     void exactNpcTargetBeatsDescriptionOnlyCollisionInSameRoom() {

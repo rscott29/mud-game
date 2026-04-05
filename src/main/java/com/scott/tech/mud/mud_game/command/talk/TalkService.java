@@ -3,6 +3,7 @@ package com.scott.tech.mud.mud_game.command.talk;
 import com.scott.tech.mud.mud_game.ai.AiTextPolisher;
 import com.scott.tech.mud.mud_game.config.Messages;
 import com.scott.tech.mud.mud_game.model.Npc;
+import com.scott.tech.mud.mud_game.model.NpcTextRenderer;
 import com.scott.tech.mud.mud_game.session.GameSession;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -54,9 +55,11 @@ public class TalkService {
         AiTextPolisher.Tone tone = npc.isHumorous()
                 ? AiTextPolisher.Tone.PLAYFUL
                 : AiTextPolisher.Tone.DEFAULT;
-        return textPolisher.polish(template, AiTextPolisher.Style.NPC_DIALOGUE, tone)
-                .replace("{name}", npc.getName())
-                .replace("{player}", playerName);
+        return NpcTextRenderer.renderForPlayer(
+                textPolisher.polish(template, AiTextPolisher.Style.NPC_DIALOGUE, tone),
+                npc,
+                playerName
+        );
     }
 
     private String sentientDialogue(Npc npc, String playerName) {
@@ -68,7 +71,7 @@ public class TalkService {
                 : "";
         String systemPrompt = Messages.fmtTemplate(SENTIENT_SYSTEM_PROMPT,
                 "name", npc.getName(),
-                "description", npc.getDescription(),
+                "description", NpcTextRenderer.render(npc.getDescription(), npc),
                 "personality", personalityLine,
                 "tone", toneLine);
 

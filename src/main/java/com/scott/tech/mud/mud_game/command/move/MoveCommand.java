@@ -151,6 +151,25 @@ public class MoveCommand implements GameCommand {
                 for (String msg : result.messages()) {
                     narrative.add(msg);
                 }
+
+                ObjectiveEffects effects = result.objectiveEffects();
+                if (effects != null) {
+                    narrative.addAll(effects.dialogue());
+
+                    if (effects.startFollowing() != null) {
+                        session.addFollower(effects.startFollowing());
+                    }
+                    if (effects.stopFollowing() != null) {
+                        session.removeFollower(effects.stopFollowing());
+                    }
+
+                    for (String itemId : effects.addItems()) {
+                        Item item = worldService.getItemById(itemId);
+                        if (item != null) {
+                            player.addToInventory(item);
+                        }
+                    }
+                }
                 
                 // Handle completion effects
                 if (result.effects() != null) {

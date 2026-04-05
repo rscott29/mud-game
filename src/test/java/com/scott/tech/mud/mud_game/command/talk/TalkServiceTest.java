@@ -22,11 +22,11 @@ class TalkServiceTest {
         ChatClient chatClient = mock(ChatClient.class);
         AiTextPolisher textPolisher = mock(AiTextPolisher.class);
         when(textPolisher.polish(
-                "{name} studies {player}.",
+                "{pronounSubjectCap} studies {player} with {pronounPossessive} bright eyes.",
                 AiTextPolisher.Style.NPC_DIALOGUE,
                 AiTextPolisher.Tone.DEFAULT
         ))
-                .thenReturn("With a thoughtful tilt of the head, {name} studies {player}.");
+                .thenReturn("With a thoughtful tilt of the head, {pronounSubject} studies {player}.");
 
         Player player = mock(Player.class);
         when(player.getName()).thenReturn("Hero");
@@ -48,7 +48,7 @@ class TalkServiceTest {
                 List.of(),
                 List.of(),
                 false,
-                List.of("{name} studies {player}."),
+                List.of("{pronounSubjectCap} studies {player} with {pronounPossessive} bright eyes."),
                 null,
                 false,
                 false,
@@ -62,9 +62,9 @@ class TalkServiceTest {
         TalkService service = new TalkService(chatClient, textPolisher);
         String result = service.buildDialogue(session, npc);
 
-        assertThat(result).isEqualTo("With a thoughtful tilt of the head, Obi studies Hero.");
+        assertThat(result).isEqualTo("With a thoughtful tilt of the head, it studies Hero.");
         verify(textPolisher).polish(
-                "{name} studies {player}.",
+                "{pronounSubjectCap} studies {player} with {pronounPossessive} bright eyes.",
                 AiTextPolisher.Style.NPC_DIALOGUE,
                 AiTextPolisher.Tone.DEFAULT
         );

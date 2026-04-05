@@ -606,11 +606,11 @@ public class QuestService {
             return QuestProgressResult.objectiveComplete(quest, completedObj, nextObj, msg);
         } else {
             // Quest complete!
-            return completeQuest(player, quest, extraMessage);
+            return completeQuest(player, quest, extraMessage, completedObj.onComplete());
         }
     }
 
-    private QuestProgressResult completeQuest(Player player, Quest quest, String extraMessage) {
+    private QuestProgressResult completeQuest(Player player, Quest quest, String extraMessage, ObjectiveEffects objectiveEffects) {
         PlayerQuestState state = player.getQuestState();
         state.completeQuest(quest.id());
 
@@ -642,7 +642,7 @@ public class QuestService {
         }
         messages.addAll(quest.completionDialogue());
 
-        return QuestProgressResult.questComplete(quest, messages, rewardItems, xpReward, goldReward, effects);
+        return QuestProgressResult.questComplete(quest, messages, rewardItems, xpReward, goldReward, effects, objectiveEffects);
     }
 
     /**
@@ -681,10 +681,10 @@ public class QuestService {
                     List.of(), List.of(), 0, 0, null, completedObj.onComplete(), null);
         }
 
-        public static QuestProgressResult questComplete(Quest quest, List<String> messages, 
-                List<Item> items, int xp, int gold, QuestCompletionEffects effects) {
+        public static QuestProgressResult questComplete(Quest quest, List<String> messages,
+                List<Item> items, int xp, int gold, QuestCompletionEffects effects, ObjectiveEffects objectiveEffects) {
             return new QuestProgressResult(ResultType.QUEST_COMPLETE, quest, null, null, null,
-                    messages, items, xp, gold, effects, null, null);
+                    messages, items, xp, gold, effects, objectiveEffects, null);
         }
 
         public static QuestProgressResult dialogue(Quest quest, String message, 
@@ -716,7 +716,7 @@ public class QuestService {
             String objDesc = currentObj != null ? currentObj.description() : "Unknown objective";
             
             info.add(new ActiveQuestInfo(quest.id(), quest.name(), quest.description(), 
-                    objDesc, active.getObjectiveProgress()));
+                    objDesc, active.getObjectiveProgress(), quest.recommendedLevel(), quest.challengeRating()));
         }
         
         return info;
@@ -727,7 +727,9 @@ public class QuestService {
             String name,
             String description,
             String currentObjective,
-            int progress
+            int progress,
+            int recommendedLevel,
+            QuestChallengeRating challengeRating
     ) {}
 
     /**

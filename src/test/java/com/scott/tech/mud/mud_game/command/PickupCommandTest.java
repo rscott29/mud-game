@@ -8,6 +8,7 @@ import com.scott.tech.mud.mud_game.dto.GameResponse;
 import com.scott.tech.mud.mud_game.model.Direction;
 import com.scott.tech.mud.mud_game.model.Item;
 import com.scott.tech.mud.mud_game.model.Npc;
+import com.scott.tech.mud.mud_game.model.NpcSceneOverride;
 import com.scott.tech.mud.mud_game.model.Player;
 import com.scott.tech.mud.mud_game.model.Rarity;
 import com.scott.tech.mud.mud_game.model.Room;
@@ -22,23 +23,29 @@ import com.scott.tech.mud.mud_game.quest.QuestObjectiveType;
 import com.scott.tech.mud.mud_game.quest.QuestPrerequisites;
 import com.scott.tech.mud.mud_game.quest.QuestRewards;
 import com.scott.tech.mud.mud_game.quest.QuestService;
+import com.scott.tech.mud.mud_game.service.RoomFlavorScheduler;
 import com.scott.tech.mud.mud_game.session.GameSession;
 import com.scott.tech.mud.mud_game.session.GameSessionManager;
 import com.scott.tech.mud.mud_game.world.WorldService;
 import com.scott.tech.mud.mud_game.websocket.WorldBroadcaster;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.scheduling.TaskScheduler;
 
+import java.time.Instant;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.ScheduledFuture;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -46,6 +53,7 @@ class PickupCommandTest {
 
     private Room room;
     private GameSession session;
+    private WorldService worldService;
     private InventoryService inventoryService;
         private PersistedCorpseService persistedCorpseService;
     private PickupValidator pickupValidator;
@@ -55,7 +63,7 @@ class PickupCommandTest {
     void setUp() {
         room = new Room("room_1", "Room", "desc", new EnumMap<>(Direction.class), List.of(), List.of());
 
-        WorldService worldService = mock(WorldService.class);
+        worldService = mock(WorldService.class);
         when(worldService.getRoom("room_1")).thenReturn(room);
 
         Player player = new Player("p1", "Hero", "room_1");
@@ -131,6 +139,211 @@ class PickupCommandTest {
         assertThat(room.getItems())
                 .extracting(Item::getName)
                 .containsExactly("Quentor's corpse");
+    }
+
+    @Test
+    void takeItem_includesPickupNarrativeWithTemplateValues() {
+        Item oath = new Item(
+                "item_obis_oath",
+                "Obi's Oath",
+                "A legendary sword.",
+                List.of("oath", "obis oath"),
+                true,
+                Rarity.LEGENDARY,
+                List.of(),
+                null,
+                List.of(),
+                List.of(
+                        "The blade answers to {player}.",
+                        "<strong>{item}</strong> hums in your grasp."
+                ),
+                Item.CombatStats.NONE,
+                null
+        );
+        room.addItem(oath);
+
+        CommandResult result = new PickupCommand(
+                "obi's oath",
+                pickupValidator,
+                pickupService
+        ).execute(session);
+
+        GameResponse response = singleResponse(result);
+        assertThat(response.type()).isEqualTo(GameResponse.Type.ROOM_UPDATE);
+        assertThat(response.message())
+                .contains("You pick up the Obi's Oath.")
+                .contains("The blade answers to Hero.")
+                .contains("<strong>Obi's Oath</strong> hums in your grasp.");
+    }
+
+    @Test
+    void takeAllFromCorpse_includesPickupNarrativeForLootedItems() {
+        Item keepsake = new Item(
+                "item_old_keepsake",
+                "Old Keepsake",
+                "A small token.",
+                List.of("keepsake"),
+                true,
+                Rarity.COMMON,
+                List.of(),
+                null,
+                List.of(),
+                List.of("A memory clings to the {item}."),
+                Item.CombatStats.NONE,
+                null
+        );
+        Item corpse = corpse("Quentor", List.of(keepsake));
+        room.addItem(corpse);
+
+        CommandResult result = new PickupCommand(
+                "all from quentor's corpse",
+                pickupValidator,
+                pickupService
+        ).execute(session);
+
+        GameResponse response = singleResponse(result);
+        assertThat(response.type()).isEqualTo(GameResponse.Type.ROOM_UPDATE);
+        assertThat(response.message())
+                .contains("Old Keepsake")
+                .contains("A memory clings to the Old Keepsake.");
+    }
+
+    @Test
+    void takeItem_summonsConfiguredPickupNpcIntoRoomResponse() {
+        Item oath = new Item(
+                "item_obis_oath",
+                "Obi's Oath",
+                "A legendary sword.",
+                List.of("oath", "obis oath"),
+                true,
+                Rarity.LEGENDARY,
+                List.of(),
+                null,
+                List.of(),
+                List.of("Obi pads in from the light."),
+                List.of("npc_pickup_guest"),
+                Item.CombatStats.NONE,
+                null
+        );
+        room.addItem(oath);
+        when(worldService.summonNpcToRoom("npc_pickup_guest", "room_1")).thenAnswer(invocation -> {
+            Npc npc = spawnedNpc("npc_pickup_guest" + Npc.INSTANCE_ID_DELIMITER + "1");
+            room.addNpc(npc);
+            return Optional.of(npc);
+        });
+
+        CommandResult result = new PickupCommand(
+                "obi's oath",
+                pickupValidator,
+                pickupService,
+                null,
+                null,
+                worldService
+        ).execute(session);
+
+        GameResponse response = singleResponse(result);
+        assertThat(response.type()).isEqualTo(GameResponse.Type.ROOM_UPDATE);
+        assertThat(response.room()).isNotNull();
+        assertThat(response.room().npcs()).extracting(GameResponse.NpcView::id)
+                .contains("npc_pickup_guest" + Npc.INSTANCE_ID_DELIMITER + "1");
+    }
+
+    @Test
+    void takeItem_appliesConfiguredNpcScenesAfterSummoning() {
+        TaskScheduler taskScheduler = mock(TaskScheduler.class);
+        WorldBroadcaster broadcaster = mock(WorldBroadcaster.class);
+        GameSessionManager sessionManager = new GameSessionManager();
+        sessionManager.register(session);
+        java.util.List<ScheduledCall> scheduledCalls = new java.util.ArrayList<>();
+        doAnswer(invocation -> {
+            scheduledCalls.add(new ScheduledCall(invocation.getArgument(0), invocation.getArgument(1)));
+            return new NoOpScheduledFuture();
+        }).when(taskScheduler).schedule(any(Runnable.class), any(Instant.class));
+
+        Item oath = new Item(
+                "item_obis_oath",
+                "Obi's Oath",
+                "A legendary sword.",
+                List.of("oath", "obis oath"),
+                true,
+                Rarity.LEGENDARY,
+                List.of(),
+                null,
+                List.of(),
+                List.of("A familiar warmth gathers nearby."),
+                List.of("npc_dog_Obi"),
+                List.of(new NpcSceneOverride(
+                        "npc_dog_Obi",
+                        "Obi rests beneath the oak.",
+                        List.of("Obi bows his head."),
+                        List.of(
+                                "Obi watches {player} in stillness.",
+                                "Obi bows low before {player}."
+                        ),
+                        90,
+                        true,
+                        true,
+                        true
+                )),
+                Item.CombatStats.NONE,
+                null
+        );
+        room.addItem(oath);
+        when(worldService.summonNpcToRoom("npc_dog_Obi", "room_1")).thenAnswer(invocation -> {
+            Npc npc = spawnedNpc(
+                    "npc_dog_Obi",
+                    List.of("Obi watches {player} in stillness."),
+                    List.of("Obi bows his head.")
+            );
+            room.addNpc(npc);
+            return Optional.of(npc);
+        });
+        when(worldService.applyTemporaryNpcScene(any())).thenAnswer(invocation -> Optional.of(
+                spawnedNpc(
+                        "npc_dog_Obi",
+                        List.of(
+                                "Obi watches {player} in stillness.",
+                                "Obi bows low before {player}."
+                        ),
+                        List.of("Obi bows his head.")
+                )
+        ));
+
+        CommandResult result = new PickupCommand(
+                "obi's oath",
+                pickupValidator,
+                pickupService,
+                null,
+                null,
+                worldService,
+                new RoomFlavorScheduler(taskScheduler, broadcaster, sessionManager)
+        ).execute(session);
+
+        assertThat(singleResponse(result).message())
+                .doesNotContain("Obi watches Hero in stillness.")
+                .doesNotContain("Obi bows low before Hero.");
+        assertThat(scheduledCalls).hasSize(2);
+
+        scheduledCalls.forEach(call -> call.task().run());
+
+        org.mockito.ArgumentCaptor<GameResponse> flavorResponses = org.mockito.ArgumentCaptor.forClass(GameResponse.class);
+        verify(broadcaster, times(2)).sendRoomFlavorToSession(eq("session-1"), flavorResponses.capture());
+        assertThat(flavorResponses.getAllValues())
+                .extracting(GameResponse::type)
+                .containsOnly(GameResponse.Type.NARRATIVE_ECHO);
+        assertThat(flavorResponses.getAllValues())
+                .extracting(GameResponse::message)
+                .containsExactly(
+                        "Obi watches Hero in stillness.",
+                        "Obi bows low before Hero."
+                );
+
+        verify(worldService).applyTemporaryNpcScene(argThat(scene ->
+                "npc_dog_Obi".equals(scene.npcId())
+                        && "Obi rests beneath the oak.".equals(scene.description())
+                        && scene.suppressWander()
+                        && scene.orderedInteractionSequence()
+        ));
     }
 
     @Test
@@ -235,6 +448,10 @@ class PickupCommandTest {
     }
 
         private static Npc spawnedNpc(String id) {
+                return spawnedNpc(id, List.of(), List.of());
+        }
+
+        private static Npc spawnedNpc(String id, List<String> interactTemplates, List<String> talkTemplates) {
                 return new Npc(
                                 id,
                                 "Restless Undead Wayfarer",
@@ -247,9 +464,9 @@ class PickupCommandTest {
                                 List.of(),
                                 List.of(),
                                 List.of(),
-                                List.of(),
+                                interactTemplates,
                                 false,
-                                List.of(),
+                                talkTemplates,
                                 null,
                                 true,
                                 false,
@@ -260,4 +477,43 @@ class PickupCommandTest {
                                 true
                 );
         }
+
+    private record ScheduledCall(Runnable task, Instant at) {}
+
+    private static final class NoOpScheduledFuture implements ScheduledFuture<Object> {
+        @Override
+        public long getDelay(java.util.concurrent.TimeUnit unit) {
+            return 0;
+        }
+
+        @Override
+        public int compareTo(java.util.concurrent.Delayed other) {
+            return 0;
+        }
+
+        @Override
+        public boolean cancel(boolean mayInterruptIfRunning) {
+            return false;
+        }
+
+        @Override
+        public boolean isCancelled() {
+            return false;
+        }
+
+        @Override
+        public boolean isDone() {
+            return false;
+        }
+
+        @Override
+        public Object get() {
+            return null;
+        }
+
+        @Override
+        public Object get(long timeout, java.util.concurrent.TimeUnit unit) {
+            return null;
+        }
+    }
 }
