@@ -11,64 +11,7 @@
     </div>
   </header>
 
-  <section class="terminal-hud" [class.terminal-hud--auth]="view.isAuthScreen()">
-    @if (view.playerStats(); as stats) {
-      <div class="hud-profile">
-        <div class="hud-profile__eyebrow">{{ view.classLabel() || 'Adventurer' }}</div>
-        <div class="hud-profile__title">{{ view.levelLabel() }}</div>
-        <div class="hud-profile__meta">
-          <span>Gold {{ stats.gold ?? 0 }}</span>
-          @if (!stats.isGod) {
-            <span>Total XP {{ stats.totalXp }}</span>
-          }
-          @if (stats.isGod) {
-            <span class="hud-chip hud-chip--god">GOD</span>
-          }
-        </div>
-      </div>
-
-      <div class="hud-metrics">
-        @if (stats.isGod) {
-          <span class="hud-chip hud-chip--hp hud-chip--infinite">
-            <span class="hud-chip__label">HP</span>
-            <span class="hud-chip__infinity" aria-label="Infinite">&infin;</span>
-          </span>
-          <span class="hud-chip hud-chip--mp hud-chip--infinite">
-            <span class="hud-chip__label">MP</span>
-            <span class="hud-chip__infinity" aria-label="Infinite">&infin;</span>
-          </span>
-          <span class="hud-chip hud-chip--mv hud-chip--infinite">
-            <span class="hud-chip__label">MV</span>
-            <span class="hud-chip__infinity" aria-label="Infinite">&infin;</span>
-          </span>
-        } @else {
-          <span class="hud-chip hud-chip--hp">{{ view.hudHealth() }}</span>
-          <span class="hud-chip hud-chip--mp">{{ view.hudMana() }}</span>
-          <span class="hud-chip hud-chip--mv">{{ view.hudMovement() }}</span>
-        }
-      </div>
-
-      <div class="hud-xp">
-        <div class="hud-xp__meta">
-          <span>Progress</span>
-          <span>{{ view.xpLabel() }}</span>
-        </div>
-        <div class="hud-xp__bar">
-          <div class="hud-xp__fill" [style.width.%]="view.xpPercent()"></div>
-        </div>
-      </div>
-    } @else {
-      <div class="hud-empty">
-        {{ view.hudEmptyMessage() }}
-      </div>
-    }
-
-    <div class="hud-zoom">
-      <button type="button" class="hud-zoom__btn" (click)="view.decreaseZoom()" aria-label="Decrease zoom">-</button>
-      <span class="hud-zoom__value">{{ view.zoomLevel() }}%</span>
-      <button type="button" class="hud-zoom__btn" (click)="view.increaseZoom()" aria-label="Increase zoom">+</button>
-    </div>
-  </section>
+  <app-terminal-hud />
 
   <div #logEl class="log" [class.log--auth]="view.isAuthScreen()" (click)="handleLogClick($event)">
     @for (msg of view.messages(); track msg.id) {

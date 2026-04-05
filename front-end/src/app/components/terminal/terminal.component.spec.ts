@@ -188,9 +188,11 @@ class MockCommandCatalogService {
 
 describe('TerminalComponent', () => {
   let socket: MockGameSocketService;
+  let originalInnerWidth: number;
 
   beforeEach(async () => {
     socket = new MockGameSocketService();
+    originalInnerWidth = window.innerWidth;
 
     await TestBed.configureTestingModule({
       imports: [TerminalComponent],
@@ -201,6 +203,14 @@ describe('TerminalComponent', () => {
         { provide: CommandCatalogService, useClass: MockCommandCatalogService },
       ],
     }).compileComponents();
+  });
+
+  afterEach(() => {
+    Object.defineProperty(window, 'innerWidth', {
+      configurable: true,
+      writable: true,
+      value: originalInnerWidth,
+    });
   });
 
   it('sends "go north" as a direct command payload', () => {
@@ -486,6 +496,46 @@ describe('TerminalComponent', () => {
     const text = fixture.nativeElement.textContent ?? '';
     expect(text).toContain('GOD');
     expect(text).not.toContain('Total XP 105');
+  });
+
+  it('uses a collapsed compact hud on small screens until the player opens it', () => {
+    Object.defineProperty(window, 'innerWidth', {
+      configurable: true,
+      writable: true,
+      value: 390,
+    });
+
+    const fixture = TestBed.createComponent(TerminalComponent);
+
+    socket.playerStats.set({
+      health: 12,
+      maxHealth: 20,
+      mana: 7,
+      maxMana: 10,
+      movement: 8,
+      maxMovement: 12,
+      level: 3,
+      maxLevel: 10,
+      xpProgress: 25,
+      xpForNextLevel: 100,
+      totalXp: 250,
+      gold: 14,
+      isGod: false,
+      characterClass: 'mage',
+    });
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.querySelector('.hud-mobile-summary')).not.toBeNull();
+    expect(fixture.nativeElement.querySelector('#terminal-mobile-hud')).toBeNull();
+    expect(fixture.nativeElement.textContent ?? '').not.toContain('Gold 14');
+
+    const toggle = fixture.nativeElement.querySelector('.hud-mobile-toggle') as HTMLButtonElement;
+    toggle.click();
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.querySelector('#terminal-mobile-hud')).not.toBeNull();
+    expect(fixture.nativeElement.textContent ?? '').toContain('Gold 14');
+    expect(toggle.textContent).toContain('Hide HUD');
   });
 
   it('renders the me command response as a character sheet card in the log', () => {
