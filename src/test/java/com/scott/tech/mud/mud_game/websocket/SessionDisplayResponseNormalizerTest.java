@@ -88,6 +88,33 @@ class SessionDisplayResponseNormalizerTest {
         assertThat(response.playerStats()).isNotNull();
     }
 
+    @Test
+    void normalize_leavesNarrativeEchoAsStandaloneMessage() {
+        GameSessionManager sessionManager = new GameSessionManager();
+        WorldService worldService = mock(WorldService.class);
+        Room room = new Room("grove", "Old Grove", "Leaves whisper overhead.", new EnumMap<>(Direction.class), List.of(), List.of());
+        when(worldService.getRoom("grove")).thenReturn(room);
+
+        Player player = new Player("p1", "Hero", "grove");
+        GameSession session = new GameSession("session-1", player, worldService);
+        session.transition(SessionState.PLAYING);
+        sessionManager.register(session);
+
+        QuestService questService = mock(QuestService.class);
+        SessionDisplayResponseNormalizer normalizer = new SessionDisplayResponseNormalizer(sessionManager, questService);
+
+        List<GameResponse> normalized = normalizer.normalize(
+                session,
+                List.of(GameResponse.narrativeEcho("Obi bows his head."))
+        );
+
+        assertThat(normalized).hasSize(1);
+        GameResponse response = normalized.getFirst();
+        assertThat(response.type()).isEqualTo(GameResponse.Type.NARRATIVE_ECHO);
+        assertThat(response.message()).isEqualTo("Obi bows his head.");
+        assertThat(response.room()).isNull();
+    }
+
         @Test
         void normalize_marksQuestGiversInRoomPayload() {
         GameSessionManager sessionManager = new GameSessionManager();

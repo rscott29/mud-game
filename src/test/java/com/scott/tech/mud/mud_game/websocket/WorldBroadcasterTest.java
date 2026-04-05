@@ -76,6 +76,24 @@ class WorldBroadcasterTest {
     }
 
     @Test
+    void sendRoomFlavorToSession_skipsNarrativeEchoWhenPlayerIsInCombat() {
+        GameSessionManager sessionManager = new GameSessionManager();
+        WsMessageSender sender = mock(WsMessageSender.class);
+        CombatState combatState = mock(CombatState.class);
+        TaskScheduler taskScheduler = mock(TaskScheduler.class);
+        WorldBroadcaster broadcaster = new WorldBroadcaster(sessionManager, sender, combatState, taskScheduler);
+
+        WebSocketSession ws = mock(WebSocketSession.class);
+        broadcaster.register("session-1", ws);
+
+        when(combatState.isInCombat("session-1")).thenReturn(true);
+
+        broadcaster.sendRoomFlavorToSession("session-1", GameResponse.narrativeEcho("Obi bows his head."));
+
+        verify(sender, never()).send(any(WebSocketSession.class), any(GameResponse.class));
+    }
+
+    @Test
     void sendRoomBroadcastToSession_skipsSocialActionsWhenPlayerIsInCombat() {
         GameSessionManager sessionManager = new GameSessionManager();
         WsMessageSender sender = mock(WsMessageSender.class);

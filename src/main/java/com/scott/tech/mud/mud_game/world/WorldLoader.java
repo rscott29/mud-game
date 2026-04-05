@@ -34,7 +34,8 @@ public class WorldLoader {
     }
 
     public WorldLoadResult load() throws Exception {
-        Map<String, Npc> npcs = loadNpcRegistry();
+        NpcRegistryLoadResult npcLoadResult = loadNpcRegistry();
+        Map<String, Npc> npcs = npcLoadResult.npcRegistry();
         Map<String, Item> items = loadItemRegistry();
 
         WorldData worldData = objectMapper.readValue(
@@ -68,6 +69,7 @@ public class WorldLoader {
                 Room room = new Room(def.getId(), def.getName(), def.getDescription(), exits, roomItems, roomNpcs);
                 room.setHiddenExits(parseExitMap(def.getHiddenExits(), def.getId(), errors));
                 room.setHiddenExitHints(parseDirectionStringMap(def.getHiddenExitHints(), def.getId()));
+                room.setHiddenExitRequirements(parseHiddenExitRequirements(def.getHiddenExitRequirements(), def.getId(), errors));
                 room.setRecallBindable(def.isRecallBindable());
                 room.setDefaultRecallPoint(def.isDefaultRecallPoint());
                 room.setDark(def.isDark());
@@ -114,6 +116,8 @@ public class WorldLoader {
         }
 
         String defaultRecallRoomId = resolveDefaultRecallRoomId(builtRooms, errors, start);
+        validateNpcGiveInteractions(npcLoadResult.npcGiveInteractions(), items, errors);
+        validateItemPickupNpcReferences(items, npcs, errors);
 
         List<String> warnings = new ArrayList<>();
         checkExitSymmetry(builtRooms, warnings);
@@ -133,17 +137,19 @@ public class WorldLoader {
                 Map.copyOf(builtRooms),
                 Map.copyOf(npcs),
                 Map.copyOf(items),
+                Map.copyOf(npcLoadResult.npcGiveInteractions()),
                 Map.copyOf(npcRoomIndex),
                 start,
                 defaultRecallRoomId
         );
     }
 
-    private Map<String, Npc> loadNpcRegistry() throws Exception {
+    private NpcRegistryLoadResult loadNpcRegistry() throws Exception {
         NpcData[] npcDataArray = objectMapper.readValue(
                 new ClassPathResource(NPCS_FILE).getInputStream(), NpcData[].class);
 
         Map<String, Npc> map = new HashMap<>();
+        Map<String, List<NpcGiveInteraction>> giveInteractions = new HashMap<>();
         for (NpcData n : npcDataArray) {
             long minSec = 0;
             long maxSec = 0;
@@ -176,9 +182,28 @@ public class WorldLoader {
             if (map.put(n.getId(), npc) != null) {
                 throw new WorldLoadException("Duplicate NPC id: " + n.getId());
             }
+
+            List<NpcGiveInteraction> npcGiveInteractions = n.getGiveInteractions().stream()
+                    .map(def -> new NpcGiveInteraction(
+                            def.getAcceptedItemIds(),
+                            def.getRequiredItemIds(),
+                            def.getConsumedItemIds(),
+                            def.getRewardItemId(),
+                            def.getDenyIfPlayerHasItemId(),
+                            def.getGoldCost(),
+                            def.getAlreadyOwnedDialogue(),
+                            def.getMissingRequiredItemsDialogue(),
+                            def.getInsufficientGoldDialogue(),
+                            def.getSuccessDialogue(),
+                            def.getMissingRewardItemMessage()
+                    ))
+                    .toList();
+            if (!npcGiveInteractions.isEmpty()) {
+                giveInteractions.put(n.getId(), npcGiveInteractions);
+            }
         }
         log.info("NPC registry loaded: {} npcs", map.size());
-        return map;
+        return new NpcRegistryLoadResult(Map.copyOf(map), Map.copyOf(giveInteractions));
     }
 
     private static void validateWanderRange(String npcId, long minSec, long maxSec) {
@@ -223,6 +248,67 @@ public class WorldLoader {
         }
     }
 
+    private static void validateNpcGiveInteractions(Map<String, List<NpcGiveInteraction>> giveInteractionsByNpcId,
+                                                    Map<String, Item> items,
+                                                    List<String> errors) {
+        for (Map.Entry<String, List<NpcGiveInteraction>> entry : giveInteractionsByNpcId.entrySet()) {
+            String npcId = entry.getKey();
+            List<NpcGiveInteraction> interactions = entry.getValue();
+            for (int i = 0; i < interactions.size(); i++) {
+                NpcGiveInteraction interaction = interactions.get(i);
+                String path = "NPC '" + npcId + "' giveInteraction[" + i + "]";
+
+                if (interaction.acceptedItemIds().isEmpty()) {
+                    errors.add(path + " defines no acceptedItemIds");
+                }
+
+                validateKnownItemIds(path + ".acceptedItemIds", interaction.acceptedItemIds(), items, errors);
+                validateKnownItemIds(path + ".requiredItemIds", interaction.requiredItemIds(), items, errors);
+                validateKnownItemIds(path + ".consumedItemIds", interaction.consumedItemIds(), items, errors);
+                validateKnownItemId(path + ".rewardItemId", interaction.rewardItemId(), items, errors);
+                validateKnownItemId(path + ".denyIfPlayerHasItemId", interaction.denyIfPlayerHasItemId(), items, errors);
+            }
+        }
+    }
+
+    private static void validateKnownItemIds(String path, List<String> itemIds, Map<String, Item> items, List<String> errors) {
+        for (String itemId : itemIds) {
+            validateKnownItemId(path, itemId, items, errors);
+        }
+    }
+
+    private static void validateKnownItemId(String path, String itemId, Map<String, Item> items, List<String> errors) {
+        if (itemId == null || itemId.isBlank()) {
+            return;
+        }
+        if (!items.containsKey(itemId)) {
+            errors.add(path + " references unknown item id '" + itemId + "'");
+        }
+    }
+
+    private static void validateItemPickupNpcReferences(Map<String, Item> items,
+                                                        Map<String, Npc> npcs,
+                                                        List<String> errors) {
+        for (Item item : items.values()) {
+            for (String npcId : item.getPickupSpawnNpcIds()) {
+                if (npcId == null || npcId.isBlank()) {
+                    continue;
+                }
+                if (!npcs.containsKey(npcId)) {
+                    errors.add("Item '" + item.getId() + "' pickupSpawnNpcIds references unknown npc id '" + npcId + "'");
+                }
+            }
+            for (var scene : item.getPickupNpcScenes()) {
+                if (scene.npcId() == null || scene.npcId().isBlank()) {
+                    continue;
+                }
+                if (!npcs.containsKey(scene.npcId())) {
+                    errors.add("Item '" + item.getId() + "' pickupNpcScenes references unknown npc id '" + scene.npcId() + "'");
+                }
+            }
+        }
+    }
+
     private Map<String, Item> loadItemRegistry() throws Exception {
         ItemData[] itemDataArray = objectMapper.readValue(
                 new ClassPathResource(ITEMS_FILE).getInputStream(), ItemData[].class);
@@ -236,7 +322,10 @@ public class WorldLoader {
             validateItemCombatConfig(i);
             Item.CombatStats combatStats = toCombatStats(i.getCombatStats());
             EquipmentSlot equipmentSlot = resolveEquipmentSlot(i);
-            if (map.put(i.getId(), new Item(i.getId(), i.getName(), i.getDescription(), i.getKeywords(), i.isTakeable(), i.getRarity(), i.getRequiredItemIds(), i.getPrerequisiteFailMessage(), triggers, combatStats, equipmentSlot)) != null) {
+            List<com.scott.tech.mud.mud_game.model.NpcSceneOverride> pickupNpcScenes = i.getPickupNpcScenes().stream()
+                    .map(ItemData.PickupNpcSceneData::toNpcSceneOverride)
+                    .toList();
+            if (map.put(i.getId(), new Item(i.getId(), i.getName(), i.getDescription(), i.getKeywords(), i.isTakeable(), i.getRarity(), i.getRequiredItemIds(), i.getPrerequisiteFailMessage(), triggers, i.getPickupNarrative(), i.getPickupSpawnNpcIds(), pickupNpcScenes, combatStats, equipmentSlot)) != null) {
                 throw new WorldLoadException("Duplicate item id: " + i.getId());
             }
         }
@@ -416,6 +505,37 @@ public class WorldLoader {
         return result;
     }
 
+    private static Map<Direction, Room.HiddenExitRequirement> parseHiddenExitRequirements(
+            Map<String, WorldData.HiddenExitRequirementDefinition> raw,
+            String roomId,
+            List<String> errors
+    ) {
+        Map<Direction, Room.HiddenExitRequirement> requirements = new EnumMap<>(Direction.class);
+        if (raw == null) {
+            return requirements;
+        }
+
+        raw.forEach((dirName, def) -> {
+            Direction dir = Direction.fromString(dirName);
+            if (dir == null) {
+                errors.add(String.format("Room '%s' has invalid hiddenExitRequirements direction '%s'", roomId, dirName));
+                return;
+            }
+            if (def == null) {
+                errors.add(String.format("Room '%s' hiddenExitRequirements.%s is null", roomId, dirName));
+                return;
+            }
+            if (def.getQuestId() == null || def.getQuestId().isBlank()) {
+                errors.add(String.format("Room '%s' hiddenExitRequirements.%s.questId is required", roomId, dirName));
+                return;
+            }
+
+            requirements.put(dir, new Room.HiddenExitRequirement(def.getQuestId(), def.getObjectiveId()));
+        });
+
+        return requirements;
+    }
+
     private static <T> List<T> resolveIds(
             List<String> ids,
             Map<String, T> registry,
@@ -482,5 +602,11 @@ public class WorldLoader {
                 }
             }
         }
+    }
+
+    private record NpcRegistryLoadResult(
+            Map<String, Npc> npcRegistry,
+            Map<String, List<NpcGiveInteraction>> npcGiveInteractions
+    ) {
     }
 }

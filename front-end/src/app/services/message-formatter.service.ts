@@ -56,6 +56,10 @@ export class MessageFormatterService {
     return this.roomFormatter.formatNarrativeInlineMessage(message);
   }
 
+  formatNarrativeEchoMessage(message: string): FormattedMessage {
+    return this.roomFormatter.formatNarrativeEchoMessage(message);
+  }
+
   formatRoomActionMessage(message: string): FormattedMessage {
     return this.roomFormatter.formatRoomActionMessage(message);
   }

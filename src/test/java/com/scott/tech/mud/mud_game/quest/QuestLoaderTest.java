@@ -33,6 +33,8 @@ class QuestLoaderTest {
         objective.onComplete.relocateItem.itemId = "item_potion";
         objective.onComplete.relocateItem.targetRooms = List.of("forest_edge", "market");
         questData.objectives = List.of(objective);
+        questData.recommendedLevel = 4;
+        questData.challengeRating = "HIGH";
 
         questData.completionEffects = new QuestLoader.CompletionEffectsData();
         questData.completionEffects.revealHiddenExit = hiddenExit("forest_edge", "SOUTH");
@@ -58,6 +60,8 @@ class QuestLoaderTest {
         assertThat(quest.objectives().get(0).onComplete().relocateItem().targetRooms())
                 .containsExactly("forest_edge", "market");
         assertThat(quest.rewards().gold()).isEqualTo(12);
+        assertThat(quest.recommendedLevel()).isEqualTo(4);
+        assertThat(quest.challengeRating()).isEqualTo(QuestChallengeRating.HIGH);
         assertThat(quest.completionEffects().revealHiddenExit()).isNotNull();
         assertThat(quest.completionEffects().revealHiddenExit().direction()).isEqualTo(Direction.SOUTH);
         assertThat(quest.completionEffects().resetDiscoveredExits()).hasSize(1);
@@ -116,6 +120,21 @@ class QuestLoaderTest {
                 .isInstanceOf(WorldLoadException.class)
                 .hasMessageContaining("cannot require a previous objective")
                 .hasMessageContaining("duplicates objective id 'shared_id'");
+    }
+
+    @Test
+    void load_rejectsInvalidChallengeMetadata() {
+        QuestLoader.QuestData badQuest = baseQuest("quest_loader_bad_challenge");
+        QuestLoader.ObjectiveData visit = objective("visit_shrine", "VISIT");
+        visit.target = "forest_shrine";
+        badQuest.objectives = List.of(visit);
+        badQuest.recommendedLevel = 0;
+        badQuest.challengeRating = "IMPOSSIBLE";
+
+        assertThatThrownBy(() -> loader.load(new QuestLoader.QuestData[]{badQuest}))
+                .isInstanceOf(WorldLoadException.class)
+                .hasMessageContaining("recommendedLevel must be at least 1")
+                .hasMessageContaining("challengeRating must be one of");
     }
 
     private QuestLoader.QuestData baseQuest(String id) {

@@ -128,6 +128,15 @@ export class TerminalMessageInterpreterService {
           fallback: this.formatter.formatNarrativeInlineMessage(message.message ?? ''),
         };
 
+      case GAME_MESSAGE_TYPES.NARRATIVE_ECHO:
+        return {
+          kind: 'room_inline',
+          stateChanges,
+          source: message,
+          inlineFragment: this.formatter.formatRoomInlineFragment(message),
+          fallback: this.formatter.formatNarrativeEchoMessage(message.message ?? ''),
+        };
+
       case GAME_MESSAGE_TYPES.ROOM_ACTION:
         return {
           kind: 'room_inline',

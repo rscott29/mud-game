@@ -107,4 +107,41 @@ class NpcWanderSchedulerTest {
 
         assertThat(normalized).isEqualTo("Obi suddenly lets out a confused bark and vanishes to the north in a hurry.");
     }
+
+    @Test
+    void renderDepartureTemplateSupportsPronounTokens() {
+        Npc obi = new Npc(
+                "npc_dog_obi",
+                "Obi",
+                "A cheerful dog.",
+                List.of("obi"),
+                "he",
+                "his",
+                30,
+                90,
+                List.of(),
+                List.of(),
+                List.of(),
+                List.of(),
+                false,
+                List.of(),
+                null,
+                true,
+                false,
+                false,
+                0,
+                0,
+                0,
+                0,
+                false
+        );
+
+        String rendered = NpcWanderScheduler.renderDepartureTemplate(
+                "{name} flicks {pronounPossessive} tail and bounds toward the {dir}.",
+                obi,
+                Direction.WEST
+        );
+
+        assertThat(rendered).isEqualTo("Obi flicks his tail and bounds toward the west.");
+    }
 }

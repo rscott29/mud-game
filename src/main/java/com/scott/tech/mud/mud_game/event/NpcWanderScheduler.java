@@ -4,6 +4,7 @@ import com.scott.tech.mud.mud_game.ai.AiTextPolisher;
 import com.scott.tech.mud.mud_game.dto.GameResponse;
 import com.scott.tech.mud.mud_game.model.Direction;
 import com.scott.tech.mud.mud_game.model.Npc;
+import com.scott.tech.mud.mud_game.model.NpcTextRenderer;
 import com.scott.tech.mud.mud_game.model.Room;
 import com.scott.tech.mud.mud_game.websocket.WorldBroadcaster;
 import com.scott.tech.mud.mud_game.world.WorldService;
@@ -117,6 +118,10 @@ public class NpcWanderScheduler {
 
         Npc npc = worldService.getNpcById(npcId);
         if (npc == null) return;
+        if (worldService.isNpcWanderSuppressed(npcId)) {
+            log.debug("NPC '{}' wander suppressed by active scene override", npcId);
+            return;
+        }
 
         String targetId;
         Direction dir;  // may be null for non-adjacent path teleports
@@ -204,9 +209,7 @@ public class NpcWanderScheduler {
                 : AiTextPolisher.Tone.DEFAULT;
         String polishedTemplate = textPolisher.polish(tmpl, AiTextPolisher.Style.ROOM_EVENT, tone);
         String fromStr = fromDir != null ? fromDir.name().toLowerCase() : "somewhere";
-        return polishedTemplate
-                .replace("{name}", npc.getName())
-                .replace("{from}", fromStr);
+        return NpcTextRenderer.renderWithArrival(polishedTemplate, npc, fromStr);
     }
 
     private long randomDelay(Npc npc) {
@@ -229,13 +232,11 @@ public class NpcWanderScheduler {
     }
 
     static String renderDepartureTemplate(String template, Npc npc, Direction dir) {
-        String rendered = template
-                .replace("{name}", npc.getName())
-                .replace("{pronoun}", npc.getPossessive());
+        String rendered = NpcTextRenderer.render(template, npc);
 
         if (dir != null) {
             return normalizeDirectionalGrammar(
-                    rendered.replace("{dir}", dir.name().toLowerCase())
+                    NpcTextRenderer.renderWithDirection(rendered, npc, dir.name().toLowerCase())
             );
         }
 

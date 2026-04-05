@@ -156,6 +156,22 @@ describe('TerminalMessageInterpreterService', () => {
     }
   });
 
+  it('routes narrative echo messages into inline room content with their own styling hook', () => {
+    const interpreter = TestBed.inject(TerminalMessageInterpreterService);
+
+    const result = interpreter.interpret({
+      type: GAME_MESSAGE_TYPES.NARRATIVE_ECHO,
+      message: 'Obi bows his head.',
+    });
+
+    expect(result.kind).toBe('room_inline');
+    if (result.kind === 'room_inline') {
+      expect(result.inlineFragment).toContain('message--narrative-echo');
+      expect(result.inlineFragment).toContain('Obi bows his head.');
+      expect(result.fallback.cssClass).toBe(TERMINAL_MESSAGE_CLASSES.NARRATIVE_ECHO);
+    }
+  });
+
   it('uses the combat feed card for combat-marked narrative fallback', () => {
     const interpreter = TestBed.inject(TerminalMessageInterpreterService);
 

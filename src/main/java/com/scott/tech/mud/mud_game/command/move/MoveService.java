@@ -8,18 +8,19 @@ import com.scott.tech.mud.mud_game.dto.GameResponse;
 import com.scott.tech.mud.mud_game.model.Direction;
 import com.scott.tech.mud.mud_game.model.Item;
 import com.scott.tech.mud.mud_game.model.Npc;
+import com.scott.tech.mud.mud_game.model.NpcTextRenderer;
 import com.scott.tech.mud.mud_game.model.Player;
 import com.scott.tech.mud.mud_game.model.Room;
 import com.scott.tech.mud.mud_game.party.PartyService;
 import com.scott.tech.mud.mud_game.service.AmbientEventService;
 import com.scott.tech.mud.mud_game.service.LevelingService;
+import com.scott.tech.mud.mud_game.service.RoomFlavorScheduler;
 import com.scott.tech.mud.mud_game.session.GameSession;
 import com.scott.tech.mud.mud_game.session.GameSessionManager;
 import com.scott.tech.mud.mud_game.websocket.WorldBroadcaster;
 import com.scott.tech.mud.mud_game.world.WorldService;
 import org.springframework.scheduling.TaskScheduler;
 
-import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -28,14 +29,10 @@ import java.util.concurrent.ThreadLocalRandom;
 
 public class MoveService {
 
-    private static final long ROOM_FLAVOR_INITIAL_DELAY_MIN_MS = 1_800L;
-    private static final long ROOM_FLAVOR_INITIAL_DELAY_MAX_MS = 4_200L;
-    private static final long ROOM_FLAVOR_GAP_MIN_MS = 1_600L;
-    private static final long ROOM_FLAVOR_GAP_MAX_MS = 3_800L;
-
     private final TaskScheduler taskScheduler;
     private final WorldBroadcaster worldBroadcaster;
     private final GameSessionManager sessionManager;
+    private final RoomFlavorScheduler roomFlavorScheduler;
     private final LevelingService levelingService;
     private final AmbientEventService ambientEventService;
     private final WorldService worldService;
@@ -100,6 +97,7 @@ public class MoveService {
         this.taskScheduler = taskScheduler;
         this.worldBroadcaster = worldBroadcaster;
         this.sessionManager = sessionManager;
+        this.roomFlavorScheduler = new RoomFlavorScheduler(taskScheduler, worldBroadcaster, sessionManager);
         this.levelingService = levelingService;
         this.ambientEventService = ambientEventService;
         this.worldService = worldService;
@@ -256,8 +254,7 @@ public class MoveService {
                     .filter(npc -> npc.getId().equals(npcId))
                     .findFirst()
                     .ifPresent(npc -> {
-                        fromRoom.removeNpc(npc);
-                        toRoom.addNpc(npc);
+                        worldService.moveNpc(npc.getId(), fromRoom.getId(), toRoom.getId());
                         
                         // Broadcast follower movement
                         String dirName = direction.name().toLowerCase();
@@ -316,9 +313,11 @@ public class MoveService {
             AiTextPolisher.Tone tone = npc.isHumorous()
                     ? AiTextPolisher.Tone.PLAYFUL
                     : AiTextPolisher.Tone.DEFAULT;
-            String message = textPolisher.polish(template, AiTextPolisher.Style.ROOM_EVENT, tone)
-                    .replace("{name}", npc.getName())
-                    .replace("{player}", playerName);
+            String message = NpcTextRenderer.renderForPlayer(
+                    textPolisher.polish(template, AiTextPolisher.Style.ROOM_EVENT, tone),
+                    npc,
+                    playerName
+            );
             messages.add(GameResponse.narrative(message));
         }
 
@@ -377,11 +376,13 @@ public class MoveService {
                                                   List<GameResponse> responses,
                                                   long nextDelayMs,
                                                   long roomEntryActionRevision) {
-        for (GameResponse response : responses) {
-            scheduleDirectRoomMessage(roomId, wsSessionId, response, nextDelayMs, roomEntryActionRevision);
-            nextDelayMs += randomRoomFlavorGapMs();
-        }
-        return nextDelayMs;
+        return roomFlavorScheduler.scheduleSequentialMessages(
+                roomId,
+                wsSessionId,
+                responses,
+                nextDelayMs,
+                roomEntryActionRevision
+        );
     }
 
     private void scheduleDirectRoomMessage(String roomId,
@@ -389,27 +390,21 @@ public class MoveService {
                                            GameResponse response,
                                            long delayMs,
                                            long roomEntryActionRevision) {
-        taskScheduler.schedule(
-                () -> sessionManager.get(wsSessionId)
-                        .filter(session -> roomId.equals(session.getPlayer().getCurrentRoomId()))
-                        .filter(session -> session.getActionRevision() == roomEntryActionRevision)
-                        .ifPresent(session -> worldBroadcaster.sendRoomFlavorToSession(wsSessionId, response)),
-                Instant.now().plusMillis(delayMs)
+        roomFlavorScheduler.scheduleRoomFlavorMessage(
+                roomId,
+                wsSessionId,
+                response,
+                delayMs,
+                roomEntryActionRevision
         );
     }
 
     private long randomRoomFlavorInitialDelayMs() {
-        return ThreadLocalRandom.current().nextLong(
-                ROOM_FLAVOR_INITIAL_DELAY_MIN_MS,
-                ROOM_FLAVOR_INITIAL_DELAY_MAX_MS + 1
-        );
+        return roomFlavorScheduler.randomInitialDelayMs();
     }
 
     private long randomRoomFlavorGapMs() {
-        return ThreadLocalRandom.current().nextLong(
-                ROOM_FLAVOR_GAP_MIN_MS,
-                ROOM_FLAVOR_GAP_MAX_MS + 1
-        );
+        return roomFlavorScheduler.randomGapDelayMs();
     }
 
     private String resolveNpcName(String npcId) {

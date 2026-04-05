@@ -5,6 +5,7 @@ import com.scott.tech.mud.mud_game.dto.GameResponse;
 import com.scott.tech.mud.mud_game.model.Item;
 import com.scott.tech.mud.mud_game.model.ItemTrigger;
 import com.scott.tech.mud.mud_game.model.Npc;
+import com.scott.tech.mud.mud_game.model.NpcTextRenderer;
 import com.scott.tech.mud.mud_game.session.GameSession;
 import org.springframework.stereotype.Service;
 
@@ -110,8 +111,6 @@ public class PickupValidator {
     }
 
     private String interpolate(String template, Npc npc, GameSession session) {
-        return template
-                .replace("{name}", npc.getName())
-                .replace("{player}", session.getPlayer().getName());
+        return NpcTextRenderer.renderForPlayer(template, npc, session.getPlayer().getName());
     }
 }

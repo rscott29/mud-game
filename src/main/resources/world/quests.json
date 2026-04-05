@@ -1,19 +1,211 @@
 [
     {
-        "id": "quest_loyalty",
-        "name": "The Path of Loyalty",
-        "description": "A lost traveler cries for help in the Deep Forest. Wolves have caught their scent. Will you stay and protect them, or leave them to their fate?",
-        "giver": "npc_lost_traveler",
+        "id": "quest_road_report",
+        "name": "Road Report",
+        "description": "Clerk Elin needs the latest word from the east gate before they can post the day's travel notices. Speak to Gatewarden Holt, then return to Town Hall with the update.",
+        "giver": "npc_town_clerk_elin",
         "startDialogue": [
-            "The traveler's eyes widen with terror as howls echo through the trees.",
-            "\"They've found me again! Please — I can't outrun them! Will you help me?\"",
-            "<br><em>Two wolves emerge from the shadows, fangs bared...</em>"
+            "Elin glances from one ledger to another and exhales through their nose.",
+            "\"Before I can post the day's travel notices, I need Holt's latest read on the east road,\" they say.",
+            "\"Run to the gate, ask whether the road is passable, and bring the answer straight back. Then I can finally pay someone for a clean errand instead of losing half the afternoon to it.\"",
+            "<br><em>Speak to <strong>Gatewarden Holt</strong> at the east gate, then return to <strong>Clerk Elin</strong>.</em>"
         ],
         "prerequisites": {
             "minLevel": 1,
             "completedQuests": [],
             "requiredItems": []
         },
+        "recommendedLevel": 1,
+        "challengeRating": "LOW",
+        "objectives": [
+            {
+                "id": "obj_check_with_holt",
+                "type": "TALK_TO",
+                "description": "Ask Gatewarden Holt for the latest road report",
+                "target": "npc_gatewarden_holt"
+            },
+            {
+                "id": "obj_return_to_elin",
+                "type": "TALK_TO",
+                "description": "Return Holt's answer to Clerk Elin at Town Hall",
+                "target": "npc_town_clerk_elin",
+                "requiresPrevious": true
+            }
+        ],
+        "rewards": {
+            "items": [],
+            "xp": 20,
+            "gold": 20
+        },
+        "completionDialogue": [
+            "Elin makes a crisp note in the road ledger and at once pins a fresh notice to the board.",
+            "\"Good. That saves me a walk and an argument,\" they say, producing a small pouch of coins from the desk drawer.",
+            "\"Honest errands deserve honest pay. If you're short on coin, town usually has more small work than hands.\"",
+            "<br><em>You receive <strong>20 gold</strong> for the delivery.</em>"
+        ]
+    },
+    {
+        "id": "quest_honey_run",
+        "name": "Honey Run",
+        "description": "Baker Tomas is waiting on a promised crock of rosemary honey from the general store before he can finish the inn's supper loaves. Check with Shopkeeper Rona, then bring the answer back to the bakery.",
+        "giver": "npc_baker_tomas",
+        "startDialogue": [
+            "Tomas eases a tray of warm loaves onto the rack and glances toward the market.",
+            "\"Rona was meant to set aside a crock of rosemary honey for tonight's inn bread,\" he says. \"I can bake without it, but I'd rather not disappoint Mira twice in one week.\"",
+            "\"Would you step over to the general store and ask whether it came in? If it did, good. If it didn't, that is still news I can work with.\"",
+            "<br><em>Speak to <strong>Shopkeeper Rona</strong> in the general store, then return to <strong>Baker Tomas</strong>.</em>"
+        ],
+        "prerequisites": {
+            "minLevel": 1,
+            "completedQuests": [],
+            "requiredItems": []
+        },
+        "recommendedLevel": 1,
+        "challengeRating": "LOW",
+        "objectives": [
+            {
+                "id": "obj_check_with_rona",
+                "type": "TALK_TO",
+                "description": "Ask Shopkeeper Rona about Tomas's honey order",
+                "target": "npc_shopkeeper_rona"
+            },
+            {
+                "id": "obj_return_to_tomas",
+                "type": "TALK_TO",
+                "description": "Bring Rona's answer back to Baker Tomas",
+                "target": "npc_baker_tomas",
+                "requiresPrevious": true
+            }
+        ],
+        "rewards": {
+            "items": [],
+            "xp": 15,
+            "gold": 12
+        },
+        "completionDialogue": [
+            "Tomas nods as you pass along the store's answer, already reaching for a fresh bowl and a wooden spoon.",
+            "\"That saves me a wasted trip and half a batch of guessing,\" he says with a grateful smile.",
+            "He presses a few coins into your palm, then turns back toward the oven.",
+            "\"Come by after dusk and the inn will smell like a peace treaty.\"",
+            "<br><em>You receive <strong>12 gold</strong> for the bakery errand.</em>"
+        ]
+    },
+    {
+        "id": "quest_watchtower_round",
+        "name": "Watchtower Round",
+        "description": "Captain Hale needs a quick extra pair of eyes on the eastern watchtower. Climb the tower, take a look over the road, and report back to the barracks.",
+        "giver": "npc_captain_hale",
+        "startDialogue": [
+            "Hale folds a duty roster and fixes you with a practical look.",
+            "\"My watch is stretched thin and I need someone for a simple tower round,\" they say. \"Nothing heroic. Just useful.\"",
+            "\"Climb the gate watchtower, take a look over the eastern road, then come back and tell me whether anything seems out of place. If nothing does, that is still worth knowing.\"",
+            "<br><em>Visit the <strong>Gate Watchtower</strong>, then report back to <strong>Captain Hale</strong> in the barracks.</em>"
+        ],
+        "prerequisites": {
+            "minLevel": 1,
+            "completedQuests": [],
+            "requiredItems": []
+        },
+        "recommendedLevel": 1,
+        "challengeRating": "LOW",
+        "objectives": [
+            {
+                "id": "obj_visit_watchtower",
+                "type": "VISIT",
+                "description": "Make the climb to the gate watchtower and look over the road",
+                "target": "watchtower"
+            },
+            {
+                "id": "obj_report_to_hale",
+                "type": "TALK_TO",
+                "description": "Report your watchtower round to Captain Hale",
+                "target": "npc_captain_hale",
+                "requiresPrevious": true
+            }
+        ],
+        "rewards": {
+            "items": [],
+            "xp": 15,
+            "gold": 12
+        },
+        "completionDialogue": [
+            "Hale listens without interrupting, then gives a short, approving nod.",
+            "\"Good. Quiet roads stay quiet because someone bothered to check them,\" they say.",
+            "They pull a small payment from the watch purse and hand it over.",
+            "\"If you keep helping before trouble starts, you'll save yourself blood later.\"",
+            "<br><em>You receive <strong>12 gold</strong> for the watchtower round.</em>"
+        ]
+    },
+    {
+        "id": "quest_remembrance_round",
+        "name": "Remembrance Round",
+        "description": "Keeper Sera wants the old sacred quarter walked before evening prayers. Visit the Old Memorial and the Ruined Shrine, then return to the temple court.",
+        "giver": "npc_temple_keeper_sera",
+        "startDialogue": [
+            "Sera straightens a row of half-burned candles and glances toward the older stones beyond the court.",
+            "\"The memorial and the ruined shrine are both still tended, but only if someone remembers to look in on them,\" they say quietly.",
+            "\"Would you walk the old quarter for me before evening bells? See that both places stand in peace, then return and tell me so.\"",
+            "<br><em>Visit the <strong>Old Memorial</strong> and the <strong>Ruined Shrine</strong>, then return to <strong>Keeper Sera</strong>.</em>"
+        ],
+        "prerequisites": {
+            "minLevel": 1,
+            "completedQuests": [],
+            "requiredItems": []
+        },
+        "recommendedLevel": 1,
+        "challengeRating": "LOW",
+        "objectives": [
+            {
+                "id": "obj_visit_memorial",
+                "type": "VISIT",
+                "description": "Walk to the Old Memorial and pay it a quiet visit",
+                "target": "old_memorial"
+            },
+            {
+                "id": "obj_visit_ruined_shrine",
+                "type": "VISIT",
+                "description": "Check on the Ruined Shrine",
+                "target": "ruined_shrine",
+                "requiresPrevious": true
+            },
+            {
+                "id": "obj_return_to_sera",
+                "type": "TALK_TO",
+                "description": "Return to Keeper Sera in the temple court",
+                "target": "npc_temple_keeper_sera",
+                "requiresPrevious": true
+            }
+        ],
+        "rewards": {
+            "items": [],
+            "xp": 18,
+            "gold": 14
+        },
+        "completionDialogue": [
+            "Sera bows their head as you describe the old quarter's stillness.",
+            "\"Thank you,\" they say. \"Most care for sacred places in theory. Fewer make the walk.\"",
+            "They place a modest stipend in your hand with the same care they give the prayer candles.",
+            "\"Remembered places remember us in turn.\"",
+            "<br><em>You receive <strong>14 gold</strong> for tending the old quarter.</em>"
+        ]
+    },
+    {
+        "id": "quest_loyalty",
+        "name": "The Path of Loyalty",
+        "description": "A lost traveler cries for help in the Deep Forest. Wolves have caught their scent. Will you stay and protect them, or leave them to their fate?",
+        "giver": "npc_lost_traveler",
+        "startDialogue": [
+            "The traveler's eyes widen with terror as howls echo through the trees.",
+            "\"They've found me again! Please ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â I can't outrun them! Will you help me?\"",
+            "<br><em>Three wolves emerge from the shadows, fangs bared...</em>"
+        ],
+        "prerequisites": {
+            "minLevel": 1,
+            "completedQuests": [],
+            "requiredItems": []
+        },
+        "recommendedLevel": 2,
+        "challengeRating": "MODERATE",
         "objectives": [
             {
                 "id": "obj_defend_traveler",
@@ -22,12 +214,13 @@
                 "target": "npc_lost_traveler",
                 "spawnNpcs": [
                     "npc_forest_wolf",
+                    "npc_forest_wolf",
                     "npc_forest_wolf"
                 ],
-                "defeatCount": 2,
+                "defeatCount": 3,
                 "failOnTargetDeath": true,
-                "targetHealth": 30,
-                "timeLimitSeconds": 45
+                "targetHealth": 26,
+                "timeLimitSeconds": 35
             }
         ],
         "rewards": {
@@ -42,14 +235,14 @@
             "\"You... you stayed. You could have run, but you stayed.\"",
             "They press something small and brass into your hand.",
             "\"My grandmother gave me this. Said it was part of something greater. I think... I think it was meant for someone like you.\"",
-            "<br><em>You receive the <strong>Paw Shard</strong> — the mark of true loyalty.</em>"
+            "<br><em>You receive the <strong>Paw Shard</strong> -- the mark of true loyalty.</em>"
         ],
         "completionEffects": {
             "updateNpcDescriptions": [
                 {
                     "npcId": "npc_lost_traveler",
                     "newDescription": "The traveler stands a little taller now, no longer lost. Their eyes are calm and full of quiet gratitude. <br><br><em>\"You came when no one else would. I won't forget that.\"</em>",
-                    "originalDescription": "A weary figure huddles against a tree, their traveling cloak torn and muddy. They look utterly exhausted, eyes darting nervously at every forest sound. When they notice you, relief floods their face. <br><br><em>\"Please — I've been lost for days. I can't find my way back to town.\"</em>"
+                    "originalDescription": "A weary figure huddles against a tree, their traveling cloak torn and muddy. They look utterly exhausted, eyes darting nervously at every forest sound. When they notice you, relief floods their face. <br><br><em>\"Please ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â I've been lost for days. I can't find my way back to town.\"</em>"
                 }
             ]
         }
@@ -73,6 +266,8 @@
     "completedQuests": [],
     "requiredItems": []
   },
+  "recommendedLevel": 3,
+  "challengeRating": "HIGH",
   "objectives": [
     {
       "id": "obj_deliver_potion",
@@ -88,7 +283,7 @@
           "They rise slowly to their feet, steadier now.",
           "\"You did not walk past,\" they say softly. \"That is rarer than you know.\"",
           "For the first time, they glance south, toward a curtain of tangled vines stirring in a wind you cannot feel.",
-          "\"There is a cave beyond the forest edge — an old sacred place I was journeying to before I was struck down.\"",
+          "\"There is a cave beyond the forest edge -- an old sacred place I was journeying to before I was struck down.\"",
           "\"Walk with me through the darkness within. At its heart, I can offer you something precious.\"",
           "The pilgrim pauses, then adds in a quieter voice:",
           "\"If the cave permits it.\"",
@@ -112,7 +307,7 @@
           "\"The cave was built to test those who enter. Not all who choose a path are allowed to leave.\"",
           "They rest a hand against the stone wall.",
           "\"One more warning... this place drains the spirit. Your wounds will not mend naturally while within.\"",
-          "\"But ancient pilgrims left mercy behind them. Look for glowing moss upon the walls — it still carries a little life.\"",
+          "\"But ancient pilgrims left mercy behind them. Look for glowing moss upon the walls -- it still carries a little life.\"",
           "Their voice lowers to almost a whisper.",
           "\"Choose poorly, and the cave will remember.\"",
           "<br><em>Proceed <strong>south</strong> into the darkness. Choose your directions carefully.</em>"
@@ -132,7 +327,7 @@
         "dialogue": [
           "The tunnel opens suddenly into a vast chamber lined with crystal and pale stone.",
           "Light spills down from a crack high above, scattering into a hundred shifting colors across the walls.",
-          "The silence here is absolute — deep enough to feel unnatural.",
+          "The silence here is absolute -- deep enough to feel unnatural.",
           "At the center of the chamber stands a small altar worn smooth by time.",
           "The pilgrim walks to it slowly and kneels, bowing their head.",
           "For a long moment, they say nothing.",
@@ -141,13 +336,17 @@
           "\"Many warriors have entered these tunnels. Most never pass the first trial.\"",
           "They look back toward the darkness behind you.",
           "\"The cave watches who you choose to be before you even step inside.\"",
+          "\"And sometimes... it remembers the hearts that walk beside us, even after they are gone from sight.\"",
           "Reaching to the altar, the pilgrim lifts a crystal shard glowing like a warm ember beneath the rainbow light.",
+          "As they turn it, something faint stirs within its center -- no more than a trick of light, like the shape of a small paw pressed into fire.",
           "They place it carefully in your hand.",
           "\"The Heart Shard.\"",
           "\"A gift for those who prove that courage is not the absence of fear...\"",
           "A faint, knowing smile touches their lips.",
           "\"...but kindness in spite of it.\"",
-          "<br><em>You receive the <strong>Heart Shard</strong> — the mark of true courage.</em>"
+          "\"To protect, to return, to remain -- these are the quiet vows by which the truest hearts are known.\"",
+          "The shard gives a single pulse of warmth in your palm, steady and familiar, like a heartbeat not entirely your own.",
+          "<br><em>You receive the <strong>Heart Shard</strong> -- the mark of true courage.</em>"
         ]
       }
     }
@@ -198,6 +397,8 @@
             "completedQuests": [],
             "requiredItems": []
         },
+        "recommendedLevel": 3,
+        "challengeRating": "MODERATE",
         "objectives": [
             {
                 "id": "obj_find_ball_1",
@@ -226,7 +427,7 @@
                         ]
                     },
                     "dialogue": [
-                        "The child catches the ball and squeals with delight. \"Watch me throw it! I can throw SO far!\"<br>They hurl the ball with all their might. It bounces once, twice—",
+                        "The child catches the ball and squeals with delight. \"Watch me throw it! I can throw SO far!\"<br>They hurl the ball with all their might. It bounces once, twiceÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â",
                         "<em>A golden blur streaks past you. Obi snatches the ball mid-bounce and bolts!</em><br>\"NOOOO! The doggy took my ball!\"<br><em>You'll have to find it again...</em>"
                     ]
                 }
@@ -250,15 +451,16 @@
                     "relocateItem": {
                         "itemId": "item_childs_ball",
                         "targetRooms": [
-                            "market",
-                            "tavern_loft",
+                            "graveyard",
+                            "watchtower",
+                            "forest_edge",
                             "deep_forest",
                             "forest_fork",
                             "training_yard"
                         ]
                     },
                     "dialogue": [
-                        "\"You found it again! You're the BEST!\"<br>The child winds up for another throw. \"This time I'll throw it even HIGHER!\"<br>The ball soars into the air—",
+                        "\"You found it again! You're the BEST!\"<br>The child winds up for another throw. \"This time I'll throw it even HIGHER!\"<br>The ball soars into the airÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â",
                         "<em>Obi appears out of nowhere, leaps impossibly high, and catches it!</em><br>\"That doggy is SO FAST!\" The child stomps their foot. \"Get it back! Please please please!\"<br><em>Obi has escaped with the ball once more...</em>"
                     ]
                 }
@@ -296,7 +498,7 @@
             "\"You're the best ball-finder ever. Grandma said I'd know when to give this away.\"",
             "They press a worn brass fragment into your palm.",
             "\"She said heroes need to remember how to play. You played with me three whole times!\"",
-            "<br><em>You receive the <strong>Ball Shard</strong> — the mark of simple joy.</em>"
+            "<br><em>You receive the <strong>Ball Shard</strong> ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â the mark of simple joy.</em>"
         ],
         "completionEffects": {
             "updateNpcDescriptions": [
@@ -311,14 +513,15 @@
     {
         "id": "quest_purpose",
         "name": "The Compass Points True",
-        "description": "A blind guide at the forest fork speaks in riddles of loyalty, courage, purpose, and joy. Perhaps they can reveal the path to the hidden grove.",
+        "description": "A blind guide at the forest fork says the hidden grove only answers those who seek it with purpose. Search the fork carefully, find the ancient oak, and prove you understand what the shards are for.",
         "giver": "npc_blind_guide",
         "startDialogue": [
             "The guide turns toward you, milky eyes somehow seeing.",
-            "\"Seeker,\" they say. \"You have gathered the fragments, but do you understand their meaning?\"",
+            "\"Seeker,\" they say. \"You have gathered the fragments, but the grove does not open for collectors.\"",
             "They tap their staff against the earth.",
-            "\"Tell me — what lesson does each symbol teach? Answer truly, and the path will open.\"",
-            "<br><em>The guide awaits your response.</em>"
+            "\"Loyalty. Courage. Joy. Purpose. The words alone are nothing,\" they murmur. \"Search this fork with those lessons in your heart, and the true path will answer you.\"",
+            "\"Beyond it stands the ancient oak. Go there, and learn whether you came for a weapon... or for the vow behind it.\"",
+            "<br><em>The guide urges you to search the fork and find the hidden grove beyond the ancient oak.</em>"
         ],
         "prerequisites": {
             "minLevel": 1,
@@ -333,47 +536,14 @@
                 "item_tag_shard_ball"
             ]
         },
+        "recommendedLevel": 4,
+        "challengeRating": "HIGH",
         "objectives": [
             {
-                "id": "obj_answer_riddle",
-                "type": "DIALOGUE_CHOICE",
-                "description": "Answer the Blind Guide's question",
-                "target": "npc_blind_guide",
-                "dialogue": {
-                    "question": "What do the paw, the heart, and the ball teach us?",
-                    "choices": [
-                        {
-                            "text": "The paw teaches loyalty — to stand with those who need us.",
-                            "correct": true,
-                            "response": "\"Yes,\" the guide nods slowly. \"And the heart?\""
-                        },
-                        {
-                            "text": "They teach power and strength.",
-                            "correct": false,
-                            "response": "The guide shakes their head sadly. \"You have gathered the shards but learned nothing from them. Return when you understand.\""
-                        },
-                        {
-                            "text": "I don't know.",
-                            "correct": false,
-                            "response": "\"Then you are not yet ready.\" The guide falls silent."
-                        }
-                    ],
-                    "followUp": {
-                        "question": "And what of the heart and the ball?",
-                        "choices": [
-                            {
-                                "text": "The heart teaches courage — to help even when it costs us. The ball teaches joy — to remember what makes life worth living.",
-                                "correct": true,
-                                "response": "The guide smiles. \"Now you understand.\""
-                            },
-                            {
-                                "text": "They teach us to fight and win.",
-                                "correct": false,
-                                "response": "\"No. You mistake the symbols for trophies. They are lessons, not prizes.\""
-                            }
-                        ]
-                    }
-                }
+                "id": "obj_seek_hidden_grove",
+                "type": "VISIT",
+                "description": "Search the fork and reach the hidden grove beneath the ancient oak",
+                "target": "old_oak_crossing"
             }
         ],
         "rewards": {
@@ -384,13 +554,13 @@
             "gold": 35
         },
         "completionDialogue": [
-            "The guide rises slowly, staff clicking against stone.",
-            "\"You have learned what many never do. Loyalty. Courage. Joy. Purpose.\"",
-            "They gesture toward the undergrowth to the east.",
-            "\"The path to the grove is open to you now. Seek the ancient oak — and claim what was always meant to be yours.\"",
-            "From their robes, they produce the final fragment.",
-            "<br><em>You receive the <strong>Compass Shard</strong> — the mark of true purpose.</em>",
-            "<br><em>A hidden path to the <strong>east</strong> reveals itself through the brush.</em>"
+            "As you step beneath the ancient oak, the grove falls utterly still.",
+            "The spectral Labrador rises beside the weathered stone, tail thumping once against the roots as if in greeting.",
+            "The Keeper of the Bond inclines his helm. \"You came seeking more than steel. That is why the grove allowed you to enter.\"",
+            "A final sliver of brass breaks free from the old stone and slides into your waiting palm.",
+            "<br><em>You receive the <strong>Compass Shard</strong> - the mark of true purpose.</em>",
+            "\"When the four pieces are yours,\" the Keeper says, \"seek Relicsmith Elira in the town forge. She still remembers how old vows are made whole.\"",
+            "The blind guide's voice seems to drift through the leaves behind you: \"Now the oath may judge you fairly.\""
         ],
         "completionEffects": {
             "revealHiddenExit": {
@@ -402,6 +572,11 @@
                     "npcId": "npc_blind_guide",
                     "newDescription": "The guide sits peacefully at the fork, their staff resting across their knees. A faint smile plays at the corners of their mouth. <br><br><em>\"The path is open, seeker. You have found your purpose.\"</em>",
                     "originalDescription": "An elderly figure sits cross-legged at the fork in the path, a worn walking staff across their knees. Their eyes are milky and sightless, yet they turn unerringly toward you as you approach. <br><br><em>\"Lost?\"</em> they ask with a knowing smile. <em>\"Many are. The forest tests those who seek its heart. But those who follow loyalty's path always find their way.\"</em>"
+                },
+                {
+                    "npcId": "npc_keeper_of_the_bond",
+                    "newDescription": "The silent knight keeps watch beside the stone, but his stance is no longer wholly forbidding. The spectral hound at his side watches you with bright, patient eyes. <br><br><em>\"The grove has named you true,\"</em> the Keeper says. <em>\"When the tag is made whole, the oath may answer your hand.\"</em>",
+                    "originalDescription": "A silent knight stands watch beside the ancient stone of the grove. His armour is old but immaculately kept, etched with the faint image of a hound's paw upon the breastplate. A long cloak hangs from his shoulders, unmoving despite the breeze. Though his face is hidden behind a simple steel helm, you feel the unmistakable weight of his attention. <br><br>When he finally speaks, his voice is calm and steady.<br><br><em>\"Many claim loyalty. Few understand it.\"</em><br><br>He gestures toward the path beyond the grove as though inviting you to prove something."
                 }
             ]
         }
@@ -423,6 +598,8 @@
             
             "requiredItems": []
         },
+        "recommendedLevel": 5,
+        "challengeRating": "DEADLY",
         "objectives": [
             {
                 "id": "obj_reach_prayer_ledge",

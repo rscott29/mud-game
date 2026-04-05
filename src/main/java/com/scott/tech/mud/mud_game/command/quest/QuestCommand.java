@@ -5,6 +5,7 @@ import com.scott.tech.mud.mud_game.command.core.GameCommand;
 import com.scott.tech.mud.mud_game.config.Messages;
 import com.scott.tech.mud.mud_game.dto.GameResponse;
 import com.scott.tech.mud.mud_game.model.Player;
+import com.scott.tech.mud.mud_game.quest.QuestPresentation;
 import com.scott.tech.mud.mud_game.quest.QuestService;
 import com.scott.tech.mud.mud_game.quest.QuestService.ActiveQuestInfo;
 import com.scott.tech.mud.mud_game.session.GameSession;
@@ -33,12 +34,27 @@ public class QuestCommand implements GameCommand {
         }
 
         StringBuilder sb = new StringBuilder();
-        sb.append(Messages.get("quest.list.header"));
+        sb.append("<div class='quest-list-header'>Active Quests:</div>");
         
         for (ActiveQuestInfo quest : quests) {
-            sb.append(Messages.fmt("quest.list.entry", 
-                    "name", quest.name(),
-                    "objective", quest.currentObjective()));
+            sb.append("<div class='quest-entry'>");
+            sb.append("<strong>").append(quest.name()).append("</strong>");
+            sb.append(QuestPresentation.buildMetaBadges(
+                    quest.challengeRating(),
+                    quest.recommendedLevel(),
+                    player.getLevel()));
+            sb.append("<div class='quest-entry-description'><small>")
+                    .append(quest.description())
+                    .append("</small></div>");
+            sb.append("<div class='quest-entry-objective'><strong>Current Objective:</strong> ")
+                    .append(quest.currentObjective())
+                    .append("</div>");
+            if (quest.progress() > 0) {
+                sb.append("<div class='quest-entry-progress'><small>Progress: ")
+                        .append(quest.progress())
+                        .append("</small></div>");
+            }
+            sb.append("</div>");
         }
 
         return CommandResult.of(GameResponse.narrative(sb.toString()));

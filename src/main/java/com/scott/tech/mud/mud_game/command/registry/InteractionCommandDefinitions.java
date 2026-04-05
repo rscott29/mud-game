@@ -7,6 +7,7 @@ import com.scott.tech.mud.mud_game.command.pickup.PickupCommand;
 import com.scott.tech.mud.mud_game.command.shop.BuyCommand;
 import com.scott.tech.mud.mud_game.command.shop.ShopCommand;
 import com.scott.tech.mud.mud_game.command.talk.TalkCommand;
+import com.scott.tech.mud.mud_game.service.RoomFlavorScheduler;
 
 import java.util.List;
 
@@ -28,7 +29,9 @@ final class InteractionCommandDefinitions {
                         ctx.hasNoArgs() ? null : ctx.joinedArgs(),
                         ctx.deps().talkValidator(),
                         ctx.deps().talkService(),
-                        ctx.deps().questService()
+                        ctx.deps().questService(),
+                        ctx.deps().levelingService(),
+                        ctx.deps().worldService()
                 ))
                 .build());
 
@@ -43,7 +46,13 @@ final class InteractionCommandDefinitions {
                         ctx.deps().pickupValidator(),
                         ctx.deps().pickupService(),
                         ctx.deps().questService(),
-                        ctx.deps().objectiveEncounterRuntimeService()
+                        ctx.deps().objectiveEncounterRuntimeService(),
+                        ctx.deps().worldService(),
+                        new RoomFlavorScheduler(
+                                ctx.deps().taskScheduler(),
+                                ctx.deps().worldBroadcaster(),
+                                ctx.deps().sessionManager()
+                        )
                 ))
                 .build());
 

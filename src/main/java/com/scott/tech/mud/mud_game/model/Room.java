@@ -14,6 +14,7 @@ public class Room {
     private final Map<Direction, String> exits;
     private Map<Direction, String> hiddenExits     = new EnumMap<>(Direction.class);
     private Map<Direction, String> hiddenExitHints = new EnumMap<>(Direction.class);
+    private Map<Direction, HiddenExitRequirement> hiddenExitRequirements = new EnumMap<>(Direction.class);
     private final List<Item> items;
     private final List<Npc> npcs;
     private boolean recallBindable;
@@ -51,10 +52,14 @@ public class Room {
     public boolean hasHiddenExit(Direction dir)             { return hiddenExits.containsKey(dir); }
     public String getHiddenExit(Direction dir)              { return hiddenExits.get(dir); }
     public String getHiddenExitHint(Direction dir)          { return hiddenExitHints.get(dir); }
+    public HiddenExitRequirement getHiddenExitRequirement(Direction dir) { return hiddenExitRequirements.get(dir); }
 
     /** Called only by WorldLoader during world initialisation. */
     public void setHiddenExits(Map<Direction, String> m)      { if (m != null) hiddenExits = m; }
     public void setHiddenExitHints(Map<Direction, String> m)  { if (m != null) hiddenExitHints = m; }
+    public void setHiddenExitRequirements(Map<Direction, HiddenExitRequirement> requirements) {
+        if (requirements != null) hiddenExitRequirements = requirements;
+    }
     public void setRecallBindable(boolean recallBindable)     { this.recallBindable = recallBindable; }
     public void setDefaultRecallPoint(boolean defaultRecallPoint) { this.defaultRecallPoint = defaultRecallPoint; }
 
@@ -107,4 +112,9 @@ public class Room {
         String dest = exits.get(direction);
         return dest != null ? dest : hiddenExits.get(direction);
     }
+
+    public record HiddenExitRequirement(
+            String questId,
+            String objectiveId
+    ) {}
 }

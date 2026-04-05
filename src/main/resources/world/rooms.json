@@ -248,6 +248,11 @@
         "SOUTH": "Behind a curtain of hanging vines, you discover a dark cave entrance leading <em>south</em>.",
         "DOWN": "Peering over a moss-slick sinkhole hidden among the roots, you spot a narrow descent dropping <em>down</em> toward the cave's heart."
       },
+      "hiddenExitRequirements": {
+        "DOWN": {
+          "questId": "quest_courage"
+        }
+      },
       "itemIds": ["item_broken_arrow", "item_odd_mushroom"],
       "npcIds": ["npc_wounded_pilgrim"]
     },
@@ -275,7 +280,7 @@
       },
       "dark": true,
       "safeExit": "SOUTH",
-      "wrongExitDamage": 8,
+      "wrongExitDamage": 12,
       "ambientZone": "cave",
       "suppressRegen": true,
       "itemIds": []
@@ -314,7 +319,7 @@
       },
       "dark": true,
       "safeExit": "EAST",
-      "wrongExitDamage": 8,
+      "wrongExitDamage": 12,
       "ambientZone": "cave",
       "suppressRegen": true,
       "itemIds": []
@@ -353,7 +358,7 @@
       },
       "dark": true,
       "safeExit": "SOUTH",
-      "wrongExitDamage": 10,
+      "wrongExitDamage": 14,
       "ambientZone": "cave",
       "suppressRegen": true,
       "itemIds": []
@@ -392,7 +397,7 @@
       },
       "dark": true,
       "safeExit": "WEST",
-      "wrongExitDamage": 10,
+      "wrongExitDamage": 14,
       "ambientZone": "cave",
       "suppressRegen": true,
       "itemIds": []
@@ -430,7 +435,7 @@
       },
       "dark": true,
       "safeExit": "SOUTH",
-      "wrongExitDamage": 12,
+      "wrongExitDamage": 16,
       "ambientZone": "cave",
       "suppressRegen": true,
       "itemIds": []
@@ -479,7 +484,13 @@
     "EAST": "old_oak_crossing"
   },
   "hiddenExitHints": {
-    "EAST": "You push aside a curtain of overgrown shrubbery and discover a hidden path leading <em>east</em> — a route that clearly hasn't been used in some time."
+    "EAST": "You study the roots, brush aside a wall of brambles, and uncover a narrow hidden path leading <em>east</em> beneath the ancient oak's boughs."
+  },
+  "hiddenExitRequirements": {
+    "EAST": {
+      "questId": "quest_purpose",
+      "objectiveId": "obj_seek_hidden_grove"
+    }
   },
   "itemIds": ["item_pawprints", "item_mossy_stone"],
   "npcIds": ["npc_blind_guide"]
@@ -492,7 +503,7 @@
     "WEST": "forest_fork",
     "NORTH": "wayfarers_rest"
   },
-  "itemIds": ["item_obis_oath", "item_obis_tag", "item_weathered_stone", "item_ancient_oak"],
+  "itemIds": ["item_obis_oath", "item_weathered_stone", "item_ancient_oak"],
   "npcIds": ["npc_keeper_of_the_bond"]
 },
     {
@@ -600,7 +611,7 @@
         "WEST": "training_yard"
       },
       "itemIds": ["item_anvil"],
-      "npcIds": ["npc_blacksmith_bram"],
+      "npcIds": ["npc_blacksmith_bram", "npc_relicsmith_elira"],
       "shop": {
         "merchantNpcId": "npc_blacksmith_bram",
         "listings": [

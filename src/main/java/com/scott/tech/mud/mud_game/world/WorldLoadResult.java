@@ -10,6 +10,7 @@ public record WorldLoadResult(
         Map<String, Room> rooms,
         Map<String, Npc> npcRegistry,
         Map<String, Item> itemRegistry,
+        Map<String, java.util.List<NpcGiveInteraction>> npcGiveInteractions,
         Map<String, String> npcRoomIndex,
         String startRoomId,
         String defaultRecallRoomId

@@ -262,6 +262,45 @@ class MoveServiceTest {
     }
 
     @Test
+    void buildResult_movesFollowingNpcThroughWorldService() {
+        TaskScheduler taskScheduler = mock(TaskScheduler.class);
+        WorldBroadcaster broadcaster = mock(WorldBroadcaster.class);
+        LevelingService levelingService = mock(LevelingService.class);
+        AmbientEventService ambientEventService = mock(AmbientEventService.class);
+        WorldService worldService = mock(WorldService.class);
+        GameSessionManager sessionManager = new GameSessionManager();
+
+        when(ambientEventService.getRandomAmbientEvent(anyString())).thenReturn(Optional.empty());
+        when(ambientEventService.getRandomCompanionDialogue(any(), anyString())).thenReturn(Optional.empty());
+
+        Npc pilgrim = npcWithInteraction("npc_wounded_pilgrim", "Wounded Pilgrim", "The pilgrim watches {player} closely.");
+        Room startRoom = new Room("start", "Trail", "A dusty trail.", exits(Direction.NORTH, "grove"), List.of(), List.of(pilgrim));
+        Room nextRoom = new Room("grove", "Whispering Grove", "Trees lean close here.", new EnumMap<>(Direction.class), List.of(), List.of());
+
+        when(worldService.getRoom("start")).thenReturn(startRoom);
+        when(worldService.getRoom("grove")).thenReturn(nextRoom);
+
+        Player player = new Player("p1", "Hero", "start");
+        GameSession session = new GameSession("session-1", player, worldService);
+        session.transition(SessionState.PLAYING);
+        session.addFollower("npc_wounded_pilgrim");
+        sessionManager.register(session);
+
+        MoveService service = new MoveService(
+                taskScheduler,
+                broadcaster,
+                sessionManager,
+                levelingService,
+                ambientEventService,
+                worldService
+        );
+
+        service.buildResult(session, Direction.NORTH, MoveValidationResult.allow("grove", nextRoom));
+
+        verify(worldService).moveNpc("npc_wounded_pilgrim", "start", "grove");
+    }
+
+    @Test
     void delayedNpcMessagesAreDroppedAfterPlayerLeavesTheRoom() {
         TaskScheduler taskScheduler = mock(TaskScheduler.class);
         WorldBroadcaster broadcaster = mock(WorldBroadcaster.class);

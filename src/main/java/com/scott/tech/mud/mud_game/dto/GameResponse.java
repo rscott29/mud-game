@@ -50,7 +50,8 @@ public record GameResponse(
         SOCIAL_ACTION,
         MODERATION_NOTICE,
         AMBIENT_EVENT,
-        COMPANION_DIALOGUE
+        COMPANION_DIALOGUE,
+        NARRATIVE_ECHO
     }
 
     // --- compact constructors for convenience defaults ---
@@ -88,6 +89,10 @@ public record GameResponse(
 
     public static GameResponse narrative(String html) {
         return new GameResponse(Type.NARRATIVE, html, null);
+    }
+
+    public static GameResponse narrativeEcho(String html) {
+        return new GameResponse(Type.NARRATIVE_ECHO, html, null);
     }
 
     public static GameResponse roomAction(String message) {

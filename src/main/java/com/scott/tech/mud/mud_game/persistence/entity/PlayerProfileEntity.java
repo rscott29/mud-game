@@ -85,6 +85,9 @@ public class PlayerProfileEntity {
     @Column(name = "gold", nullable = false)
     private int gold = 0;
 
+    @Column(name = "active_quests", columnDefinition = "TEXT")
+    private String activeQuests;
+
     @Column(name = "completed_quests", columnDefinition = "TEXT")
     private String completedQuests;
 
@@ -121,6 +124,7 @@ public class PlayerProfileEntity {
     public String  getRecallRoomId()      { return recallRoomId; }
     public int     getExperience()        { return experience; }
     public int     getGold()              { return gold; }
+    public String  getActiveQuests()      { return activeQuests; }
     public String  getCompletedQuests()   { return completedQuests; }
     public Instant getLastSeenAt()        { return lastSeenAt; }
 
@@ -149,6 +153,7 @@ public class PlayerProfileEntity {
     public void setRecallRoomId(String recallRoomId)     { this.recallRoomId = recallRoomId; }
     public void setExperience(int experience)            { this.experience = experience; }
     public void setGold(int gold)                        { this.gold = gold; }
+    public void setActiveQuests(String activeQuests)     { this.activeQuests = activeQuests; }
     public void setCompletedQuests(String completedQuests) { this.completedQuests = completedQuests; }
     public void setLastSeenAt(Instant lastSeenAt)         { this.lastSeenAt = lastSeenAt; }
 }

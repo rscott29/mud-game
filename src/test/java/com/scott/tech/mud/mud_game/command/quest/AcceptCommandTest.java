@@ -10,6 +10,7 @@ import com.scott.tech.mud.mud_game.model.SessionState;
 import com.scott.tech.mud.mud_game.quest.DefendObjectiveRuntimeService;
 import com.scott.tech.mud.mud_game.quest.ObjectiveEffects;
 import com.scott.tech.mud.mud_game.quest.Quest;
+import com.scott.tech.mud.mud_game.quest.QuestChallengeRating;
 import com.scott.tech.mud.mud_game.quest.QuestCompletionEffects;
 import com.scott.tech.mud.mud_game.quest.QuestObjective;
 import com.scott.tech.mud.mud_game.quest.QuestObjectiveType;
@@ -80,6 +81,8 @@ class AcceptCommandTest {
         assertThat(result.getResponses()).hasSize(2);
         assertThat(result.getResponses().getFirst().type()).isEqualTo(GameResponse.Type.ROOM_UPDATE);
         assertThat(result.getResponses().getFirst().message())
+                .contains("CR II Moderate")
+                .contains("level 2")
                 .contains("The traveler begs for your help.")
                 .contains("attack wolf")
                 .contains("kill wolf");
@@ -177,6 +180,8 @@ class AcceptCommandTest {
                 "npc_lost_traveler",
                 List.of("The traveler begs for your help."),
                 QuestPrerequisites.NONE,
+                2,
+                QuestChallengeRating.MODERATE,
                 List.of(new QuestObjective(
                         "obj_defend_traveler",
                         QuestObjectiveType.DEFEND,

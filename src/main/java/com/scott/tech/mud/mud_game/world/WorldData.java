@@ -26,6 +26,8 @@ public class WorldData {
         private Map<String, String> hiddenExits;
         /** Per-direction discovery message shown when a hidden exit is found. */
         private Map<String, String> hiddenExitHints;
+        /** Optional per-direction quest progress required before investigate can reveal a hidden exit. */
+        private Map<String, HiddenExitRequirementDefinition> hiddenExitRequirements;
         /** IDs referencing entries in items.json. */
         private List<String> itemIds;
         /** IDs referencing entries in npcs.json. */
@@ -53,6 +55,7 @@ public class WorldData {
         public Map<String, String> getExits()                   { return exits; }
         public Map<String, String> getHiddenExits()             { return hiddenExits; }
         public Map<String, String> getHiddenExitHints()         { return hiddenExitHints; }
+        public Map<String, HiddenExitRequirementDefinition> getHiddenExitRequirements() { return hiddenExitRequirements; }
         public List<String> getItemIds()                        { return itemIds; }
         public List<String> getNpcIds()                         { return npcIds; }
         public boolean isRecallBindable()                       { return recallBindable; }
@@ -70,6 +73,9 @@ public class WorldData {
         public void setExits(Map<String, String> e)             { this.exits = e; }
         public void setHiddenExits(Map<String, String> e)       { this.hiddenExits = e; }
         public void setHiddenExitHints(Map<String, String> h)   { this.hiddenExitHints = h; }
+        public void setHiddenExitRequirements(Map<String, HiddenExitRequirementDefinition> requirements) {
+            this.hiddenExitRequirements = requirements;
+        }
         public void setItemIds(List<String> itemIds)            { this.itemIds = itemIds; }
         public void setNpcIds(List<String> npcIds)              { this.npcIds = npcIds; }
         public void setRecallBindable(boolean recallBindable)   { this.recallBindable = recallBindable; }
@@ -80,6 +86,16 @@ public class WorldData {
         public void setSuppressRegen(boolean suppressRegen)      { this.suppressRegen = suppressRegen; }
         public void setAmbientZone(String ambientZone)             { this.ambientZone = ambientZone; }
         public void setShop(ShopDefinition shop)                   { this.shop = shop; }
+    }
+
+    public static class HiddenExitRequirementDefinition {
+        private String questId;
+        private String objectiveId;
+
+        public String getQuestId() { return questId; }
+        public String getObjectiveId() { return objectiveId; }
+        public void setQuestId(String questId) { this.questId = questId; }
+        public void setObjectiveId(String objectiveId) { this.objectiveId = objectiveId; }
     }
 
     public static class ShopDefinition {

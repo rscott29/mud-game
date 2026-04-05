@@ -24,6 +24,12 @@ public record Quest(
         
         /** Requirements to accept this quest. */
         QuestPrerequisites prerequisites,
+
+        /** Suggested player level for a fair attempt. */
+        int recommendedLevel,
+
+        /** Broad difficulty signal shown in quest UI. */
+        QuestChallengeRating challengeRating,
         
         /** Ordered list of objectives to complete. */
         List<QuestObjective> objectives,
@@ -40,10 +46,40 @@ public record Quest(
     public Quest {
         startDialogue = startDialogue != null ? List.copyOf(startDialogue) : List.of();
         prerequisites = prerequisites != null ? prerequisites : QuestPrerequisites.NONE;
+        recommendedLevel = Math.max(1, recommendedLevel > 0 ? recommendedLevel : prerequisites.minLevel());
+        challengeRating = challengeRating != null
+                ? challengeRating
+                : QuestChallengeRating.forRecommendedLevel(recommendedLevel);
         objectives = objectives != null ? List.copyOf(objectives) : List.of();
         rewards = rewards != null ? rewards : QuestRewards.NONE;
         completionDialogue = completionDialogue != null ? List.copyOf(completionDialogue) : List.of();
         completionEffects = completionEffects != null ? completionEffects : QuestCompletionEffects.NONE;
+    }
+
+    public Quest(
+            String id,
+            String name,
+            String description,
+            String giver,
+            List<String> startDialogue,
+            QuestPrerequisites prerequisites,
+            List<QuestObjective> objectives,
+            QuestRewards rewards,
+            List<String> completionDialogue,
+            QuestCompletionEffects completionEffects
+    ) {
+        this(id,
+                name,
+                description,
+                giver,
+                startDialogue,
+                prerequisites,
+                prerequisites != null ? prerequisites.minLevel() : 1,
+                null,
+                objectives,
+                rewards,
+                completionDialogue,
+                completionEffects);
     }
     
     /**

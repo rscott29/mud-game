@@ -235,6 +235,27 @@ public class Npc {
         );
     }
 
+    public Npc withPresentation(String newDescription,
+                                List<String> newInteractTemplates,
+                                List<String> newTalkTemplates) {
+        return new Npc(
+                this.id, this.name,
+                newDescription != null ? newDescription : this.description,
+                this.keywords,
+                this.pronoun, this.possessive,
+                this.wanderMinSeconds, this.wanderMaxSeconds,
+                this.wanderDepartureTemplates, this.wanderArrivalTemplates,
+                this.wanderPath,
+                newInteractTemplates != null ? newInteractTemplates : this.interactTemplates,
+                this.sentient,
+                newTalkTemplates != null ? newTalkTemplates : this.talkTemplates,
+                this.personality, this.humorous,
+                this.combatTarget, this.respawns, this.maxHealth, this.level, this.xpReward,
+                this.goldReward,
+                this.minDamage, this.maxDamage, this.playerDeathEnabled
+        );
+    }
+
     public Npc withId(String newId) {
         return new Npc(
                 newId, this.name, this.description, this.keywords,

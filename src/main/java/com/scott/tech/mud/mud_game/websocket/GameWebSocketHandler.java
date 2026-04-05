@@ -180,6 +180,7 @@ public class GameWebSocketHandler extends TextWebSocketHandler {
 
             SessionState state = gameSession.getState();
             if (state == SessionState.PLAYING || state == SessionState.LOGOUT_CONFIRM) {
+                stateCache.cache(gameSession);
                 playerProfileService.saveProfile(gameSession.getPlayer());
                 inventoryService.saveInventory(
                         playerName.toLowerCase(),

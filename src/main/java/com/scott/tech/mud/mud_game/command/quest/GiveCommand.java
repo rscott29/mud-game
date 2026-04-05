@@ -7,6 +7,7 @@ import com.scott.tech.mud.mud_game.config.Messages;
 import com.scott.tech.mud.mud_game.dto.GameResponse;
 import com.scott.tech.mud.mud_game.model.Item;
 import com.scott.tech.mud.mud_game.model.Npc;
+import com.scott.tech.mud.mud_game.model.NpcTextRenderer;
 import com.scott.tech.mud.mud_game.model.Player;
 import com.scott.tech.mud.mud_game.model.Room;
 import com.scott.tech.mud.mud_game.quest.ObjectiveEffects;
@@ -15,6 +16,7 @@ import com.scott.tech.mud.mud_game.quest.QuestService;
 import com.scott.tech.mud.mud_game.quest.QuestService.QuestProgressResult;
 import com.scott.tech.mud.mud_game.service.LevelingService;
 import com.scott.tech.mud.mud_game.session.GameSession;
+import com.scott.tech.mud.mud_game.world.NpcGiveInteraction;
 import com.scott.tech.mud.mud_game.world.WorldService;
 
 import java.util.ArrayList;
@@ -83,6 +85,11 @@ public class GiveCommand implements GameCommand {
         }
         Npc npc = npcOpt.get();
 
+        Optional<CommandResult> specialResult = tryHandleConfiguredNpcGiveInteraction(session, player, npc, item);
+        if (specialResult.isPresent()) {
+            return specialResult.get();
+        }
+
         // Check for quest progression
         Optional<QuestProgressResult> questResult = questService.onDeliverItem(player, npc, item);
 
@@ -126,6 +133,115 @@ public class GiveCommand implements GameCommand {
         }
 
         return CommandResult.withAction(action, responses.toArray(new GameResponse[0]));
+    }
+
+    private Optional<CommandResult> tryHandleConfiguredNpcGiveInteraction(GameSession session, Player player, Npc npc, Item item) {
+        Optional<NpcGiveInteraction> interactionOpt = worldService.getNpcGiveInteractions(npc.getId()).stream()
+                .filter(interaction -> interaction.acceptsItem(item.getId()))
+                .findFirst();
+        if (interactionOpt.isEmpty()) {
+            return Optional.empty();
+        }
+        NpcGiveInteraction interaction = interactionOpt.get();
+
+        if (playerHasItem(player, interaction.denyIfPlayerHasItemId())) {
+            return Optional.of(CommandResult.of(buildConfiguredInteractionResponse(
+                    session, player, npc, item, null, interaction, interaction.alreadyOwnedDialogue(), false
+            )));
+        }
+
+        List<String> missingRequiredIds = interaction.requiredItemIds().stream()
+                .filter(requiredId -> !playerHasItem(player, requiredId))
+                .toList();
+        if (!missingRequiredIds.isEmpty()) {
+            return Optional.of(CommandResult.of(buildConfiguredInteractionResponse(
+                    session, player, npc, item, null, interaction, interaction.missingRequiredItemsDialogue(), false
+            )));
+        }
+
+        if (player.getGold() < interaction.goldCost()) {
+            return Optional.of(CommandResult.of(buildConfiguredInteractionResponse(
+                    session, player, npc, item, null, interaction, interaction.insufficientGoldDialogue(), false
+            )));
+        }
+
+        Item rewardItem = null;
+        if (interaction.rewardItemId() != null) {
+            rewardItem = worldService.getItemById(interaction.rewardItemId());
+            if (rewardItem == null) {
+                String errorMessage = interaction.missingRewardItemMessage() != null
+                        ? renderInteractionDialogue(interaction.missingRewardItemMessage(), npc, player, item, null, interaction)
+                        : Messages.fmt(
+                                "quest.give.special.no_reward_item",
+                                "npc", npc.getName(),
+                                "itemId", interaction.rewardItemId());
+                return Optional.of(CommandResult.of(GameResponse.error(errorMessage)));
+            }
+        }
+
+        for (String consumedItemId : interaction.consumedItemIds()) {
+            removeFirstItemById(player, consumedItemId);
+        }
+        if (interaction.goldCost() > 0) {
+            player.spendGold(interaction.goldCost());
+        }
+        if (rewardItem != null) {
+            player.addToInventory(rewardItem);
+        }
+
+        boolean inventoryModified = !interaction.consumedItemIds().isEmpty() || rewardItem != null;
+        return Optional.of(CommandResult.of(buildConfiguredInteractionResponse(
+                session, player, npc, item, rewardItem, interaction, interaction.successDialogue(), inventoryModified
+        )));
+    }
+
+    private GameResponse buildConfiguredInteractionResponse(GameSession session, Player player, Npc npc, Item givenItem,
+                                                           Item rewardItem, NpcGiveInteraction interaction,
+                                                           List<String> dialogue, boolean inventoryModified) {
+        String message = dialogue.stream()
+                .map(line -> renderInteractionDialogue(line, npc, player, givenItem, rewardItem, interaction))
+                .filter(line -> line != null && !line.isBlank())
+                .reduce((left, right) -> left + "<br>" + right)
+                .orElse("");
+
+        GameResponse response = GameResponse.narrative(message)
+                .withPlayerStats(session.getPlayer(), levelingService.getXpTables());
+
+        if (!inventoryModified) {
+            return response;
+        }
+
+        List<GameResponse.ItemView> views = session.getPlayer().getInventory().stream()
+                .map(i -> GameResponse.ItemView.from(i, session.getPlayer()))
+                .toList();
+        return response.withInventory(views);
+    }
+
+    private String renderInteractionDialogue(String template, Npc npc, Player player, Item givenItem,
+                                             Item rewardItem, NpcGiveInteraction interaction) {
+        String renderedNpcText = NpcTextRenderer.renderForPlayer(template, npc, player.getName());
+        return Messages.fmtTemplate(
+                renderedNpcText,
+                "costGold", String.valueOf(interaction.goldCost()),
+                "rewardItem", rewardItem == null ? "" : rewardItem.getName(),
+                "rewardItemId", rewardItem == null ? "" : rewardItem.getId(),
+                "givenItem", givenItem == null ? "" : givenItem.getName(),
+                "givenItemId", givenItem == null ? "" : givenItem.getId()
+        );
+    }
+
+    private boolean playerHasItem(Player player, String itemId) {
+        return itemId != null && player.getInventory().stream().anyMatch(held -> itemId.equals(held.getId()));
+    }
+
+    private void removeFirstItemById(Player player, String itemId) {
+        if (itemId == null) {
+            return;
+        }
+        player.getInventory().stream()
+                .filter(held -> itemId.equals(held.getId()))
+                .findFirst()
+                .ifPresent(player::removeFromInventory);
     }
 
     private record QuestResponseData(List<GameResponse> responses, boolean inventoryModified) {}
@@ -215,6 +331,26 @@ public class GiveCommand implements GameCommand {
             case QUEST_COMPLETE -> {
                 // Collect completion messages into narrative
                 narrative.addAll(result.messages());
+
+                ObjectiveEffects effects = result.objectiveEffects();
+                if (effects != null) {
+                    narrative.addAll(effects.dialogue());
+
+                    if (effects.startFollowing() != null) {
+                        session.addFollower(effects.startFollowing());
+                    }
+                    if (effects.stopFollowing() != null) {
+                        session.removeFollower(effects.stopFollowing());
+                    }
+
+                    for (String itemId : effects.addItems()) {
+                        Item item = worldService.getItemById(itemId);
+                        if (item != null) {
+                            player.addToInventory(item);
+                            inventoryModified = true;
+                        }
+                    }
+                }
                 
                 // Create room update with narrative embedded
                 if (!narrative.isEmpty()) {

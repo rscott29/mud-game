@@ -6,15 +6,20 @@ import com.scott.tech.mud.mud_game.command.room.RoomAction;
 import com.scott.tech.mud.mud_game.config.Messages;
 import com.scott.tech.mud.mud_game.dto.GameResponse;
 import com.scott.tech.mud.mud_game.model.Item;
+import com.scott.tech.mud.mud_game.model.Npc;
+import com.scott.tech.mud.mud_game.model.NpcTextRenderer;
 import com.scott.tech.mud.mud_game.model.Room;
 import com.scott.tech.mud.mud_game.quest.ObjectiveEffects;
 import com.scott.tech.mud.mud_game.quest.ObjectiveEncounterRuntimeService;
 import com.scott.tech.mud.mud_game.quest.QuestService;
+import com.scott.tech.mud.mud_game.service.RoomFlavorScheduler;
 import com.scott.tech.mud.mud_game.session.GameSession;
+import com.scott.tech.mud.mud_game.world.WorldService;
 
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.stream.Collectors;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -28,18 +33,20 @@ public class PickupCommand implements GameCommand {
     private final PickupService pickupService;
     private final QuestService questService;
     private final ObjectiveEncounterRuntimeService objectiveEncounterRuntimeService;
+    private final WorldService worldService;
+    private final RoomFlavorScheduler roomFlavorScheduler;
 
     public PickupCommand(String target,
                          PickupValidator pickupValidator,
                          PickupService pickupService) {
-        this(target, pickupValidator, pickupService, null, null);
+        this(target, pickupValidator, pickupService, null, null, null);
     }
 
     public PickupCommand(String target,
                          PickupValidator pickupValidator,
                          PickupService pickupService,
                          QuestService questService) {
-        this(target, pickupValidator, pickupService, questService, null);
+        this(target, pickupValidator, pickupService, questService, null, null);
     }
 
     public PickupCommand(String target,
@@ -47,11 +54,32 @@ public class PickupCommand implements GameCommand {
                          PickupService pickupService,
                          QuestService questService,
                          ObjectiveEncounterRuntimeService objectiveEncounterRuntimeService) {
+        this(target, pickupValidator, pickupService, questService, objectiveEncounterRuntimeService, null);
+    }
+
+    public PickupCommand(String target,
+                         PickupValidator pickupValidator,
+                         PickupService pickupService,
+                         QuestService questService,
+                         ObjectiveEncounterRuntimeService objectiveEncounterRuntimeService,
+                         WorldService worldService) {
+        this(target, pickupValidator, pickupService, questService, objectiveEncounterRuntimeService, worldService, null);
+    }
+
+    public PickupCommand(String target,
+                         PickupValidator pickupValidator,
+                         PickupService pickupService,
+                         QuestService questService,
+                         ObjectiveEncounterRuntimeService objectiveEncounterRuntimeService,
+                         WorldService worldService,
+                         RoomFlavorScheduler roomFlavorScheduler) {
         this.target = stripArticle(target);
         this.pickupValidator = pickupValidator;
         this.pickupService = pickupService;
         this.questService = questService;
         this.objectiveEncounterRuntimeService = objectiveEncounterRuntimeService;
+        this.worldService = worldService;
+        this.roomFlavorScheduler = roomFlavorScheduler;
     }
 
     @Override
@@ -85,6 +113,8 @@ public class PickupCommand implements GameCommand {
         }
 
         pickupService.pickup(session, room, item);
+        summonPickupNpcs(room, item);
+        String sceneMessage = applyPickupNpcScenes(session, room, item);
 
         List<GameResponse.ItemView> views = session.getPlayer().getInventory().stream()
                 .map(i -> GameResponse.ItemView.from(i, session.getPlayer()))
@@ -96,12 +126,12 @@ public class PickupCommand implements GameCommand {
                 .collect(Collectors.toSet());
 
         String playerName = session.getPlayer().getName();
-        String message = Messages.fmt("command.pickup.success", "item", item.getName());
-        
-        String questMessage = collectQuestMessage(session, item);
-        if (!questMessage.isBlank()) {
-            message += "<br><br>" + questMessage;
-        }
+        String message = buildPickupMessage(
+                session,
+                item,
+                sceneMessage,
+                Messages.fmt("command.pickup.success", "item", item.getName())
+        );
 
         GameResponse response = GameResponse.roomUpdate(
                 room,
@@ -166,9 +196,12 @@ public class PickupCommand implements GameCommand {
         }
 
         pickupService.pickupFromContainer(session, container, item);
+        summonPickupNpcs(room, item);
+        String sceneMessage = applyPickupNpcScenes(session, room, item);
         String message = buildPickupMessage(
                 session,
                 item,
+                sceneMessage,
                 Messages.fmt("command.pickup.from_container.success", "item", item.getName(), "container", container.getName())
         );
 
@@ -185,6 +218,7 @@ public class PickupCommand implements GameCommand {
     private CommandResult pickupAllFromContainer(GameSession session, Room room, Item container) {
         List<Item> remaining = container.getContainedItems();
         List<Item> looted = new java.util.ArrayList<>();
+        List<String> lootedSceneMessages = new java.util.ArrayList<>();
         boolean progress;
 
         do {
@@ -196,7 +230,10 @@ public class PickupCommand implements GameCommand {
                 }
 
                 pickupService.pickupFromContainer(session, container, item);
+                summonPickupNpcs(room, item);
+                String sceneMessage = applyPickupNpcScenes(session, room, item);
                 looted.add(item);
+                lootedSceneMessages.add(sceneMessage);
                 remaining = container.getContainedItems();
                 progress = true;
             }
@@ -213,7 +250,16 @@ public class PickupCommand implements GameCommand {
                 "items", itemNames,
                 "container", container.getName());
 
-        for (Item item : looted) {
+        for (int i = 0; i < looted.size(); i++) {
+            Item item = looted.get(i);
+            String itemNarrative = collectItemNarrative(session, item);
+            if (!itemNarrative.isBlank()) {
+                message += "<br><br>" + itemNarrative;
+            }
+            String sceneMessage = lootedSceneMessages.get(i);
+            if (!sceneMessage.isBlank()) {
+                message += "<br><br>" + sceneMessage;
+            }
             String questMessage = collectQuestMessage(session, item);
             if (!questMessage.isBlank()) {
                 message += "<br><br>" + questMessage;
@@ -230,13 +276,103 @@ public class PickupCommand implements GameCommand {
         );
     }
 
-    private String buildPickupMessage(GameSession session, Item item, String baseMessage) {
+    private String buildPickupMessage(GameSession session, Item item, String sceneMessage, String baseMessage) {
         String message = baseMessage;
+        String itemNarrative = collectItemNarrative(session, item);
+        if (!itemNarrative.isBlank()) {
+            message += "<br><br>" + itemNarrative;
+        }
+        if (sceneMessage != null && !sceneMessage.isBlank()) {
+            message += "<br><br>" + sceneMessage;
+        }
         String questMessage = collectQuestMessage(session, item);
         if (!questMessage.isBlank()) {
             message += "<br><br>" + questMessage;
         }
         return message;
+    }
+
+    private String collectItemNarrative(GameSession session, Item item) {
+        if (item.getPickupNarrative() == null || item.getPickupNarrative().isEmpty()) {
+            return "";
+        }
+
+        return item.getPickupNarrative().stream()
+                .map(line -> Messages.fmtTemplate(
+                        line,
+                        "item", item.getName(),
+                        "itemId", item.getId(),
+                        "player", session.getPlayer().getName()))
+                .collect(Collectors.joining("<br>"));
+    }
+
+    private void summonPickupNpcs(Room room, Item item) {
+        if (worldService == null || room == null || item.getPickupSpawnNpcIds().isEmpty()) {
+            return;
+        }
+
+        for (String npcId : item.getPickupSpawnNpcIds()) {
+            if (npcId == null || npcId.isBlank()) {
+                continue;
+            }
+
+            boolean alreadyInRoom = room.getNpcs().stream()
+                    .map(Npc::getId)
+                    .map(Npc::templateIdFor)
+                    .anyMatch(npcId::equals);
+            if (alreadyInRoom) {
+                continue;
+            }
+
+            worldService.summonNpcToRoom(npcId, room.getId());
+        }
+    }
+
+    private String applyPickupNpcScenes(GameSession session, Room room, Item item) {
+        if (worldService == null || item == null || item.getPickupNpcScenes().isEmpty()) {
+            return "";
+        }
+
+        List<GameResponse> orderedSceneResponses = new java.util.ArrayList<>();
+        List<String> messages = new java.util.ArrayList<>();
+        for (var scene : item.getPickupNpcScenes()) {
+            Optional<Npc> updatedNpc = worldService.applyTemporaryNpcScene(scene);
+            if (updatedNpc.isEmpty()) {
+                continue;
+            }
+
+            Npc npc = updatedNpc.get();
+            if (room == null || room.getNpcs().stream().noneMatch(existing -> existing.getId().equals(npc.getId()))) {
+                continue;
+            }
+
+            List<String> templates = npc.getInteractTemplates();
+            if (templates.isEmpty()) {
+                continue;
+            }
+
+            if (scene.orderedInteractionSequence() && roomFlavorScheduler != null) {
+                for (String template : templates) {
+                    orderedSceneResponses.add(GameResponse.narrativeEcho(
+                            NpcTextRenderer.renderForPlayer(template, npc, session.getPlayer().getName())
+                    ));
+                }
+                continue;
+            }
+
+            String template = templates.get(ThreadLocalRandom.current().nextInt(templates.size()));
+            messages.add(NpcTextRenderer.renderForPlayer(template, npc, session.getPlayer().getName()));
+        }
+
+        if (!orderedSceneResponses.isEmpty()) {
+            roomFlavorScheduler.scheduleCinematicSequence(
+                    room.getId(),
+                    session.getSessionId(),
+                    orderedSceneResponses
+            );
+        }
+
+        return String.join("<br><br>", messages);
     }
 
     private String collectQuestMessage(GameSession session, Item item) {

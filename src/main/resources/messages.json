@@ -6,8 +6,8 @@
   "auth.error.account_locked"           : "Account '{username}' is temporarily locked. Try again in {time}.\nEnter your username:",
   "auth.error.account_locked_recheck"   : "Account locked. Try again in {time}.\nEnter your username:",
   "auth.error.account_locked_now"       : "Too many failed attempts. Account locked for 5 minutes.\nEnter your username:",
-  "auth.prompt.password"                : "Password (type 'create' if you're new):",
-  "auth.prompt.password_existing"       : "Welcome back, {username}.",
+  "auth.prompt.password"                : "Password:",
+  "auth.prompt.password_existing"       : "Password for {username}:",
   "auth.error.password_wrong_generic"   : "Unable to sign in with those details.\nPassword:",
   "auth.error.login_unavailable"        : "Unable to sign in right now.\nEnter your username:",
   "auth.error.password_wrong"           : "Incorrect password. {remaining} attempt{s} remaining.\nPassword:",
@@ -16,6 +16,7 @@
   "auth.error.creation_password_short"  : "Password must be at least 8 characters.\nChoose a password:",
   "auth.error.creation_confirm_invalid" : "Please enter [1] to create a character or [2] to exit.",
   "auth.message.character_created"      : "Character created! Entering the world...",
+  "auth.message.welcome_back"           : "Welcome back, {username}.",
   "auth.message.world_welcome"          : "Welcome to {world}, {player}! Type 'help' for a list of commands.",
   "auth.message.farewell"               : "Farewell, adventurer. Until next time.",
 
@@ -331,6 +332,7 @@
   "quest.give.no_npc"                   : "You don't see anyone called '{npc}' here.",
   "quest.give.success"                  : "You give the {item} to {npc}.",
   "quest.give.no_reaction"              : "{npc} accepts the {item} but doesn't seem to need it for anything.",
+  "quest.give.special.no_reward_item"   : "{npc} cannot find the promised item ({itemId}) to return to you.",
 
   "config.auth.account.lock-duration-minutes" : "1",
   "config.auth.account.max-attempts"          : "5",

@@ -28,6 +28,13 @@ export class TerminalRoomFormatterService {
     };
   }
 
+  formatNarrativeEchoMessage(message: string): FormattedMessage {
+    return {
+      cssClass: TERMINAL_MESSAGE_CLASSES.NARRATIVE_ECHO,
+      html: this.renderNarrativeEcho(message),
+    };
+  }
+
   formatRoomActionMessage(message: string): FormattedMessage {
     return {
       cssClass: TERMINAL_MESSAGE_CLASSES.ROOM_ACTION,
@@ -88,6 +95,8 @@ export class TerminalRoomFormatterService {
       case GAME_MESSAGE_TYPES.AMBIENT_EVENT:
       case GAME_MESSAGE_TYPES.COMPANION_DIALOGUE:
         return renderMarkup(msg.message ?? '');
+      case GAME_MESSAGE_TYPES.NARRATIVE_ECHO:
+        return this.renderNarrativeEcho(msg.message ?? '');
       default:
         return msg.message ?? '';
     }
@@ -128,6 +137,10 @@ export class TerminalRoomFormatterService {
 
   private renderInlineNarrative(message: string): string {
     return this.wrapInlineNarrative(renderMarkup(message));
+  }
+
+  private renderNarrativeEcho(message: string): string {
+    return `<div class="message--narrative-echo">${renderMarkup(message)}</div>`;
   }
 
   private isCombatMarkup(message: string): boolean {

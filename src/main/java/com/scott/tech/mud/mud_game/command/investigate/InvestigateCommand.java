@@ -8,6 +8,7 @@ import com.scott.tech.mud.mud_game.dto.GameResponse;
 import com.scott.tech.mud.mud_game.model.Direction;
 import com.scott.tech.mud.mud_game.model.Item;
 import com.scott.tech.mud.mud_game.model.Room;
+import com.scott.tech.mud.mud_game.quest.PlayerQuestState;
 import com.scott.tech.mud.mud_game.session.GameSession;
 
 import java.util.ArrayList;
@@ -45,6 +46,9 @@ public class InvestigateCommand implements GameCommand {
         List<String> discoveries = new ArrayList<>();
 
         for (Direction dir : hiddenExits.keySet()) {
+            if (!canRevealHiddenExit(session, room, dir)) {
+                continue;
+            }
             if (!session.hasDiscoveredExit(room.getId(), dir)) {
                 session.discoverExit(room.getId(), dir);
                 discoveredExitService.saveExit(session.getPlayer().getName(), room.getId(), dir);
@@ -64,6 +68,25 @@ public class InvestigateCommand implements GameCommand {
 
         String narrative = String.join("<br>", discoveries);
         return CommandResult.withAction(investigateAction, roomUpdateWithNarrative(session, narrative));
+    }
+
+    private boolean canRevealHiddenExit(GameSession session, Room room, Direction dir) {
+        Room.HiddenExitRequirement requirement = room.getHiddenExitRequirement(dir);
+        if (requirement == null || requirement.questId() == null || requirement.questId().isBlank()) {
+            return true;
+        }
+
+        PlayerQuestState questState = session.getPlayer().getQuestState();
+        if (questState.isQuestCompleted(requirement.questId())) {
+            return true;
+        }
+
+        if (requirement.objectiveId() == null || requirement.objectiveId().isBlank()) {
+            return false;
+        }
+
+        PlayerQuestState.ActiveQuest activeQuest = questState.getActiveQuest(requirement.questId());
+        return activeQuest != null && requirement.objectiveId().equals(activeQuest.getCurrentObjectiveId());
     }
 
     private GameResponse roomUpdateWithNarrative(GameSession session, String narrative) {

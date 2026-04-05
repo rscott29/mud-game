@@ -221,25 +221,6 @@ public class AttackCommand implements GameCommand {
                     combatNarrative.append("<br><br>").append(String.join("<br>", effects.dialogue()));
                 }
             }
-            case QUEST_COMPLETE -> {
-                combatNarrative.append("<br><br>")
-                        .append(Messages.fmt("quest.completed", "quest", result.quest().name()));
-                if (!result.messages().isEmpty()) {
-                    combatNarrative.append("<br><br>").append(String.join("<br>", result.messages()));
-                }
-                if (result.xpReward() > 0) {
-                    combatNarrative.append("<br><br>")
-                            .append(Messages.fmt("quest.xp_reward", "xp", String.valueOf(result.xpReward())));
-                }
-                if (result.goldReward() > 0) {
-                    combatNarrative.append("<br>")
-                            .append(Messages.fmt("quest.gold_reward", "gold", String.valueOf(result.goldReward())));
-                }
-                for (Item item : result.rewardItems()) {
-                    combatNarrative.append("<br>")
-                            .append(Messages.fmt("quest.item_reward", "item", item.getName()));
-                }
-            }
             default -> {
             }
         }
@@ -285,6 +266,26 @@ public class AttackCommand implements GameCommand {
             case QUEST_COMPLETE -> {
                 narrative.addAll(result.messages());
                 inventoryModified = !result.rewardItems().isEmpty();
+
+                ObjectiveEffects effects = result.objectiveEffects();
+                if (effects != null) {
+                    narrative.addAll(effects.dialogue());
+
+                    if (effects.startFollowing() != null) {
+                        session.addFollower(effects.startFollowing());
+                    }
+                    if (effects.stopFollowing() != null) {
+                        session.removeFollower(effects.stopFollowing());
+                    }
+
+                    for (String itemId : effects.addItems()) {
+                        Item item = worldService.getItemById(itemId);
+                        if (item != null) {
+                            player.addToInventory(item);
+                            inventoryModified = true;
+                        }
+                    }
+                }
 
                 if (result.effects() != null) {
                     if (result.effects().revealHiddenExit() != null) {
