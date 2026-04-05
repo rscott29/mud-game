@@ -9,22 +9,32 @@ import java.util.Locale;
  * implementation logic behind each type.
  */
 public enum ConsumableEffectType {
-    RESTORE_HEALTH(false),
-    RESTORE_MANA(false),
-    RESTORE_MOVEMENT(false),
-    DAMAGE_HEALTH(false),
-    HEAL_OVER_TIME(true),
-    DAMAGE_OVER_TIME(true),
-    INTOXICATION(true);
+    RESTORE_HEALTH(false, false),
+    RESTORE_MANA(false, false),
+    RESTORE_MOVEMENT(false, false),
+    DAMAGE_HEALTH(false, false),
+    HEAL_OVER_TIME(true, false),
+    DAMAGE_OVER_TIME(true, false),
+    INTOXICATION(true, true);
 
     private final boolean timed;
+    private final boolean requiresShoutTemplates;
 
-    ConsumableEffectType(boolean timed) {
+    ConsumableEffectType(boolean timed, boolean requiresShoutTemplates) {
         this.timed = timed;
+        this.requiresShoutTemplates = requiresShoutTemplates;
     }
 
     public boolean isTimed() {
         return timed;
+    }
+
+    public boolean requiresShoutTemplates() {
+        return requiresShoutTemplates;
+    }
+
+    public boolean allowsShoutTemplates() {
+        return requiresShoutTemplates;
     }
 
     public boolean isBeneficial() {

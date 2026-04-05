@@ -14,6 +14,7 @@ import com.scott.tech.mud.mud_game.model.SessionState;
 import com.scott.tech.mud.mud_game.party.PartyService;
 import com.scott.tech.mud.mud_game.persistence.cache.PlayerStateCache;
 import com.scott.tech.mud.mud_game.persistence.cache.PlayerStateCache.CachedPlayerState;
+import com.scott.tech.mud.mud_game.persistence.cache.PlayerStateSnapshotMapper;
 import com.scott.tech.mud.mud_game.persistence.service.InventoryService;
 import com.scott.tech.mud.mud_game.persistence.service.PlayerProfileService;
 import com.scott.tech.mud.mud_game.session.DisconnectGracePeriodService;
@@ -407,59 +408,7 @@ public class LoginHandler {
         // Check cache first - it may have fresher state than DB (e.g., after a dev restart)
         CachedPlayerState cached = stateCache.get(username);
         if (cached != null) {
-            // Restore from cache (fresher than DB during dev restarts)
-            session.getPlayer().setCurrentRoomId(cached.currentRoomId());
-            session.getPlayer().setLevel(cached.level());
-            session.getPlayer().setTitle(cached.title());
-            session.getPlayer().setRace(cached.race());
-            session.getPlayer().setCharacterClass(cached.characterClass());
-            session.getPlayer().setPronounsSubject(cached.pronounsSubject());
-            session.getPlayer().setPronounsObject(cached.pronounsObject());
-            session.getPlayer().setPronounsPossessive(cached.pronounsPossessive());
-            session.getPlayer().setDescription(cached.description());
-            session.getPlayer().setModerationFilters(cached.moderationFilters());
-            session.getPlayer().setHealth(cached.health());
-            session.getPlayer().setMaxHealth(cached.maxHealth());
-            session.getPlayer().setMana(cached.mana());
-            session.getPlayer().setMaxMana(cached.maxMana());
-            session.getPlayer().setMovement(cached.movement());
-            session.getPlayer().setMaxMovement(cached.maxMovement());
-            session.getPlayer().setExperience(cached.experience());
-            session.getPlayer().setGold(cached.gold() == null ? 0 : cached.gold());
-            if (cached.equippedItems() != null && !cached.equippedItems().isBlank()) {
-                session.getPlayer().setEquippedItemsSerialized(cached.equippedItems());
-            } else {
-                session.getPlayer().setEquippedWeaponId(cached.equippedWeaponId());
-            }
-            if (cached.recallRoomId() != null && !cached.recallRoomId().isBlank()) {
-                session.getPlayer().setRecallRoomId(cached.recallRoomId());
-            }
-            // Restore inventory from cached item IDs
-            session.getPlayer().setInventory(
-                    cached.inventoryItemIds().stream()
-                            .map(id -> session.getWorldService().getItemById(id))
-                            .filter(java.util.Objects::nonNull)
-                            .toList());
-            // Restore quest state
-            if (cached.activeQuests() != null) {
-                for (var aq : cached.activeQuests()) {
-                    session.getPlayer().getQuestState().restoreActiveQuest(
-                            aq.questId(), aq.currentObjectiveId(),
-                            aq.objectiveProgress(), aq.dialogueStage());
-                }
-            }
-            if (cached.completedQuests() != null) {
-                for (String questId : cached.completedQuests()) {
-                    session.getPlayer().getQuestState().restoreCompletedQuest(questId);
-                }
-            }
-            // Restore followers
-            if (cached.followingNpcIds() != null) {
-                session.restoreFollowers(cached.followingNpcIds());
-            }
-            if (cached.activeConsumableEffects() != null) {
-                session.restoreActiveConsumableEffects(cached.activeConsumableEffects());
-            }
+            PlayerStateSnapshotMapper.restore(session, cached);
             stateCache.evict(username); // Clear cache after restore
         } else {
             // Fall back to DB

@@ -1,5 +1,7 @@
 package com.scott.tech.mud.mud_game.world;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.scott.tech.mud.mud_game.model.Item;
 import com.scott.tech.mud.mud_game.model.Direction;
 import com.scott.tech.mud.mud_game.model.Room;
 import org.junit.jupiter.api.Test;
@@ -12,6 +14,17 @@ import java.util.Map;
 import static org.assertj.core.api.Assertions.assertThat;
 
 class WorldLoaderTest {
+
+    @Test
+    void load_allowsNonTakeableConsumableRoomFixtures() throws Exception {
+        WorldLoadResult result = new WorldLoader(new ObjectMapper()).load();
+
+        Item fountain = result.itemRegistry().get("item_fountain");
+
+        assertThat(fountain).isNotNull();
+        assertThat(fountain.isTakeable()).isFalse();
+        assertThat(fountain.isConsumable()).isTrue();
+    }
 
     // -----------------------------------------------------------------------
     // symmetric exits

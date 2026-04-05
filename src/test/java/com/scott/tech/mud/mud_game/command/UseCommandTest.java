@@ -13,6 +13,7 @@ import com.scott.tech.mud.mud_game.dto.GameResponse;
 import com.scott.tech.mud.mud_game.model.Item;
 import com.scott.tech.mud.mud_game.model.Player;
 import com.scott.tech.mud.mud_game.model.Rarity;
+import com.scott.tech.mud.mud_game.model.Room;
 import com.scott.tech.mud.mud_game.persistence.cache.PlayerStateCache;
 import com.scott.tech.mud.mud_game.persistence.service.InventoryService;
 import com.scott.tech.mud.mud_game.session.GameSession;
@@ -25,6 +26,7 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -55,7 +57,7 @@ class UseCommandTest {
         PlayerStateCache stateCache = mock(PlayerStateCache.class);
         ExperienceTableService xpTables = xpTablesFor(player);
 
-        UseCommand command = new UseCommand("potion", service(
+        UseCommand command = new UseCommand("use", "potion", service(
                 inventoryService,
                 stateCache,
                 xpTables,
@@ -121,7 +123,7 @@ class UseCommandTest {
         InventoryService inventoryService = mock(InventoryService.class);
         PlayerStateCache stateCache = mock(PlayerStateCache.class);
 
-        UseCommand command = new UseCommand("mushroom", service(
+        UseCommand command = new UseCommand("eat", "mushroom", service(
                 inventoryService,
                 stateCache,
                 xpTablesFor(player),
@@ -156,6 +158,97 @@ class UseCommandTest {
         verify(stateCache).cache(session);
     }
 
+    @Test
+    void drink_usesNonTakeableRoomFixtureWithoutAddingItToInventory() {
+        WorldService worldService = mock(WorldService.class);
+        Player player = new Player("p1", "Hero", "square");
+        player.setHealth(12);
+
+        Item fountain = roomFixture(
+                "item_fountain",
+                "Fountain",
+                new ConsumableEffect(
+                        ConsumableEffectType.RESTORE_HEALTH,
+                        999999,
+                        0,
+                        0,
+                        "Refreshing Drink",
+                        "The cool water soothes your throat and refreshes your body."
+                )
+        );
+        Room room = new Room("square", "Town Square", "desc", java.util.Map.of(), List.of(fountain), List.of());
+        when(worldService.getRoom("square")).thenReturn(room);
+
+        GameSession session = new GameSession("s1", player, worldService);
+        InventoryService inventoryService = mock(InventoryService.class);
+        PlayerStateCache stateCache = mock(PlayerStateCache.class);
+
+        UseCommand command = new UseCommand("drink", "fountain", service(
+                inventoryService,
+                stateCache,
+                xpTablesFor(player),
+                mock(WorldBroadcaster.class),
+                mock(GameSessionManager.class),
+                mock(PlayerDeathService.class),
+                mock(CombatState.class),
+                mock(CombatLoopScheduler.class)
+        ));
+
+        CommandResult result = command.execute(session);
+
+        assertThat(player.getHealth()).isEqualTo(player.getMaxHealth());
+        assertThat(player.getInventory()).isEmpty();
+        assertThat(room.getItems()).containsExactly(fountain);
+        assertThat(result.getResponses().get(0).message())
+                .contains("You drink from the Fountain.")
+                .contains("Refreshing Drink")
+                .contains("recover");
+        assertThat(result.getRoomAction()).isNotNull();
+        assertThat(result.getRoomAction().message()).contains("Hero drinks from the Fountain");
+        verify(inventoryService, never()).saveInventory("hero", player.getInventory());
+        verify(stateCache).cache(session);
+    }
+
+    @Test
+    void drinkFrom_stripsPrepositionWhenTargetingRoomFixture() {
+        WorldService worldService = mock(WorldService.class);
+        Player player = new Player("p1", "Hero", "square");
+        player.setHealth(20);
+
+        Item fountain = roomFixture(
+                "item_fountain",
+                "Fountain",
+                new ConsumableEffect(
+                        ConsumableEffectType.RESTORE_HEALTH,
+                        999999,
+                        0,
+                        0,
+                        "Refreshing Drink",
+                        "The cool water soothes your throat and refreshes your body."
+                )
+        );
+        Room room = new Room("square", "Town Square", "desc", java.util.Map.of(), List.of(fountain), List.of());
+        when(worldService.getRoom("square")).thenReturn(room);
+
+        GameSession session = new GameSession("s1", player, worldService);
+
+        UseCommand command = new UseCommand("drink", "from the fountain", service(
+                mock(InventoryService.class),
+                mock(PlayerStateCache.class),
+                xpTablesFor(player),
+                mock(WorldBroadcaster.class),
+                mock(GameSessionManager.class),
+                mock(PlayerDeathService.class),
+                mock(CombatState.class),
+                mock(CombatLoopScheduler.class)
+        ));
+
+        CommandResult result = command.execute(session);
+
+        assertThat(result.getResponses().get(0).message()).contains("You drink from the Fountain.");
+        assertThat(player.getHealth()).isEqualTo(player.getMaxHealth());
+    }
+
     private static ConsumableEffectService service(InventoryService inventoryService,
                                                    PlayerStateCache stateCache,
                                                    ExperienceTableService xpTables,
@@ -185,12 +278,20 @@ class UseCommandTest {
     }
 
     private static Item consumableItem(String id, String name, ConsumableEffect... effects) {
+        return item(id, name, true, effects);
+    }
+
+    private static Item roomFixture(String id, String name, ConsumableEffect... effects) {
+        return item(id, name, false, effects);
+    }
+
+    private static Item item(String id, String name, boolean takeable, ConsumableEffect... effects) {
         return new Item(
                 id,
                 name,
                 "desc",
                 List.of(name.toLowerCase()),
-                true,
+                takeable,
                 Rarity.COMMON,
                 List.of(),
                 null,
