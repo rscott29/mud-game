@@ -15,11 +15,13 @@ import java.util.regex.Pattern;
 @Component
 public class SecurityHeadersFilter extends OncePerRequestFilter {
 
+    private static final String STYLESHEET_SWAP_ONLOAD_HASH = "'sha256-MhtPZXr7+LpJUY5qtMutB+qWfQtMaPccfe7QXtCcEYc='";
     private static final Pattern IMMUTABLE_ASSET_PATH = Pattern.compile("^/.+-[A-Za-z0-9]{8,}\\.(?:js|css)$");
     private static final Set<String> NO_CACHE_PATHS = Set.of("/", "/index.html", "/app-init.js");
     private static final String CONTENT_SECURITY_POLICY = String.join("; ",
             "default-src 'self'",
-            "script-src 'self'",
+            "script-src 'self' 'unsafe-hashes' " + STYLESHEET_SWAP_ONLOAD_HASH,
+            "script-src-attr 'unsafe-hashes' " + STYLESHEET_SWAP_ONLOAD_HASH,
             "style-src 'self' 'unsafe-inline'",
             "img-src 'self' data: blob:",
             "font-src 'self' data:",

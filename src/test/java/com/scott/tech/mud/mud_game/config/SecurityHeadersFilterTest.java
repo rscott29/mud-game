@@ -19,6 +19,9 @@ class SecurityHeadersFilterTest {
         filter.doFilter(request, response, new MockFilterChain());
 
         assertThat(response.getHeader("Content-Security-Policy")).contains("default-src 'self'");
+          assertThat(response.getHeader("Content-Security-Policy"))
+                .contains("script-src 'self' 'unsafe-hashes' 'sha256-MhtPZXr7+LpJUY5qtMutB+qWfQtMaPccfe7QXtCcEYc='")
+                .contains("script-src-attr 'unsafe-hashes' 'sha256-MhtPZXr7+LpJUY5qtMutB+qWfQtMaPccfe7QXtCcEYc='");
         assertThat(response.getHeader("Referrer-Policy")).isEqualTo("strict-origin-when-cross-origin");
         assertThat(response.getHeader("Permissions-Policy")).isEqualTo("camera=(), microphone=(), geolocation=()");
         assertThat(response.getHeader("X-Content-Type-Options")).isEqualTo("nosniff");
