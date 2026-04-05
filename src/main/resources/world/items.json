@@ -114,7 +114,15 @@
     "description": "A round loaf of dark bread, still faintly warm. Its crust is hard and dusted with flour. It smells wonderfully of a wood-fired oven. The price tag reads 2 copper.",
     "keywords": ["bread", "loaf", "bread loaf", "food"],
     "takeable": true,
-    "rarity": "COMMON"
+    "rarity": "COMMON",
+    "consumableEffects": [
+      {
+        "type": "RESTORE_MOVEMENT",
+        "amount": 15,
+        "name": "Hearty Fullness",
+        "description": "The dense loaf settles warmly in your stomach and puts a little strength back into your legs."
+      }
+    ]
   },
   {
     "id": "item_strange_trinket",
@@ -170,7 +178,15 @@
     "description": "A small glass vial stopped with a cork, filled with a vivid crimson liquid. It glows faintly in dim light. The label reads: Restores vitality. Do not mix with moonwort extract.",
     "keywords": ["potion", "health potion", "vial", "red", "healing", "tonic"],
     "takeable": true,
-    "rarity": "RARE"
+    "rarity": "RARE",
+    "consumableEffects": [
+      {
+        "type": "RESTORE_HEALTH",
+        "amount": 40,
+        "name": "Restored Vitality",
+        "description": "The crimson tonic burns for a heartbeat, then a rush of warmth floods your limbs."
+      }
+    ]
   },
   {
     "id": "item_mysterious_powder",
@@ -178,7 +194,15 @@
     "description": "A twist of paper filled with a fine, iridescent powder that shifts between silver and green. It smells faintly of pine and ozone. The alchemist watches you closely when you touch it.",
     "keywords": ["powder", "mysterious powder", "dust", "iridescent"],
     "takeable": true,
-    "rarity": "FINE"
+    "rarity": "FINE",
+    "consumableEffects": [
+      {
+        "type": "RESTORE_MANA",
+        "amount": 20,
+        "name": "Clear Focus",
+        "description": "The sparkling dust flashes cold across your tongue, and your thoughts sharpen at once."
+      }
+    ]
   },
   {
     "id": "item_herb_bundle",
@@ -202,7 +226,37 @@
     "description": "A pale, knobby mushroom with dark spots ringed in faint violet. It does not match any species you recognise. It smells earthy and faintly sweet. Eating it seems unwise.",
     "keywords": ["mushroom", "odd mushroom", "fungus", "toadstool", "spotted"],
     "takeable": true,
-    "rarity": "FINE"
+    "rarity": "FINE",
+    "consumableEffects": [
+      {
+        "type": "DAMAGE_OVER_TIME",
+        "amount": 6,
+        "durationSeconds": 20,
+        "tickSeconds": 5,
+        "name": "Bitter Numbness",
+        "description": "A bitter numbness creeps from your tongue into your veins. This was a terrible idea.",
+        "endDescription": "At last, the bitter numbness drains away and feeling returns to your limbs."
+      },
+      {
+        "type": "INTOXICATION",
+        "amount": 1,
+        "durationSeconds": 60,
+        "tickSeconds": 10,
+        "name": "Spore Intoxication",
+        "description": "The mushroom tastes wrong. Moments later, the shadows seem far more interested in you than they should be. Your tongue suddenly seems eager to betray you.",
+        "endDescription": "The room finally steadies, and your thoughts feel like your own again.",
+        "shoutTemplates": [
+          "THE MOSS KNOWS MY TRUE NAME!",
+          "WHO STOLE THE FLOOR AND REPLACED IT WITH ANOTHER FLOOR?",
+          "IF ANYONE SEES MY DIGNITY, TELL IT I MISS IT!",
+         "IF THE TREES START ASKING QUESTIONS, SAY NOTHING!",
+          "I WOULD LIKE TO APOLOGIZE TO THAT MUSHROOM'S ENTIRE FAMILY!",
+          "MY BONES ARE WHISPERING, AND I DON'T CARE FOR THEIR TONE!",
+          "WHO KEEPS MOVING THE AIR AROUND?",
+          "I SAW A WIZARD IN MY EYELIDS!"
+        ]
+      }
+    ]
   },
   {
     "id": "item_inn_hearth",
@@ -314,7 +368,15 @@
     "description": "A soft, glowing patch of moss that grows in the damp crevices of the cave. Ancient pilgrims claimed it has restorative properties. Crushing it against a wound is said to heal injuries instantly (+25 HP).",
     "keywords": ["moss", "healing moss", "luminescent", "cave moss", "glowing moss"],
     "takeable": true,
-    "rarity": "RARE"
+    "rarity": "RARE",
+    "consumableEffects": [
+      {
+        "type": "RESTORE_HEALTH",
+        "amount": 25,
+        "name": "Mending Glow",
+        "description": "You press the glowing moss to your wounds, and its cool light sinks gently into the hurt."
+      }
+    ]
   },
   {
     "id": "item_animal_tracks",

@@ -109,4 +109,18 @@ class AiIntentResolverTest {
         assertThat(result.getCommand()).isEqualTo("go");
         assertThat(result.getArgs()).containsExactly("up", "now");
     }
+
+    @Test
+    void fallsBackToRawInputWhenAiReturnsAnUnregisteredCommand() {
+        CommandRequest aiResponse = new CommandRequest();
+        aiResponse.setCommand("unknown");
+        aiResponse.setArgs(List.of());
+        when(callSpec.entity(CommandRequest.class)).thenReturn(aiResponse);
+
+        AiIntentResolver resolver = new AiIntentResolver(builder);
+        CommandRequest result = resolver.resolve("use mushroom", room);
+
+        assertThat(result.getCommand()).isEqualTo("use");
+        assertThat(result.getArgs()).containsExactly("mushroom");
+    }
 }

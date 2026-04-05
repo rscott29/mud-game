@@ -20,6 +20,7 @@ import com.scott.tech.mud.mud_game.command.admin.SetModeratorCommand;
 import com.scott.tech.mud.mud_game.command.admin.TeleportCommand;
 import com.scott.tech.mud.mud_game.command.bind.BindRecallCommand;
 import com.scott.tech.mud.mud_game.command.communication.dm.DirectMessageCommand;
+import com.scott.tech.mud.mud_game.command.consume.UseCommand;
 import com.scott.tech.mud.mud_game.command.core.CommandResult;
 import com.scott.tech.mud.mud_game.command.core.GameCommand;
 import com.scott.tech.mud.mud_game.command.drop.DropService;
@@ -48,6 +49,7 @@ import com.scott.tech.mud.mud_game.command.shop.ShopService;
 import com.scott.tech.mud.mud_game.command.talk.TalkService;
 import com.scott.tech.mud.mud_game.command.talk.TalkValidator;
 import com.scott.tech.mud.mud_game.command.unknown.UnknownCommand;
+import com.scott.tech.mud.mud_game.consumable.ConsumableEffectService;
 import com.scott.tech.mud.mud_game.command.who.WhoCommand;
 import com.scott.tech.mud.mud_game.dto.CommandRequest;
 import com.scott.tech.mud.mud_game.dto.GameResponse;
@@ -121,6 +123,7 @@ class CommandFactoryTest {
     private WorldService worldService;
     private AmbientEventService ambientEventService;
     private ShopService shopService;
+    private ConsumableEffectService consumableEffectService;
     private CommandFactory factory;
 
     @BeforeEach
@@ -166,6 +169,7 @@ class CommandFactoryTest {
         worldService = mock(WorldService.class);
         ambientEventService = mock(AmbientEventService.class);
         shopService = mock(ShopService.class);
+        consumableEffectService = mock(ConsumableEffectService.class);
         factory = new CommandFactory(taskScheduler, worldBroadcaster, sessionManager,
                 inventoryService, discoveredExitService, pickupValidator, pickupService, dropValidator, dropService,
                 aiTextPolisher,
@@ -178,7 +182,7 @@ class CommandFactoryTest {
                 levelingService, worldModerationPolicyService,
                 playerProfileService, stateCache, partyService,
                 questService, defendObjectiveRuntimeService, objectiveEncounterRuntimeService,
-                worldService, ambientEventService, shopService);
+                worldService, ambientEventService, shopService, consumableEffectService);
     }
 
     @Test
@@ -235,6 +239,24 @@ class CommandFactoryTest {
     void buy_createsBuyCommand() {
         GameCommand command = factory.create(request("buy", List.of("rope")));
         assertThat(command).isInstanceOf(BuyCommand.class);
+    }
+
+    @Test
+    void use_createsUseCommand() {
+        GameCommand command = factory.create(request("use", List.of("potion")));
+        assertThat(command).isInstanceOf(UseCommand.class);
+    }
+
+    @Test
+    void eatAlias_createsUseCommand() {
+        GameCommand command = factory.create(request("eat", List.of("mushroom")));
+        assertThat(command).isInstanceOf(UseCommand.class);
+    }
+
+    @Test
+    void drinkAlias_createsUseCommand() {
+        GameCommand command = factory.create(request("drink", List.of("potion")));
+        assertThat(command).isInstanceOf(UseCommand.class);
     }
 
     @Test

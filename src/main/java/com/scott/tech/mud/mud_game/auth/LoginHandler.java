@@ -457,6 +457,9 @@ public class LoginHandler {
             if (cached.followingNpcIds() != null) {
                 session.restoreFollowers(cached.followingNpcIds());
             }
+            if (cached.activeConsumableEffects() != null) {
+                session.restoreActiveConsumableEffects(cached.activeConsumableEffects());
+            }
             stateCache.evict(username); // Clear cache after restore
         } else {
             // Fall back to DB

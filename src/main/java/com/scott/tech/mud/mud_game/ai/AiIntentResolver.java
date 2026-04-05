@@ -75,6 +75,9 @@ public class AiIntentResolver {
         if (canonicalCommand.isEmpty()) {
             canonicalCommand = command.toLowerCase();
         }
+        if (CommandRegistry.getMetadata(canonicalCommand).isEmpty()) {
+            return fallback(rawInput);
+        }
 
         List<String> args = aiResult.getArgs() != null
                 ? aiResult.getArgs().stream()

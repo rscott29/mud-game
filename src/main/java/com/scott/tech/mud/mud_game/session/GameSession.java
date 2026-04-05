@@ -1,5 +1,6 @@
 package com.scott.tech.mud.mud_game.session;
 
+import com.scott.tech.mud.mud_game.consumable.ActiveConsumableEffect;
 import com.scott.tech.mud.mud_game.exception.SessionStateException;
 import com.scott.tech.mud.mud_game.model.Direction;
 import com.scott.tech.mud.mud_game.model.Player;
@@ -7,6 +8,8 @@ import com.scott.tech.mud.mud_game.model.Room;
 import com.scott.tech.mud.mud_game.model.SessionState;
 import com.scott.tech.mud.mud_game.world.WorldService;
 
+import java.time.Instant;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.EnumMap;
 import java.util.EnumSet;
@@ -14,6 +17,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
@@ -47,6 +51,8 @@ public class GameSession {
     private final AtomicLong activityRevision = new AtomicLong();
     /** True when this connection is being seamlessly replaced and should skip normal disconnect cleanup. */
     private boolean suppressDisconnectCleanup;
+    /** Timed consumable effects currently active on this session. */
+    private final CopyOnWriteArrayList<ActiveConsumableEffect> activeConsumableEffects = new CopyOnWriteArrayList<>();
 
     public GameSession(String sessionId, Player player, WorldService worldService) {
         this.sessionId    = sessionId;
@@ -92,6 +98,7 @@ public class GameSession {
     public void setSuppressDisconnectCleanup(boolean suppressDisconnectCleanup) {
         this.suppressDisconnectCleanup = suppressDisconnectCleanup;
     }
+    public java.util.List<ActiveConsumableEffect> getActiveConsumableEffects() { return java.util.List.copyOf(activeConsumableEffects); }
 
     /** Records that the player has taken another in-game action. */
     public long recordPlayerAction() {
@@ -101,6 +108,36 @@ public class GameSession {
     /** Records any inbound player activity that should reset the idle timeout. */
     public long recordActivity() {
         return activityRevision.incrementAndGet();
+    }
+
+    public boolean hasActiveConsumableEffects() {
+        return !activeConsumableEffects.isEmpty();
+    }
+
+    public void addActiveConsumableEffect(ActiveConsumableEffect effect) {
+        if (effect != null) {
+            activeConsumableEffects.add(effect);
+        }
+    }
+
+    public void setActiveConsumableEffects(Collection<ActiveConsumableEffect> effects) {
+        activeConsumableEffects.clear();
+        if (effects != null) {
+            activeConsumableEffects.addAll(effects.stream()
+                    .filter(effect -> effect != null && !effect.isExpired())
+                    .toList());
+        }
+    }
+
+    public void restoreActiveConsumableEffects(Collection<ActiveConsumableEffect> effects) {
+        Instant now = Instant.now();
+        setActiveConsumableEffects(effects == null ? java.util.List.of() : effects.stream()
+                .map(effect -> effect == null ? null : effect.resume(now))
+                .toList());
+    }
+
+    public void clearActiveConsumableEffects() {
+        activeConsumableEffects.clear();
     }
 
     // ----- discovered hidden exits -----

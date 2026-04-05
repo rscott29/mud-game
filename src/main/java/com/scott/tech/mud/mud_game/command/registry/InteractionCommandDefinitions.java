@@ -1,5 +1,6 @@
 package com.scott.tech.mud.mud_game.command.registry;
 
+import com.scott.tech.mud.mud_game.command.consume.UseCommand;
 import com.scott.tech.mud.mud_game.command.drop.DropCommand;
 import com.scott.tech.mud.mud_game.command.equip.EquipCommand;
 import com.scott.tech.mud.mud_game.command.equip.UnequipCommand;
@@ -89,6 +90,17 @@ final class InteractionCommandDefinitions {
                 .creator(ctx -> new UnequipCommand(
                         ctx.hasNoArgs() ? null : ctx.joinedArgs(),
                         ctx.deps().equipService()
+                ))
+                .build());
+
+        commands.add(CommandDefinition.builder(CommandRegistry.USE)
+                .aliases("use", "consume", "drink", "quaff", "eat")
+                .category(INTERACTION)
+                .usage("use <item>")
+                .description("Consume an item from your inventory")
+                .creator(ctx -> new UseCommand(
+                        ctx.hasNoArgs() ? null : ctx.joinedArgs(),
+                        ctx.deps().consumableEffectService()
                 ))
                 .build());
 

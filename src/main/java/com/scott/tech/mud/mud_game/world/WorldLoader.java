@@ -1,6 +1,8 @@
 package com.scott.tech.mud.mud_game.world;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.scott.tech.mud.mud_game.consumable.ConsumableEffect;
+import com.scott.tech.mud.mud_game.consumable.ConsumableEffectType;
 import com.scott.tech.mud.mud_game.exception.WorldLoadException;
 import com.scott.tech.mud.mud_game.model.Direction;
 import com.scott.tech.mud.mud_game.model.EquipmentSlot;
@@ -320,12 +322,17 @@ public class WorldLoader {
                     .filter(t -> t != null)
                     .toList();
             validateItemCombatConfig(i);
+            validateItemConsumableConfig(i);
             Item.CombatStats combatStats = toCombatStats(i.getCombatStats());
             EquipmentSlot equipmentSlot = resolveEquipmentSlot(i);
             List<com.scott.tech.mud.mud_game.model.NpcSceneOverride> pickupNpcScenes = i.getPickupNpcScenes().stream()
                     .map(ItemData.PickupNpcSceneData::toNpcSceneOverride)
                     .toList();
-            if (map.put(i.getId(), new Item(i.getId(), i.getName(), i.getDescription(), i.getKeywords(), i.isTakeable(), i.getRarity(), i.getRequiredItemIds(), i.getPrerequisiteFailMessage(), triggers, i.getPickupNarrative(), i.getPickupSpawnNpcIds(), pickupNpcScenes, combatStats, equipmentSlot)) != null) {
+            List<ConsumableEffect> consumableEffects = i.getConsumableEffects().stream()
+                    .map(ItemData.ConsumableEffectData::toConsumableEffect)
+                    .filter(effect -> effect != null)
+                    .toList();
+            if (map.put(i.getId(), new Item(i.getId(), i.getName(), i.getDescription(), i.getKeywords(), i.isTakeable(), i.getRarity(), i.getRequiredItemIds(), i.getPrerequisiteFailMessage(), triggers, i.getPickupNarrative(), i.getPickupSpawnNpcIds(), pickupNpcScenes, combatStats, equipmentSlot, false, List.of(), consumableEffects)) != null) {
                 throw new WorldLoadException("Duplicate item id: " + i.getId());
             }
         }
@@ -377,6 +384,52 @@ public class WorldLoader {
                 || (stats.getAttackVerb() != null && !stats.getAttackVerb().isBlank());
         if (hasCombatEffect && EquipmentSlot.fromString(item.getEquipmentSlot()).isEmpty()) {
             throw new WorldLoadException("Item '" + itemId + "' has combat stats but no equipmentSlot");
+        }
+    }
+
+    private static void validateItemConsumableConfig(ItemData item) {
+        if (item.getConsumableEffects() == null || item.getConsumableEffects().isEmpty()) {
+            return;
+        }
+
+        String itemId = item.getId();
+        if (!item.isTakeable()) {
+            throw new WorldLoadException("Item '" + itemId + "' has consumable effects but is not takeable");
+        }
+
+        for (int i = 0; i < item.getConsumableEffects().size(); i++) {
+            ItemData.ConsumableEffectData effect = item.getConsumableEffects().get(i);
+            String effectLabel = "Item '" + itemId + "' consumableEffects[" + i + "]";
+            ConsumableEffectType type = effect == null ? null : effect.resolveType();
+            if (type == null) {
+                throw new WorldLoadException(effectLabel + " has unknown type '" + (effect == null ? null : effect.getType()) + "'");
+            }
+            if (effect.getAmount() <= 0) {
+                throw new WorldLoadException(effectLabel + " must define amount > 0");
+            }
+            boolean hasShoutTemplates = effect.getShoutTemplates() != null && !effect.getShoutTemplates().isEmpty();
+            if (type == ConsumableEffectType.INTOXICATION && !hasShoutTemplates) {
+                throw new WorldLoadException(effectLabel + " must define at least one shoutTemplate");
+            }
+            if (type != ConsumableEffectType.INTOXICATION && hasShoutTemplates) {
+                throw new WorldLoadException(effectLabel + " defines shoutTemplates but type is not INTOXICATION");
+            }
+            if (!type.isTimed()) {
+                if (effect.getDurationSeconds() > 0 || effect.getTickSeconds() > 0) {
+                    throw new WorldLoadException(effectLabel + " is instant and cannot define durationSeconds/tickSeconds");
+                }
+                if (effect.getEndDescription() != null && !effect.getEndDescription().isBlank()) {
+                    throw new WorldLoadException(effectLabel + " is instant and cannot define endDescription");
+                }
+                continue;
+            }
+
+            if (effect.getDurationSeconds() <= 0) {
+                throw new WorldLoadException(effectLabel + " must define durationSeconds > 0");
+            }
+            if (effect.getTickSeconds() <= 0) {
+                throw new WorldLoadException(effectLabel + " must define tickSeconds > 0");
+            }
         }
     }
 

@@ -29,6 +29,7 @@ public final class CommandRegistry {
     public static final String DROP = "drop";
     public static final String EQUIP = "equip";
     public static final String UNEQUIP = "unequip";
+    public static final String USE = "use";
     public static final String ATTACK = "attack";
     public static final String BIND = "bind";
     public static final String INVENTORY = "inventory";
