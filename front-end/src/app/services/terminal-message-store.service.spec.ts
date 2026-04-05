@@ -1,3 +1,4 @@
+import { signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 
 import { GAME_MESSAGE_TYPES, TERMINAL_MESSAGE_CLASSES } from '../models/game-message';
@@ -6,10 +7,26 @@ import { MessageFormatterService } from './message-formatter.service';
 import { TerminalMessageStore } from './terminal-message-store.service';
 
 class MockCommandCatalogService {
+  readonly catalogVersion = signal(0);
+
   load(): void {}
 
-  helpCategories(): [] {
-    return [];
+  helpCategories(): Array<{ title: string; entries: Array<{ cmd: string; desc: string }> }> {
+    if (this.catalogVersion() === 0) {
+      return [];
+    }
+
+    return [
+      {
+        title: 'Exploration',
+        entries: [
+          {
+            cmd: 'look [target]',
+            desc: 'Describe surroundings or examine something',
+          },
+        ],
+      },
+    ];
   }
 
   helpTips(): [] {
@@ -18,6 +35,8 @@ class MockCommandCatalogService {
 }
 
 describe('TerminalMessageStore', () => {
+  let catalog: MockCommandCatalogService;
+
   beforeEach(() => {
     TestBed.configureTestingModule({
       providers: [
@@ -26,6 +45,8 @@ describe('TerminalMessageStore', () => {
         { provide: CommandCatalogService, useClass: MockCommandCatalogService },
       ],
     });
+
+    catalog = TestBed.inject(CommandCatalogService) as unknown as MockCommandCatalogService;
   });
 
   it('merges same-room updates into the active room entry', () => {
@@ -196,5 +217,18 @@ describe('TerminalMessageStore', () => {
     expect(store.messages()[0].cssClass).toBe(TERMINAL_MESSAGE_CLASSES.HELP);
     expect(store.messages()[0].helpIsGod).toBe(true);
     expect(store.messages()[0].html).toContain("Traveler's handbook");
+  });
+
+  it('rerenders help entries when the command catalog finishes loading', () => {
+    const store = TestBed.inject(TerminalMessageStore);
+
+    store.addHelpMessage(false);
+    expect(store.messages()[0].html).toContain('Command reference is still loading.');
+
+    catalog.catalogVersion.set(1);
+    TestBed.flushEffects();
+
+    expect(store.messages()[0].html).toContain('look [target]');
+    expect(store.messages()[0].html).toContain('Describe surroundings or examine something');
   });
 });

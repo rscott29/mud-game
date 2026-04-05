@@ -45,4 +45,24 @@ class SecurityHeadersFilterTest {
 
         assertThat(response.getHeader("Strict-Transport-Security")).isNull();
     }
+
+    @Test
+    void addsImmutableCacheHeadersToFingerprintAssets() throws Exception {
+        MockHttpServletRequest request = new MockHttpServletRequest("GET", "/main-27CIILOK.js");
+        MockHttpServletResponse response = new MockHttpServletResponse();
+
+        filter.doFilter(request, response, new MockFilterChain());
+
+        assertThat(response.getHeader("Cache-Control")).isEqualTo("public, max-age=31536000, immutable");
+    }
+
+    @Test
+    void marksAppShellResourcesAsNoCache() throws Exception {
+        MockHttpServletRequest request = new MockHttpServletRequest("GET", "/app-init.js");
+        MockHttpServletResponse response = new MockHttpServletResponse();
+
+        filter.doFilter(request, response, new MockFilterChain());
+
+        assertThat(response.getHeader("Cache-Control")).isEqualTo("no-cache");
+    }
 }

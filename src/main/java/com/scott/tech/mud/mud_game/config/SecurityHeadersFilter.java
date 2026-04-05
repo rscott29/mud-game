@@ -9,10 +9,14 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 import java.util.Locale;
+import java.util.Set;
+import java.util.regex.Pattern;
 
 @Component
 public class SecurityHeadersFilter extends OncePerRequestFilter {
 
+    private static final Pattern IMMUTABLE_ASSET_PATH = Pattern.compile("^/.+-[A-Za-z0-9]{8,}\\.(?:js|css)$");
+    private static final Set<String> NO_CACHE_PATHS = Set.of("/", "/index.html", "/app-init.js");
     private static final String CONTENT_SECURITY_POLICY = String.join("; ",
             "default-src 'self'",
             "script-src 'self'",
@@ -41,6 +45,7 @@ public class SecurityHeadersFilter extends OncePerRequestFilter {
         }
 
         filterChain.doFilter(request, response);
+        applyCacheHeaders(request, response);
     }
 
     private boolean isSecureRequest(HttpServletRequest request) {
@@ -55,5 +60,39 @@ public class SecurityHeadersFilter extends OncePerRequestFilter {
 
         String forwarded = request.getHeader("Forwarded");
         return forwarded != null && forwarded.toLowerCase(Locale.ROOT).contains("proto=https");
+    }
+
+    private void applyCacheHeaders(HttpServletRequest request, HttpServletResponse response) {
+        if (response.containsHeader("Cache-Control")) {
+            return;
+        }
+
+        String method = request.getMethod();
+        if (!"GET".equalsIgnoreCase(method) && !"HEAD".equalsIgnoreCase(method)) {
+            return;
+        }
+
+        int status = response.getStatus();
+        if (status < 200 || status >= 400) {
+            return;
+        }
+
+        String path = request.getRequestURI();
+        String contextPath = request.getContextPath();
+        if (path == null || path.isBlank()) {
+            return;
+        }
+        if (contextPath != null && !contextPath.isBlank() && path.startsWith(contextPath)) {
+            path = path.substring(contextPath.length());
+        }
+
+        if (IMMUTABLE_ASSET_PATH.matcher(path).matches()) {
+            response.setHeader("Cache-Control", "public, max-age=31536000, immutable");
+            return;
+        }
+
+        if (NO_CACHE_PATHS.contains(path)) {
+            response.setHeader("Cache-Control", "no-cache");
+        }
     }
 }
