@@ -498,7 +498,7 @@
 {
   "id": "old_oak_crossing",
   "name": "Old Oak Crossing",
-  "description": "Beyond the fork, both paths join again in a hidden grove beneath an ancient oak. Sunlight spills through the leaves in golden shafts, illuminating a weathered stone at the tree's roots. A magnificent sword is embedded in the stone, and beside it sits the faint spectral form of a Labrador, tail gently thumping against the earth. A narrow trail climbs north toward a ruined watch post on the ridge.",
+  "description": "Beyond the fork, both paths join again in a hidden grove beneath an ancient oak. Sunlight spills through the leaves in golden shafts, illuminating a weathered stone at the tree's roots. A magnificent sword is embedded in the stone. A narrow trail climbs north toward a ruined watch post on the ridge.",
   "exits": {
     "WEST": "forest_fork",
     "NORTH": "wayfarers_rest"

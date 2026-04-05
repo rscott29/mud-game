@@ -45,6 +45,8 @@ public class GameSession {
     private final AtomicLong actionRevision = new AtomicLong();
     /** Monotonic counter used to invalidate stale inactivity timeout tasks after the player sends input again. */
     private final AtomicLong activityRevision = new AtomicLong();
+    /** True when this connection is being seamlessly replaced and should skip normal disconnect cleanup. */
+    private boolean suppressDisconnectCleanup;
 
     public GameSession(String sessionId, Player player, WorldService worldService) {
         this.sessionId    = sessionId;
@@ -86,6 +88,10 @@ public class GameSession {
     public void setLastTalkedNpcId(String npcId) { this.lastTalkedNpcId = npcId; }
     public long getActionRevision()      { return actionRevision.get(); }
     public long getActivityRevision()    { return activityRevision.get(); }
+    public boolean isSuppressDisconnectCleanup() { return suppressDisconnectCleanup; }
+    public void setSuppressDisconnectCleanup(boolean suppressDisconnectCleanup) {
+        this.suppressDisconnectCleanup = suppressDisconnectCleanup;
+    }
 
     /** Records that the player has taken another in-game action. */
     public long recordPlayerAction() {

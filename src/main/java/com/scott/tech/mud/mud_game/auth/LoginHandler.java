@@ -11,6 +11,7 @@ import com.scott.tech.mud.mud_game.dto.GameResponse;
 import com.scott.tech.mud.mud_game.model.Item;
 import com.scott.tech.mud.mud_game.model.Player;
 import com.scott.tech.mud.mud_game.model.SessionState;
+import com.scott.tech.mud.mud_game.party.PartyService;
 import com.scott.tech.mud.mud_game.persistence.cache.PlayerStateCache;
 import com.scott.tech.mud.mud_game.persistence.cache.PlayerStateCache.CachedPlayerState;
 import com.scott.tech.mud.mud_game.persistence.service.InventoryService;
@@ -21,6 +22,8 @@ import com.scott.tech.mud.mud_game.websocket.WorldBroadcaster;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 /**
  * Drives the pre-game authentication / character-creation state machine.
@@ -62,6 +65,8 @@ public class LoginHandler {
     private final DisconnectGracePeriodService disconnectGracePeriod;
     private final com.scott.tech.mud.mud_game.quest.QuestService questService;
     private final GlobalSettingsRegistry globalSettingsRegistry;
+    private final PartyService partyService;
+    private final ConcurrentMap<String, Object> accountLocks = new ConcurrentHashMap<>();
 
     public LoginHandler(AccountStore accountStore,
                         com.scott.tech.mud.mud_game.session.GameSessionManager sessionManager,
@@ -77,7 +82,8 @@ public class LoginHandler {
                         PlayerStateCache stateCache,
                         DisconnectGracePeriodService disconnectGracePeriod,
                         com.scott.tech.mud.mud_game.quest.QuestService questService,
-                        GlobalSettingsRegistry globalSettingsRegistry) {
+                        GlobalSettingsRegistry globalSettingsRegistry,
+                        PartyService partyService) {
         this.accountStore = accountStore;
         this.sessionManager = sessionManager;
         this.worldBroadcaster = worldBroadcaster;
@@ -93,6 +99,7 @@ public class LoginHandler {
         this.disconnectGracePeriod = disconnectGracePeriod;
         this.questService = questService;
         this.globalSettingsRegistry = globalSettingsRegistry;
+        this.partyService = partyService;
     }
 
     // -- Entry point --
@@ -162,18 +169,7 @@ public class LoginHandler {
         }
 
         if (accountStore.verifyPassword(username, rawPassword)) {
-            if (playerProfileService.isNewPlayer(username) && stateCache.get(username) == null) {
-                return beginCharacterCreation(username, session);
-            }
-            restoreAuthenticatedPlayerState(username, session);
-            return enterWorld(
-                    username,
-                    session,
-                    true,
-                    GameResponse.authPrompt(Messages.fmt(
-                            "auth.message.welcome_back",
-                            "username", capitalize(username)), false)
-            );
+            return completeExistingAccountLogin(username, session);
         }
 
         // Wrong password
@@ -361,14 +357,48 @@ public class LoginHandler {
     public CommandResult reconnect(String rawToken, GameSession session) {
         return reconnectTokenStore.consume(rawToken)
                 .map(username -> {
-                    restoreAuthenticatedPlayerState(username, session);
-                    boolean wasQuickReconnect = disconnectGracePeriod.cancelPendingDisconnect(username);
-                    return enterWorld(username, session, !wasQuickReconnect);
+                    synchronized (accountLock(username)) {
+                        boolean replacedExistingSession = sessionManager
+                                .findReservedAccountSession(username, session.getSessionId())
+                                .map(existingSession -> {
+                                    replaceActiveSessionForReconnect(username, existingSession, session);
+                                    return true;
+                                })
+                                .orElse(false);
+
+                        restoreAuthenticatedPlayerState(username, session);
+                        boolean wasQuickReconnect = disconnectGracePeriod.cancelPendingDisconnect(username);
+                        return enterWorld(username, session, !wasQuickReconnect && !replacedExistingSession);
+                    }
                 })
                 .orElseGet(() -> {
                     // Token expired or invalid - send nothing; the banner+prompt was already sent on connect
                     return CommandResult.of();
                 });
+    }
+
+    private CommandResult completeExistingAccountLogin(String username, GameSession session) {
+        synchronized (accountLock(username)) {
+            if (sessionManager.findReservedAccountSession(username, session.getSessionId()).isPresent()) {
+                session.setPendingUsername(null);
+                session.transition(SessionState.AWAITING_USERNAME);
+                return prompt(Messages.get("auth.error.account_already_online"), false);
+            }
+
+            if (playerProfileService.isNewPlayer(username) && stateCache.get(username) == null) {
+                return beginCharacterCreation(username, session);
+            }
+
+            restoreAuthenticatedPlayerState(username, session);
+            return enterWorld(
+                    username,
+                    session,
+                    true,
+                    GameResponse.authPrompt(Messages.fmt(
+                            "auth.message.welcome_back",
+                            "username", capitalize(username)), false)
+            );
+        }
     }
 
     private void restoreAuthenticatedPlayerState(String username, GameSession session) {
@@ -474,6 +504,7 @@ public class LoginHandler {
                                      GameSession session,
                                      boolean broadcastArrival,
                                      GameResponse... leadingResponses) {
+        session.setPendingUsername(null);
         session.transition(SessionState.PLAYING);
         if (broadcastArrival) {
             broadcastLogin(session);
@@ -484,6 +515,29 @@ public class LoginHandler {
         responses.add(buildWelcomeResponse(session));
         responses.add(GameResponse.sessionToken(reconnectTokenStore.issue(username)));
         return CommandResult.of(responses.toArray(GameResponse[]::new));
+    }
+
+    private void replaceActiveSessionForReconnect(String username, GameSession existingSession, GameSession newSession) {
+        if (existingSession == null || existingSession.getSessionId().equals(newSession.getSessionId())) {
+            return;
+        }
+
+        stateCache.cache(existingSession);
+        playerProfileService.saveProfile(existingSession.getPlayer());
+        inventoryService.saveInventory(username, existingSession.getPlayer().getInventory());
+        partyService.transferSession(existingSession.getSessionId(), newSession.getSessionId());
+
+        existingSession.setSuppressDisconnectCleanup(true);
+        existingSession.transition(SessionState.DISCONNECTED);
+
+        worldBroadcaster.kickSession(
+                existingSession.getSessionId(),
+                GameResponse.narrative(Messages.get("session.replaced.player_message"))
+        );
+    }
+
+    private Object accountLock(String username) {
+        return accountLocks.computeIfAbsent(username.toLowerCase(), ignored -> new Object());
     }
 
     private GameResponse buildWelcomeResponse(GameSession session) {

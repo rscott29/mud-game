@@ -19,8 +19,10 @@ import org.springframework.web.socket.CloseStatus;
 import org.springframework.web.socket.WebSocketSession;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
 class GameWebSocketHandlerTest {
@@ -77,6 +79,62 @@ class GameWebSocketHandlerTest {
         verify(broadcaster).sendToSession(eq("follower-session"), any());
         verify(stateCache).cache(leader);
         verify(playerProfileService).saveProfile(leader.getPlayer());
+        verify(gameEngine).onDisconnect(leader);
+    }
+
+    @Test
+    void afterConnectionClosed_whenDisconnectCleanupIsSuppressed_skipsPartyDepartureCleanup() {
+        GameEngine gameEngine = mock(GameEngine.class);
+        GameSessionManager sessionManager = new GameSessionManager();
+        WorldService worldService = mock(WorldService.class);
+        WorldBroadcaster broadcaster = mock(WorldBroadcaster.class);
+        LoginHandler loginHandler = mock(LoginHandler.class);
+        SessionRequestDispatcher requestDispatcher = mock(SessionRequestDispatcher.class);
+        WsMessageSender messageSender = mock(WsMessageSender.class);
+        WsExceptionHandler wsExceptionHandler = mock(WsExceptionHandler.class);
+        PlayerProfileService playerProfileService = mock(PlayerProfileService.class);
+        InventoryService inventoryService = mock(InventoryService.class);
+        PlayerStateCache stateCache = mock(PlayerStateCache.class);
+        PartyService partyService = new PartyService();
+        DisconnectGracePeriodService disconnectGracePeriod = mock(DisconnectGracePeriodService.class);
+        SessionInactivityService sessionInactivityService = mock(SessionInactivityService.class);
+
+        GameWebSocketHandler handler = new GameWebSocketHandler(
+                gameEngine,
+                sessionManager,
+                worldService,
+                new ObjectMapper(),
+                broadcaster,
+                loginHandler,
+                requestDispatcher,
+                messageSender,
+                wsExceptionHandler,
+                playerProfileService,
+                inventoryService,
+                stateCache,
+                partyService,
+                disconnectGracePeriod,
+                sessionInactivityService
+        );
+
+        GameSession leader = session("leader-session", "Axi", "room_start", worldService);
+        GameSession follower = session("follower-session", "Nova", "room_grove", worldService);
+        sessionManager.register(leader);
+        sessionManager.register(follower);
+        partyService.follow(follower, leader);
+        leader.setSuppressDisconnectCleanup(true);
+        leader.transition(SessionState.DISCONNECTED);
+
+        WebSocketSession wsSession = mock(WebSocketSession.class);
+        org.mockito.Mockito.when(wsSession.getId()).thenReturn("leader-session");
+
+        handler.afterConnectionClosed(wsSession, CloseStatus.NORMAL);
+
+        verify(broadcaster).unregister("leader-session");
+        verify(broadcaster, never()).broadcastToRoom(anyString(), any(), anyString());
+        verify(broadcaster, never()).sendToSession(eq("follower-session"), any());
+        verify(stateCache, never()).cache(leader);
+        verify(playerProfileService, never()).saveProfile(leader.getPlayer());
         verify(gameEngine).onDisconnect(leader);
     }
 

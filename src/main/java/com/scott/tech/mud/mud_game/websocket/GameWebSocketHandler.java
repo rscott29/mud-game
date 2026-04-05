@@ -175,8 +175,10 @@ public class GameWebSocketHandler extends TextWebSocketHandler {
             log.info("Session {} disconnected (player={}, status={})",
                     wsSession.getId(), playerName, status);
 
-            PartyService.GroupDeparture departure = partyService.removeSession(wsSession.getId());
-            broadcastPartyDepartures(gameSession, departure);
+            if (!gameSession.isSuppressDisconnectCleanup()) {
+                PartyService.GroupDeparture departure = partyService.removeSession(wsSession.getId());
+                broadcastPartyDepartures(gameSession, departure);
+            }
 
             SessionState state = gameSession.getState();
             if (state == SessionState.PLAYING || state == SessionState.LOGOUT_CONFIRM) {

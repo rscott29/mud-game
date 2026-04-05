@@ -65,4 +65,29 @@ public class GameSessionManager {
                 .filter(s -> s.getPlayer().getName().equalsIgnoreCase(name))
                 .findFirst();
     }
+
+    /**
+     * Finds another session that already owns the account for the given username.
+     * This includes players already in the world and sessions mid-character-creation
+     * after they have successfully authenticated.
+     */
+    public Optional<GameSession> findReservedAccountSession(String username, String excludeSessionId) {
+        if (username == null || username.isBlank()) {
+            return Optional.empty();
+        }
+
+        return sessions.values().stream()
+                .filter(s -> excludeSessionId == null || !s.getSessionId().equals(excludeSessionId))
+                .filter(s -> ownsAccount(s, username))
+                .findFirst();
+    }
+
+    private boolean ownsAccount(GameSession session, String username) {
+        return switch (session.getState()) {
+            case PLAYING, LOGOUT_CONFIRM -> session.getPlayer().getName().equalsIgnoreCase(username);
+            case AWAITING_RACE_CLASS, AWAITING_PRONOUNS, AWAITING_DESCRIPTION ->
+                    username.equalsIgnoreCase(session.getPendingUsername());
+            default -> false;
+        };
+    }
 }
