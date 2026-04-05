@@ -19,11 +19,12 @@ import { TerminalPresenterService } from '../../services/terminal-presenter.serv
 import { TerminalMessageStore } from '../../services/terminal-message-store.service';
 import { TerminalMessageInterpreterService } from '../../services/terminal-message-interpreter.service';
 import { TerminalClassProgressionService } from '../../services/terminal-class-progression.service';
+import { TerminalHudComponent } from '../terminal-hud/terminal-hud.component';
 
 @Component({
   selector: 'app-terminal',
   standalone: true,
-  imports: [FormsModule, SafeHtmlPipe, NgClass, CharacterCreationComponent],
+  imports: [FormsModule, SafeHtmlPipe, NgClass, CharacterCreationComponent, TerminalHudComponent],
   templateUrl: './terminal.component.html',
   styleUrl: './terminal.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

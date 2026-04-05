@@ -139,6 +139,87 @@ app-terminal {
     background: linear-gradient(180deg, rgba(17, 17, 21, 0.92), rgba(10, 10, 13, 0.84));
   }
 
+  .terminal-hud--compact {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .terminal-hud--compact-open {
+    gap: 12px;
+  }
+
+  .hud-mobile-summary {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 10px 12px;
+    align-items: start;
+  }
+
+  .hud-mobile-summary__identity {
+    min-width: 0;
+    display: grid;
+    gap: 4px;
+  }
+
+  .hud-mobile-summary__eyebrow {
+    color: var(--terminal-warning);
+    font-size: 0.76em;
+    text-transform: uppercase;
+    letter-spacing: 0.18em;
+  }
+
+  .hud-mobile-summary__title {
+    font-family: var(--font-display);
+    font-size: 1.04em;
+    font-weight: 600;
+    color: var(--terminal-text);
+  }
+
+  .hud-mobile-summary__stats {
+    display: grid;
+    grid-column: 1 / -1;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+  }
+
+  .hud-mobile-toggle {
+    padding: 8px 12px;
+    border: 1px solid rgba(214, 177, 115, 0.18);
+    border-radius: 999px;
+    background: rgba(16, 16, 21, 0.92);
+    color: var(--terminal-muted);
+    font: inherit;
+    font-size: 0.72em;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: transform 0.18s ease, border-color 0.18s ease, background 0.18s ease;
+  }
+
+  .hud-mobile-toggle:hover {
+    transform: translateY(-1px);
+    border-color: rgba(183, 200, 161, 0.28);
+    background: rgba(24, 24, 30, 0.96);
+  }
+
+  .hud-mobile-panel {
+    display: grid;
+    gap: 12px;
+    padding-top: 12px;
+    border-top: 1px solid rgba(214, 177, 115, 0.11);
+  }
+
+  .hud-mobile-panel__meta {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+    color: var(--terminal-muted);
+    font-size: 0.78em;
+  }
+
   .hud-profile {
     min-width: 0;
     display: flex;
@@ -163,6 +244,7 @@ app-terminal {
   .hud-profile__meta {
     display: flex;
     align-items: center;
+    flex-wrap: wrap;
     gap: 10px;
     color: var(--terminal-muted);
     font-size: 0.82em;
@@ -186,6 +268,14 @@ app-terminal {
     font-size: 0.8em;
     letter-spacing: 0.08em;
     text-transform: uppercase;
+  }
+
+  .hud-chip--compact {
+    justify-content: center;
+    min-width: 0;
+    padding: 7px 8px;
+    font-size: 0.72em;
+    letter-spacing: 0.04em;
   }
 
   .hud-chip--infinite {
@@ -311,6 +401,15 @@ app-terminal {
     justify-self: end;
     padding-left: 14px;
     border-left: 1px solid rgba(214, 177, 115, 0.12);
+  }
+
+  .hud-zoom--mobile {
+    justify-self: stretch;
+    justify-content: space-between;
+    padding-top: 10px;
+    padding-left: 0;
+    border-top: 1px solid rgba(214, 177, 115, 0.11);
+    border-left: none;
   }
 
   .hud-zoom__btn {
@@ -633,6 +732,77 @@ app-terminal {
     .terminal-header {
       flex-direction: column;
       align-items: flex-start;
+      gap: 12px;
+      padding-top: 16px;
+      padding-bottom: 10px;
+    }
+
+    .terminal-brand__title {
+      font-size: 1.18em;
+    }
+
+    .terminal-status {
+      gap: 8px;
+      padding: 7px 10px;
+      font-size: 0.72em;
+      letter-spacing: 0.12em;
+    }
+
+    .terminal-hud {
+      gap: 12px;
+      padding-top: 12px;
+      padding-bottom: 12px;
+    }
+
+    .hud-profile__title {
+      font-size: 1.04em;
+    }
+
+    .hud-profile__meta {
+      gap: 8px;
+      font-size: 0.78em;
+    }
+
+    .hud-chip {
+      font-size: 0.74em;
+      padding: 6px 9px;
+    }
+
+    .hud-chip--compact {
+      padding: 7px 8px;
+      font-size: 0.7em;
+    }
+
+    .hud-mobile-summary {
+      gap: 10px;
+    }
+
+    .hud-mobile-toggle {
+      padding: 7px 10px;
+      font-size: 0.68em;
+    }
+
+    .hud-mobile-panel__meta {
+      gap: 8px;
+      font-size: 0.76em;
+    }
+
+    .hud-xp__meta {
+      gap: 8px;
+      font-size: 0.72em;
+    }
+
+    .hud-xp__bar {
+      height: 10px;
+    }
+
+    .hud-zoom {
+      gap: 8px;
+    }
+
+    .hud-zoom__btn {
+      width: 32px;
+      height: 32px;
     }
 
     .input-bar {
