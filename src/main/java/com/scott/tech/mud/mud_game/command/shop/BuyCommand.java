@@ -13,6 +13,7 @@ import com.scott.tech.mud.mud_game.model.Shop;
 import com.scott.tech.mud.mud_game.session.GameSession;
 
 import java.util.List;
+import java.util.Set;
 
 public class BuyCommand implements GameCommand {
 
@@ -91,7 +92,7 @@ public class BuyCommand implements GameCommand {
                         "item", listing.item().getName(),
                         "price", String.valueOf(listing.price()),
                         "merchant", merchant
-                ))
+                ), List.of(), session.getDiscoveredHiddenExits(room.getId()), Set.of(), true)
         );
     }
 

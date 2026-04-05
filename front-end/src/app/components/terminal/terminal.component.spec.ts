@@ -933,7 +933,7 @@ describe('TerminalComponent', () => {
     expect(component.view.messages()[1].html).toContain('Quentor arrives from the east.');
   });
 
-  it('renders a shop panel inside the room card and sends buy commands from shop buttons', () => {
+  it('shows the shop panel only after a shop refresh and sends buy commands from shop buttons', () => {
     socket.playerStats.set({
       health: 10,
       maxHealth: 10,
@@ -961,6 +961,9 @@ describe('TerminalComponent', () => {
       items: [],
       npcs: [{ name: 'Shopkeeper Rona', sentient: true }],
       players: [],
+    };
+    const shopRoom = {
+      ...room,
       shop: {
         merchantNpcId: 'npc_shopkeeper_rona',
         merchantName: 'Shopkeeper Rona',
@@ -979,9 +982,16 @@ describe('TerminalComponent', () => {
     socket.messages$.next({ type: GAME_MESSAGE_TYPES.ROOM_UPDATE, message: 'You arrive.', room });
     fixture.detectChanges();
 
-    expect(component.view.messages()[0].html).toContain('Shopkeeper Rona');
-    expect(component.view.messages()[0].html).toContain('Buy now');
-    expect(component.view.messages()[0].html).toContain('8 gold');
+    expect(component.view.messages()[0].html).not.toContain('term-shop__title');
+    expect(component.view.messages()[0].html).not.toContain('Buy now');
+
+    socket.messages$.next({ type: GAME_MESSAGE_TYPES.ROOM_REFRESH, message: 'You take a closer look at Shopkeeper Rona\'s wares.', room: shopRoom });
+    fixture.detectChanges();
+
+    expect(component.view.messages()[1].html).toContain('term-shop__title');
+    expect(component.view.messages()[1].html).toContain('Shopkeeper Rona');
+    expect(component.view.messages()[1].html).toContain('Buy now');
+    expect(component.view.messages()[1].html).toContain('8 gold');
 
     const button = fixture.nativeElement.querySelector('.term-shop__buy') as HTMLButtonElement;
     button.click();

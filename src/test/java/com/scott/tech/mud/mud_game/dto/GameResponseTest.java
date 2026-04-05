@@ -8,6 +8,7 @@ import com.scott.tech.mud.mud_game.model.Item;
 import com.scott.tech.mud.mud_game.model.Player;
 import com.scott.tech.mud.mud_game.model.Rarity;
 import com.scott.tech.mud.mud_game.model.Room;
+import com.scott.tech.mud.mud_game.model.Shop;
 import org.junit.jupiter.api.Test;
 
 import java.util.EnumMap;
@@ -46,6 +47,36 @@ class GameResponseTest {
         assertThat(response.room().items())
                 .extracting(GameResponse.RoomItemView::name)
                 .containsExactly("Lantern");
+        assertThat(response.room().shop()).isNull();
+    }
+
+    @Test
+    void roomRefresh_includesShopOnlyWhenRequested() {
+        Room room = new Room(
+                "store",
+                "General Store",
+                "Shelves crowd the walls.",
+                exits(Direction.WEST, "square"),
+                List.of(),
+                List.of()
+        );
+        room.setShop(new Shop("npc_shopkeeper_rona", List.of(
+                new Shop.Listing("item_rope", item("item_rope", "Travel Rope"), 8)
+        )));
+
+        GameResponse hiddenShop = GameResponse.roomRefresh(room, "You glance around.");
+        GameResponse visibleShop = GameResponse.roomRefresh(
+                room,
+                "You browse the wares.",
+                List.of(),
+                Set.of(),
+                Set.of(),
+                true
+        );
+
+        assertThat(hiddenShop.room().shop()).isNull();
+        assertThat(visibleShop.room().shop()).isNotNull();
+        assertThat(visibleShop.room().shop().merchantNpcId()).isEqualTo("npc_shopkeeper_rona");
     }
 
     @Test

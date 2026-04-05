@@ -43,6 +43,7 @@ class ShopCommandTest {
         assertThat(result.getResponses()).hasSize(1);
         assertThat(result.getResponses().getFirst().type()).isEqualTo(GameResponse.Type.ROOM_REFRESH);
         assertThat(result.getResponses().getFirst().message()).contains("Rona");
+        assertThat(result.getResponses().getFirst().room().shop()).isNotNull();
     }
 
     @Test
@@ -72,6 +73,7 @@ class ShopCommandTest {
         assertThat(result.getResponses().get(0).type()).isEqualTo(GameResponse.Type.INVENTORY_UPDATE);
         assertThat(result.getResponses().get(1).type()).isEqualTo(GameResponse.Type.ROOM_REFRESH);
         assertThat(result.getResponses().get(1).message()).contains("Travel Rope").contains("8 gold");
+        assertThat(result.getResponses().get(1).room().shop()).isNotNull();
         verify(inventoryService).saveInventory("hero", player.getInventory());
         verify(stateCache).cache(session);
     }
