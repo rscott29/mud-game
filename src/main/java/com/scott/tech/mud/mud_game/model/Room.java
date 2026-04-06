@@ -27,6 +27,8 @@ public class Room {
     private int wrongExitDamage;
     /** If true, players in this room do not regenerate health or mana. */
     private boolean suppressRegen;
+    /** If true, movement within this room is considered inside the city. */
+    private boolean insideCity;
     /** Optional zone identifier for ambient events (e.g., "cave", "forest"). */
     private String ambientZone;
     /** Optional shop data for merchant rooms. */
@@ -76,6 +78,8 @@ public class Room {
     public void setWrongExitDamage(int wrongExitDamage) { this.wrongExitDamage = wrongExitDamage; }
     public boolean isSuppressRegen()                    { return suppressRegen; }
     public void setSuppressRegen(boolean suppressRegen) { this.suppressRegen = suppressRegen; }
+    public boolean isInsideCity()                       { return insideCity; }
+    public void setInsideCity(boolean insideCity)       { this.insideCity = insideCity; }
     public String getAmbientZone()                       { return ambientZone; }
     public void setAmbientZone(String ambientZone)       { this.ambientZone = ambientZone; }
     public Shop getShop()                                { return shop; }

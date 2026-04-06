@@ -84,7 +84,7 @@ public class NpcWanderScheduler {
     void stop() {
         pendingFutures.forEach((id, future) -> {
             future.cancel(false);
-            log.debug("NpcWanderScheduler: cancelled pending wander for '{}'", id);
+       
         });
         pendingFutures.clear();
     }
@@ -163,8 +163,7 @@ public class NpcWanderScheduler {
 
         // Move
         worldService.moveNpc(npcId, currentRoomId, targetId);
-        log.info("NPC '{}' wandered '{}' → '{}'{}", npcId, currentRoomId, targetId,
-                 dir != null ? " via " + dir : "");
+ 
 
         // Broadcast arrival after moving so a quick "look" shows the NPC in the new room
         Direction fromDir = dir != null ? dir.opposite() : null;

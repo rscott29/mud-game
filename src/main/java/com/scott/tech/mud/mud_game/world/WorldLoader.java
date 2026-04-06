@@ -85,6 +85,7 @@ public class WorldLoader {
                 }
                 room.setWrongExitDamage(def.getWrongExitDamage());
                 room.setSuppressRegen(def.isSuppressRegen());
+                room.setInsideCity(def.isInsideCity());
                 room.setAmbientZone(def.getAmbientZone());
                 room.setShop(buildShop(def, roomNpcs, items, errors));
                 if (builtRooms.put(def.getId(), room) != null) {

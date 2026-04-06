@@ -38,6 +38,7 @@ import com.scott.tech.mud.mud_game.quest.ObjectiveEncounterRuntimeService;
 import com.scott.tech.mud.mud_game.quest.QuestService;
 import com.scott.tech.mud.mud_game.service.AmbientEventService;
 import com.scott.tech.mud.mud_game.service.LevelingService;
+import com.scott.tech.mud.mud_game.service.MovementCostService;
 import com.scott.tech.mud.mud_game.service.WorldModerationPolicyService;
 import com.scott.tech.mud.mud_game.world.WorldService;
 import com.scott.tech.mud.mud_game.session.GameSessionManager;
@@ -62,10 +63,6 @@ import java.util.List;
 public class CommandFactory {
 
     private final CommandDependencies deps;
-
-    public CommandFactory(CommandDependencies deps) {
-        this.deps = deps;
-    }
 
     @Autowired
     public CommandFactory(TaskScheduler taskScheduler, WorldBroadcaster worldBroadcaster,
@@ -98,50 +95,52 @@ public class CommandFactory {
                           ObjectiveEncounterRuntimeService objectiveEncounterRuntimeService,
                           WorldService worldService,
                           AmbientEventService ambientEventService,
+                          MovementCostService movementCostService,
                           ShopService shopService,
                           ConsumableEffectService consumableEffectService) {
-        this(buildDependencies(
-                taskScheduler,
-                worldBroadcaster,
-                sessionManager,
-                inventoryService,
-                discoveredExitService,
-                pickupValidator,
-                pickupService,
-                dropValidator,
-                dropService,
-                aiTextPolisher,
-                playerTextModerator,
-                emotePerspectiveResolver,
-                equipValidator,
-                equipService,
-                attackValidator,
-                combatService,
-                combatState,
-                combatLoopScheduler,
-                playerDeathService,
-                playerRespawnService,
-                talkValidator,
-                talkService,
-                socialValidator,
-                socialService,
-                accountStore,
-                reconnectTokenStore,
-                xpTables,
-                combatStatsResolver,
-                levelingService,
-                worldModerationPolicyService,
-                playerProfileService,
-                stateCache,
-                partyService,
-                questService,
-                defendObjectiveRuntimeService,
-                objectiveEncounterRuntimeService,
-                worldService,
-                ambientEventService,
-                shopService,
-                consumableEffectService
-        ));
+                this.deps = buildDependencies(
+                    taskScheduler,
+                    worldBroadcaster,
+                    sessionManager,
+                    inventoryService,
+                    discoveredExitService,
+                    pickupValidator,
+                    pickupService,
+                    dropValidator,
+                    dropService,
+                    aiTextPolisher,
+                    playerTextModerator,
+                    emotePerspectiveResolver,
+                    equipValidator,
+                    equipService,
+                    attackValidator,
+                    combatService,
+                    combatState,
+                    combatLoopScheduler,
+                    playerDeathService,
+                    playerRespawnService,
+                    talkValidator,
+                    talkService,
+                    socialValidator,
+                    socialService,
+                    accountStore,
+                    reconnectTokenStore,
+                    xpTables,
+                    combatStatsResolver,
+                    levelingService,
+                    worldModerationPolicyService,
+                    playerProfileService,
+                    stateCache,
+                    partyService,
+                    questService,
+                    defendObjectiveRuntimeService,
+                    objectiveEncounterRuntimeService,
+                    worldService,
+                    ambientEventService,
+                    movementCostService,
+                    shopService,
+                    consumableEffectService
+                );
     }
 
     private static CommandDependencies buildDependencies(TaskScheduler taskScheduler,
@@ -182,6 +181,7 @@ public class CommandFactory {
                                                          ObjectiveEncounterRuntimeService objectiveEncounterRuntimeService,
                                                          WorldService worldService,
                                                          AmbientEventService ambientEventService,
+                                                         MovementCostService movementCostService,
                                                          ShopService shopService,
                                                          ConsumableEffectService consumableEffectService) {
         return new CommandDependencies(
@@ -223,6 +223,7 @@ public class CommandFactory {
                 objectiveEncounterRuntimeService,
                 worldService,
                 ambientEventService,
+                movementCostService,
                 shopService,
                 consumableEffectService
         );

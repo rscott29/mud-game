@@ -15,6 +15,7 @@ import com.scott.tech.mud.mud_game.model.SessionState;
 import com.scott.tech.mud.mud_game.party.PartyService;
 import com.scott.tech.mud.mud_game.service.AmbientEventService;
 import com.scott.tech.mud.mud_game.service.LevelingService;
+import com.scott.tech.mud.mud_game.service.MovementCostService;
 import com.scott.tech.mud.mud_game.session.GameSession;
 import com.scott.tech.mud.mud_game.session.GameSessionManager;
 import com.scott.tech.mud.mud_game.websocket.WorldBroadcaster;
@@ -620,6 +621,56 @@ class MoveServiceTest {
                 eq("session-1")
         );
     }
+
+        @Test
+        void buildResult_appliesMovementCostAndIncludesUpdatedStatsWhenEnteringWilderness() {
+                TaskScheduler taskScheduler = mock(TaskScheduler.class);
+                WorldBroadcaster broadcaster = mock(WorldBroadcaster.class);
+                LevelingService levelingService = mock(LevelingService.class);
+                ExperienceTableService xpTables = mock(ExperienceTableService.class);
+                AmbientEventService ambientEventService = mock(AmbientEventService.class);
+                WorldService worldService = mock(WorldService.class);
+                MovementCostService movementCostService = mock(MovementCostService.class);
+                GameSessionManager sessionManager = new GameSessionManager();
+
+                when(levelingService.getXpTables()).thenReturn(xpTables);
+                when(ambientEventService.getRandomAmbientEvent(anyString())).thenReturn(Optional.empty());
+                when(ambientEventService.getRandomCompanionDialogue(any(), anyString())).thenReturn(Optional.empty());
+                when(movementCostService.movementCostForMove(any(), any(), any())).thenReturn(2);
+                doReturn(new NoOpScheduledFuture()).when(taskScheduler).schedule(any(Runnable.class), any(Instant.class));
+
+                Room gate = new Room("gate", "East Gate", "desc", exits(Direction.EAST, "road"), List.of(), List.of());
+                gate.setInsideCity(true);
+                Room road = new Room("road", "Frontier Road", "desc", new EnumMap<>(Direction.class), List.of(), List.of());
+
+                when(worldService.getRoom("gate")).thenReturn(gate);
+                when(worldService.getRoom("road")).thenReturn(road);
+
+                Player player = new Player("p1", "Hero", "gate");
+                player.setMovement(10);
+                GameSession session = new GameSession("session-1", player, worldService);
+                session.transition(SessionState.PLAYING);
+                sessionManager.register(session);
+
+                MoveService service = new MoveService(
+                                taskScheduler,
+                                broadcaster,
+                                sessionManager,
+                                levelingService,
+                                ambientEventService,
+                                worldService,
+                                movementCostService,
+                                AiTextPolisher.noOp()
+                );
+
+                var result = service.buildResult(session, Direction.EAST, MoveValidationResult.allow("road", road));
+
+                assertThat(player.getMovement()).isEqualTo(8);
+                assertThat(result.getResponses()).hasSize(1);
+                assertThat(result.getResponses().get(0).message()).contains("Travel costs <strong>2</strong> movement");
+                assertThat(result.getResponses().get(0).playerStats()).isNotNull();
+                assertThat(result.getResponses().get(0).playerStats().movement()).isEqualTo(8);
+        }
 
     private static EnumMap<Direction, String> exits(Direction direction, String roomId) {
         EnumMap<Direction, String> exits = new EnumMap<>(Direction.class);

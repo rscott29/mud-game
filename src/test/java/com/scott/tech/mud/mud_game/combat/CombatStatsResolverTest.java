@@ -104,7 +104,7 @@ class CombatStatsResolverTest {
         player.setLevel(10);
 
         when(skillTableService.getPassiveBonuses("Warrior", 10))
-                .thenReturn(new SkillTableService.PassiveBonuses(1, 2, 4, 3));
+            .thenReturn(new SkillTableService.PassiveBonuses(1, 2, 4, 3, 0));
 
         PlayerCombatStats stats = resolver.resolve(player);
 

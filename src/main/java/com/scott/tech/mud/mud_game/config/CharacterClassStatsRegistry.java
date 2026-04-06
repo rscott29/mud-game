@@ -68,17 +68,24 @@ public class CharacterClassStatsRegistry {
 
     private static ClassStatsFile fallback() {
         return new ClassStatsFile(List.of(
-                new ClassStats("warrior", "Warrior", 130, 25, 105),
-                new ClassStats("mage", "Mage", 85, 120, 95),
-                new ClassStats("rogue", "Rogue", 100, 60, 125),
-                new ClassStats("cleric", "Cleric", 110, 90, 100),
-                new ClassStats("ranger", "Ranger", 105, 70, 115),
-                new ClassStats("paladin", "Paladin", 125, 80, 95),
-                new ClassStats("bard", "Bard", 95, 85, 110)
+            new ClassStats("warrior", "Warrior", 130, 25, 105, 3),
+            new ClassStats("mage", "Mage", 85, 120, 95, 4),
+            new ClassStats("rogue", "Rogue", 100, 60, 125, 2),
+            new ClassStats("cleric", "Cleric", 110, 90, 100, 3),
+            new ClassStats("ranger", "Ranger", 105, 70, 115, 2),
+            new ClassStats("paladin", "Paladin", 125, 80, 95, 4),
+            new ClassStats("bard", "Bard", 95, 85, 110, 3)
         ));
     }
 
     public record ClassStatsFile(List<ClassStats> classes) {}
 
-    public record ClassStats(String id, String name, int maxHealth, int maxMana, int maxMovement) {}
+        public record ClassStats(
+            String id,
+            String name,
+            int maxHealth,
+            int maxMana,
+            int maxMovement,
+            int wildernessMovementCost
+        ) {}
 }
