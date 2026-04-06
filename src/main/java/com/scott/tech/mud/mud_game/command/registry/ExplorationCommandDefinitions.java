@@ -52,6 +52,7 @@ final class ExplorationCommandDefinitions {
                             ctx.deps().levelingService(),
                             ctx.deps().worldService(),
                             ctx.deps().ambientEventService(),
+                                ctx.deps().movementCostService(),
                             ctx.deps().aiTextPolisher(),
                             ctx.deps().playerDeathService()
                     );

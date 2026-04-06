@@ -177,6 +177,7 @@ export class TerminalReferenceFormatterService {
     if (bonuses.maxDamageBonus) rows.push({ label: 'Max damage', value: bonuses.maxDamageBonus });
     if (bonuses.hitChanceBonus) rows.push({ label: 'Hit chance', value: bonuses.hitChanceBonus });
     if (bonuses.armorBonus) rows.push({ label: 'Armor', value: bonuses.armorBonus });
+    if (bonuses.movementCostReduction) rows.push({ label: 'Travel efficiency', value: bonuses.movementCostReduction });
     return rows;
   }
 

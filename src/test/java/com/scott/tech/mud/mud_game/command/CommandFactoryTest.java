@@ -63,6 +63,7 @@ import com.scott.tech.mud.mud_game.persistence.service.PlayerProfileService;
 import com.scott.tech.mud.mud_game.quest.DefendObjectiveRuntimeService;
 import com.scott.tech.mud.mud_game.quest.ObjectiveEncounterRuntimeService;
 import com.scott.tech.mud.mud_game.service.LevelingService;
+import com.scott.tech.mud.mud_game.service.MovementCostService;
 import com.scott.tech.mud.mud_game.service.WorldModerationPolicyService;
 import com.scott.tech.mud.mud_game.session.GameSession;
 import com.scott.tech.mud.mud_game.session.GameSessionManager;
@@ -122,6 +123,7 @@ class CommandFactoryTest {
     private ObjectiveEncounterRuntimeService objectiveEncounterRuntimeService;
     private WorldService worldService;
     private AmbientEventService ambientEventService;
+    private MovementCostService movementCostService;
     private ShopService shopService;
     private ConsumableEffectService consumableEffectService;
     private CommandFactory factory;
@@ -168,6 +170,7 @@ class CommandFactoryTest {
         objectiveEncounterRuntimeService = mock(ObjectiveEncounterRuntimeService.class);
         worldService = mock(WorldService.class);
         ambientEventService = mock(AmbientEventService.class);
+        movementCostService = mock(MovementCostService.class);
         shopService = mock(ShopService.class);
         consumableEffectService = mock(ConsumableEffectService.class);
         factory = new CommandFactory(taskScheduler, worldBroadcaster, sessionManager,
@@ -182,7 +185,7 @@ class CommandFactoryTest {
                 levelingService, worldModerationPolicyService,
                 playerProfileService, stateCache, partyService,
                 questService, defendObjectiveRuntimeService, objectiveEncounterRuntimeService,
-                worldService, ambientEventService, shopService, consumableEffectService);
+                worldService, ambientEventService, movementCostService, shopService, consumableEffectService);
     }
 
     @Test

@@ -326,7 +326,7 @@ class LoginHandlerTest {
         GameSession session = newSession("s1", "start");
         session.transition(SessionState.AWAITING_RACE_CLASS);
         when(classStatsRegistry.findByName("mage"))
-                .thenReturn(Optional.of(new CharacterClassStatsRegistry.ClassStats("mage", "Mage", 85, 120, 95)));
+            .thenReturn(Optional.of(new CharacterClassStatsRegistry.ClassStats("mage", "Mage", 85, 120, 95, 4)));
 
         CommandResult result = loginHandler.handle("dragonborn mage", session);
 

@@ -38,7 +38,7 @@ class SetLevelCommandTest {
 
         CharacterClassStatsRegistry classStats = mock(CharacterClassStatsRegistry.class);
         CharacterClassStatsRegistry.ClassStats warriorStats =
-                new CharacterClassStatsRegistry.ClassStats("warrior", "Warrior", 130, 25, 105);
+                new CharacterClassStatsRegistry.ClassStats("warrior", "Warrior", 130, 25, 105, 3);
         when(classStats.findByName("Warrior")).thenReturn(Optional.of(warriorStats));
         SkillTableService skillTableService = mock(SkillTableService.class);
         when(skillTableService.getNewlyUnlockedSkillNames("Warrior", 1, 5)).thenReturn(java.util.List.of());

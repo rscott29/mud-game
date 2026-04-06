@@ -5,6 +5,7 @@
       "id": "town_square",
       "name": "Town Square",
       "description": "A broad cobbled square sits at the heart of town, built where four districts meet. A fountain burbles beneath strings of civic pennants, and a weathered signpost marks the roads toward the hall, market, temple, and inn.",
+      "insideCity": true,
       "exits": {
         "NORTH": "town_hall",
         "SOUTH": "market",
@@ -20,6 +21,7 @@
       "id": "town_hall",
       "name": "Town Hall",
       "description": "A sturdy stone hall overlooks the square from a shallow rise, its steps worn smooth by petitions, proclamations, and muddy boots. Ledger clerks move between noticeboards and long benches beneath the town crest.",
+      "insideCity": true,
       "exits": {
         "SOUTH": "town_square",
         "EAST": "bank",
@@ -32,6 +34,7 @@
       "id": "bank",
       "name": "Town Bank",
       "description": "Thick oak shutters, iron grilles, and neatly stacked ledgers give this chamber a solid, cautious air. The scent of wax and coin hangs over every whisper.",
+      "insideCity": true,
       "exits": {
         "WEST": "town_hall"
       },
@@ -42,6 +45,7 @@
       "id": "barracks",
       "name": "Barracks Yard",
       "description": "A gravel training yard and low barracks building sit just beyond the hall. Spear racks, duty rosters, and boot-scraped flagstones make it clear that the town watch starts and ends its day here.",
+      "insideCity": true,
       "exits": {
         "EAST": "town_hall",
         "NORTH": "gate"
@@ -53,6 +57,7 @@
       "id": "tavern",
       "name": "The Rusty Flagon Inn",
       "description": "A warm common-room glows with hearthlight, supper steam, and the soft noise of regulars trading the day's gossip. Boots dry by the fire, travelers crowd the long tables, and the innkeeper keeps one eye on every cup in the room.",
+      "insideCity": true,
       "exits": {
         "EAST": "town_square",
         "NORTH": "bakery",
@@ -67,6 +72,7 @@
       "id": "tavern_loft",
       "name": "Tavern Loft",
       "description": "A dusty loft above the tavern. Straw mattresses are pushed against the walls. A cracked window overlooks the town square below.",
+      "insideCity": true,
       "exits": {
         "DOWN": "tavern"
       },
@@ -77,6 +83,7 @@
       "id": "bakery",
       "name": "Rosemary Bakery",
       "description": "Heat rolls out from a brick oven that has likely been warm since before dawn. Shelves of fresh loaves, sugared twists, and hand pies fill the room with the kind of smell that can stop a traveler in their tracks.",
+      "insideCity": true,
       "exits": {
         "SOUTH": "tavern"
       },
@@ -87,6 +94,7 @@
       "id": "homes",
       "name": "Common Row",
       "description": "A short lane of plastered cottages and shared stoops runs behind the inn. Laundry lines sway overhead, and every doorway bears its own mixture of flower pots, chopped wood, and watchful curtains.",
+      "insideCity": true,
       "exits": {
         "EAST": "tavern"
       },
@@ -96,6 +104,7 @@
       "id": "stable",
       "name": "South Stable",
       "description": "The stable yard is packed hard by hooves and wagon wheels. Horses stamp in their stalls while saddles, feed sacks, and rain-dark tack hang from every post near the gate road.",
+      "insideCity": true,
       "exits": {
         "NORTH": "tavern",
         "EAST": "gate"
@@ -107,6 +116,7 @@
       "id": "market",
       "name": "Town Market",
       "description": "Canvas awnings, chalked price boards, and barrows piled with produce turn this whole lane into the commercial heart of town. Hawkers shout over one another while buyers squeeze between bread stalls, tool carts, and hanging bundles of herbs.",
+      "insideCity": true,
       "exits": {
         "NORTH": "town_square",
         "EAST":  "general_store",
@@ -119,6 +129,7 @@
       "id": "general_store",
       "name": "General Store",
       "description": "Shelves packed with lamp oil, rope, kettles, nails, blankets, and a dozen little necessities make this the sort of shop every resident eventually visits. The counter is polished smooth by elbows and barter.",
+      "insideCity": true,
       "exits": {
         "WEST": "market"
       },
@@ -136,6 +147,7 @@
       "id": "alchemist",
       "name": "Riverside Apothecary",
       "description": "Shelves packed with labeled jars, bundled herbs, and carefully corked tinctures line every wall. The air smells of camphor, lavender, and bitter roots drying near the back window.",
+      "insideCity": true,
       "exits": {
         "NORTH": "market"
       },
@@ -153,6 +165,7 @@
       "id": "temple",
       "name": "Temple Court",
       "description": "Stone lanterns and shallow steps mark the threshold of the town's oldest sacred quarter. Bells murmur softly above the eaves, and offerings of wax, ribbon, and river flowers line the court in careful rows.",
+      "insideCity": true,
       "exits": {
         "WEST": "town_square",
         "NORTH": "graveyard",
@@ -166,6 +179,7 @@
       "id": "graveyard",
       "name": "Temple Graveyard",
       "description": "Weathered headstones climb a gentle slope behind the temple, half-shadowed by yew trees and iron fencing. The paths are swept clean despite the moss, and small remembrance candles burn in sheltered niches.",
+      "insideCity": true,
       "exits": {
         "SOUTH": "temple"
       },
@@ -176,6 +190,7 @@
       "id": "ruined_shrine",
       "name": "Ruined Shrine",
       "description": "The oldest shrine in town stands roofless and ivy-bound, its altar split by a long-forgotten crack. Even in disrepair, locals still leave charms and folded prayers in the broken stone.",
+      "insideCity": true,
       "exits": {
         "WEST": "temple"
       },
@@ -185,6 +200,7 @@
       "id": "old_memorial",
       "name": "Old Memorial",
       "description": "A ring of carved standing stones surrounds a bronze memorial plaque blackened by age and rain. Fresh flowers and old military badges rest side by side at its base.",
+      "insideCity": true,
       "exits": {
         "NORTH": "temple"
       },
@@ -205,6 +221,7 @@
       "id": "gate",
       "name": "East Gate",
       "description": "A timber-and-stone gatehouse guards the eastern exit of town. Iron portcullis teeth hang overhead, watch orders are pinned beside the arch, and the road beyond runs straight toward the wilds.",
+      "insideCity": true,
       "exits": {
         "SOUTH": "barracks",
         "WEST": "stable",
@@ -218,6 +235,7 @@
       "id": "watchtower",
       "name": "Gate Watchtower",
       "description": "A narrow stair climbs the inside of the eastern watchtower to a platform overlooking the walls, fields, and forest road. Spare lanterns, signal flags, and a spyglass sit ready against the parapet.",
+      "insideCity": true,
       "exits": {
         "SOUTH": "gate"
       },

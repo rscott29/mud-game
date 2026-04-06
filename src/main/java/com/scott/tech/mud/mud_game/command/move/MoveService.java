@@ -3,6 +3,7 @@ package com.scott.tech.mud.mud_game.command.move;
 import com.scott.tech.mud.mud_game.ai.AiTextPolisher;
 import com.scott.tech.mud.mud_game.combat.PlayerDeathService;
 import com.scott.tech.mud.mud_game.command.core.CommandResult;
+import com.scott.tech.mud.mud_game.config.ExperienceTableService;
 import com.scott.tech.mud.mud_game.config.Messages;
 import com.scott.tech.mud.mud_game.dto.GameResponse;
 import com.scott.tech.mud.mud_game.model.Direction;
@@ -14,6 +15,7 @@ import com.scott.tech.mud.mud_game.model.Room;
 import com.scott.tech.mud.mud_game.party.PartyService;
 import com.scott.tech.mud.mud_game.service.AmbientEventService;
 import com.scott.tech.mud.mud_game.service.LevelingService;
+import com.scott.tech.mud.mud_game.service.MovementCostService;
 import com.scott.tech.mud.mud_game.service.RoomFlavorScheduler;
 import com.scott.tech.mud.mud_game.session.GameSession;
 import com.scott.tech.mud.mud_game.session.GameSessionManager;
@@ -35,6 +37,7 @@ public class MoveService {
     private final RoomFlavorScheduler roomFlavorScheduler;
     private final LevelingService levelingService;
     private final AmbientEventService ambientEventService;
+        private final MovementCostService movementCostService;
     private final WorldService worldService;
         private final PartyService partyService;
     private final AiTextPolisher textPolisher;
@@ -47,7 +50,7 @@ public class MoveService {
                        AmbientEventService ambientEventService,
                        WorldService worldService) {
         this(taskScheduler, worldBroadcaster, sessionManager, levelingService, ambientEventService, worldService,
-                  null, AiTextPolisher.noOp(), null);
+                  MovementCostService.noOp(), null, AiTextPolisher.noOp(), null);
     }
 
     public MoveService(TaskScheduler taskScheduler,
@@ -58,7 +61,7 @@ public class MoveService {
                        WorldService worldService,
                        AiTextPolisher textPolisher) {
         this(taskScheduler, worldBroadcaster, sessionManager, levelingService, ambientEventService, worldService,
-                null, textPolisher, null);
+                MovementCostService.noOp(), null, textPolisher, null);
     }
 
     public MoveService(TaskScheduler taskScheduler,
@@ -70,7 +73,7 @@ public class MoveService {
                        AiTextPolisher textPolisher,
                        PlayerDeathService playerDeathService) {
         this(taskScheduler, worldBroadcaster, sessionManager, levelingService, ambientEventService, worldService,
-                null, textPolisher, playerDeathService);
+                MovementCostService.noOp(), null, textPolisher, playerDeathService);
     }
 
     public MoveService(TaskScheduler taskScheduler,
@@ -79,10 +82,22 @@ public class MoveService {
                        LevelingService levelingService,
                        AmbientEventService ambientEventService,
                        WorldService worldService,
+                                                          MovementCostService movementCostService,
+                                                          AiTextPolisher textPolisher) {
+                  this(taskScheduler, worldBroadcaster, sessionManager, levelingService, ambientEventService, worldService,
+                                         movementCostService, null, textPolisher, null);
+         }
+
+         public MoveService(TaskScheduler taskScheduler,
+                                                          WorldBroadcaster worldBroadcaster,
+                                                          GameSessionManager sessionManager,
+                                                          LevelingService levelingService,
+                                                          AmbientEventService ambientEventService,
+                                                          WorldService worldService,
                           PartyService partyService,
                        AiTextPolisher textPolisher) {
         this(taskScheduler, worldBroadcaster, sessionManager, levelingService, ambientEventService, worldService,
-                  partyService, textPolisher, null);
+                                         MovementCostService.noOp(), partyService, textPolisher, null);
     }
 
     public MoveService(TaskScheduler taskScheduler,
@@ -91,6 +106,7 @@ public class MoveService {
                        LevelingService levelingService,
                        AmbientEventService ambientEventService,
                        WorldService worldService,
+                                                          MovementCostService movementCostService,
                           PartyService partyService,
                        AiTextPolisher textPolisher,
                        PlayerDeathService playerDeathService) {
@@ -100,6 +116,7 @@ public class MoveService {
         this.roomFlavorScheduler = new RoomFlavorScheduler(taskScheduler, worldBroadcaster, sessionManager);
         this.levelingService = levelingService;
         this.ambientEventService = ambientEventService;
+                  this.movementCostService = movementCostService == null ? MovementCostService.noOp() : movementCostService;
         this.worldService = worldService;
                 this.partyService = partyService;
         this.textPolisher = textPolisher == null ? AiTextPolisher.noOp() : textPolisher;
@@ -157,6 +174,10 @@ public class MoveService {
         );
 
         player.setCurrentRoomId(nextRoomId);
+                int movementCost = movementCostService.movementCostForMove(player, currentRoom, nextRoom);
+                if (movementCost > 0) {
+                        player.setMovement(Math.max(0, player.getMovement() - movementCost));
+                }
 
         // Move following NPCs with the player
         moveFollowingNpcs(session, currentRoom, nextRoom, direction);
@@ -182,18 +203,34 @@ public class MoveService {
                 .map(Item::getId)
                 .collect(java.util.stream.Collectors.toSet());
 
-        responses.add(GameResponse.roomUpdate(
+        GameResponse roomUpdate = GameResponse.roomUpdate(
                 nextRoom,
-                Messages.fmt("command.move.success", "direction", directionName),
+                                buildMovementSuccessMessage(directionName, movementCost),
                 others,
                 session.getDiscoveredHiddenExits(nextRoom.getId()),
                 inventoryItemIds
-        ));
+        );
+        ExperienceTableService xpTables = levelingService.getXpTables();
+        if (xpTables != null) {
+            roomUpdate = roomUpdate.withPlayerStats(player, xpTables);
+        }
+        responses.add(roomUpdate);
 
                 moveFollowingPartyMembers(session, direction, currentRoom.getId());
 
         return CommandResult.of(responses.toArray(new GameResponse[0]));
     }
+
+        private String buildMovementSuccessMessage(String directionName, int movementCost) {
+                if (movementCost <= 0) {
+                        return Messages.fmt("command.move.success", "direction", directionName);
+                }
+                return Messages.fmt(
+                                "command.move.success_with_cost",
+                                "direction", directionName,
+                                "cost", String.valueOf(movementCost)
+                );
+        }
 
         private void moveFollowingPartyMembers(GameSession leaderSession, Direction direction, String fromRoomId) {
                 if (partyService == null) {

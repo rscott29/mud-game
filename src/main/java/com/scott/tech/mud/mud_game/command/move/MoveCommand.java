@@ -16,6 +16,7 @@ import com.scott.tech.mud.mud_game.quest.QuestService.QuestProgressResult;
 import com.scott.tech.mud.mud_game.party.PartyService;
 import com.scott.tech.mud.mud_game.service.AmbientEventService;
 import com.scott.tech.mud.mud_game.service.LevelingService;
+import com.scott.tech.mud.mud_game.service.MovementCostService;
 import com.scott.tech.mud.mud_game.session.GameSession;
 import com.scott.tech.mud.mud_game.session.GameSessionManager;
 import com.scott.tech.mud.mud_game.websocket.WorldBroadcaster;
@@ -44,11 +45,12 @@ public class MoveCommand implements GameCommand {
                        LevelingService levelingService,
                        WorldService worldService,
                        AmbientEventService ambientEventService,
+                      MovementCostService movementCostService,
                        AiTextPolisher textPolisher,
                        PlayerDeathService playerDeathService) {
         this(direction, new MoveValidator(), 
                 new MoveService(taskScheduler, worldBroadcaster, sessionManager, levelingService,
-                ambientEventService, worldService, partyService, textPolisher, playerDeathService),
+                  ambientEventService, worldService, movementCostService, partyService, textPolisher, playerDeathService),
                 questService, levelingService, worldService);
     }
 

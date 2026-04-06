@@ -289,7 +289,7 @@ ${n.map((r,o)=>`${o+1}) ${r.toString()}`).join(`
           </li>
         `).join("")}
       </ul>
-    `}formatBonuses(e){let n=e.passiveBonuses;if(!n)return[];let r=[];return n.minDamageBonus&&r.push({label:"Min damage",value:n.minDamageBonus}),n.maxDamageBonus&&r.push({label:"Max damage",value:n.maxDamageBonus}),n.hitChanceBonus&&r.push({label:"Hit chance",value:n.hitChanceBonus}),n.armorBonus&&r.push({label:"Armor",value:n.armorBonus}),r}notice(e,n,r){return{cssClass:e,html:`
+    `}formatBonuses(e){let n=e.passiveBonuses;if(!n)return[];let r=[];return n.minDamageBonus&&r.push({label:"Min damage",value:n.minDamageBonus}),n.maxDamageBonus&&r.push({label:"Max damage",value:n.maxDamageBonus}),n.hitChanceBonus&&r.push({label:"Hit chance",value:n.hitChanceBonus}),n.armorBonus&&r.push({label:"Armor",value:n.armorBonus}),n.movementCostReduction&&r.push({label:"Travel efficiency",value:n.movementCostReduction}),r}notice(e,n,r){return{cssClass:e,html:`
         <section class="term-card term-card--notice">
           <div class="term-card__header">
             <div>
