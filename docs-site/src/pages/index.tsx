@@ -13,7 +13,7 @@ function HomepageHeader() {
   return (
     <header className={clsx('hero hero--primary', styles.heroBanner)}>
       <div className="container">
-        <p className={styles.kicker}>Documentation</p>
+        <p className={styles.kicker}>Developer Documentation</p>
         <Heading as="h1" className="hero__title">
           {siteConfig.title}
         </Heading>
@@ -22,12 +22,12 @@ function HomepageHeader() {
           <Link
             className="button button--secondary button--lg"
             to="/docs/intro">
-            Open The Docs
+            Browse Developer Docs
           </Link>
           <Link
             className="button button--outline button--lg"
-            to="/docs/getting-started/local-development">
-            Run The Stack
+            to="/docs/architecture/backend-overview">
+            Explore Backend
           </Link>
         </div>
       </div>
@@ -40,7 +40,7 @@ export default function Home(): ReactNode {
   return (
     <Layout
       title={siteConfig.title}
-      description="Documentation for the Mud Game codebase, world data, and gameplay systems.">
+      description="Developer documentation for the Mud Game Java backend, Angular client, world data, and gameplay systems.">
       <HomepageHeader />
       <main>
         <HomepageFeatures />

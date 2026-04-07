@@ -5,8 +5,8 @@ import type * as Preset from '@docusaurus/preset-classic';
 // This runs in Node.js - Don't use client-side code here (browser APIs, JSX...)
 
 const config: Config = {
-  title: 'Mud Game Docs',
-  tagline: 'Systems, content, and operating notes for the Spring Boot MUD',
+  title: 'Mud Game Developer Docs',
+  tagline: 'Java backend, Angular client, game systems, and content docs in one place',
   favicon: 'img/favicon.ico',
 
   // Future flags, see https://docusaurus.io/docs/api/docusaurus-config#future
@@ -26,7 +26,9 @@ const config: Config = {
   projectName: 'mud-game',
 
   onBrokenLinks: 'throw',
+  themes: ['@docusaurus/theme-mermaid'],
   markdown: {
+    mermaid: true,
     hooks: {
       onBrokenMarkdownLinks: 'warn',
     },
@@ -63,7 +65,7 @@ const config: Config = {
       respectPrefersColorScheme: true,
     },
     navbar: {
-      title: 'Mud Game Docs',
+      title: 'Mud Game Dev Docs',
       logo: {
         alt: 'Mud Game Docs logo',
         src: 'img/logo.svg',
@@ -73,7 +75,7 @@ const config: Config = {
           type: 'docSidebar',
           sidebarId: 'docsSidebar',
           position: 'left',
-          label: 'Docs',
+          label: 'Developer Docs',
         },
         {
           href: 'https://github.com/rscott29/mud-game',
@@ -86,11 +88,15 @@ const config: Config = {
       style: 'light',
       links: [
         {
-          title: 'Docs',
+          title: 'Developer Docs',
           items: [
             {
               label: 'Overview',
               to: '/docs/intro',
+            },
+            {
+              label: 'Backend Overview',
+              to: '/docs/architecture/backend-overview',
             },
             {
               label: 'Local Development',
@@ -134,6 +140,21 @@ const config: Config = {
     prism: {
       theme: prismThemes.github,
       darkTheme: prismThemes.dracula,
+      additionalLanguages: ['java'],
+    },
+    mermaid: {
+      theme: {
+        light: 'neutral',
+        dark: 'dark',
+      },
+      options: {
+        flowchart: {
+          useMaxWidth: false,
+        },
+        themeVariables: {
+          fontSize: '18px',
+        },
+      },
     },
   } satisfies Preset.ThemeConfig,
 };

@@ -19,6 +19,7 @@ import com.scott.tech.mud.mud_game.persistence.service.InventoryService;
 import com.scott.tech.mud.mud_game.persistence.service.PlayerProfileService;
 import com.scott.tech.mud.mud_game.session.DisconnectGracePeriodService;
 import com.scott.tech.mud.mud_game.session.GameSession;
+import com.scott.tech.mud.mud_game.session.SessionTerminationService;
 import com.scott.tech.mud.mud_game.websocket.WorldBroadcaster;
 import org.springframework.stereotype.Service;
 
@@ -67,6 +68,7 @@ public class LoginHandler {
     private final com.scott.tech.mud.mud_game.quest.QuestService questService;
     private final GlobalSettingsRegistry globalSettingsRegistry;
     private final PartyService partyService;
+    private final SessionTerminationService sessionTerminationService;
     private final ConcurrentMap<String, Object> accountLocks = new ConcurrentHashMap<>();
 
     public LoginHandler(AccountStore accountStore,
@@ -84,7 +86,8 @@ public class LoginHandler {
                         DisconnectGracePeriodService disconnectGracePeriod,
                         com.scott.tech.mud.mud_game.quest.QuestService questService,
                         GlobalSettingsRegistry globalSettingsRegistry,
-                        PartyService partyService) {
+                        PartyService partyService,
+                        SessionTerminationService sessionTerminationService) {
         this.accountStore = accountStore;
         this.sessionManager = sessionManager;
         this.worldBroadcaster = worldBroadcaster;
@@ -101,6 +104,7 @@ public class LoginHandler {
         this.questService = questService;
         this.globalSettingsRegistry = globalSettingsRegistry;
         this.partyService = partyService;
+        this.sessionTerminationService = sessionTerminationService;
     }
 
     // -- Entry point --
@@ -362,7 +366,7 @@ public class LoginHandler {
                         boolean replacedExistingSession = sessionManager
                                 .findReservedAccountSession(username, session.getSessionId())
                                 .map(existingSession -> {
-                                    replaceActiveSessionForReconnect(username, existingSession, session);
+                                    sessionTerminationService.replaceSessionForReconnect(existingSession, session);
                                     return true;
                                 })
                                 .orElse(false);
@@ -467,25 +471,6 @@ public class LoginHandler {
         responses.add(buildWelcomeResponse(session));
         responses.add(GameResponse.sessionToken(reconnectTokenStore.issue(username)));
         return CommandResult.of(responses.toArray(GameResponse[]::new));
-    }
-
-    private void replaceActiveSessionForReconnect(String username, GameSession existingSession, GameSession newSession) {
-        if (existingSession == null || existingSession.getSessionId().equals(newSession.getSessionId())) {
-            return;
-        }
-
-        stateCache.cache(existingSession);
-        playerProfileService.saveProfile(existingSession.getPlayer());
-        inventoryService.saveInventory(username, existingSession.getPlayer().getInventory());
-        partyService.transferSession(existingSession.getSessionId(), newSession.getSessionId());
-
-        existingSession.setSuppressDisconnectCleanup(true);
-        existingSession.transition(SessionState.DISCONNECTED);
-
-        worldBroadcaster.kickSession(
-                existingSession.getSessionId(),
-                GameResponse.narrative(Messages.get("session.replaced.player_message"))
-        );
     }
 
     private Object accountLock(String username) {

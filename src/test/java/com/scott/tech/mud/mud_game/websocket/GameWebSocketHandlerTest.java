@@ -2,6 +2,7 @@ package com.scott.tech.mud.mud_game.websocket;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.scott.tech.mud.mud_game.auth.LoginHandler;
+import com.scott.tech.mud.mud_game.auth.ReconnectTokenStore;
 import com.scott.tech.mud.mud_game.engine.GameEngine;
 import com.scott.tech.mud.mud_game.model.Player;
 import com.scott.tech.mud.mud_game.model.SessionState;
@@ -13,6 +14,7 @@ import com.scott.tech.mud.mud_game.session.DisconnectGracePeriodService;
 import com.scott.tech.mud.mud_game.session.GameSession;
 import com.scott.tech.mud.mud_game.session.GameSessionManager;
 import com.scott.tech.mud.mud_game.session.SessionInactivityService;
+import com.scott.tech.mud.mud_game.session.SessionTerminationService;
 import com.scott.tech.mud.mud_game.world.WorldService;
 import org.junit.jupiter.api.Test;
 import org.springframework.web.socket.CloseStatus;
@@ -42,10 +44,21 @@ class GameWebSocketHandlerTest {
         PlayerStateCache stateCache = mock(PlayerStateCache.class);
         PartyService partyService = new PartyService();
         DisconnectGracePeriodService disconnectGracePeriod = mock(DisconnectGracePeriodService.class);
+        ReconnectTokenStore reconnectTokenStore = mock(ReconnectTokenStore.class);
         SessionInactivityService sessionInactivityService = mock(SessionInactivityService.class);
+        SessionTerminationService sessionTerminationService = new SessionTerminationService(
+            gameEngine,
+            sessionManager,
+            broadcaster,
+            partyService,
+            playerProfileService,
+            inventoryService,
+            stateCache,
+            disconnectGracePeriod,
+            reconnectTokenStore
+        );
 
         GameWebSocketHandler handler = new GameWebSocketHandler(
-                gameEngine,
                 sessionManager,
                 worldService,
                 new ObjectMapper(),
@@ -54,12 +67,9 @@ class GameWebSocketHandlerTest {
                 requestDispatcher,
                 messageSender,
                 wsExceptionHandler,
-                playerProfileService,
-                inventoryService,
                 stateCache,
-                partyService,
-                disconnectGracePeriod,
-                sessionInactivityService
+                sessionInactivityService,
+                sessionTerminationService
         );
 
         GameSession leader = session("leader-session", "Axi", "room_start", worldService);
@@ -79,6 +89,7 @@ class GameWebSocketHandlerTest {
         verify(broadcaster).sendToSession(eq("follower-session"), any());
         verify(stateCache).cache(leader);
         verify(playerProfileService).saveProfile(leader.getPlayer());
+        verify(inventoryService).saveInventory(eq("axi"), eq(leader.getPlayer().getInventory()));
         verify(gameEngine).onDisconnect(leader);
     }
 
@@ -97,10 +108,21 @@ class GameWebSocketHandlerTest {
         PlayerStateCache stateCache = mock(PlayerStateCache.class);
         PartyService partyService = new PartyService();
         DisconnectGracePeriodService disconnectGracePeriod = mock(DisconnectGracePeriodService.class);
+        ReconnectTokenStore reconnectTokenStore = mock(ReconnectTokenStore.class);
         SessionInactivityService sessionInactivityService = mock(SessionInactivityService.class);
+        SessionTerminationService sessionTerminationService = new SessionTerminationService(
+            gameEngine,
+            sessionManager,
+            broadcaster,
+            partyService,
+            playerProfileService,
+            inventoryService,
+            stateCache,
+            disconnectGracePeriod,
+            reconnectTokenStore
+        );
 
         GameWebSocketHandler handler = new GameWebSocketHandler(
-                gameEngine,
                 sessionManager,
                 worldService,
                 new ObjectMapper(),
@@ -109,12 +131,9 @@ class GameWebSocketHandlerTest {
                 requestDispatcher,
                 messageSender,
                 wsExceptionHandler,
-                playerProfileService,
-                inventoryService,
                 stateCache,
-                partyService,
-                disconnectGracePeriod,
-                sessionInactivityService
+                sessionInactivityService,
+                sessionTerminationService
         );
 
         GameSession leader = session("leader-session", "Axi", "room_start", worldService);
