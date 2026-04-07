@@ -24,13 +24,13 @@ const FeatureList: FeatureItem[] = [
     ),
   },
   {
-    title: 'Understand Systems',
-    to: '/docs/game-systems/movement-resting-and-travel',
+    title: 'Understand The Backend',
+    to: '/docs/architecture/backend-overview',
     Svg: require('@site/static/img/undraw_docusaurus_tree.svg').default,
     description: (
       <>
-        Track the current rules for movement cost, recovery, quests, and world
-        state from one place.
+        See how the Spring Boot runtime is split across commands, sessions,
+        services, world loading, and feature packages.
       </>
     ),
   },

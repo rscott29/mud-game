@@ -1,13 +1,7 @@
 package com.scott.tech.mud.mud_game.session;
 
-import com.scott.tech.mud.mud_game.auth.ReconnectTokenStore;
 import com.scott.tech.mud.mud_game.config.Messages;
-import com.scott.tech.mud.mud_game.dto.GameResponse;
 import com.scott.tech.mud.mud_game.model.SessionState;
-import com.scott.tech.mud.mud_game.persistence.cache.PlayerStateCache;
-import com.scott.tech.mud.mud_game.persistence.service.InventoryService;
-import com.scott.tech.mud.mud_game.persistence.service.PlayerProfileService;
-import com.scott.tech.mud.mud_game.websocket.WorldBroadcaster;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.TaskScheduler;
@@ -31,29 +25,17 @@ public class SessionInactivityService {
 
     private final TaskScheduler taskScheduler;
     private final GameSessionManager sessionManager;
-    private final WorldBroadcaster worldBroadcaster;
-    private final ReconnectTokenStore reconnectTokenStore;
-    private final PlayerProfileService playerProfileService;
-    private final InventoryService inventoryService;
-    private final PlayerStateCache stateCache;
+    private final SessionTerminationService sessionTerminationService;
     private final Duration inactivityTimeout;
     private final Duration disconnectMessageDelay;
     private final Map<String, ScheduledFuture<?>> pendingTimeouts = new ConcurrentHashMap<>();
 
     public SessionInactivityService(TaskScheduler taskScheduler,
                                     GameSessionManager sessionManager,
-                                    WorldBroadcaster worldBroadcaster,
-                                    ReconnectTokenStore reconnectTokenStore,
-                                    PlayerProfileService playerProfileService,
-                                    InventoryService inventoryService,
-                                    PlayerStateCache stateCache) {
+                                    SessionTerminationService sessionTerminationService) {
         this.taskScheduler = taskScheduler;
         this.sessionManager = sessionManager;
-        this.worldBroadcaster = worldBroadcaster;
-        this.reconnectTokenStore = reconnectTokenStore;
-        this.playerProfileService = playerProfileService;
-        this.inventoryService = inventoryService;
-        this.stateCache = stateCache;
+        this.sessionTerminationService = sessionTerminationService;
         this.inactivityTimeout = loadTimeout();
         this.disconnectMessageDelay = loadCloseDelay();
     }
@@ -113,36 +95,8 @@ public class SessionInactivityService {
     }
 
     private void disconnectInactiveSession(GameSession session) {
-        if (session.getState() == SessionState.DISCONNECTED) {
-            return;
-        }
-
-        String playerName = session.getPlayer().getName();
-        String sessionId = session.getSessionId();
-        String roomId = session.getPlayer().getCurrentRoomId();
-        String username = playerName == null ? null : playerName.toLowerCase();
-
-        log.info("Disconnecting inactive player '{}' after {} of inactivity", playerName, inactivityTimeout);
-
-        stateCache.cache(session);
-        playerProfileService.saveProfile(session.getPlayer());
-        if (username != null) {
-            inventoryService.saveInventory(username, session.getPlayer().getInventory());
-            reconnectTokenStore.revokeForUser(username);
-        }
-
-        worldBroadcaster.broadcastToRoom(
-                roomId,
-                GameResponse.roomAction(Messages.fmt("event.player.idle_timeout", "player", playerName)),
-                sessionId
-        );
-
-        session.transition(SessionState.DISCONNECTED);
-        worldBroadcaster.kickSession(
-                sessionId,
-                GameResponse.narrative(Messages.get("session.inactivity.player_message")),
-                disconnectMessageDelay
-        );
+        log.info("Disconnecting inactive player '{}' after {} of inactivity", session.getPlayer().getName(), inactivityTimeout);
+        sessionTerminationService.disconnectForInactivity(session, disconnectMessageDelay);
     }
 
     private Duration loadTimeout() {

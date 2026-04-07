@@ -5,12 +5,13 @@ title: Overview
 
 # Mud Game documentation
 
-This site exists to capture the parts of the project that are harder to infer from code alone: runtime architecture, local workflow, gameplay rules, and data-driven content conventions.
+This site is the developer documentation hub for the Mud Game repository. It exists to capture the parts of the project that are harder to infer from code alone: Java backend architecture, local workflow, gameplay rules, frontend integration, and data-driven content conventions.
 
 ## What belongs here
 
 - how to run the stack locally
-- how the backend, Angular client, and world data fit together
+- how the Java backend, Angular client, and world data fit together
+- backend architecture and runtime flow across commands, sessions, services, and world loading
 - notes on gameplay systems that now have enough complexity to deserve stable documentation
 - authoring rules for content that lives in JSON rather than code
 
@@ -18,6 +19,11 @@ This site exists to capture the parts of the project that are harder to infer fr
 
 - Read [Local Development](./getting-started/local-development.md) to boot the backend, frontend, and docs site.
 - Read [Project Structure](./architecture/project-structure.md) for a repository map.
+- Read [Backend Overview](./architecture/backend-overview.md) for the Spring Boot package layout and request-to-command flow.
+- Read [Session And Websocket Flow](./architecture/session-and-websocket-flow.md) for the transport and session lifecycle.
+- Read [Command Execution](./architecture/command-execution.md) for how player input becomes executable commands.
+- Read [World Loading And Runtime State](./architecture/world-loading-and-runtime-state.md) for the JSON-to-runtime pipeline.
+- Read [Combat Loop](./game-systems/combat-loop.md) for the scheduled combat runtime.
 - Read [Movement, Resting, And Travel](./game-systems/movement-resting-and-travel.md) for one of the most actively evolving game systems.
 - Read [World Data](./content/world-data.md) for the data-driven content layout.
 

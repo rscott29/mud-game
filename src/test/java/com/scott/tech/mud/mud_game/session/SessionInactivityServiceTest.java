@@ -2,8 +2,10 @@ package com.scott.tech.mud.mud_game.session;
 
 import com.scott.tech.mud.mud_game.auth.ReconnectTokenStore;
 import com.scott.tech.mud.mud_game.dto.GameResponse;
+import com.scott.tech.mud.mud_game.engine.GameEngine;
 import com.scott.tech.mud.mud_game.model.Player;
 import com.scott.tech.mud.mud_game.model.SessionState;
+import com.scott.tech.mud.mud_game.party.PartyService;
 import com.scott.tech.mud.mud_game.persistence.cache.PlayerStateCache;
 import com.scott.tech.mud.mud_game.persistence.service.InventoryService;
 import com.scott.tech.mud.mud_game.persistence.service.PlayerProfileService;
@@ -40,6 +42,20 @@ class SessionInactivityServiceTest {
         InventoryService inventoryService = mock(InventoryService.class);
         PlayerStateCache stateCache = mock(PlayerStateCache.class);
         GameSessionManager sessionManager = new GameSessionManager();
+        GameEngine gameEngine = mock(GameEngine.class);
+        PartyService partyService = mock(PartyService.class);
+        DisconnectGracePeriodService disconnectGracePeriod = mock(DisconnectGracePeriodService.class);
+        SessionTerminationService sessionTerminationService = new SessionTerminationService(
+            gameEngine,
+            sessionManager,
+            broadcaster,
+            partyService,
+            playerProfileService,
+            inventoryService,
+            stateCache,
+            disconnectGracePeriod,
+            reconnectTokenStore
+        );
 
         ScheduledFuture<?> firstFuture = mock(ScheduledFuture.class);
         ScheduledFuture<?> secondFuture = mock(ScheduledFuture.class);
@@ -53,11 +69,7 @@ class SessionInactivityServiceTest {
         SessionInactivityService service = new SessionInactivityService(
                 taskScheduler,
                 sessionManager,
-                broadcaster,
-                reconnectTokenStore,
-                playerProfileService,
-                inventoryService,
-                stateCache
+            sessionTerminationService
         );
 
         service.recordActivity(session);
@@ -75,6 +87,20 @@ class SessionInactivityServiceTest {
         InventoryService inventoryService = mock(InventoryService.class);
         PlayerStateCache stateCache = mock(PlayerStateCache.class);
         GameSessionManager sessionManager = new GameSessionManager();
+        GameEngine gameEngine = mock(GameEngine.class);
+        PartyService partyService = mock(PartyService.class);
+        DisconnectGracePeriodService disconnectGracePeriod = mock(DisconnectGracePeriodService.class);
+        SessionTerminationService sessionTerminationService = new SessionTerminationService(
+            gameEngine,
+            sessionManager,
+            broadcaster,
+            partyService,
+            playerProfileService,
+            inventoryService,
+            stateCache,
+            disconnectGracePeriod,
+            reconnectTokenStore
+        );
 
         List<Runnable> scheduledTasks = new ArrayList<>();
         doAnswer(invocation -> {
@@ -90,11 +116,7 @@ class SessionInactivityServiceTest {
         SessionInactivityService service = new SessionInactivityService(
                 taskScheduler,
                 sessionManager,
-                broadcaster,
-                reconnectTokenStore,
-                playerProfileService,
-                inventoryService,
-                stateCache
+            sessionTerminationService
         );
 
         service.recordActivity(session);
@@ -130,6 +152,20 @@ class SessionInactivityServiceTest {
         InventoryService inventoryService = mock(InventoryService.class);
         PlayerStateCache stateCache = mock(PlayerStateCache.class);
         GameSessionManager sessionManager = new GameSessionManager();
+        GameEngine gameEngine = mock(GameEngine.class);
+        PartyService partyService = mock(PartyService.class);
+        DisconnectGracePeriodService disconnectGracePeriod = mock(DisconnectGracePeriodService.class);
+        SessionTerminationService sessionTerminationService = new SessionTerminationService(
+            gameEngine,
+            sessionManager,
+            broadcaster,
+            partyService,
+            playerProfileService,
+            inventoryService,
+            stateCache,
+            disconnectGracePeriod,
+            reconnectTokenStore
+        );
 
         List<Runnable> scheduledTasks = new ArrayList<>();
         doAnswer(invocation -> {
@@ -145,11 +181,7 @@ class SessionInactivityServiceTest {
         SessionInactivityService service = new SessionInactivityService(
                 taskScheduler,
                 sessionManager,
-                broadcaster,
-                reconnectTokenStore,
-                playerProfileService,
-                inventoryService,
-                stateCache
+            sessionTerminationService
         );
 
         service.recordActivity(session);

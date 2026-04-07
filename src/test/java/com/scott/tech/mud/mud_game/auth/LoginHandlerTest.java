@@ -9,6 +9,7 @@ import com.scott.tech.mud.mud_game.config.GlobalSettingsRegistry;
 import com.scott.tech.mud.mud_game.consumable.ActiveConsumableEffect;
 import com.scott.tech.mud.mud_game.consumable.ConsumableEffectType;
 import com.scott.tech.mud.mud_game.dto.GameResponse;
+import com.scott.tech.mud.mud_game.engine.GameEngine;
 import com.scott.tech.mud.mud_game.model.Direction;
 import com.scott.tech.mud.mud_game.model.Item;
 import com.scott.tech.mud.mud_game.model.Player;
@@ -25,6 +26,7 @@ import com.scott.tech.mud.mud_game.quest.QuestService;
 import com.scott.tech.mud.mud_game.session.DisconnectGracePeriodService;
 import com.scott.tech.mud.mud_game.session.GameSession;
 import com.scott.tech.mud.mud_game.session.GameSessionManager;
+import com.scott.tech.mud.mud_game.session.SessionTerminationService;
 import com.scott.tech.mud.mud_game.websocket.WorldBroadcaster;
 import com.scott.tech.mud.mud_game.world.WorldService;
 import org.junit.jupiter.api.BeforeEach;
@@ -64,6 +66,8 @@ class LoginHandlerTest {
     private QuestService questService;
     private GlobalSettingsRegistry globalSettingsRegistry;
     private PartyService partyService;
+    private GameEngine gameEngine;
+    private SessionTerminationService sessionTerminationService;
     private LoginHandler loginHandler;
     private WorldService worldService;
     private Room startRoom;
@@ -87,7 +91,19 @@ class LoginHandlerTest {
         questService = mock(QuestService.class);
         globalSettingsRegistry = mock(GlobalSettingsRegistry.class);
         partyService = mock(PartyService.class);
+        gameEngine = mock(GameEngine.class);
         worldService = mock(WorldService.class);
+        sessionTerminationService = new SessionTerminationService(
+            gameEngine,
+            sessionManager,
+            worldBroadcaster,
+            partyService,
+            playerProfileService,
+            inventoryService,
+            stateCache,
+            disconnectGracePeriod,
+            reconnectTokenStore
+        );
         when(globalSettingsRegistry.settings())
                 .thenReturn(new GlobalSettingsRegistry.GlobalSettings(
                         "Obsidian Kingdom",
@@ -110,7 +126,7 @@ class LoginHandlerTest {
         loginHandler = new LoginHandler(
                 accountStore, sessionManager, worldBroadcaster, reconnectTokenStore, playerProfileService,
                 inventoryService, discoveredExitService, authUiRegistry, characterCreationOptions, classStatsRegistry, xpTables, stateCache,
-                disconnectGracePeriod, questService, globalSettingsRegistry, partyService);
+            disconnectGracePeriod, questService, globalSettingsRegistry, partyService, sessionTerminationService);
     }
 
     @Test

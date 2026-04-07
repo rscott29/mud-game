@@ -37,3 +37,17 @@ For now, every non-trivial gameplay feature should update at least one of:
 - the world-data page
 - the local-development page
 - the world-map page
+
+## Deployment
+
+The docs site is set up to deploy through GitHub Pages via GitHub Actions.
+
+- Pull requests build the site to catch broken docs before merge.
+- Pushes to `main` deploy the built site to GitHub Pages.
+- The deployment workflow lives in `.github/workflows/docs-site.yml`.
+
+One-time repository setting:
+
+- In GitHub repository settings, set Pages to build from GitHub Actions.
+
+The production site target is `https://rscott29.github.io/mud-game/`, which matches the `url` and `baseUrl` in `docs-site/docusaurus.config.ts`.

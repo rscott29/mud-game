@@ -7,6 +7,8 @@ title: Project Structure
 
 At a high level, the repository is a Spring Boot game server with an Angular frontend and JSON-driven world data.
 
+If you want the backend-specific view first, start with [Backend Overview](./backend-overview.md).
+
 ## Top-level layout
 
 - `src/main/java/`: backend runtime code
@@ -28,6 +30,14 @@ The backend is organized around a few recurring concepts:
 - session and runtime state for live player and room interactions
 
 The command registry is an important boundary. It translates command input into command objects and injects the services each command needs.
+
+At the package level, the Java backend is centered in `src/main/java/com/scott/tech/mud/mud_game/` and split into feature and infrastructure areas such as:
+
+- `command/`: player commands and command registry wiring
+- `session/`: live connection and inactivity/disconnect handling
+- `service/`: shared gameplay orchestration
+- `world/`: world loading and world-facing data access
+- `combat/`, `quest/`, `auth/`, `persistence/`, `websocket/`, and `ai/`: major feature domains
 
 ## Frontend shape
 
