@@ -47,6 +47,7 @@ class MoveCommandIntegrationTest {
         player.setLevel(1);
         player.setMovement(20);
         player.setMaxMovement(95);
+        player.setResting(true);
 
         GameSession session = new GameSession("move-integration", player, worldService);
         session.transition(SessionState.PLAYING);
@@ -82,10 +83,41 @@ class MoveCommandIntegrationTest {
 
             assertThat(session.getPlayer().getCurrentRoomId()).isEqualTo("east_road");
             assertThat(session.getPlayer().getMovement()).isEqualTo(16);
+            assertThat(session.getPlayer().isResting()).isFalse();
             assertThat(result.getResponses()).hasSize(1);
-            assertThat(result.getResponses().get(0).message()).contains("Travel costs <strong>4</strong> movement");
+            assertThat(result.getResponses().get(0).message()).contains("You move east.");
             assertThat(result.getResponses().get(0).playerStats()).isNotNull();
             assertThat(result.getResponses().get(0).playerStats().movement()).isEqualTo(16);
+        } finally {
+            sessionManager.remove(session.getSessionId());
+        }
+    }
+
+    @Test
+    void execute_deniesTravelWhenPlayerIsExhausted() {
+        Player player = new Player("player-2", "Weary", "gate");
+        player.setCharacterClass("mage");
+        player.setLevel(1);
+        player.setMovement(0);
+        player.setMaxMovement(95);
+
+        GameSession session = new GameSession("move-exhausted", player, worldService);
+        session.transition(SessionState.PLAYING);
+        sessionManager.register(session);
+
+        try {
+            CommandRequest request = new CommandRequest();
+            request.setCommand("go");
+            request.setArgs(List.of("east"));
+
+            GameCommand command = commandFactory.create(request);
+            var result = command.execute(session);
+
+            assertThat(session.getPlayer().getCurrentRoomId()).isEqualTo("gate");
+            assertThat(session.getPlayer().getMovement()).isZero();
+            assertThat(result.getResponses()).hasSize(1);
+            assertThat(result.getResponses().get(0).type()).isEqualTo(com.scott.tech.mud.mud_game.dto.GameResponse.Type.ERROR);
+            assertThat(result.getResponses().get(0).message()).contains("too exhausted to travel any farther");
         } finally {
             sessionManager.remove(session.getSessionId());
         }

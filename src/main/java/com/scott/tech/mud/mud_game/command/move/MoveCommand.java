@@ -1,7 +1,5 @@
 package com.scott.tech.mud.mud_game.command.move;
 
-import com.scott.tech.mud.mud_game.ai.AiTextPolisher;
-import com.scott.tech.mud.mud_game.combat.PlayerDeathService;
 import com.scott.tech.mud.mud_game.command.core.CommandResult;
 import com.scott.tech.mud.mud_game.command.core.GameCommand;
 import com.scott.tech.mud.mud_game.config.Messages;
@@ -13,15 +11,9 @@ import com.scott.tech.mud.mud_game.quest.ObjectiveEffects;
 import com.scott.tech.mud.mud_game.quest.QuestCompletionEffects;
 import com.scott.tech.mud.mud_game.quest.QuestService;
 import com.scott.tech.mud.mud_game.quest.QuestService.QuestProgressResult;
-import com.scott.tech.mud.mud_game.party.PartyService;
-import com.scott.tech.mud.mud_game.service.AmbientEventService;
 import com.scott.tech.mud.mud_game.service.LevelingService;
-import com.scott.tech.mud.mud_game.service.MovementCostService;
 import com.scott.tech.mud.mud_game.session.GameSession;
-import com.scott.tech.mud.mud_game.session.GameSessionManager;
-import com.scott.tech.mud.mud_game.websocket.WorldBroadcaster;
 import com.scott.tech.mud.mud_game.world.WorldService;
-import org.springframework.scheduling.TaskScheduler;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -35,24 +27,6 @@ public class MoveCommand implements GameCommand {
     private final QuestService questService;
     private final LevelingService levelingService;
     private final WorldService worldService;
-
-    public MoveCommand(Direction direction,
-                       TaskScheduler taskScheduler,
-                       WorldBroadcaster worldBroadcaster,
-                       GameSessionManager sessionManager,
-                   PartyService partyService,
-                       QuestService questService,
-                       LevelingService levelingService,
-                       WorldService worldService,
-                       AmbientEventService ambientEventService,
-                      MovementCostService movementCostService,
-                       AiTextPolisher textPolisher,
-                       PlayerDeathService playerDeathService) {
-        this(direction, new MoveValidator(), 
-                new MoveService(taskScheduler, worldBroadcaster, sessionManager, levelingService,
-                  ambientEventService, worldService, movementCostService, partyService, textPolisher, playerDeathService),
-                questService, levelingService, worldService);
-    }
 
     public MoveCommand(Direction direction, MoveValidator moveValidator, MoveService moveService,
                        QuestService questService, LevelingService levelingService, WorldService worldService) {

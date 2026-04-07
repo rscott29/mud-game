@@ -5,6 +5,7 @@ import com.scott.tech.mud.mud_game.command.logout.LogoutCommand;
 import com.scott.tech.mud.mud_game.command.me.MeCommand;
 import com.scott.tech.mud.mud_game.command.moderation.ModerationCommand;
 import com.scott.tech.mud.mud_game.command.recall.RecallCommand;
+import com.scott.tech.mud.mud_game.command.rest.RestCommand;
 import com.scott.tech.mud.mud_game.command.respawn.RespawnCommand;
 import com.scott.tech.mud.mud_game.command.skills.SkillsCommand;
 
@@ -43,6 +44,14 @@ final class SessionCommandDefinitions {
                 .usage("skills")
                 .description("View your class skill progression")
                 .creator(ctx -> new SkillsCommand())
+                .build());
+
+        commands.add(CommandDefinition.builder(CommandRegistry.REST)
+                .aliases("rest")
+                .category(SESSION)
+                .usage("rest")
+                .description("Toggle resting to recover movement faster")
+                .creator(ctx -> new RestCommand(ctx.deps().combatState()))
                 .build());
 
         commands.add(CommandDefinition.builder(CommandRegistry.RESPAWN)

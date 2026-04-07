@@ -44,17 +44,11 @@ final class ExplorationCommandDefinitions {
                     }
                     return new MoveCommand(
                             dir,
-                            ctx.deps().taskScheduler(),
-                            ctx.deps().worldBroadcaster(),
-                            ctx.deps().sessionManager(),
-                            ctx.deps().partyService(),
+                            ctx.deps().moveValidator(),
+                            ctx.deps().moveService(),
                             ctx.deps().questService(),
                             ctx.deps().levelingService(),
-                            ctx.deps().worldService(),
-                            ctx.deps().ambientEventService(),
-                                ctx.deps().movementCostService(),
-                            ctx.deps().aiTextPolisher(),
-                            ctx.deps().playerDeathService()
+                            ctx.deps().worldService()
                     );
                 })
                 .build());

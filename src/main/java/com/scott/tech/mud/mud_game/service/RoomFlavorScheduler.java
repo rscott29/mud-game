@@ -4,6 +4,7 @@ import com.scott.tech.mud.mud_game.dto.GameResponse;
 import com.scott.tech.mud.mud_game.session.GameSessionManager;
 import com.scott.tech.mud.mud_game.websocket.WorldBroadcaster;
 import org.springframework.scheduling.TaskScheduler;
+import org.springframework.stereotype.Component;
 
 import java.time.Instant;
 import java.util.List;
@@ -13,6 +14,7 @@ import java.util.concurrent.ThreadLocalRandom;
  * Schedules delayed room-flavor messages so they feel like live world beats
  * rather than part of the command response that triggered them.
  */
+@Component
 public class RoomFlavorScheduler {
 
     private static final long INITIAL_DELAY_MIN_MS = 1_800L;

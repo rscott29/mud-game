@@ -11,7 +11,8 @@
           "maxDamageBonus": 2,
           "hitChanceBonus": 0,
           "armorBonus": 0,
-          "movementCostReduction": 1
+          "movementCostReduction": 1,
+          "movementRegenBonus": 1
         }
       },
       {
@@ -62,7 +63,8 @@
           "maxDamageBonus": 2,
           "hitChanceBonus": 0,
           "armorBonus": 0,
-          "movementCostReduction": 1
+          "movementCostReduction": 1,
+          "movementRegenBonus": 1
         }
       },
       {
@@ -101,7 +103,8 @@
           "maxDamageBonus": 0,
           "hitChanceBonus": 3,
           "armorBonus": 1,
-          "movementCostReduction": 1
+          "movementCostReduction": 1,
+          "movementRegenBonus": 1
         }
       },
       {
@@ -140,7 +143,8 @@
           "maxDamageBonus": 0,
           "hitChanceBonus": 3,
           "armorBonus": 0,
-          "movementCostReduction": 1
+          "movementCostReduction": 1,
+          "movementRegenBonus": 1
         }
       },
       {
@@ -191,7 +195,8 @@
           "maxDamageBonus": 0,
           "hitChanceBonus": 1,
           "armorBonus": 1,
-          "movementCostReduction": 1
+          "movementCostReduction": 1,
+          "movementRegenBonus": 2
         }
       }
     ],
@@ -218,7 +223,8 @@
           "maxDamageBonus": 0,
           "hitChanceBonus": 0,
           "armorBonus": 1,
-          "movementCostReduction": 1
+          "movementCostReduction": 1,
+          "movementRegenBonus": 1
         }
       },
       {
@@ -257,7 +263,8 @@
           "maxDamageBonus": 1,
           "hitChanceBonus": 2,
           "armorBonus": 0,
-          "movementCostReduction": 1
+          "movementCostReduction": 1,
+          "movementRegenBonus": 1
         }
       },
       {

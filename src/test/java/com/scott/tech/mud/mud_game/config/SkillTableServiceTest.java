@@ -25,6 +25,7 @@ class SkillTableServiceTest {
         assertThat(late.hitChanceBonus()).isGreaterThanOrEqualTo(early.hitChanceBonus());
         assertThat(late.armorBonus()).isGreaterThanOrEqualTo(early.armorBonus());
         assertThat(late.movementCostReduction()).isGreaterThanOrEqualTo(early.movementCostReduction());
+        assertThat(late.movementRegenBonus()).isGreaterThanOrEqualTo(early.movementRegenBonus());
     }
 }
 

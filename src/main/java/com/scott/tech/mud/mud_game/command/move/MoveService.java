@@ -21,106 +21,52 @@ import com.scott.tech.mud.mud_game.session.GameSession;
 import com.scott.tech.mud.mud_game.session.GameSessionManager;
 import com.scott.tech.mud.mud_game.websocket.WorldBroadcaster;
 import com.scott.tech.mud.mud_game.world.WorldService;
-import org.springframework.scheduling.TaskScheduler;
+import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ThreadLocalRandom;
 
+@Service
 public class MoveService {
 
-    private final TaskScheduler taskScheduler;
     private final WorldBroadcaster worldBroadcaster;
     private final GameSessionManager sessionManager;
     private final RoomFlavorScheduler roomFlavorScheduler;
     private final LevelingService levelingService;
     private final AmbientEventService ambientEventService;
+        private final MoveValidator moveValidator;
         private final MovementCostService movementCostService;
     private final WorldService worldService;
         private final PartyService partyService;
     private final AiTextPolisher textPolisher;
     private final PlayerDeathService playerDeathService;
 
-    public MoveService(TaskScheduler taskScheduler,
-                       WorldBroadcaster worldBroadcaster,
-                       GameSessionManager sessionManager,
-                       LevelingService levelingService,
-                       AmbientEventService ambientEventService,
-                       WorldService worldService) {
-        this(taskScheduler, worldBroadcaster, sessionManager, levelingService, ambientEventService, worldService,
-                  MovementCostService.noOp(), null, AiTextPolisher.noOp(), null);
-    }
-
-    public MoveService(TaskScheduler taskScheduler,
-                       WorldBroadcaster worldBroadcaster,
-                       GameSessionManager sessionManager,
-                       LevelingService levelingService,
-                       AmbientEventService ambientEventService,
-                       WorldService worldService,
-                       AiTextPolisher textPolisher) {
-        this(taskScheduler, worldBroadcaster, sessionManager, levelingService, ambientEventService, worldService,
-                MovementCostService.noOp(), null, textPolisher, null);
-    }
-
-    public MoveService(TaskScheduler taskScheduler,
-                       WorldBroadcaster worldBroadcaster,
-                       GameSessionManager sessionManager,
-                       LevelingService levelingService,
-                       AmbientEventService ambientEventService,
-                       WorldService worldService,
-                       AiTextPolisher textPolisher,
-                       PlayerDeathService playerDeathService) {
-        this(taskScheduler, worldBroadcaster, sessionManager, levelingService, ambientEventService, worldService,
-                MovementCostService.noOp(), null, textPolisher, playerDeathService);
-    }
-
-    public MoveService(TaskScheduler taskScheduler,
-                       WorldBroadcaster worldBroadcaster,
-                       GameSessionManager sessionManager,
-                       LevelingService levelingService,
-                       AmbientEventService ambientEventService,
-                       WorldService worldService,
-                                                          MovementCostService movementCostService,
-                                                          AiTextPolisher textPolisher) {
-                  this(taskScheduler, worldBroadcaster, sessionManager, levelingService, ambientEventService, worldService,
-                                         movementCostService, null, textPolisher, null);
-         }
-
-         public MoveService(TaskScheduler taskScheduler,
-                                                          WorldBroadcaster worldBroadcaster,
-                                                          GameSessionManager sessionManager,
-                                                          LevelingService levelingService,
-                                                          AmbientEventService ambientEventService,
-                                                          WorldService worldService,
-                          PartyService partyService,
-                       AiTextPolisher textPolisher) {
-        this(taskScheduler, worldBroadcaster, sessionManager, levelingService, ambientEventService, worldService,
-                                         MovementCostService.noOp(), partyService, textPolisher, null);
-    }
-
-    public MoveService(TaskScheduler taskScheduler,
-                       WorldBroadcaster worldBroadcaster,
-                       GameSessionManager sessionManager,
-                       LevelingService levelingService,
-                       AmbientEventService ambientEventService,
-                       WorldService worldService,
-                                                          MovementCostService movementCostService,
-                          PartyService partyService,
-                       AiTextPolisher textPolisher,
-                       PlayerDeathService playerDeathService) {
-        this.taskScheduler = taskScheduler;
-        this.worldBroadcaster = worldBroadcaster;
-        this.sessionManager = sessionManager;
-        this.roomFlavorScheduler = new RoomFlavorScheduler(taskScheduler, worldBroadcaster, sessionManager);
-        this.levelingService = levelingService;
-        this.ambientEventService = ambientEventService;
-                  this.movementCostService = movementCostService == null ? MovementCostService.noOp() : movementCostService;
-        this.worldService = worldService;
+        public MoveService(WorldBroadcaster worldBroadcaster,
+                                           GameSessionManager sessionManager,
+                                           RoomFlavorScheduler roomFlavorScheduler,
+                                           LevelingService levelingService,
+                                           AmbientEventService ambientEventService,
+                                           MoveValidator moveValidator,
+                                           MovementCostService movementCostService,
+                                           WorldService worldService,
+                                           PartyService partyService,
+                                           AiTextPolisher textPolisher,
+                                           PlayerDeathService playerDeathService) {
+                this.worldBroadcaster = Objects.requireNonNull(worldBroadcaster, "worldBroadcaster");
+                this.sessionManager = Objects.requireNonNull(sessionManager, "sessionManager");
+                this.roomFlavorScheduler = Objects.requireNonNull(roomFlavorScheduler, "roomFlavorScheduler");
+                this.levelingService = Objects.requireNonNull(levelingService, "levelingService");
+                this.ambientEventService = Objects.requireNonNull(ambientEventService, "ambientEventService");
+                this.moveValidator = Objects.requireNonNull(moveValidator, "moveValidator");
+                this.movementCostService = Objects.requireNonNull(movementCostService, "movementCostService");
+                this.worldService = Objects.requireNonNull(worldService, "worldService");
                 this.partyService = partyService;
-        this.textPolisher = textPolisher == null ? AiTextPolisher.noOp() : textPolisher;
-        this.playerDeathService = playerDeathService;
+                this.textPolisher = textPolisher == null ? AiTextPolisher.noOp() : textPolisher;
+                this.playerDeathService = playerDeathService;
     }
 
     public CommandResult buildResult(GameSession session,
@@ -173,6 +119,7 @@ public class MoveService {
                 wsSessionId
         );
 
+        player.setResting(false);
         player.setCurrentRoomId(nextRoomId);
                 int movementCost = movementCostService.movementCostForMove(player, currentRoom, nextRoom);
                 if (movementCost > 0) {
@@ -221,68 +168,67 @@ public class MoveService {
         return CommandResult.of(responses.toArray(new GameResponse[0]));
     }
 
-        private String buildMovementSuccessMessage(String directionName, int movementCost) {
-                if (movementCost <= 0) {
-                        return Messages.fmt("command.move.success", "direction", directionName);
-                }
-                return Messages.fmt(
-                                "command.move.success_with_cost",
-                                "direction", directionName,
-                                "cost", String.valueOf(movementCost)
-                );
+    private String buildMovementSuccessMessage(String directionName, int movementCost) {
+        if (movementCost <= 0) {
+            return Messages.fmt("command.move.success", "direction", directionName);
+        }
+        return Messages.fmt(
+                "command.move.success_with_cost",
+                "direction", directionName,
+                "cost", String.valueOf(movementCost)
+        );
+    }
+
+    private void moveFollowingPartyMembers(GameSession leaderSession, Direction direction, String fromRoomId) {
+        if (partyService == null) {
+            return;
         }
 
-        private void moveFollowingPartyMembers(GameSession leaderSession, Direction direction, String fromRoomId) {
-                if (partyService == null) {
-                        return;
-                }
-
-                List<GameSession> followers = partyService.getFollowersInRoom(
-                                leaderSession.getSessionId(),
-                                sessionManager,
-                                fromRoomId
-                );
-                if (followers.isEmpty()) {
-                        return;
-                }
-
-                MoveValidator moveValidator = new MoveValidator();
-                for (GameSession followerSession : followers) {
-                        MoveValidationResult validation = moveValidator.validate(followerSession, direction);
-                        if (!validation.allowed()) {
-                                partyService.leaveGroup(followerSession.getSessionId());
-                                worldBroadcaster.sendToSession(
-                                                followerSession.getSessionId(),
-                                                GameResponse.narrative(Messages.fmt(
-                                                                "command.follow.lost",
-                                                                "player", leaderSession.getPlayer().getName()
-                                                ))
-                                );
-                                worldBroadcaster.broadcastToRoom(
-                                                fromRoomId,
-                                                GameResponse.roomAction(Messages.fmt(
-                                                                "action.follow.stop",
-                                                                "player", followerSession.getPlayer().getName()
-                                                )),
-                                                followerSession.getSessionId()
-                                );
-                                continue;
-                        }
-
-                        CommandResult followMoveResult = buildResult(followerSession, direction, validation);
-                        List<GameResponse> followResponses = followMoveResult.getResponses();
-                        for (int index = 0; index < followResponses.size(); index++) {
-                                GameResponse response = followResponses.get(index);
-                                if (index == 0 && response.message() != null) {
-                                        response = response.withAppendedMessage("<br><br>" + Messages.fmt(
-                                                        "command.follow.travel",
-                                                        "player", leaderSession.getPlayer().getName()
-                                        ));
-                                }
-                                worldBroadcaster.sendToSession(followerSession.getSessionId(), response);
-                        }
-                }
+        List<GameSession> followers = partyService.getFollowersInRoom(
+                leaderSession.getSessionId(),
+                sessionManager,
+                fromRoomId
+        );
+        if (followers.isEmpty()) {
+            return;
         }
+
+        for (GameSession followerSession : followers) {
+            MoveValidationResult validation = moveValidator.validate(followerSession, direction);
+            if (!validation.allowed()) {
+                partyService.leaveGroup(followerSession.getSessionId());
+                worldBroadcaster.sendToSession(
+                        followerSession.getSessionId(),
+                        GameResponse.narrative(Messages.fmt(
+                                "command.follow.lost",
+                                "player", leaderSession.getPlayer().getName()
+                        ))
+                );
+                worldBroadcaster.broadcastToRoom(
+                        fromRoomId,
+                        GameResponse.roomAction(Messages.fmt(
+                                "action.follow.stop",
+                                "player", followerSession.getPlayer().getName()
+                        )),
+                        followerSession.getSessionId()
+                );
+                continue;
+            }
+
+            CommandResult followMoveResult = buildResult(followerSession, direction, validation);
+            List<GameResponse> followResponses = followMoveResult.getResponses();
+            for (int index = 0; index < followResponses.size(); index++) {
+                GameResponse response = followResponses.get(index);
+                if (index == 0 && response.message() != null) {
+                    response = response.withAppendedMessage("<br><br>" + Messages.fmt(
+                            "command.follow.travel",
+                            "player", leaderSession.getPlayer().getName()
+                    ));
+                }
+                worldBroadcaster.sendToSession(followerSession.getSessionId(), response);
+            }
+        }
+    }
 
     private void moveFollowingNpcs(GameSession session, Room fromRoom, Room toRoom, Direction direction) {
         for (String npcId : session.getFollowingNpcs()) {

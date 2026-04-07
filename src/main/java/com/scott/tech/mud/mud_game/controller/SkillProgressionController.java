@@ -54,7 +54,8 @@ public class SkillProgressionController {
                         bonuses.maxDamageBonus(),
                         bonuses.hitChanceBonus(),
                         bonuses.armorBonus(),
-                        bonuses.movementCostReduction())
+                        bonuses.movementCostReduction(),
+                        bonuses.movementRegenBonus())
                 : null;
 
         return new SkillView(
@@ -84,6 +85,7 @@ public class SkillProgressionController {
             int maxDamageBonus,
             int hitChanceBonus,
             int armorBonus,
-            int movementCostReduction
+            int movementCostReduction,
+            int movementRegenBonus
     ) {}
 }

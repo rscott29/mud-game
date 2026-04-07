@@ -2,7 +2,6 @@ package com.scott.tech.mud.mud_game.command.registry;
 
 import com.scott.tech.mud.mud_game.auth.AccountStore;
 import com.scott.tech.mud.mud_game.auth.ReconnectTokenStore;
-import com.scott.tech.mud.mud_game.ai.AiTextPolisher;
 import com.scott.tech.mud.mud_game.ai.PlayerTextModerator;
 import com.scott.tech.mud.mud_game.combat.CombatStatsResolver;
 import com.scott.tech.mud.mud_game.combat.CombatLoopScheduler;
@@ -18,6 +17,8 @@ import com.scott.tech.mud.mud_game.command.drop.DropValidator;
 import com.scott.tech.mud.mud_game.command.emote.EmotePerspectiveResolver;
 import com.scott.tech.mud.mud_game.command.equip.EquipService;
 import com.scott.tech.mud.mud_game.command.equip.EquipValidator;
+import com.scott.tech.mud.mud_game.command.move.MoveService;
+import com.scott.tech.mud.mud_game.command.move.MoveValidator;
 import com.scott.tech.mud.mud_game.command.pickup.PickupService;
 import com.scott.tech.mud.mud_game.command.pickup.PickupValidator;
 import com.scott.tech.mud.mud_game.command.social.SocialService;
@@ -36,9 +37,7 @@ import com.scott.tech.mud.mud_game.persistence.service.PlayerProfileService;
 import com.scott.tech.mud.mud_game.quest.DefendObjectiveRuntimeService;
 import com.scott.tech.mud.mud_game.quest.ObjectiveEncounterRuntimeService;
 import com.scott.tech.mud.mud_game.quest.QuestService;
-import com.scott.tech.mud.mud_game.service.AmbientEventService;
 import com.scott.tech.mud.mud_game.service.LevelingService;
-import com.scott.tech.mud.mud_game.service.MovementCostService;
 import com.scott.tech.mud.mud_game.service.WorldModerationPolicyService;
 import com.scott.tech.mud.mud_game.world.WorldService;
 import com.scott.tech.mud.mud_game.session.GameSessionManager;
@@ -71,7 +70,6 @@ public class CommandFactory {
                           DiscoveredExitService discoveredExitService,
                           PickupValidator pickupValidator,
                           PickupService pickupService, DropValidator dropValidator, DropService dropService,
-                          AiTextPolisher aiTextPolisher,
                           PlayerTextModerator playerTextModerator,
                           EmotePerspectiveResolver emotePerspectiveResolver,
                           EquipValidator equipValidator, EquipService equipService,
@@ -94,8 +92,8 @@ public class CommandFactory {
                           DefendObjectiveRuntimeService defendObjectiveRuntimeService,
                           ObjectiveEncounterRuntimeService objectiveEncounterRuntimeService,
                           WorldService worldService,
-                          AmbientEventService ambientEventService,
-                          MovementCostService movementCostService,
+                          MoveValidator moveValidator,
+                          MoveService moveService,
                           ShopService shopService,
                           ConsumableEffectService consumableEffectService) {
                 this.deps = buildDependencies(
@@ -108,7 +106,6 @@ public class CommandFactory {
                     pickupService,
                     dropValidator,
                     dropService,
-                    aiTextPolisher,
                     playerTextModerator,
                     emotePerspectiveResolver,
                     equipValidator,
@@ -136,8 +133,8 @@ public class CommandFactory {
                     defendObjectiveRuntimeService,
                     objectiveEncounterRuntimeService,
                     worldService,
-                    ambientEventService,
-                    movementCostService,
+                    moveValidator,
+                    moveService,
                     shopService,
                     consumableEffectService
                 );
@@ -152,7 +149,6 @@ public class CommandFactory {
                                                          PickupService pickupService,
                                                          DropValidator dropValidator,
                                                          DropService dropService,
-                                                         AiTextPolisher aiTextPolisher,
                                                          PlayerTextModerator playerTextModerator,
                                                          EmotePerspectiveResolver emotePerspectiveResolver,
                                                          EquipValidator equipValidator,
@@ -180,8 +176,8 @@ public class CommandFactory {
                                                          DefendObjectiveRuntimeService defendObjectiveRuntimeService,
                                                          ObjectiveEncounterRuntimeService objectiveEncounterRuntimeService,
                                                          WorldService worldService,
-                                                         AmbientEventService ambientEventService,
-                                                         MovementCostService movementCostService,
+                                                         MoveValidator moveValidator,
+                                                         MoveService moveService,
                                                          ShopService shopService,
                                                          ConsumableEffectService consumableEffectService) {
         return new CommandDependencies(
@@ -194,7 +190,6 @@ public class CommandFactory {
                 pickupService,
                 dropValidator,
                 dropService,
-                aiTextPolisher,
                 playerTextModerator,
                 emotePerspectiveResolver,
                 equipValidator,
@@ -222,8 +217,8 @@ public class CommandFactory {
                 defendObjectiveRuntimeService,
                 objectiveEncounterRuntimeService,
                 worldService,
-                ambientEventService,
-                movementCostService,
+                moveValidator,
+                moveService,
                 shopService,
                 consumableEffectService
         );
