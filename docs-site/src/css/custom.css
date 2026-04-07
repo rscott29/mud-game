@@ -1,0 +1,53 @@
+:root {
+  --ifm-color-primary: #7a4a1e;
+  --ifm-color-primary-dark: #6d421b;
+  --ifm-color-primary-darker: #673f19;
+  --ifm-color-primary-darkest: #553414;
+  --ifm-color-primary-light: #875221;
+  --ifm-color-primary-lighter: #8d5623;
+  --ifm-color-primary-lightest: #a36528;
+  --ifm-background-color: #fffaf3;
+  --ifm-background-surface-color: #fffdf8;
+  --ifm-code-font-size: 95%;
+  --ifm-font-family-base: 'Segoe UI', 'Avenir Next', sans-serif;
+  --ifm-heading-font-family: 'Palatino Linotype', 'Book Antiqua', Georgia, serif;
+  --ifm-navbar-background-color: rgba(255, 250, 243, 0.88);
+  --ifm-footer-background-color: #f4ecdf;
+  --docusaurus-highlighted-code-line-bg: rgba(122, 74, 30, 0.08);
+}
+
+[data-theme='dark'] {
+  --ifm-color-primary: #d79b57;
+  --ifm-color-primary-dark: #d18d3d;
+  --ifm-color-primary-darker: #c98632;
+  --ifm-color-primary-darkest: #aa6f29;
+  --ifm-color-primary-light: #dda970;
+  --ifm-color-primary-lighter: #e1b27b;
+  --ifm-color-primary-lightest: #e8c39d;
+  --ifm-background-color: #17120d;
+  --ifm-background-surface-color: #201912;
+  --ifm-navbar-background-color: rgba(23, 18, 13, 0.82);
+  --ifm-footer-background-color: #140f0a;
+  --docusaurus-highlighted-code-line-bg: rgba(215, 155, 87, 0.16);
+}
+
+html[data-theme='light'] .navbar {
+  backdrop-filter: blur(14px);
+  border-bottom: 1px solid rgba(122, 74, 30, 0.08);
+}
+
+.hero--primary {
+  color: #2f2319;
+}
+
+[data-theme='dark'] .hero--primary {
+  color: #f7ebdd;
+}
+
+.markdown > h1,
+.markdown > h2,
+.markdown > h3,
+.markdown > h4,
+.markdown > h5 {
+  letter-spacing: -0.02em;
+}
