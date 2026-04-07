@@ -36,6 +36,7 @@ public class Player {
     private int gold = 0;
     private boolean god = false;
     private boolean moderator = false;
+    private boolean resting = false;
     private final List<Item> inventory = new CopyOnWriteArrayList<>();
     private final Map<EquipmentSlot, String> equippedItemIds = new EnumMap<>(EquipmentSlot.class);
     private String recallRoomId;
@@ -70,6 +71,7 @@ public class Player {
     public int getGold()                  { return gold; }
     public boolean isGod()                { return god; }
     public boolean isModerator()          { return moderator; }
+    public boolean isResting()            { return resting; }
     public boolean isDead()               { return health <= 0; }
     public boolean isAlive()              { return health > 0; }
     public List<Item> getInventory()      { return inventory; }
@@ -112,6 +114,7 @@ public class Player {
     }
     public void setGod(boolean god)                      { this.god = god; }
     public void setModerator(boolean moderator)          { this.moderator = moderator; }
+    public void setResting(boolean resting)              { this.resting = resting; }
     public void setEquippedWeaponId(String itemId)       { setEquippedItemId(EquipmentSlot.MAIN_WEAPON, itemId); }
     public void setRecallRoomId(String recallRoomId)     { this.recallRoomId = recallRoomId; }
     public void setModerationPreferences(ModerationPreferences moderationPreferences) {

@@ -8,6 +8,7 @@ export interface PassiveBonusesDto {
   hitChanceBonus: number;
   armorBonus: number;
   movementCostReduction: number;
+  movementRegenBonus: number;
 }
 
 export interface SkillDto {

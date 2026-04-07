@@ -156,9 +156,10 @@ public class SkillTableService {
             @JsonProperty("maxDamageBonus") int maxDamageBonus,
             @JsonProperty("hitChanceBonus") int hitChanceBonus,
             @JsonProperty("armorBonus") int armorBonus,
-            @JsonProperty("movementCostReduction") int movementCostReduction
+            @JsonProperty("movementCostReduction") int movementCostReduction,
+            @JsonProperty("movementRegenBonus") int movementRegenBonus
     ) {
-        public static final PassiveBonuses ZERO = new PassiveBonuses(0, 0, 0, 0, 0);
+        public static final PassiveBonuses ZERO = new PassiveBonuses(0, 0, 0, 0, 0, 0);
 
         public PassiveBonuses add(PassiveBonuses other) {
             if (other == null) {
@@ -169,7 +170,8 @@ public class SkillTableService {
                     maxDamageBonus + other.maxDamageBonus,
                     hitChanceBonus + other.hitChanceBonus,
                     armorBonus + other.armorBonus,
-                    movementCostReduction + other.movementCostReduction
+                    movementCostReduction + other.movementCostReduction,
+                    movementRegenBonus + other.movementRegenBonus
             );
         }
     }

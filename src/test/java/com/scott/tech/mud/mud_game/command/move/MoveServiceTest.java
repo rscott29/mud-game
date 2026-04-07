@@ -16,6 +16,7 @@ import com.scott.tech.mud.mud_game.party.PartyService;
 import com.scott.tech.mud.mud_game.service.AmbientEventService;
 import com.scott.tech.mud.mud_game.service.LevelingService;
 import com.scott.tech.mud.mud_game.service.MovementCostService;
+import com.scott.tech.mud.mud_game.service.RoomFlavorScheduler;
 import com.scott.tech.mud.mud_game.session.GameSession;
 import com.scott.tech.mud.mud_game.session.GameSessionManager;
 import com.scott.tech.mud.mud_game.websocket.WorldBroadcaster;
@@ -96,14 +97,17 @@ class MoveServiceTest {
         session.transition(SessionState.PLAYING);
         sessionManager.register(session);
 
-        MoveService service = new MoveService(
+        MoveService service = createMoveService(
                 taskScheduler,
                 broadcaster,
                 sessionManager,
                 levelingService,
                 ambientEventService,
                 worldService,
-                textPolisher
+                MovementCostService.noOp(),
+                null,
+                textPolisher,
+                null
         );
 
         service.buildResult(session, Direction.NORTH, MoveValidationResult.allow("grove", nextRoom));
@@ -170,14 +174,17 @@ class MoveServiceTest {
         session.transition(SessionState.PLAYING);
         sessionManager.register(session);
 
-        MoveService service = new MoveService(
+        MoveService service = createMoveService(
                 taskScheduler,
                 broadcaster,
                 sessionManager,
                 levelingService,
                 ambientEventService,
                 worldService,
-                textPolisher
+                MovementCostService.noOp(),
+                null,
+                textPolisher,
+                null
         );
 
         service.buildResult(session, Direction.NORTH, MoveValidationResult.allow("grove", nextRoom));
@@ -233,7 +240,7 @@ class MoveServiceTest {
         session.transition(SessionState.PLAYING);
         sessionManager.register(session);
 
-        MoveService service = new MoveService(
+        MoveService service = createMoveService(
                 taskScheduler,
                 broadcaster,
                 sessionManager,
@@ -287,7 +294,7 @@ class MoveServiceTest {
         session.addFollower("npc_wounded_pilgrim");
         sessionManager.register(session);
 
-        MoveService service = new MoveService(
+        MoveService service = createMoveService(
                 taskScheduler,
                 broadcaster,
                 sessionManager,
@@ -340,7 +347,7 @@ class MoveServiceTest {
         session.transition(SessionState.PLAYING);
         sessionManager.register(session);
 
-        MoveService service = new MoveService(
+        MoveService service = createMoveService(
                 taskScheduler,
                 broadcaster,
                 sessionManager,
@@ -393,7 +400,7 @@ class MoveServiceTest {
         session.transition(SessionState.PLAYING);
         sessionManager.register(session);
 
-        MoveService service = new MoveService(
+        MoveService service = createMoveService(
                 taskScheduler,
                 broadcaster,
                 sessionManager,
@@ -434,7 +441,7 @@ class MoveServiceTest {
         session.transition(SessionState.PLAYING);
         sessionManager.register(session);
 
-        MoveService service = new MoveService(
+        MoveService service = createMoveService(
                 taskScheduler,
                 broadcaster,
                 sessionManager,
@@ -480,15 +487,17 @@ class MoveServiceTest {
                 sessionManager.register(follower);
                 partyService.follow(follower, leader);
 
-                MoveService service = new MoveService(
+                MoveService service = createMoveService(
                                 taskScheduler,
                                 broadcaster,
                                 sessionManager,
                                 levelingService,
                                 ambientEventService,
                                 worldService,
+                                MovementCostService.noOp(),
                                 partyService,
-                                AiTextPolisher.noOp()
+                                AiTextPolisher.noOp(),
+                                null
                 );
 
                 service.buildResult(leader, Direction.NORTH, MoveValidationResult.allow("grove", nextRoom));
@@ -525,15 +534,17 @@ class MoveServiceTest {
                 sessionManager.register(follower);
                 partyService.follow(follower, leader);
 
-                MoveService service = new MoveService(
+                MoveService service = createMoveService(
                                 taskScheduler,
                                 broadcaster,
                                 sessionManager,
                                 levelingService,
                                 ambientEventService,
                                 worldService,
+                                MovementCostService.noOp(),
                                 partyService,
-                                AiTextPolisher.noOp()
+                                AiTextPolisher.noOp(),
+                                null
                 );
 
                 service.buildResult(leader, Direction.NORTH, MoveValidationResult.allow("grove", nextRoom));
@@ -586,13 +597,15 @@ class MoveServiceTest {
                 )
         );
 
-        MoveService service = new MoveService(
+        MoveService service = createMoveService(
                 taskScheduler,
                 broadcaster,
                 sessionManager,
                 levelingService,
                 ambientEventService,
                 worldService,
+                MovementCostService.noOp(),
+                null,
                 AiTextPolisher.noOp(),
                 playerDeathService
         );
@@ -648,11 +661,12 @@ class MoveServiceTest {
 
                 Player player = new Player("p1", "Hero", "gate");
                 player.setMovement(10);
+                player.setResting(true);
                 GameSession session = new GameSession("session-1", player, worldService);
                 session.transition(SessionState.PLAYING);
                 sessionManager.register(session);
 
-                MoveService service = new MoveService(
+                MoveService service = createMoveService(
                                 taskScheduler,
                                 broadcaster,
                                 sessionManager,
@@ -660,14 +674,17 @@ class MoveServiceTest {
                                 ambientEventService,
                                 worldService,
                                 movementCostService,
-                                AiTextPolisher.noOp()
+                                null,
+                                AiTextPolisher.noOp(),
+                                null
                 );
 
                 var result = service.buildResult(session, Direction.EAST, MoveValidationResult.allow("road", road));
 
                 assertThat(player.getMovement()).isEqualTo(8);
+                assertThat(player.isResting()).isFalse();
                 assertThat(result.getResponses()).hasSize(1);
-                assertThat(result.getResponses().get(0).message()).contains("Travel costs <strong>2</strong> movement");
+                assertThat(result.getResponses().get(0).message()).contains("You move east.");
                 assertThat(result.getResponses().get(0).playerStats()).isNotNull();
                 assertThat(result.getResponses().get(0).playerStats().movement()).isEqualTo(8);
         }
@@ -677,6 +694,51 @@ class MoveServiceTest {
         exits.put(direction, roomId);
         return exits;
     }
+
+        private static MoveService createMoveService(TaskScheduler taskScheduler,
+                                                                                                 WorldBroadcaster broadcaster,
+                                                                                                 GameSessionManager sessionManager,
+                                                                                                 LevelingService levelingService,
+                                                                                                 AmbientEventService ambientEventService,
+                                                                                                 WorldService worldService) {
+                return createMoveService(
+                                taskScheduler,
+                                broadcaster,
+                                sessionManager,
+                                levelingService,
+                                ambientEventService,
+                                worldService,
+                                MovementCostService.noOp(),
+                                null,
+                                AiTextPolisher.noOp(),
+                                null
+                );
+        }
+
+        private static MoveService createMoveService(TaskScheduler taskScheduler,
+                                                                                                 WorldBroadcaster broadcaster,
+                                                                                                 GameSessionManager sessionManager,
+                                                                                                 LevelingService levelingService,
+                                                                                                 AmbientEventService ambientEventService,
+                                                                                                 WorldService worldService,
+                                                                                                 MovementCostService movementCostService,
+                                                                                                 PartyService partyService,
+                                                                                                 AiTextPolisher textPolisher,
+                                                                                                 PlayerDeathService playerDeathService) {
+                return new MoveService(
+                                broadcaster,
+                                sessionManager,
+                                new RoomFlavorScheduler(taskScheduler, broadcaster, sessionManager),
+                                levelingService,
+                                ambientEventService,
+                                new MoveValidator(movementCostService),
+                                movementCostService,
+                                worldService,
+                                partyService,
+                                textPolisher,
+                                playerDeathService
+                );
+        }
 
     private static Npc npcWithInteraction(String id, String name, String interactTemplate) {
         return npcWithInteraction(id, name, interactTemplate, false);

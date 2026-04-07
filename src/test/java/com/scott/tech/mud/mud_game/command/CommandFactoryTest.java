@@ -35,6 +35,8 @@ import com.scott.tech.mud.mud_game.command.look.LookCommand;
 import com.scott.tech.mud.mud_game.command.me.MeCommand;
 import com.scott.tech.mud.mud_game.command.moderation.ModerationCommand;
 import com.scott.tech.mud.mud_game.command.move.MoveCommand;
+import com.scott.tech.mud.mud_game.command.move.MoveService;
+import com.scott.tech.mud.mud_game.command.move.MoveValidator;
 import com.scott.tech.mud.mud_game.command.pickup.PickupService;
 import com.scott.tech.mud.mud_game.command.pickup.PickupValidator;
 import com.scott.tech.mud.mud_game.command.recall.RecallCommand;
@@ -63,12 +65,10 @@ import com.scott.tech.mud.mud_game.persistence.service.PlayerProfileService;
 import com.scott.tech.mud.mud_game.quest.DefendObjectiveRuntimeService;
 import com.scott.tech.mud.mud_game.quest.ObjectiveEncounterRuntimeService;
 import com.scott.tech.mud.mud_game.service.LevelingService;
-import com.scott.tech.mud.mud_game.service.MovementCostService;
 import com.scott.tech.mud.mud_game.service.WorldModerationPolicyService;
 import com.scott.tech.mud.mud_game.session.GameSession;
 import com.scott.tech.mud.mud_game.session.GameSessionManager;
 import com.scott.tech.mud.mud_game.quest.QuestService;
-import com.scott.tech.mud.mud_game.service.AmbientEventService;
 import com.scott.tech.mud.mud_game.websocket.WorldBroadcaster;
 import com.scott.tech.mud.mud_game.world.WorldService;
 import org.junit.jupiter.api.BeforeEach;
@@ -94,7 +94,6 @@ class CommandFactoryTest {
     private PickupService pickupService;
     private DropValidator dropValidator;
     private DropService dropService;
-    private AiTextPolisher aiTextPolisher;
     private PlayerTextModerator playerTextModerator;
     private EmotePerspectiveResolver emotePerspectiveResolver;
     private EquipValidator equipValidator;
@@ -122,8 +121,8 @@ class CommandFactoryTest {
     private DefendObjectiveRuntimeService defendObjectiveRuntimeService;
     private ObjectiveEncounterRuntimeService objectiveEncounterRuntimeService;
     private WorldService worldService;
-    private AmbientEventService ambientEventService;
-    private MovementCostService movementCostService;
+    private MoveValidator moveValidator;
+    private MoveService moveService;
     private ShopService shopService;
     private ConsumableEffectService consumableEffectService;
     private CommandFactory factory;
@@ -139,7 +138,6 @@ class CommandFactoryTest {
         pickupService = mock(PickupService.class);
         dropValidator = mock(DropValidator.class);
         dropService = mock(DropService.class);
-        aiTextPolisher = mock(AiTextPolisher.class);
         playerTextModerator = mock(PlayerTextModerator.class);
         when(playerTextModerator.review(anyString()))
                 .thenReturn(PlayerTextModerator.Review.allow(ModerationCategory.SAFE, "test"));
@@ -169,13 +167,12 @@ class CommandFactoryTest {
         defendObjectiveRuntimeService = mock(DefendObjectiveRuntimeService.class);
         objectiveEncounterRuntimeService = mock(ObjectiveEncounterRuntimeService.class);
         worldService = mock(WorldService.class);
-        ambientEventService = mock(AmbientEventService.class);
-        movementCostService = mock(MovementCostService.class);
+        moveValidator = mock(MoveValidator.class);
+        moveService = mock(MoveService.class);
         shopService = mock(ShopService.class);
         consumableEffectService = mock(ConsumableEffectService.class);
         factory = new CommandFactory(taskScheduler, worldBroadcaster, sessionManager,
                 inventoryService, discoveredExitService, pickupValidator, pickupService, dropValidator, dropService,
-                aiTextPolisher,
                 playerTextModerator,
                 emotePerspectiveResolver,
                 equipValidator, equipService,
@@ -185,7 +182,7 @@ class CommandFactoryTest {
                 levelingService, worldModerationPolicyService,
                 playerProfileService, stateCache, partyService,
                 questService, defendObjectiveRuntimeService, objectiveEncounterRuntimeService,
-                worldService, ambientEventService, movementCostService, shopService, consumableEffectService);
+            worldService, moveValidator, moveService, shopService, consumableEffectService);
     }
 
     @Test

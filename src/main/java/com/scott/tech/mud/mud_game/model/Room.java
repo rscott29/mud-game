@@ -25,7 +25,7 @@ public class Room {
     private Direction safeExit;
     /** Damage dealt when taking a wrong exit in a dark room. */
     private int wrongExitDamage;
-    /** If true, players in this room do not regenerate health or mana. */
+    /** If true, players in this room do not regenerate health, mana, or movement. */
     private boolean suppressRegen;
     /** If true, movement within this room is considered inside the city. */
     private boolean insideCity;

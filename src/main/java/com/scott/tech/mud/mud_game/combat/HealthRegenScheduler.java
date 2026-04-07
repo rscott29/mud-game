@@ -1,5 +1,6 @@
 package com.scott.tech.mud.mud_game.combat;
 
+import com.scott.tech.mud.mud_game.config.SkillTableService;
 import com.scott.tech.mud.mud_game.config.ExperienceTableService;
 import com.scott.tech.mud.mud_game.dto.GameResponse;
 import com.scott.tech.mud.mud_game.model.Player;
@@ -14,8 +15,9 @@ import org.springframework.stereotype.Component;
 import java.util.Collection;
 
 /**
- * Handles passive health and mana regeneration for players out of combat.
- * Resources regenerate slowly over time when not actively fighting.
+ * Handles passive health, mana, and movement regeneration for players out of combat.
+ * Resources regenerate slowly over time when not actively fighting, with movement
+ * recovering faster while resting or through class passives.
  */
 @Component
 public class HealthRegenScheduler {
@@ -28,6 +30,12 @@ public class HealthRegenScheduler {
     /** Amount of mana restored per tick */
     private static final int MANA_REGEN_AMOUNT = 1;
 
+    /** Amount of movement restored per tick */
+    private static final int MOVEMENT_REGEN_AMOUNT = 2;
+
+    /** Extra movement restored per tick while resting */
+    private static final int RESTING_MOVEMENT_REGEN_BONUS = 2;
+
     /** Interval between regen ticks in milliseconds (5 seconds) */
     private static final long REGEN_INTERVAL_MS = 5000;
 
@@ -35,13 +43,16 @@ public class HealthRegenScheduler {
     private final CombatState combatState;
     private final WorldBroadcaster worldBroadcaster;
     private final ExperienceTableService xpTables;
+    private final SkillTableService skillTableService;
 
     public HealthRegenScheduler(GameSessionManager sessionManager, CombatState combatState, 
-                                WorldBroadcaster worldBroadcaster, ExperienceTableService xpTables) {
+                                WorldBroadcaster worldBroadcaster, ExperienceTableService xpTables,
+                                SkillTableService skillTableService) {
         this.sessionManager = sessionManager;
         this.combatState = combatState;
         this.worldBroadcaster = worldBroadcaster;
         this.xpTables = xpTables;
+        this.skillTableService = skillTableService;
     }
 
     /**
@@ -91,9 +102,33 @@ public class HealthRegenScheduler {
             changed = true;
         }
 
+        // Regenerate movement if not full
+        if (player.getMovement() < player.getMaxMovement()) {
+            int movementRegen = movementRegenAmount(player);
+            int newMovement = Math.min(player.getMovement() + movementRegen, player.getMaxMovement());
+            if (newMovement != player.getMovement()) {
+                player.setMovement(newMovement);
+                changed = true;
+            }
+        }
+
         // Push stats update to the player if anything changed
         if (changed) {
             worldBroadcaster.sendToSession(sessionId, GameResponse.playerStatsUpdate(player, xpTables));
         }
+    }
+
+    private int movementRegenAmount(Player player) {
+        int abilityBonus = skillTableService.getPassiveBonuses(
+                player.getCharacterClass(),
+                player.getLevel()
+        ).movementRegenBonus();
+
+        int total = MOVEMENT_REGEN_AMOUNT + Math.max(0, abilityBonus);
+        if (player.isResting()) {
+            total += RESTING_MOVEMENT_REGEN_BONUS;
+        }
+
+        return Math.max(0, total);
     }
 }

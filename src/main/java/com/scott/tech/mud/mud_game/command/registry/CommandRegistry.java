@@ -34,6 +34,7 @@ public final class CommandRegistry {
     public static final String BIND = "bind";
     public static final String INVENTORY = "inventory";
     public static final String ME = "me";
+    public static final String REST = "rest";
     public static final String INVESTIGATE = "investigate";
     public static final String FOLLOW = "follow";
     public static final String GROUP = "group";
