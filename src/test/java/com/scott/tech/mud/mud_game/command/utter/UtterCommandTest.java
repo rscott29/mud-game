@@ -122,9 +122,9 @@ class UtterCommandTest {
         when(combatService.executePlayerUtterance(eq(leader), any(), anyInt(), any(Runnable.class), any(), any()))
                 .thenAnswer(invocation -> {
                     Runnable beforeApplyDamage = invocation.getArgument(3);
-                    @SuppressWarnings("unchecked")
+           
                     IntFunction<String> playerMessageFactory = invocation.getArgument(4);
-                    @SuppressWarnings("unchecked")
+    
                     IntFunction<String> partyMessageFactory = invocation.getArgument(5);
                     beforeApplyDamage.run();
                     return CombatService.AttackResult.hit(playerMessageFactory.apply(7), partyMessageFactory.apply(7));
@@ -188,9 +188,7 @@ class UtterCommandTest {
         when(combatService.executePlayerUtterance(eq(session), any(), anyInt(), any(Runnable.class), any(), any()))
                 .thenAnswer(invocation -> {
                     Runnable beforeApplyDamage = invocation.getArgument(3);
-                    @SuppressWarnings("unchecked")
                     IntFunction<String> playerMessageFactory = invocation.getArgument(4);
-                    @SuppressWarnings("unchecked")
                     IntFunction<String> partyMessageFactory = invocation.getArgument(5);
                     beforeApplyDamage.run();
                     return CombatService.AttackResult.hit(playerMessageFactory.apply(6), partyMessageFactory.apply(6));
@@ -248,9 +246,7 @@ class UtterCommandTest {
         when(combatService.executePlayerUtterance(eq(session), any(), anyInt(), any(Runnable.class), any(), any()))
                 .thenAnswer(invocation -> {
                     Runnable beforeApplyDamage = invocation.getArgument(3);
-                    @SuppressWarnings("unchecked")
                     IntFunction<String> playerMessageFactory = invocation.getArgument(4);
-                    @SuppressWarnings("unchecked")
                     IntFunction<String> partyMessageFactory = invocation.getArgument(5);
                     beforeApplyDamage.run();
                     return CombatService.AttackResult.hit(playerMessageFactory.apply(6), partyMessageFactory.apply(6));

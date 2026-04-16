@@ -1,7 +1,6 @@
 package com.scott.tech.mud.mud_game.command.move;
 
 import com.scott.tech.mud.mud_game.command.core.CommandResult;
-import com.scott.tech.mud.mud_game.config.ExperienceTableService;
 import com.scott.tech.mud.mud_game.dto.GameResponse;
 import com.scott.tech.mud.mud_game.model.Direction;
 import com.scott.tech.mud.mud_game.model.Item;
@@ -34,7 +33,7 @@ class MoveCommandTest {
         MoveValidator moveValidator = mock(MoveValidator.class);
         MoveService moveService = mock(MoveService.class);
         QuestService questService = mock(QuestService.class);
-        ExperienceTableService xpTables = mock(ExperienceTableService.class);
+   
         WorldService worldService = mock(WorldService.class);
 
         Player player = new Player("p1", "Hero", "cave_entry");
