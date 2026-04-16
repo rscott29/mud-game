@@ -264,6 +264,55 @@ class CombatServiceTest {
     }
 
     @Test
+    void executePlayerUtterance_nonLethal_appendsHealthStatus() {
+        Player player = new Player("p-utter-1", "Axi", "room_training");
+        player.setLevel(5);
+
+        GameSession session = mock(GameSession.class);
+        when(session.getPlayer()).thenReturn(player);
+        when(session.getSessionId()).thenReturn("utter-session-1");
+
+        Npc target = npc("wolf", 1, 1, false, false, 50);
+        CombatEncounter encounter = combatState.engage("utter-session-1", target, "room_training");
+
+        CombatService.AttackResult result = combatService.executePlayerUtterance(
+                session, encounter, 5,
+                null,
+                dmg -> "You deal " + dmg + " damage.",
+                dmg -> "Axi deals " + dmg + " damage."
+        );
+
+        assertThat(result.targetDefeated()).isFalse();
+        assertThat(result.encounterEnded()).isFalse();
+        assertThat(result.message()).contains("You deal");
+    }
+
+    @Test
+    void executePlayerUtterance_lethal_endsCombatAndReturnsTargetDefeated() {
+        Player player = new Player("p-utter-2", "Axi", "room_training");
+        player.setLevel(5);
+
+        GameSession session = mock(GameSession.class);
+        when(session.getPlayer()).thenReturn(player);
+        when(session.getSessionId()).thenReturn("utter-session-2");
+
+        Npc target = npc("wolf", 1, 1, false, false, 1);
+        CombatEncounter encounter = combatState.engage("utter-session-2", target, "room_training");
+        when(questService.onDefeatNpc(player, target)).thenReturn(Optional.empty());
+
+        CombatService.AttackResult result = combatService.executePlayerUtterance(
+                session, encounter, 100,
+                null,
+                dmg -> "You deal " + dmg + " damage.",
+                dmg -> "Axi deals " + dmg + " damage."
+        );
+
+        assertThat(result.targetDefeated()).isTrue();
+        assertThat(result.encounterEnded()).isTrue();
+        assertThat(combatState.isInCombat("utter-session-2")).isFalse();
+    }
+
+    @Test
     void scaleXpForLevelDifference_sameLevel_returnsFullXp() {
         int scaled = CombatService.scaleXpForLevelDifference(100, 20, 20);
         assertThat(scaled).isEqualTo(100);
