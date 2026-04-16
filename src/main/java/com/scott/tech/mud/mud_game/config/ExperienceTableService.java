@@ -2,6 +2,7 @@ package com.scott.tech.mud.mud_game.config;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.scott.tech.mud.mud_game.model.CharacterClassNames;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.io.ClassPathResource;
@@ -136,7 +137,7 @@ public class ExperienceTableService {
     }
 
     private ClassXpTable resolveTable(String characterClass) {
-        return tablesByClass.get(normalize(characterClass));
+        return tablesByClass.get(CharacterClassNames.normalizeLookupKey(characterClass));
     }
 
     /**

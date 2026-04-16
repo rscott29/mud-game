@@ -2,6 +2,8 @@ package com.scott.tech.mud.mud_game.config;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.scott.tech.mud.mud_game.model.CharacterClassNames;
+import com.scott.tech.mud.mud_game.model.Player;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.io.ClassPathResource;
@@ -14,6 +16,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -74,13 +77,36 @@ public class SkillTableService {
         return total;
     }
 
+    public Optional<SkillDefinition> findSkill(String characterClass, String skillId) {
+        if (skillId == null || skillId.isBlank()) {
+            return Optional.empty();
+        }
+        String normalized = normalize(skillId);
+        return skillsForClass(characterClass).stream()
+                .filter(skill -> normalize(skill.id()).equals(normalized))
+                .findFirst();
+    }
+
+    public List<SkillDefinition> getActiveSkills(String characterClass) {
+        return skillsForClass(characterClass).stream()
+                .filter(SkillDefinition::isActive)
+                .toList();
+    }
+
+    public List<SkillDefinition> getUnlockedSkills(Player player) {
+        if (player == null) {
+            return List.of();
+        }
+        return getUnlockedSkills(player.getCharacterClass(), player.getLevel());
+    }
+
     private static boolean isPassive(SkillDefinition skill) {
         String type = skill.type();
         return type == null || type.isBlank() || "passive".equalsIgnoreCase(type);
     }
 
     private List<SkillDefinition> skillsForClass(String characterClass) {
-        return skillsByClass.getOrDefault(normalize(characterClass), List.of());
+        return skillsByClass.getOrDefault(CharacterClassNames.normalizeLookupKey(characterClass), List.of());
     }
 
     private SkillsFile load(ObjectMapper objectMapper) {
@@ -148,8 +174,13 @@ public class SkillTableService {
             @JsonProperty("name") String name,
             @JsonProperty("unlockLevel") int unlockLevel,
             @JsonProperty("type") String type,
-            @JsonProperty("passiveBonuses") PassiveBonuses passiveBonuses
-    ) {}
+            @JsonProperty("passiveBonuses") PassiveBonuses passiveBonuses,
+            @JsonProperty("activeMagic") ActiveMagicDefinition activeMagic
+    ) {
+        public boolean isActive() {
+            return activeMagic != null;
+        }
+    }
 
     public record PassiveBonuses(
             @JsonProperty("minDamageBonus") int minDamageBonus,
@@ -175,5 +206,77 @@ public class SkillTableService {
             );
         }
     }
+
+    public record ActiveMagicDefinition(
+            @JsonProperty("manaCost") int manaCost,
+            @JsonProperty("messageKeyPrefix") String messageKeyPrefix,
+            @JsonProperty("threat") Integer threat,
+            @JsonProperty("aliases") List<String> aliases,
+            @JsonProperty("directDamage") DamageProfile directDamage,
+            @JsonProperty("combatEffect") CombatEffectDefinition combatEffect,
+            @JsonProperty("fragmentBuild") FragmentBuildDefinition fragmentBuild,
+            @JsonProperty("fragmentConsumeDamage") FragmentConsumeDamageDefinition fragmentConsumeDamage,
+            @JsonProperty("lowHealthBonus") LowHealthBonusDefinition lowHealthBonus
+    ) {
+        public int threatOrDefault() {
+            return threat == null ? 0 : threat;
+        }
+
+        public List<String> aliases() {
+            return aliases == null ? List.of() : aliases;
+        }
+    }
+
+    public record CombatEffectDefinition(
+            @JsonProperty("effectType") String effectType,
+            @JsonProperty("duration") int duration,
+            @JsonProperty("potency") Integer potency,
+            @JsonProperty("scaledPotency") ScaledValueDefinition scaledPotency,
+            @JsonProperty("thresholdDurationBonus") ThresholdDurationBonus thresholdDurationBonus
+    ) {}
+
+    public record DamageProfile(
+            @JsonProperty("minDamage") int minDamage,
+            @JsonProperty("maxDamage") int maxDamage,
+            @JsonProperty("levelInterval") int levelInterval
+    ) {}
+
+    public record FragmentBuildDefinition(
+            @JsonProperty("baseChance") int baseChance,
+            @JsonProperty("levelInterval") int levelInterval,
+            @JsonProperty("bonusPerStep") int bonusPerStep,
+            @JsonProperty("maxChance") int maxChance,
+            @JsonProperty("attempts") int attempts
+    ) {
+        public int chanceForLevel(int level) {
+            int steps = Math.max(0, (Math.max(level, 1) - 1) / Math.max(1, levelInterval));
+            return Math.min(maxChance, baseChance + steps * bonusPerStep);
+        }
+
+        public int attemptsForCurrentState(int currentFragments) {
+            return attempts;
+        }
+    }
+
+    public record FragmentConsumeDamageDefinition(
+            @JsonProperty("damagePerFragment") int damagePerFragment
+    ) {}
+
+    public record LowHealthBonusDefinition(
+            @JsonProperty("thresholdPercent") int thresholdPercent,
+            @JsonProperty("bonusDamage") int bonusDamage
+    ) {}
+
+    public record ScaledValueDefinition(
+            @JsonProperty("baseAmount") int baseAmount,
+            @JsonProperty("levelInterval") int levelInterval
+    ) {}
+
+    public record ThresholdDurationBonus(
+            @JsonProperty("fragmentThreshold") int fragmentThreshold,
+            @JsonProperty("boostedDuration") int boostedDuration,
+            @JsonProperty("playerMessageKey") String playerMessageKey,
+            @JsonProperty("partyMessageKey") String partyMessageKey
+    ) {}
 }
 

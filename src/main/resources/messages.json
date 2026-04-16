@@ -270,6 +270,7 @@
   "action.combat.group_defeat"          : "{leader}'s group defeats {npc}!",
   "action.combat.npc_attacks"           : "{npc} attacks {player}!",
   "action.combat.npc_defeats"           : "{npc} defeats {player}!",
+  "action.combat.utter"                 : "{player} directs a cutting utterance at {npc}.",
 
   "combat.no_target"                    : "Attack what? Specify a target.",
   "combat.unarmed_warning"              : "<div class='combat-line warning'><span class='combat-icon'>⚠️</span> <span class='warning-text'>You are fighting unarmed! Type <strong>equip [weapon]</strong> to ready a weapon.</span></div>",
@@ -374,5 +375,34 @@
   "config.auth.account.lock-duration-minutes" : "1",
   "config.auth.account.max-attempts"          : "5",
   "config.session.idle-timeout-minutes"       : "15",
-  "config.session.idle-timeout-close-delay-seconds" : "4"
+  "config.session.idle-timeout-close-delay-seconds" : "4",
+
+  "utter.class_required"               : "Only Whisperbinders can use utterances.",
+  "utter.unavailable"                  : "{utterance} is not yet available to you.",
+  "utter.not_enough_mana"              : "{utterance} requires {mana} mana to cast, but you don't have enough.",
+
+  "utter.whisper-of-doubt.player"      : "You breathe a splinter of doubt into {npc}, dealing <strong>{damage}</strong> damage.",
+  "utter.whisper-of-doubt.party"       : "{player} breathes a splinter of doubt into {npc}, dealing {damage} damage.",
+
+  "utter.trace-the-echo.player"        : "You trace the echo of {npc}'s presence, weaving your focus around them.",
+  "utter.trace-the-echo.party"         : "{player} traces the echo of {npc}'s presence.",
+
+  "utter.lingering-phrase.player"      : "You weave a lingering phrase around {npc}.",
+  "utter.lingering-phrase.party"       : "{player} weaves a lingering phrase around {npc}.",
+
+  "utter.name-the-wound.player"        : "You name the wound within {npc}, dealing <strong>{damage}</strong> damage.",
+  "utter.name-the-wound.party"         : "{player} names the wound within {npc}, dealing {damage} damage.",
+
+  "utter.sever-the-name.player"        : "You sever the name from {npc}, dealing <strong>{damage}</strong> damage.",
+  "utter.sever-the-name.party"         : "{player} severs the name from {npc}, dealing {damage} damage.",
+
+  "utter.hush.player"                  : "You hush {npc} with a binding word.",
+  "utter.hush.party"                   : "{player} hushes {npc} with a binding word.",
+  "utter.hush.threshold.player"        : "The binding deepens — {npc} is held fast.",
+  "utter.hush.threshold.party"         : "{npc} is held fast by the binding.",
+
+  "utter.fragments.player"             : "<div class='combat-line fragment-status'><span class='combat-badge combat-badge--fragment'>Fragments</span><span class='combat-body'>{npc} is <strong>{state}</strong> — {count}/{max} fragments (+{bonus}% damage).</span></div>",
+  "utter.fragments.party"              : "<div class='combat-line fragment-status'><span class='combat-badge combat-badge--fragment'>Fragments</span><span class='combat-body'>{npc} is <strong>{state}</strong> — {count}/{max} fragments (+{bonus}% damage).</span></div>",
+  "utter.fragments.miss.player"        : "No new fragment catches hold on {npc}.",
+  "utter.fragments.miss.party"         : "No new fragment catches hold on {npc}."
 }

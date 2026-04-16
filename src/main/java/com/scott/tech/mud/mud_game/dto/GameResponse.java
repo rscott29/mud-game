@@ -1,6 +1,7 @@
 package com.scott.tech.mud.mud_game.dto;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.scott.tech.mud.mud_game.combat.CombatEncounter;
 import com.scott.tech.mud.mud_game.combat.PlayerCombatStats;
 import com.scott.tech.mud.mud_game.config.ExperienceTableService;
 import com.scott.tech.mud.mud_game.model.Direction;
@@ -79,6 +80,10 @@ public record GameResponse(
     }
 
     public GameResponse withPlayerStats(Player player, ExperienceTableService xpTables) {
+        return new GameResponse(type, message, room, mask, from, token, inventory, whoPlayers, PlayerStatsView.from(player, xpTables), combatStats, characterCreation);
+    }
+
+    public GameResponse withPlayerStats(Player player, ExperienceTableService xpTables, CombatEncounter encounter) {
         return new GameResponse(type, message, room, mask, from, token, inventory, whoPlayers, PlayerStatsView.from(player, xpTables), combatStats, characterCreation);
     }
 

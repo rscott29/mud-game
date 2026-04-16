@@ -42,7 +42,6 @@ import com.scott.tech.mud.mud_game.service.WorldModerationPolicyService;
 import com.scott.tech.mud.mud_game.world.WorldService;
 import com.scott.tech.mud.mud_game.session.GameSessionManager;
 import com.scott.tech.mud.mud_game.websocket.WorldBroadcaster;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.stereotype.Component;
 
@@ -63,7 +62,7 @@ public class CommandFactory {
 
     private final CommandDependencies deps;
 
-    @Autowired
+
     public CommandFactory(TaskScheduler taskScheduler, WorldBroadcaster worldBroadcaster,
                           GameSessionManager sessionManager,
                           InventoryService inventoryService,

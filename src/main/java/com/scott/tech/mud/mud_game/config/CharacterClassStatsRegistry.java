@@ -1,6 +1,7 @@
 package com.scott.tech.mud.mud_game.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.scott.tech.mud.mud_game.model.CharacterClassNames;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.io.ClassPathResource;
@@ -45,7 +46,7 @@ public class CharacterClassStatsRegistry {
         if (nameOrId == null || nameOrId.isBlank()) {
             return Optional.empty();
         }
-        return Optional.ofNullable(byKey.get(normalize(nameOrId)));
+        return Optional.ofNullable(byKey.get(CharacterClassNames.normalizeLookupKey(nameOrId)));
     }
 
     private static String normalize(String s) {
