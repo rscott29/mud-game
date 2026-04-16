@@ -52,6 +52,8 @@ import com.scott.tech.mud.mud_game.command.talk.TalkValidator;
 import com.scott.tech.mud.mud_game.command.unknown.UnknownCommand;
 import com.scott.tech.mud.mud_game.command.utter.UtterService;
 import com.scott.tech.mud.mud_game.command.utter.UtterValidator;
+import com.scott.tech.mud.mud_game.command.strike.StrikeService;
+import com.scott.tech.mud.mud_game.command.strike.StrikeValidator;
 import com.scott.tech.mud.mud_game.consumable.ConsumableEffectService;
 import com.scott.tech.mud.mud_game.command.who.WhoCommand;
 import com.scott.tech.mud.mud_game.dto.CommandRequest;
@@ -128,6 +130,8 @@ class CommandFactoryTest {
     private ConsumableEffectService consumableEffectService;
     private UtterValidator utterValidator;
     private UtterService utterService;
+    private StrikeValidator strikeValidator;
+    private StrikeService strikeService;
     private CommandFactory factory;
 
     @BeforeEach
@@ -176,6 +180,8 @@ class CommandFactoryTest {
         consumableEffectService = mock(ConsumableEffectService.class);
         utterValidator = mock(UtterValidator.class);
         utterService = mock(UtterService.class);
+        strikeValidator = mock(StrikeValidator.class);
+        strikeService = mock(StrikeService.class);
         factory = new CommandFactory(taskScheduler, worldBroadcaster, sessionManager,
                 inventoryService, discoveredExitService, pickupValidator, pickupService, dropValidator, dropService,
                 playerTextModerator,
@@ -188,7 +194,7 @@ class CommandFactoryTest {
                 playerProfileService, stateCache, partyService,
                 questService, defendObjectiveRuntimeService, objectiveEncounterRuntimeService,
             worldService, moveValidator, moveService, shopService, consumableEffectService,
-            utterValidator, utterService);
+            utterValidator, utterService, strikeValidator, strikeService);
     }
 
     @Test

@@ -26,6 +26,8 @@ import com.scott.tech.mud.mud_game.command.talk.TalkService;
 import com.scott.tech.mud.mud_game.command.talk.TalkValidator;
 import com.scott.tech.mud.mud_game.command.utter.UtterService;
 import com.scott.tech.mud.mud_game.command.utter.UtterValidator;
+import com.scott.tech.mud.mud_game.command.strike.StrikeService;
+import com.scott.tech.mud.mud_game.command.strike.StrikeValidator;
 import com.scott.tech.mud.mud_game.config.ExperienceTableService;
 import com.scott.tech.mud.mud_game.consumable.ConsumableEffectService;
 import com.scott.tech.mud.mud_game.party.PartyService;
@@ -89,6 +91,8 @@ public record CommandDependencies(
         ShopService shopService,
         ConsumableEffectService consumableEffectService,
         UtterValidator utterValidator,
-        UtterService utterService
+        UtterService utterService,
+        StrikeValidator strikeValidator,
+        StrikeService strikeService
 ) {
 }

@@ -100,10 +100,10 @@ class CombatStatsResolverTest {
     @Test
     void resolve_appliesPassiveSkillBonuses() {
         Player player = new Player("p2", "Scout", "start");
-        player.setCharacterClass("Warrior");
+        player.setCharacterClass("Ashen Knight");
         player.setLevel(10);
 
-        when(skillTableService.getPassiveBonuses("Warrior", 10))
+        when(skillTableService.getPassiveBonuses("Ashen Knight", 10))
             .thenReturn(new SkillTableService.PassiveBonuses(1, 2, 4, 3, 0, 0));
 
         PlayerCombatStats stats = resolver.resolve(player);

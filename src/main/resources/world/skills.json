@@ -1,6 +1,28 @@
 {
   "classes": {
-    "warrior": [
+    "ashen-knight": [
+      {
+        "id": "cinder-strike",
+        "name": "Cinder Strike",
+        "unlockLevel": 1,
+        "type": "active",
+        "activeMagic": {
+          "manaCost": 3,
+          "messageKeyPrefix": "strike.cinder-strike",
+          "threat": 3,
+          "aliases": ["cinder", "cs"],
+          "directDamage": {
+            "minDamage": 5,
+            "maxDamage": 10,
+            "levelInterval": 5
+          },
+          "combatEffect": {
+            "effectType": "SMOULDER",
+            "duration": 3,
+            "potency": 2
+          }
+        }
+      },
       {
         "id": "battle-instinct",
         "name": "Battle Instinct",
@@ -16,6 +38,23 @@
         }
       },
       {
+        "id": "ashen-guard",
+        "name": "Ashen Guard",
+        "unlockLevel": 5,
+        "type": "active",
+        "activeMagic": {
+          "manaCost": 4,
+          "messageKeyPrefix": "strike.ashen-guard",
+          "threat": 2,
+          "aliases": ["guard", "ag"],
+          "combatEffect": {
+            "effectType": "ASHEN_GUARD",
+            "duration": 3,
+            "potency": 15
+          }
+        }
+      },
+      {
         "id": "sure-strike",
         "name": "Sure Strike",
         "unlockLevel": 8,
@@ -25,6 +64,50 @@
           "maxDamageBonus": 0,
           "hitChanceBonus": 3,
           "armorBonus": 0
+        }
+      },
+      {
+        "id": "ember-mark",
+        "name": "Ember Mark",
+        "unlockLevel": 10,
+        "type": "active",
+        "activeMagic": {
+          "manaCost": 4,
+          "messageKeyPrefix": "strike.ember-mark",
+          "threat": 2,
+          "aliases": ["mark", "em"],
+          "directDamage": {
+            "minDamage": 3,
+            "maxDamage": 6,
+            "levelInterval": 6
+          },
+          "combatEffect": {
+            "effectType": "EMBER_MARK",
+            "duration": 4,
+            "potency": 5
+          }
+        }
+      },
+      {
+        "id": "smothering-blow",
+        "name": "Smothering Blow",
+        "unlockLevel": 12,
+        "type": "active",
+        "activeMagic": {
+          "manaCost": 6,
+          "messageKeyPrefix": "strike.smothering-blow",
+          "threat": 4,
+          "aliases": ["smother", "sb"],
+          "directDamage": {
+            "minDamage": 6,
+            "maxDamage": 12,
+            "levelInterval": 4
+          },
+          "combatEffect": {
+            "effectType": "SMOULDER",
+            "duration": 4,
+            "potency": 3
+          }
         }
       },
       {
@@ -38,245 +121,26 @@
           "hitChanceBonus": 0,
           "armorBonus": 2
         }
-      }
-    ],
-    "mage": [
-      {
-        "id": "arcane-precision",
-        "name": "Arcane Precision",
-        "unlockLevel": 3,
-        "type": "passive",
-        "passiveBonuses": {
-          "minDamageBonus": 0,
-          "maxDamageBonus": 1,
-          "hitChanceBonus": 4,
-          "armorBonus": 0
-        }
       },
       {
-        "id": "battle-focus",
-        "name": "Battle Focus",
-        "unlockLevel": 8,
-        "type": "passive",
-        "passiveBonuses": {
-          "minDamageBonus": 1,
-          "maxDamageBonus": 2,
-          "hitChanceBonus": 0,
-          "armorBonus": 0,
-          "movementCostReduction": 1,
-          "movementRegenBonus": 1
-        }
-      },
-      {
-        "id": "mana-ward",
-        "name": "Mana Ward",
-        "unlockLevel": 15,
-        "type": "passive",
-        "passiveBonuses": {
-          "minDamageBonus": 0,
-          "maxDamageBonus": 0,
-          "hitChanceBonus": 0,
-          "armorBonus": 1
-        }
-      }
-    ],
-    "rogue": [
-      {
-        "id": "keen-edge",
-        "name": "Keen Edge",
-        "unlockLevel": 3,
-        "type": "passive",
-        "passiveBonuses": {
-          "minDamageBonus": 1,
-          "maxDamageBonus": 3,
-          "hitChanceBonus": 0,
-          "armorBonus": 0
-        }
-      },
-      {
-        "id": "quick-step",
-        "name": "Quick Step",
-        "unlockLevel": 8,
-        "type": "passive",
-        "passiveBonuses": {
-          "minDamageBonus": 0,
-          "maxDamageBonus": 0,
-          "hitChanceBonus": 3,
-          "armorBonus": 1,
-          "movementCostReduction": 1,
-          "movementRegenBonus": 1
-        }
-      },
-      {
-        "id": "shadow-guard",
-        "name": "Shadow Guard",
-        "unlockLevel": 15,
-        "type": "passive",
-        "passiveBonuses": {
-          "minDamageBonus": 0,
-          "maxDamageBonus": 0,
-          "hitChanceBonus": 1,
-          "armorBonus": 1
-        }
-      }
-    ],
-    "cleric": [
-      {
-        "id": "righteous-blow",
-        "name": "Righteous Blow",
-        "unlockLevel": 3,
-        "type": "passive",
-        "passiveBonuses": {
-          "minDamageBonus": 1,
-          "maxDamageBonus": 1,
-          "hitChanceBonus": 0,
-          "armorBonus": 0
-        }
-      },
-      {
-        "id": "guided-hand",
-        "name": "Guided Hand",
-        "unlockLevel": 8,
-        "type": "passive",
-        "passiveBonuses": {
-          "minDamageBonus": 0,
-          "maxDamageBonus": 0,
-          "hitChanceBonus": 3,
-          "armorBonus": 0,
-          "movementCostReduction": 1,
-          "movementRegenBonus": 1
-        }
-      },
-      {
-        "id": "sanctified-armor",
-        "name": "Sanctified Armor",
-        "unlockLevel": 15,
-        "type": "passive",
-        "passiveBonuses": {
-          "minDamageBonus": 0,
-          "maxDamageBonus": 0,
-          "hitChanceBonus": 0,
-          "armorBonus": 2
-        }
-      }
-    ],
-    "ranger": [
-      {
-        "id": "hunters-aim",
-        "name": "Hunter's Aim",
-        "unlockLevel": 3,
-        "type": "passive",
-        "passiveBonuses": {
-          "minDamageBonus": 0,
-          "maxDamageBonus": 1,
-          "hitChanceBonus": 4,
-          "armorBonus": 0
-        }
-      },
-      {
-        "id": "twin-strikes",
-        "name": "Twin Strikes",
-        "unlockLevel": 8,
-        "type": "passive",
-        "passiveBonuses": {
-          "minDamageBonus": 1,
-          "maxDamageBonus": 2,
-          "hitChanceBonus": 0,
-          "armorBonus": 0
-        }
-      },
-      {
-        "id": "fieldcraft",
-        "name": "Fieldcraft",
-        "unlockLevel": 15,
-        "type": "passive",
-        "passiveBonuses": {
-          "minDamageBonus": 0,
-          "maxDamageBonus": 0,
-          "hitChanceBonus": 1,
-          "armorBonus": 1,
-          "movementCostReduction": 1,
-          "movementRegenBonus": 2
-        }
-      }
-    ],
-    "paladin": [
-      {
-        "id": "consecrated-steel",
-        "name": "Consecrated Steel",
-        "unlockLevel": 3,
-        "type": "passive",
-        "passiveBonuses": {
-          "minDamageBonus": 1,
-          "maxDamageBonus": 2,
-          "hitChanceBonus": 0,
-          "armorBonus": 0
-        }
-      },
-      {
-        "id": "steadfast",
-        "name": "Steadfast",
-        "unlockLevel": 8,
-        "type": "passive",
-        "passiveBonuses": {
-          "minDamageBonus": 0,
-          "maxDamageBonus": 0,
-          "hitChanceBonus": 0,
-          "armorBonus": 1,
-          "movementCostReduction": 1,
-          "movementRegenBonus": 1
-        }
-      },
-      {
-        "id": "divine-resolve",
-        "name": "Divine Resolve",
-        "unlockLevel": 15,
-        "type": "passive",
-        "passiveBonuses": {
-          "minDamageBonus": 0,
-          "maxDamageBonus": 0,
-          "hitChanceBonus": 2,
-          "armorBonus": 1
-        }
-      }
-    ],
-    "bard": [
-      {
-        "id": "cutting-wit",
-        "name": "Cutting Wit",
-        "unlockLevel": 3,
-        "type": "passive",
-        "passiveBonuses": {
-          "minDamageBonus": 1,
-          "maxDamageBonus": 1,
-          "hitChanceBonus": 1,
-          "armorBonus": 0
-        }
-      },
-      {
-        "id": "rhythmic-flow",
-        "name": "Rhythmic Flow",
-        "unlockLevel": 8,
-        "type": "passive",
-        "passiveBonuses": {
-          "minDamageBonus": 0,
-          "maxDamageBonus": 1,
-          "hitChanceBonus": 2,
-          "armorBonus": 0,
-          "movementCostReduction": 1,
-          "movementRegenBonus": 1
-        }
-      },
-      {
-        "id": "encore",
-        "name": "Encore",
-        "unlockLevel": 15,
-        "type": "passive",
-        "passiveBonuses": {
-          "minDamageBonus": 0,
-          "maxDamageBonus": 0,
-          "hitChanceBonus": 1,
-          "armorBonus": 1
+        "id": "kindle-pain",
+        "name": "Kindle Pain",
+        "unlockLevel": 18,
+        "type": "active",
+        "activeMagic": {
+          "manaCost": 5,
+          "messageKeyPrefix": "strike.kindle-pain",
+          "threat": 5,
+          "aliases": ["kindle", "kp"],
+          "directDamage": {
+            "minDamage": 10,
+            "maxDamage": 18,
+            "levelInterval": 4
+          },
+          "lowHealthBonus": {
+            "thresholdPercent": 50,
+            "bonusDamage": 8
+          }
         }
       }
     ],

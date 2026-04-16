@@ -11,14 +11,14 @@ class SkillTableServiceTest {
 
     @Test
     void newlyUnlockedSkills_returnsSkillsWithinLevelWindow() {
-        assertThat(skillTableService.getNewlyUnlockedSkillNames("warrior", 1, 3))
+        assertThat(skillTableService.getNewlyUnlockedSkillNames("ashen-knight", 1, 3))
                 .containsExactly("Battle Instinct");
     }
 
     @Test
     void passiveBonuses_increaseAsMorePassiveSkillsUnlock() {
-        SkillTableService.PassiveBonuses early = skillTableService.getPassiveBonuses("warrior", 3);
-        SkillTableService.PassiveBonuses late = skillTableService.getPassiveBonuses("warrior", 15);
+        SkillTableService.PassiveBonuses early = skillTableService.getPassiveBonuses("ashen-knight", 3);
+        SkillTableService.PassiveBonuses late = skillTableService.getPassiveBonuses("ashen-knight", 15);
 
         assertThat(early.minDamageBonus()).isGreaterThanOrEqualTo(1);
         assertThat(late.maxDamageBonus()).isGreaterThanOrEqualTo(early.maxDamageBonus());

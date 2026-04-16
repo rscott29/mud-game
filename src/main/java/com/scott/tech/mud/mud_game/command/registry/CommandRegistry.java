@@ -33,6 +33,7 @@ public final class CommandRegistry {
     public static final String ATTACK = "attack";
     public static final String BIND = "bind";
     public static final String UTTER = "utter";
+    public static final String STRIKE = "strike";
     public static final String INVENTORY = "inventory";
     public static final String ME = "me";
     public static final String REST = "rest";

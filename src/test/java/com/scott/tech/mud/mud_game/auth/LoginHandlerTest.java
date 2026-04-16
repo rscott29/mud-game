@@ -326,7 +326,7 @@ class LoginHandlerTest {
         session.transition(SessionState.AWAITING_CREATION_CONFIRM);
         session.transition(SessionState.AWAITING_CREATION_PASSWORD);
         when(playerProfileService.isNewPlayer("newuser")).thenReturn(true);
-        when(classStatsRegistry.classNames()).thenReturn(List.of("Warrior", "Mage"));
+        when(classStatsRegistry.classNames()).thenReturn(List.of("Ashen Knight", "Whisperbinder"));
 
         CommandResult result = loginHandler.handle("abcd1234", session);
 
@@ -334,7 +334,7 @@ class LoginHandlerTest {
         assertThat(singleResponse(result).type()).isEqualTo(GameResponse.Type.CHARACTER_CREATION);
         assertThat(singleResponse(result).characterCreation().step()).isEqualTo("race_class");
         assertThat(singleResponse(result).characterCreation().races()).contains("Human", "Dragonborn");
-        assertThat(singleResponse(result).characterCreation().classes()).containsExactly("Warrior", "Mage");
+        assertThat(singleResponse(result).characterCreation().classes()).containsExactly("Ashen Knight", "Whisperbinder");
     }
 
     @Test
@@ -455,7 +455,7 @@ class LoginHandlerTest {
         when(accountStore.verifyPassword("alice", "secret")).thenReturn(true);
         when(playerProfileService.isNewPlayer("alice")).thenReturn(true);
         when(stateCache.get("alice")).thenReturn(null);
-        when(classStatsRegistry.classNames()).thenReturn(List.of("Warrior", "Mage"));
+        when(classStatsRegistry.classNames()).thenReturn(List.of("Ashen Knight", "Whisperbinder"));
 
         CommandResult result = loginHandler.handle("secret", session);
 
@@ -463,7 +463,7 @@ class LoginHandlerTest {
         assertThat(session.getPlayer().getName()).isEqualTo("Alice");
         assertThat(singleResponse(result).type()).isEqualTo(GameResponse.Type.CHARACTER_CREATION);
         assertThat(singleResponse(result).characterCreation().step()).isEqualTo("race_class");
-        assertThat(singleResponse(result).characterCreation().classes()).containsExactly("Warrior", "Mage");
+        assertThat(singleResponse(result).characterCreation().classes()).containsExactly("Ashen Knight", "Whisperbinder");
         verify(reconnectTokenStore, never()).issue("alice");
         verify(worldBroadcaster, never()).broadcastToRoom(anyString(), any(), anyString());
     }
@@ -486,7 +486,7 @@ class LoginHandlerTest {
                 3,
                 "Veteran",
                 "Human",
-                "Warrior",
+                "Ashen Knight",
                 "they",
                 "them",
                 "their",

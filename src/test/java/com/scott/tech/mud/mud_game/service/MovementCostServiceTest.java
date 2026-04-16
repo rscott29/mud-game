@@ -22,26 +22,28 @@ class MovementCostServiceTest {
 
     @Test
     void movementCostForMove_usesClassBaseCostAndUnlockedSkillReduction() {
-        Player rogue = new Player("rogue-1", "Shade", "gate");
-        rogue.setCharacterClass("rogue");
-        rogue.setLevel(8);
+        Player ashenKnight = new Player("knight-1", "Shade", "gate");
+        ashenKnight.setCharacterClass("ashen-knight");
+        ashenKnight.setLevel(8);
 
         Room gate = room("gate", true);
         Room forest = room("forest_edge", false);
 
-        assertThat(movementCostService.movementCostForMove(rogue, gate, forest)).isEqualTo(1);
+        // Ashen Knight has wildernessMovementCost=3, at level 8 has Battle Instinct (movement reduction 1), so cost is 2
+        assertThat(movementCostService.movementCostForMove(ashenKnight, gate, forest)).isEqualTo(2);
 
-        Player mage = new Player("mage-1", "Aster", "gate");
-        mage.setCharacterClass("mage");
-        mage.setLevel(7);
+        Player whisperbinder = new Player("mage-1", "Aster", "gate");
+        whisperbinder.setCharacterClass("whisperbinder");
+        whisperbinder.setLevel(7);
 
-        assertThat(movementCostService.movementCostForMove(mage, gate, forest)).isEqualTo(4);
+        // Whisperbinder has wildernessMovementCost=4, no movement reduction passives unlocked yet
+        assertThat(movementCostService.movementCostForMove(whisperbinder, gate, forest)).isEqualTo(4);
     }
 
     @Test
     void movementCostForMove_returnsZeroForGodsAndCityDestinations() {
         Player player = new Player("p1", "Hero", "road");
-        player.setCharacterClass("warrior");
+        player.setCharacterClass("ashen-knight");
         player.setLevel(10);
 
         Room road = room("road", false);

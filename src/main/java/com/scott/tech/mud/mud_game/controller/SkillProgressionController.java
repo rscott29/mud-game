@@ -30,7 +30,7 @@ public class SkillProgressionController {
      */
     @GetMapping("/{characterClass}")
     public ResponseEntity<ClassSkillsResponse> getSkillsForClass(@PathVariable String characterClass) {
-        String normalizedClass = characterClass.trim().toLowerCase(Locale.ROOT);
+        String normalizedClass = characterClass.trim().toLowerCase(Locale.ROOT).replace(" ", "-");
         
         // Get all skills (pass a very high level to get everything)
         List<SkillDefinition> allSkills = skillTableService.getUnlockedSkills(normalizedClass, 100);
@@ -76,7 +76,7 @@ public class SkillProgressionController {
             @PathVariable String characterClass,
             @org.springframework.web.bind.annotation.RequestParam(defaultValue = "1") int level
     ) {
-        String normalizedClass = characterClass.trim().toLowerCase(Locale.ROOT);
+        String normalizedClass = characterClass.trim().toLowerCase(Locale.ROOT).replace(" ", "-");
         
         List<SkillDefinition> activeSkills = skillTableService.getActiveSkills(normalizedClass).stream()
                 .filter(skill -> skill.unlockLevel() <= level)

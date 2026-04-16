@@ -33,7 +33,7 @@ class PlayerStateSnapshotMapperTest {
         sourcePlayer.setLevel(7);
         sourcePlayer.setTitle("Veteran");
         sourcePlayer.setRace("Human");
-        sourcePlayer.setCharacterClass("Warrior");
+        sourcePlayer.setCharacterClass("Ashen Knight");
         sourcePlayer.setPronounsSubject("they");
         sourcePlayer.setPronounsObject("them");
         sourcePlayer.setPronounsPossessive("their");
@@ -96,7 +96,7 @@ class PlayerStateSnapshotMapperTest {
         assertThat(restoredPlayer.getLevel()).isEqualTo(7);
         assertThat(restoredPlayer.getTitle()).isEqualTo("Veteran");
         assertThat(restoredPlayer.getRace()).isEqualTo("Human");
-        assertThat(restoredPlayer.getCharacterClass()).isEqualTo("Warrior");
+        assertThat(restoredPlayer.getCharacterClass()).isEqualTo("Ashen Knight");
         assertThat(restoredPlayer.getDescription()).isEqualTo("A seasoned traveler.");
         assertThat(restoredPlayer.getHealth()).isEqualTo(82);
         assertThat(restoredPlayer.getMaxHealth()).isEqualTo(110);
