@@ -67,7 +67,6 @@ public class LoginHandler {
     private final DisconnectGracePeriodService disconnectGracePeriod;
     private final com.scott.tech.mud.mud_game.quest.QuestService questService;
     private final GlobalSettingsRegistry globalSettingsRegistry;
-    private final PartyService partyService;
     private final SessionTerminationService sessionTerminationService;
     private final ConcurrentMap<String, Object> accountLocks = new ConcurrentHashMap<>();
 
@@ -103,7 +102,6 @@ public class LoginHandler {
         this.disconnectGracePeriod = disconnectGracePeriod;
         this.questService = questService;
         this.globalSettingsRegistry = globalSettingsRegistry;
-        this.partyService = partyService;
         this.sessionTerminationService = sessionTerminationService;
     }
 
