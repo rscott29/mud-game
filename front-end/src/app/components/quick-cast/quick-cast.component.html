@@ -1,0 +1,22 @@
+@if (isVisible()) {
+  <div class="quick-cast">
+    <div class="quick-cast__header">
+      <span class="quick-cast__title">Quick Cast</span>
+    </div>
+    <div class="quick-cast__spells">
+      @for (skill of activeSkills(); track skill.id) {
+        <button
+          type="button"
+          class="quick-cast__spell"
+          [class.quick-cast__spell--disabled]="!canCast(skill)"
+          [disabled]="!canCast(skill)"
+          (click)="onCastClick(skill)"
+          [attr.title]="skill.name + ' (' + skill.manaCost + ' MP)'"
+        >
+          <span class="quick-cast__spell-name">{{ skill.name }}</span>
+          <span class="quick-cast__spell-cost">{{ skill.manaCost }} MP</span>
+        </button>
+      }
+    </div>
+  </div>
+}
