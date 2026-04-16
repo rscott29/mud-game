@@ -279,6 +279,142 @@
           "armorBonus": 1
         }
       }
+    ],
+    "whisperbinder": [
+      {
+        "id": "whisper-of-doubt",
+        "name": "Whisper of Doubt",
+        "unlockLevel": 1,
+        "type": "active",
+        "activeMagic": {
+          "manaCost": 5,
+          "messageKeyPrefix": "utter.whisper-of-doubt",
+          "threat": 3,
+          "aliases": ["whisper"],
+          "directDamage": {
+            "minDamage": 4,
+            "maxDamage": 8,
+            "levelInterval": 5
+          },
+          "fragmentBuild": {
+            "baseChance": 55,
+            "levelInterval": 4,
+            "bonusPerStep": 5,
+            "maxChance": 85,
+            "attempts": 1
+          }
+        }
+      },
+      {
+        "id": "trace-the-echo",
+        "name": "Trace the Echo",
+        "unlockLevel": 1,
+        "type": "active",
+        "activeMagic": {
+          "manaCost": 4,
+          "messageKeyPrefix": "utter.trace-the-echo",
+          "threat": 2,
+          "aliases": ["trace"],
+          "fragmentBuild": {
+            "baseChance": 95,
+            "levelInterval": 5,
+            "bonusPerStep": 1,
+            "maxChance": 100,
+            "attempts": 2
+          }
+        }
+      },
+      {
+        "id": "lingering-phrase",
+        "name": "Lingering Phrase",
+        "unlockLevel": 6,
+        "type": "active",
+        "activeMagic": {
+          "manaCost": 9,
+          "messageKeyPrefix": "utter.lingering-phrase",
+          "threat": 4,
+          "aliases": ["lingering", "phrase"],
+          "combatEffect": {
+            "effectType": "LINGERING_PHRASE",
+            "duration": 3,
+            "potency": 5
+          },
+          "fragmentBuild": {
+            "baseChance": 70,
+            "levelInterval": 4,
+            "bonusPerStep": 5,
+            "maxChance": 90,
+            "attempts": 1
+          }
+        }
+      },
+      {
+        "id": "name-the-wound",
+        "name": "Name the Wound",
+        "unlockLevel": 10,
+        "type": "active",
+        "activeMagic": {
+          "manaCost": 12,
+          "messageKeyPrefix": "utter.name-the-wound",
+          "threat": 5,
+          "aliases": ["wound", "name"],
+          "directDamage": {
+            "minDamage": 7,
+            "maxDamage": 13,
+            "levelInterval": 4
+          },
+          "fragmentBuild": {
+            "baseChance": 75,
+            "levelInterval": 4,
+            "bonusPerStep": 5,
+            "maxChance": 95,
+            "attempts": 1
+          }
+        }
+      },
+      {
+        "id": "sever-the-name",
+        "name": "Sever the Name",
+        "unlockLevel": 10,
+        "type": "active",
+        "activeMagic": {
+          "manaCost": 20,
+          "messageKeyPrefix": "utter.sever-the-name",
+          "threat": 8,
+          "aliases": ["sever"],
+          "directDamage": {
+            "minDamage": 10,
+            "maxDamage": 18,
+            "levelInterval": 4
+          },
+          "fragmentConsumeDamage": {
+            "damagePerFragment": 4
+          }
+        }
+      },
+      {
+        "id": "hush",
+        "name": "Hush",
+        "unlockLevel": 12,
+        "type": "active",
+        "activeMagic": {
+          "manaCost": 16,
+          "messageKeyPrefix": "utter.hush",
+          "threat": 6,
+          "aliases": ["hush"],
+          "combatEffect": {
+            "effectType": "HUSH",
+            "duration": 1,
+            "potency": 0,
+            "thresholdDurationBonus": {
+              "fragmentThreshold": 2,
+              "boostedDuration": 2,
+              "playerMessageKey": "utter.hush.threshold.player",
+              "partyMessageKey": "utter.hush.threshold.party"
+            }
+          }
+        }
+      }
     ]
   }
 }

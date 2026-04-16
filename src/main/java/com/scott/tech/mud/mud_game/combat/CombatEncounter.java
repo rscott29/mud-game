@@ -4,6 +4,7 @@ import com.scott.tech.mud.mud_game.model.Npc;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -17,6 +18,7 @@ public class CombatEncounter {
     private final String roomId;
     private int currentHealth;
     private final Map<String, Integer> threatBySessionId = new ConcurrentHashMap<>();
+    private final Map<CombatEffectType, CombatEffect> activeEffects = new ConcurrentHashMap<>();
 
     public CombatEncounter(Npc target, String roomId) {
         this.target = target;
@@ -87,5 +89,25 @@ public class CombatEncounter {
     public synchronized void resetHealth() {
         currentHealth = target.getMaxHealth();
         clearAllThreat();
+    }
+
+    public synchronized void applyEffect(CombatEffect effect) {
+        if (effect == null) {
+            return;
+        }
+        activeEffects.put(effect.type(), effect);
+    }
+
+    public Optional<CombatEffect> getEffect(CombatEffectType type) {
+        return Optional.ofNullable(activeEffects.get(type));
+    }
+
+    public int effectPotency(CombatEffectType type) {
+        CombatEffect effect = activeEffects.get(type);
+        return effect == null ? 0 : effect.potency();
+    }
+
+    public synchronized void consumeEffect(CombatEffectType type) {
+        activeEffects.remove(type);
     }
 }

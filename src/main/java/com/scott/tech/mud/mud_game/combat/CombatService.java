@@ -11,6 +11,7 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.function.IntFunction;
 
 /**
  * Resolves combat rules. Scheduling, room movement, and presentation are handled elsewhere.
@@ -58,22 +59,23 @@ public class CombatService {
             String partyMessage,
             boolean targetDefeated,
             boolean playerDefeated,
+            boolean encounterEnded,
             int xpGained,
             QuestService.QuestProgressResult questProgressResult
     ) {
         public static AttackResult hit(String message, String partyMessage) {
-            return new AttackResult(message, partyMessage, false, false, 0, null);
+            return new AttackResult(message, partyMessage, false, false, false, 0, null);
         }
 
         public static AttackResult targetDefeat(String message,
                                                 String partyMessage,
                                                 int xp,
                                                 QuestService.QuestProgressResult questProgressResult) {
-            return new AttackResult(message, partyMessage, true, false, xp, questProgressResult);
+            return new AttackResult(message, partyMessage, true, false, true, xp, questProgressResult);
         }
 
         public static AttackResult playerDefeat(String message, String partyMessage) {
-            return new AttackResult(message, partyMessage, false, true, 0, null);
+            return new AttackResult(message, partyMessage, false, true, true, 0, null);
         }
     }
 
@@ -162,6 +164,81 @@ public class CombatService {
 
                 if (encounterClearedMessage != null && !encounterClearedMessage.isBlank()) {
                     message.append("\n\n").append(encounterClearedMessage);
+                }
+
+                return AttackResult.targetDefeat(message.toString(), partyMessage.toString(), xpGained, questProgressResult);
+            }
+
+            message.append(narrator.npcHealth(encounter));
+            partyMessage.append(narrator.npcHealth(encounter));
+            return AttackResult.hit(message.toString(), partyMessage.toString());
+        }
+    }
+
+    public AttackResult executePlayerUtterance(GameSession session,
+                                               CombatEncounter encounter,
+                                               int rawDamage,
+                                               Runnable beforeApplyDamage,
+                                               IntFunction<String> playerMessageFactory,
+                                               IntFunction<String> partyMessageFactory) {
+        synchronized (encounter) {
+            if (!encounter.isAlive()) {
+                combatState.endCombat(session.getSessionId());
+                return AttackResult.hit("", "");
+            }
+
+            if (beforeApplyDamage != null) {
+                beforeApplyDamage.run();
+            }
+
+            int actualDamage = encounter.applyDamage(rawDamage);
+            encounter.addThreat(session.getSessionId(), Math.max(1, actualDamage));
+
+            StringBuilder message = new StringBuilder(playerMessageFactory.apply(actualDamage));
+            StringBuilder partyMessage = new StringBuilder(partyMessageFactory.apply(actualDamage));
+
+            if (!encounter.isAlive()) {
+                message.append(narrator.npcDefeated(encounter.getTarget()));
+                partyMessage.append(narrator.npcDefeated(encounter.getTarget()));
+
+                Player player = session.getPlayer();
+                Npc target = encounter.getTarget();
+                int xpGained = player.isGod()
+                    ? Math.max(0, target.getXpReward())
+                    : scaleXpForLevelDifference(target.getXpReward(), player.getLevel(), target.getLevel());
+                int goldGained = player.isGod()
+                    ? Math.max(0, target.getGoldReward())
+                    : scaleRewardForLevelDifference(target.getGoldReward(), player.getLevel(), target.getLevel());
+                if (goldGained > 0) {
+                    player.addGold(goldGained);
+                }
+                if (xpGained > 0) {
+                    message.append(narrator.xpGained(xpGained));
+                }
+                if (goldGained > 0) {
+                    message.append(narrator.goldLooted(goldGained));
+                }
+
+                QuestService.QuestProgressResult questProgressResult = null;
+                if (questService != null) {
+                    var questResult = questService.onDefeatNpc(player, target);
+                    if (questResult.isPresent()) {
+                        questProgressResult = questResult.get();
+                        String questMessage = questProgressResult.message();
+                        if (questMessage != null && !questMessage.isBlank()) {
+                            message.append("\n\n").append(questMessage);
+                            partyMessage.append("\n\n").append(questMessage);
+                        }
+                    }
+                }
+
+                combatState.endCombatForTarget(target);
+                if (target.doesRespawn()) {
+                    encounter.resetHealth();
+                    message.append(narrator.npcRespawns(target));
+                    partyMessage.append(narrator.npcRespawns(target));
+                } else if (Npc.isInstanceId(target.getId())) {
+                    worldService.removeNpcInstance(target.getId());
                 }
 
                 return AttackResult.targetDefeat(message.toString(), partyMessage.toString(), xpGained, questProgressResult);

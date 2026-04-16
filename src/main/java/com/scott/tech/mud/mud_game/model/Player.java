@@ -37,6 +37,7 @@ public class Player {
     private boolean god = false;
     private boolean moderator = false;
     private boolean resting = false;
+    private int will = 0;
     private final List<Item> inventory = new CopyOnWriteArrayList<>();
     private final Map<EquipmentSlot, String> equippedItemIds = new EnumMap<>(EquipmentSlot.class);
     private String recallRoomId;
@@ -74,6 +75,8 @@ public class Player {
     public boolean isResting()            { return resting; }
     public boolean isDead()               { return health <= 0; }
     public boolean isAlive()              { return health > 0; }
+    public int getWill()                  { return will; }
+    public int getFragmentChanceBonusPercent() { return will * 3; }
     public List<Item> getInventory()      { return inventory; }
     public String getEquippedWeaponId()   { return equippedItemIds.get(EquipmentSlot.MAIN_WEAPON); }
     public String getRecallRoomId()       { return recallRoomId; }
@@ -115,6 +118,7 @@ public class Player {
     public void setGod(boolean god)                      { this.god = god; }
     public void setModerator(boolean moderator)          { this.moderator = moderator; }
     public void setResting(boolean resting)              { this.resting = resting; }
+    public void setWill(int will)                        { this.will = will; }
     public void setEquippedWeaponId(String itemId)       { setEquippedItemId(EquipmentSlot.MAIN_WEAPON, itemId); }
     public void setRecallRoomId(String recallRoomId)     { this.recallRoomId = recallRoomId; }
     public void setModerationPreferences(ModerationPreferences moderationPreferences) {
