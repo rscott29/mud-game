@@ -232,14 +232,27 @@ public class LoginHandler {
             return prompt(Messages.get("auth.error.race_class_blank"), false);
         }
 
-        // Parse input format: "race class" or "race|class" or just numbers
-        String[] parts = input.split("[\\s|,]+");
-        if (parts.length < 2) {
-            return prompt(Messages.get("auth.error.race_class_format"), false);
-        }
+        // Parse input format: "race class" (first word = race, rest = class)
+        // Also supports "race|class" delimiter for explicit separation
+        String race;
+        String characterClass;
 
-        String race = parts[0];
-        String characterClass = parts[1];
+        if (input.contains("|")) {
+            String[] parts = input.split("\\|", 2);
+            if (parts.length < 2 || parts[0].isBlank() || parts[1].isBlank()) {
+                return prompt(Messages.get("auth.error.race_class_format"), false);
+            }
+            race = parts[0].trim();
+            characterClass = parts[1].trim();
+        } else {
+            // First word is race, everything else is class name
+            int firstSpace = input.trim().indexOf(' ');
+            if (firstSpace < 0) {
+                return prompt(Messages.get("auth.error.race_class_format"), false);
+            }
+            race = input.substring(0, firstSpace).trim();
+            characterClass = input.substring(firstSpace + 1).trim();
+        }
 
         var resolvedRace = characterCreationOptions.findRace(race);
         if (resolvedRace.isEmpty()) {

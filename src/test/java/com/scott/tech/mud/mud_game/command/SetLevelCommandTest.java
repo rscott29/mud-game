@@ -37,11 +37,11 @@ class SetLevelCommandTest {
         when(xpTables.getXpToNextLevel(anyString(), anyInt())).thenReturn(250);
 
         CharacterClassStatsRegistry classStats = mock(CharacterClassStatsRegistry.class);
-        CharacterClassStatsRegistry.ClassStats warriorStats =
-                new CharacterClassStatsRegistry.ClassStats("warrior", "Warrior", 130, 25, 105, 3);
-        when(classStats.findByName("Warrior")).thenReturn(Optional.of(warriorStats));
+        CharacterClassStatsRegistry.ClassStats ashenKnightStats =
+                new CharacterClassStatsRegistry.ClassStats("ashen-knight", "Ashen Knight", 130, 25, 105, 3);
+        when(classStats.findByName("Ashen Knight")).thenReturn(Optional.of(ashenKnightStats));
         SkillTableService skillTableService = mock(SkillTableService.class);
-        when(skillTableService.getNewlyUnlockedSkillNames("Warrior", 1, 5)).thenReturn(java.util.List.of());
+        when(skillTableService.getNewlyUnlockedSkillNames("Ashen Knight", 1, 5)).thenReturn(java.util.List.of());
 
         LevelingService levelingService = new LevelingService(xpTables, classStats, skillTableService);
         GameSessionManager sessionManager = mock(GameSessionManager.class);
@@ -51,7 +51,7 @@ class SetLevelCommandTest {
 
         Player god = new Player("p1", "Hero", "room1");
         god.setGod(true);
-        god.setCharacterClass("Warrior");
+        god.setCharacterClass("Ashen Knight");
 
         GameSession session = mock(GameSession.class);
         when(session.getPlayer()).thenReturn(god);

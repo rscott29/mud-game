@@ -2,6 +2,7 @@ package com.scott.tech.mud.mud_game.command.registry;
 
 import com.scott.tech.mud.mud_game.command.attack.AttackCommand;
 import com.scott.tech.mud.mud_game.command.bind.BindRecallCommand;
+import com.scott.tech.mud.mud_game.command.strike.StrikeCommand;
 import com.scott.tech.mud.mud_game.command.utter.UtterCommand;
 
 import java.util.List;
@@ -15,7 +16,7 @@ final class CombatCommandDefinitions {
 
     static void addTo(List<CommandDefinition> commands) {
         commands.add(CommandDefinition.builder(CommandRegistry.ATTACK)
-                .aliases("attack", "kill", "fight", "hit", "strike", "slay")
+                .aliases("attack", "kill", "fight", "hit", "slay")
                 .category(INTERACTION)
                 .usage("attack <target>")
                 .description("Attack an NPC in combat")
@@ -51,6 +52,26 @@ final class CombatCommandDefinitions {
                         ctx.args(),
                         ctx.deps().utterValidator(),
                         ctx.deps().utterService(),
+                        ctx.deps().combatLoopScheduler(),
+                        ctx.deps().combatState(),
+                        ctx.deps().xpTables(),
+                        ctx.deps().sessionManager(),
+                        ctx.deps().partyService(),
+                        ctx.deps().worldBroadcaster(),
+                        ctx.deps().levelingService(),
+                        ctx.deps().worldService()
+                ))
+                .build());
+
+        commands.add(CommandDefinition.builder(CommandRegistry.STRIKE)
+                .aliases("strike", "ash", "ashen")
+                .category(INTERACTION)
+                .usage("strike <ability> [target]")
+                .description("Use an Ashen Knight strike ability in combat")
+                .creator(ctx -> new StrikeCommand(
+                        ctx.args(),
+                        ctx.deps().strikeValidator(),
+                        ctx.deps().strikeService(),
                         ctx.deps().combatLoopScheduler(),
                         ctx.deps().combatState(),
                         ctx.deps().xpTables(),

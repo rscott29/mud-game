@@ -16,6 +16,7 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
@@ -39,10 +40,10 @@ class HealthRegenSchedulerTest {
                 skillTableService
         );
 
-        when(skillTableService.getPassiveBonuses("warrior", 1)).thenReturn(SkillTableService.PassiveBonuses.ZERO);
+        when(skillTableService.getPassiveBonuses(any(), anyInt())).thenReturn(SkillTableService.PassiveBonuses.ZERO);
         stubXpTables(xpTables);
 
-        GameSession session = playingSession("session-1", basePlayer("warrior", 1, 0, false));
+        GameSession session = playingSession("session-1", basePlayer("ashen-knight", 1, 0, false));
         sessionManager.register(session);
 
         scheduler.regenTick();
@@ -66,12 +67,12 @@ class HealthRegenSchedulerTest {
                 skillTableService
         );
 
-        when(skillTableService.getPassiveBonuses("rogue", 8)).thenReturn(
+        when(skillTableService.getPassiveBonuses(any(), anyInt())).thenReturn(
                 new SkillTableService.PassiveBonuses(0, 0, 0, 0, 1, 1)
         );
         stubXpTables(xpTables);
 
-        GameSession session = playingSession("session-2", basePlayer("rogue", 8, 0, true));
+        GameSession session = playingSession("session-2", basePlayer("whisperbinder", 8, 0, true));
         sessionManager.register(session);
 
         scheduler.regenTick();

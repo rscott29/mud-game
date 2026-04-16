@@ -91,7 +91,7 @@ class PlayerPersistenceSchedulerTest {
                 3,
                 "Veteran",
                 "Human",
-                "Warrior",
+                "Ashen Knight",
                 "they",
                 "them",
                 "their",

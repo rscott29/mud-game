@@ -33,7 +33,7 @@ class PlayerStateCacheTest {
                         Map.entry("level", 3),
                         Map.entry("title", "Veteran"),
                         Map.entry("race", "Human"),
-                        Map.entry("characterClass", "Warrior"),
+                        Map.entry("characterClass", "Ashen Knight"),
                         Map.entry("pronounsSubject", "they"),
                         Map.entry("pronounsObject", "them"),
                         Map.entry("pronounsPossessive", "their"),

@@ -21,9 +21,9 @@
   "auth.message.world_welcome"          : "Welcome to {world}, {player}! Type 'help' for a list of commands.",
   "auth.message.farewell"               : "Farewell, adventurer. Until next time.",
 
-  "auth.prompt.race_class"              : "Choose your race and class (e.g., 'Human Warrior', 'Elf Mage'):\nRaces: Human, Elf, Dwarf, Halfling, Orc, Dragonborn, Tiefling\nClasses: Warrior, Mage, Rogue, Cleric, Ranger, Paladin, Bard",
+  "auth.prompt.race_class"              : "Choose your race and class (e.g., 'Human Ashen Knight', 'Elf Whisperbinder'):\nRaces: Human, Elf, Dwarf, Halfling, Orc, Dragonborn, Tiefling\nClasses: Ashen Knight, Whisperbinder",
   "auth.error.race_class_blank"         : "Race and class cannot be blank.\nPlease choose your race and class:",
-  "auth.error.race_class_format"        : "Please specify both race and class (e.g., 'Human Warrior').",
+  "auth.error.race_class_format"        : "Please specify both race and class (e.g., 'Human Ashen Knight').",
   "auth.error.race_invalid"             : "Invalid race. Choose from: Human, Elf, Dwarf, Halfling, Orc, Dragonborn, Tiefling",
   "auth.error.class_invalid"            : "Invalid class. Choose from: {classes}",
 
@@ -404,5 +404,32 @@
   "utter.fragments.player"             : "<div class='combat-line fragment-status'><span class='combat-badge combat-badge--fragment'>Fragments</span><span class='combat-body'>{npc} is <strong>{state}</strong> — {count}/{max} fragments (+{bonus}% damage).</span></div>",
   "utter.fragments.party"              : "<div class='combat-line fragment-status'><span class='combat-badge combat-badge--fragment'>Fragments</span><span class='combat-body'>{npc} is <strong>{state}</strong> — {count}/{max} fragments (+{bonus}% damage).</span></div>",
   "utter.fragments.miss.player"        : "No new fragment catches hold on {npc}.",
-  "utter.fragments.miss.party"         : "No new fragment catches hold on {npc}."
+  "utter.fragments.miss.party"         : "No new fragment catches hold on {npc}.",
+
+  "strike.class_required"              : "Only Ashen Knights can use strike abilities.",
+  "strike.unavailable"                 : "{ability} is not yet available to you.",
+  "strike.not_enough_mana"             : "{ability} requires {mana} stamina, but you don't have enough.",
+  "strike.no_target"                   : "You must specify a target to strike.",
+  "strike.target_lost"                 : "Your target is no longer here.",
+  "strike.target_already_dead"         : "Your target is already defeated.",
+  "strike.already_engaged"             : "You are already in combat with someone else.",
+  "strike.target_not_found"            : "You don't see '{target}' here.",
+  "strike.cannot_target"               : "You cannot target that.",
+
+  "strike.cinder-strike.player"        : "Your blade lands with a dull orange flare, scattering cinders across {npc}'s wound. You deal <strong>{damage}</strong> damage.",
+  "strike.cinder-strike.party"         : "{player}'s blade flares orange as it bites into {npc}, dealing {damage} damage.",
+
+  "strike.ashen-guard.player"          : "You raise your guard as a veil of ash gathers around your armour.",
+  "strike.ashen-guard.party"           : "{player} raises their guard as ash swirls protectively around them.",
+
+  "strike.ember-mark.player"           : "A coal-red brand flares briefly upon {npc}, dealing <strong>{damage}</strong> damage.",
+  "strike.ember-mark.party"            : "{player} brands {npc} with a coal-red sigil, dealing {damage} damage.",
+
+  "strike.smothering-blow.player"      : "Your blow bursts into a cloud of hot ash, dealing <strong>{damage}</strong> damage and stealing the rhythm from {npc}'s attack.",
+  "strike.smothering-blow.party"       : "{player}'s strike erupts into smothering ash around {npc}, dealing {damage} damage.",
+
+  "strike.kindle-pain.player"          : "You stir the buried heat within {npc}'s wounds until they flare anew, dealing <strong>{damage}</strong> damage.",
+  "strike.kindle-pain.party"           : "{player} kindles the pain within {npc}, dealing {damage} damage.",
+
+  "action.combat.strike"               : "{player} unleashes a strike against {npc}."
 }
