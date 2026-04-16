@@ -342,13 +342,13 @@ class LoginHandlerTest {
         GameSession session = newSession("s1", "start");
         session.transition(SessionState.AWAITING_RACE_CLASS);
         when(classStatsRegistry.findByName("mage"))
-            .thenReturn(Optional.of(new CharacterClassStatsRegistry.ClassStats("mage", "Mage", 85, 120, 95, 4)));
+            .thenReturn(Optional.of(new CharacterClassStatsRegistry.ClassStats("whisperbinder", "Whisperbinder", 85, 120, 95, 4)));
 
         CommandResult result = loginHandler.handle("dragonborn mage", session);
 
         assertThat(session.getState()).isEqualTo(SessionState.AWAITING_PRONOUNS);
         assertThat(session.getPlayer().getRace()).isEqualTo("Dragonborn");
-        assertThat(session.getPlayer().getCharacterClass()).isEqualTo("Mage");
+        assertThat(session.getPlayer().getCharacterClass()).isEqualTo("Whisperbinder");
         assertThat(singleResponse(result).type()).isEqualTo(GameResponse.Type.CHARACTER_CREATION);
         assertThat(singleResponse(result).characterCreation().step()).isEqualTo("pronouns");
         assertThat(singleResponse(result).characterCreation().pronounOptions())

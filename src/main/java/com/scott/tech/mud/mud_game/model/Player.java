@@ -89,7 +89,7 @@ public class Player {
     public void setLevel(int level)                      { this.level = level; }
     public void setTitle(String title)                   { this.title = title; }
     public void setRace(String race)                     { this.race = race; }
-    public void setCharacterClass(String characterClass) { this.characterClass = characterClass; }
+    public void setCharacterClass(String characterClass) { this.characterClass = CharacterClassNames.canonicalizeStoredClassName(characterClass); }
     public void setPronounsSubject(String pronounsSubject){ this.pronounsSubject = pronounsSubject; }
     public void setPronounsObject(String pronounsObject) { this.pronounsObject = pronounsObject; }
     public void setPronounsPossessive(String pronounsPossessive) { this.pronounsPossessive = pronounsPossessive; }

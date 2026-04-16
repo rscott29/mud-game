@@ -1,7 +1,7 @@
 {
   "classes": [
     { "id": "warrior", "name": "Warrior", "maxHealth": 130, "maxMana": 25, "maxMovement": 105, "wildernessMovementCost": 3 },
-    { "id": "mage", "name": "Mage", "maxHealth": 85, "maxMana": 120, "maxMovement": 95, "wildernessMovementCost": 4 },
+    { "id": "whisperbinder", "name": "Whisperbinder", "maxHealth": 85, "maxMana": 120, "maxMovement": 95, "wildernessMovementCost": 4 },
     { "id": "rogue", "name": "Rogue", "maxHealth": 100, "maxMana": 60, "maxMovement": 125, "wildernessMovementCost": 2 },
     { "id": "cleric", "name": "Cleric", "maxHealth": 110, "maxMana": 90, "maxMovement": 100, "wildernessMovementCost": 3 },
     { "id": "ranger", "name": "Ranger", "maxHealth": 105, "maxMana": 70, "maxMovement": 115, "wildernessMovementCost": 2 },

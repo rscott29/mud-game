@@ -2,6 +2,7 @@ package com.scott.tech.mud.mud_game.config;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.scott.tech.mud.mud_game.model.CharacterClassNames;
 import com.scott.tech.mud.mud_game.model.Player;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -105,7 +106,7 @@ public class SkillTableService {
     }
 
     private List<SkillDefinition> skillsForClass(String characterClass) {
-        return skillsByClass.getOrDefault(normalize(characterClass), List.of());
+        return skillsByClass.getOrDefault(CharacterClassNames.normalizeLookupKey(characterClass), List.of());
     }
 
     private SkillsFile load(ObjectMapper objectMapper) {
