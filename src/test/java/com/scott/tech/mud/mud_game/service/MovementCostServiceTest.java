@@ -29,8 +29,8 @@ class MovementCostServiceTest {
         Room gate = room("gate", true);
         Room forest = room("forest_edge", false);
 
-        // Ashen Knight has wildernessMovementCost=3, at level 8 has Sure Strike (no movement reduction), so cost is 3
-        assertThat(movementCostService.movementCostForMove(ashenKnight, gate, forest)).isEqualTo(3);
+        // Ashen Knight has wildernessMovementCost=3, at level 8 has Battle Instinct (movement reduction 1), so cost is 2
+        assertThat(movementCostService.movementCostForMove(ashenKnight, gate, forest)).isEqualTo(2);
 
         Player whisperbinder = new Player("mage-1", "Aster", "gate");
         whisperbinder.setCharacterClass("whisperbinder");
