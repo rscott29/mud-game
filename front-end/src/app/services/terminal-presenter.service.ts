@@ -118,6 +118,12 @@ export class TerminalPresenterService {
     return `${stats.xpProgress} / ${stats.xpForNextLevel} XP`;
   });
 
+  readonly inCombat = computed(() => this.playerStats()?.inCombat ?? false);
+  
+  readonly currentMana = computed(() => this.playerStats()?.mana ?? 0);
+  
+  readonly playerLevel = computed(() => this.playerStats()?.level ?? 1);
+
   constructor() {
     if (typeof document === 'undefined' || typeof MutationObserver === 'undefined') {
       return;

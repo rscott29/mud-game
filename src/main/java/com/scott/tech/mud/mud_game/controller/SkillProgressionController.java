@@ -67,6 +67,60 @@ public class SkillProgressionController {
         );
     }
 
+    /**
+     * Returns active (castable) skills for a class at a given level.
+     * Used by the quick-cast UI during combat.
+     */
+    @GetMapping("/{characterClass}/active")
+    public ResponseEntity<ActiveSkillsResponse> getActiveSkillsForClass(
+            @PathVariable String characterClass,
+            @org.springframework.web.bind.annotation.RequestParam(defaultValue = "1") int level
+    ) {
+        String normalizedClass = characterClass.trim().toLowerCase(Locale.ROOT);
+        
+        List<SkillDefinition> activeSkills = skillTableService.getActiveSkills(normalizedClass).stream()
+                .filter(skill -> skill.unlockLevel() <= level)
+                .toList();
+
+        if (activeSkills.isEmpty()) {
+            return ResponseEntity.ok(new ActiveSkillsResponse(normalizedClass, List.of()));
+        }
+
+        List<ActiveSkillView> skills = activeSkills.stream()
+                .map(this::toActiveSkillView)
+                .toList();
+
+        return ResponseEntity.ok(new ActiveSkillsResponse(normalizedClass, skills));
+    }
+
+    private ActiveSkillView toActiveSkillView(SkillDefinition skill) {
+        var activeMagic = skill.activeMagic();
+        String primaryAlias = activeMagic.aliases().isEmpty() 
+                ? skill.id() 
+                : activeMagic.aliases().getFirst();
+
+        return new ActiveSkillView(
+                skill.id(),
+                skill.name(),
+                skill.unlockLevel(),
+                activeMagic.manaCost(),
+                primaryAlias
+        );
+    }
+
+    public record ActiveSkillsResponse(
+            String characterClass,
+            List<ActiveSkillView> skills
+    ) {}
+
+    public record ActiveSkillView(
+            String id,
+            String name,
+            int unlockLevel,
+            int manaCost,
+            String castAlias
+    ) {}
+
     public record ClassSkillsResponse(
             String characterClass,
             List<SkillView> skills

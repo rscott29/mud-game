@@ -20,11 +20,12 @@ import { TerminalMessageStore } from '../../services/terminal-message-store.serv
 import { TerminalMessageInterpreterService } from '../../services/terminal-message-interpreter.service';
 import { TerminalClassProgressionService } from '../../services/terminal-class-progression.service';
 import { TerminalHudComponent } from '../terminal-hud/terminal-hud.component';
+import { QuickCastComponent } from '../quick-cast/quick-cast.component';
 
 @Component({
   selector: 'app-terminal',
   standalone: true,
-  imports: [FormsModule, SafeHtmlPipe, NgClass, CharacterCreationComponent, TerminalHudComponent],
+  imports: [FormsModule, SafeHtmlPipe, NgClass, CharacterCreationComponent, TerminalHudComponent, QuickCastComponent],
   templateUrl: './terminal.component.html',
   styleUrl: './terminal.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -79,6 +80,10 @@ export class TerminalComponent {
 
     event.preventDefault();
     this.input.sendCommand(command, true);
+  }
+
+  onCastSpell(command: string): void {
+    this.input.sendCommand(command);
   }
 
   private initializeAutoScroll(): void {

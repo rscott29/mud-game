@@ -27,6 +27,8 @@ import com.scott.tech.mud.mud_game.command.shop.ShopService;
 import com.scott.tech.mud.mud_game.command.talk.TalkService;
 import com.scott.tech.mud.mud_game.command.talk.TalkValidator;
 import com.scott.tech.mud.mud_game.command.unknown.UnknownCommand;
+import com.scott.tech.mud.mud_game.command.utter.UtterService;
+import com.scott.tech.mud.mud_game.command.utter.UtterValidator;
 import com.scott.tech.mud.mud_game.consumable.ConsumableEffectService;
 import com.scott.tech.mud.mud_game.dto.CommandRequest;
 import com.scott.tech.mud.mud_game.party.PartyService;
@@ -94,7 +96,9 @@ public class CommandFactory {
                           MoveValidator moveValidator,
                           MoveService moveService,
                           ShopService shopService,
-                          ConsumableEffectService consumableEffectService) {
+                          ConsumableEffectService consumableEffectService,
+                          UtterValidator utterValidator,
+                          UtterService utterService) {
                 this.deps = buildDependencies(
                     taskScheduler,
                     worldBroadcaster,
@@ -135,7 +139,9 @@ public class CommandFactory {
                     moveValidator,
                     moveService,
                     shopService,
-                    consumableEffectService
+                    consumableEffectService,
+                    utterValidator,
+                    utterService
                 );
     }
 
@@ -178,7 +184,9 @@ public class CommandFactory {
                                                          MoveValidator moveValidator,
                                                          MoveService moveService,
                                                          ShopService shopService,
-                                                         ConsumableEffectService consumableEffectService) {
+                                                         ConsumableEffectService consumableEffectService,
+                                                         UtterValidator utterValidator,
+                                                         UtterService utterService) {
         return new CommandDependencies(
                 taskScheduler,
                 worldBroadcaster,
@@ -219,7 +227,9 @@ public class CommandFactory {
                 moveValidator,
                 moveService,
                 shopService,
-                consumableEffectService
+                consumableEffectService,
+                utterValidator,
+                utterService
         );
     }
 

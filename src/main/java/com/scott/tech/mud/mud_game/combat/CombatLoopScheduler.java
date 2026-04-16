@@ -241,20 +241,25 @@ public class CombatLoopScheduler {
     }
 
     private GameResponse buildNpcPlayerResponse(GameSession session, String message, boolean playerDefeated) {
+        boolean inCombat = !playerDefeated;
         return playerDefeated
-                ? buildDeathRoomRefresh(session, message).withPlayerStats(session.getPlayer(), levelingService.getXpTables())
-                : GameResponse.narrative(message).withPlayerStats(session.getPlayer(), levelingService.getXpTables());
+                ? buildDeathRoomRefresh(session, message).withPlayerStats(session.getPlayer(), levelingService.getXpTables(), inCombat)
+                : GameResponse.narrative(message).withPlayerStats(session.getPlayer(), levelingService.getXpTables(), inCombat);
     }
 
     private void dispatchPlayerAttackNarrative(ActiveEncounterContext context, String playerMessage, String partyMessage) {
-        sendNarrativeWithStats(context.session(), playerMessage);
+        sendNarrativeWithStats(context.session(), playerMessage, true);
         broadcastPartyCombatLog(context.encounter(), context.sessionId(), partyMessage);
     }
 
     private void sendNarrativeWithStats(GameSession session, String message) {
+        sendNarrativeWithStats(session, message, false);
+    }
+
+    private void sendNarrativeWithStats(GameSession session, String message, boolean inCombat) {
         broadcaster.sendToSession(
                 session.getSessionId(),
-                GameResponse.narrative(message).withPlayerStats(session.getPlayer(), levelingService.getXpTables())
+                GameResponse.narrative(message).withPlayerStats(session.getPlayer(), levelingService.getXpTables(), inCombat)
         );
     }
 

@@ -80,11 +80,15 @@ public record GameResponse(
     }
 
     public GameResponse withPlayerStats(Player player, ExperienceTableService xpTables) {
-        return new GameResponse(type, message, room, mask, from, token, inventory, whoPlayers, PlayerStatsView.from(player, xpTables), combatStats, characterCreation);
+        return new GameResponse(type, message, room, mask, from, token, inventory, whoPlayers, PlayerStatsView.from(player, xpTables, false), combatStats, characterCreation);
+    }
+
+    public GameResponse withPlayerStats(Player player, ExperienceTableService xpTables, boolean inCombat) {
+        return new GameResponse(type, message, room, mask, from, token, inventory, whoPlayers, PlayerStatsView.from(player, xpTables, inCombat), combatStats, characterCreation);
     }
 
     public GameResponse withPlayerStats(Player player, ExperienceTableService xpTables, CombatEncounter encounter) {
-        return new GameResponse(type, message, room, mask, from, token, inventory, whoPlayers, PlayerStatsView.from(player, xpTables), combatStats, characterCreation);
+        return new GameResponse(type, message, room, mask, from, token, inventory, whoPlayers, PlayerStatsView.from(player, xpTables, encounter != null), combatStats, characterCreation);
     }
 
     // ----- factory methods -----
@@ -451,11 +455,16 @@ public record GameResponse(
             int level, int maxLevel,
             int xpProgress, int xpForNextLevel,
             int totalXp,
-                int gold,
+            int gold,
             boolean isGod,
-            String characterClass
+            String characterClass,
+            boolean inCombat
     ) {
         public static PlayerStatsView from(Player player, ExperienceTableService xpTables) {
+            return from(player, xpTables, false);
+        }
+
+        public static PlayerStatsView from(Player player, ExperienceTableService xpTables, boolean inCombat) {
             int level = player.getLevel();
             String charClass = player.getCharacterClass();
             int maxLevel = xpTables.getMaxLevel(charClass);
@@ -476,7 +485,8 @@ public record GameResponse(
                     totalXp,
                     player.getGold(),
                     player.isGod(),
-                    player.getCharacterClass());
+                    player.getCharacterClass(),
+                    inCombat);
         }
     }
 

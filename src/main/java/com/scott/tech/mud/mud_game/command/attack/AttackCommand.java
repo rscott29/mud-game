@@ -138,6 +138,7 @@ public class AttackCommand implements GameCommand {
 
         // Build room action for other players to see
         String actionMsg;
+        boolean stillInCombat = !result.targetDefeated();
         if (result.targetDefeated()) {
             actionMsg = participants.size() > 1
                 ? Messages.fmt("action.combat.group_defeat",
@@ -156,7 +157,7 @@ public class AttackCommand implements GameCommand {
         }
 
         appendQuestSummary(sb, result.questProgressResult());
-        GameResponse primaryResponse = GameResponse.narrative(sb.toString()).withPlayerStats(session.getPlayer(), xpTables);
+        GameResponse primaryResponse = GameResponse.narrative(sb.toString()).withPlayerStats(session.getPlayer(), xpTables, stillInCombat);
         List<GameResponse> responses = new ArrayList<>(buildQuestProgressResponses(session, result.questProgressResult()));
         if (!responses.isEmpty() && isRoomDisplay(responses.getFirst())) {
             responses.set(0, prependToRoomDisplay(primaryResponse, responses.getFirst()));

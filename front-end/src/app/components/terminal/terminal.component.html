@@ -13,15 +13,28 @@
 
   <app-terminal-hud />
 
-  <div #logEl class="log" [class.log--auth]="view.isAuthScreen()" (click)="handleLogClick($event)">
-    @for (msg of view.messages(); track msg.id) {
-      <div class="msg" [ngClass]="msg.cssClass" [innerHTML]="msg.html | safeHtml"></div>
-    }
+  <div class="log-container">
+    <div #logEl class="log" [class.log--auth]="view.isAuthScreen()" (click)="handleLogClick($event)">
+      @for (msg of view.messages(); track msg.id) {
+        <div class="msg" [ngClass]="msg.cssClass" [innerHTML]="msg.html | safeHtml"></div>
+      }
 
-    @if (view.characterCreationData()) {
-      <app-character-creation
-        [data]="view.characterCreationData()!"
-        (selectionComplete)="input.completeCharacterCreation($event)"
+      @if (view.characterCreationData()) {
+        <app-character-creation
+          [data]="view.characterCreationData()!"
+          (selectionComplete)="input.completeCharacterCreation($event)"
+        />
+      }
+    </div>
+
+    @if (view.playerStats(); as stats) {
+      <app-quick-cast
+        class="quick-cast-panel"
+        [characterClass]="stats.characterClass"
+        [level]="view.playerLevel()"
+        [currentMana]="view.currentMana()"
+        [inCombat]="view.inCombat()"
+        (castSpell)="onCastSpell($event)"
       />
     }
   </div>

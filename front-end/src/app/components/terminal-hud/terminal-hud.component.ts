@@ -11,6 +11,7 @@ import { TerminalPresenterService } from '../../services/terminal-presenter.serv
 @Component({
   selector: 'app-terminal-hud',
   standalone: true,
+  imports: [],
   templateUrl: './terminal-hud.component.html',
   styleUrl: './terminal-hud.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
