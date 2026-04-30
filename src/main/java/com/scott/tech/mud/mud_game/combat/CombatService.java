@@ -6,8 +6,6 @@ import com.scott.tech.mud.mud_game.quest.ObjectiveEncounterRuntimeService;
 import com.scott.tech.mud.mud_game.quest.QuestService;
 import com.scott.tech.mud.mud_game.session.GameSession;
 import com.scott.tech.mud.mud_game.world.WorldService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
 import java.util.concurrent.ThreadLocalRandom;
@@ -31,12 +29,11 @@ public class CombatService {
     private final ObjectiveEncounterRuntimeService objectiveEncounterRuntimeService;
     private final WorldService worldService;
 
-    @Autowired
     public CombatService(CombatState combatState,
                          CombatStatsResolver statsResolver,
                          CombatNarrator narrator,
-                         @Lazy QuestService questService,
-                         @Lazy ObjectiveEncounterRuntimeService objectiveEncounterRuntimeService,
+                         QuestService questService,
+                         ObjectiveEncounterRuntimeService objectiveEncounterRuntimeService,
                          WorldService worldService) {
         this.combatState = combatState;
         this.statsResolver = statsResolver;
@@ -44,14 +41,6 @@ public class CombatService {
         this.questService = questService;
         this.objectiveEncounterRuntimeService = objectiveEncounterRuntimeService;
         this.worldService = worldService;
-    }
-
-    public CombatService(CombatState combatState,
-                         CombatStatsResolver statsResolver,
-                         CombatNarrator narrator,
-                         @Lazy QuestService questService,
-                         WorldService worldService) {
-        this(combatState, statsResolver, narrator, questService, null, worldService);
     }
 
     public record AttackResult(
@@ -134,24 +123,20 @@ public class CombatService {
 
                 // Check for quest progress on defeating this NPC
                 QuestService.QuestProgressResult questProgressResult = null;
-                if (questService != null) {
-                    var questResult = questService.onDefeatNpc(player, target);
-                    if (questResult.isPresent()) {
-                        var result = questResult.get();
-                        questProgressResult = result;
-                        String questMessage = result.message();
-                        if (questMessage != null && !questMessage.isBlank()) {
-                            message.append("\n\n").append(questMessage);
-                            partyMessage.append("\n\n").append(questMessage);
-                        }
+                var questResult = questService.onDefeatNpc(player, target);
+                if (questResult.isPresent()) {
+                    var result = questResult.get();
+                    questProgressResult = result;
+                    String questMessage = result.message();
+                    if (questMessage != null && !questMessage.isBlank()) {
+                        message.append("\n\n").append(questMessage);
+                        partyMessage.append("\n\n").append(questMessage);
                     }
                 }
 
-                String encounterClearedMessage = null;
-                if (objectiveEncounterRuntimeService != null) {
-                    encounterClearedMessage = objectiveEncounterRuntimeService.onSpawnedNpcDefeated(player, target)
-                            .orElse(null);
-                }
+                String encounterClearedMessage = objectiveEncounterRuntimeService
+                        .onSpawnedNpcDefeated(player, target)
+                        .orElse(null);
 
                 combatState.endCombatForTarget(target);
                 if (target.doesRespawn()) {
@@ -220,15 +205,13 @@ public class CombatService {
                 }
 
                 QuestService.QuestProgressResult questProgressResult = null;
-                if (questService != null) {
-                    var questResult = questService.onDefeatNpc(player, target);
-                    if (questResult.isPresent()) {
-                        questProgressResult = questResult.get();
-                        String questMessage = questProgressResult.message();
-                        if (questMessage != null && !questMessage.isBlank()) {
-                            message.append("\n\n").append(questMessage);
-                            partyMessage.append("\n\n").append(questMessage);
-                        }
+                var questResult = questService.onDefeatNpc(player, target);
+                if (questResult.isPresent()) {
+                    questProgressResult = questResult.get();
+                    String questMessage = questProgressResult.message();
+                    if (questMessage != null && !questMessage.isBlank()) {
+                        message.append("\n\n").append(questMessage);
+                        partyMessage.append("\n\n").append(questMessage);
                     }
                 }
 

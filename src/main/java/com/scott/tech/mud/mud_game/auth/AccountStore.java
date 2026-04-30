@@ -5,7 +5,7 @@ import com.scott.tech.mud.mud_game.persistence.entity.AccountEntity;
 import com.scott.tech.mud.mud_game.persistence.repository.AccountRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -27,11 +27,13 @@ public class AccountStore {
     private static final Logger log = LoggerFactory.getLogger(AccountStore.class);
 
     private final AccountRepository accountRepository;
-    private final BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
-    private final String dummyPasswordHash = encoder.encode("mud-dummy-password");
+    private final PasswordEncoder encoder;
+    private final String dummyPasswordHash;
 
-    public AccountStore(AccountRepository accountRepository) {
+    public AccountStore(AccountRepository accountRepository, PasswordEncoder encoder) {
         this.accountRepository = accountRepository;
+        this.encoder = encoder;
+        this.dummyPasswordHash = encoder.encode("mud-dummy-password");
     }
 
     private int getMaxAttempts() {

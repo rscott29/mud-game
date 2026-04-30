@@ -124,6 +124,7 @@ describe('TerminalPresenterService', () => {
       totalXp: 250,
       isGod: false,
       characterClass: 'dark_mage',
+      inCombat: false,
     });
 
     expect(presenter.classLabel()).toBe('Dark Mage');
@@ -151,6 +152,7 @@ describe('TerminalPresenterService', () => {
       totalXp: 9999,
       isGod: true,
       characterClass: 'archon',
+      inCombat: false,
     });
 
     expect(presenter.levelLabel()).toBe('Level 100');
@@ -193,6 +195,7 @@ describe('TerminalPresenterService', () => {
       totalXp: 250,
       isGod: false,
       characterClass: 'mage',
+      inCombat: false,
     });
     input.commandCompletionSuggestions.set(['look', 'lore', 'locate']);
     input.activeCommandCompletionIndex.set(0);

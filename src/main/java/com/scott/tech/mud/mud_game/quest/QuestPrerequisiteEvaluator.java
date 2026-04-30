@@ -4,9 +4,11 @@ import com.scott.tech.mud.mud_game.config.Messages;
 import com.scott.tech.mud.mud_game.model.Item;
 import com.scott.tech.mud.mud_game.model.Player;
 import com.scott.tech.mud.mud_game.world.WorldService;
+import org.springframework.stereotype.Component;
 
 import java.util.Map;
 
+@Component
 final class QuestPrerequisiteEvaluator {
 
     private final WorldService worldService;

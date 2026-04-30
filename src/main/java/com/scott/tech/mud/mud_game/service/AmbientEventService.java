@@ -132,6 +132,50 @@ public class AmbientEventService {
         return zoneEvents.containsKey(normalizeKey(zone));
     }
 
+    /**
+     * Pre-polishes every loaded ambient zone-event line so the polisher's
+     * cache is hot before any player triggers an ambient event. Intended to
+     * be called once at startup from a background thread.
+     *
+     * <p>Silently skips messages that fail to polish (e.g., due to rate limits)
+     * and adds a small delay between calls to avoid hitting API rate limits.</p>
+     *
+     * @return number of lines warmed
+     */
+    public int warmAiCache() {
+        int warmed = 0;
+        for (Map<String, List<String>> eventsByType : zoneEvents.values()) {
+            for (List<String> messages : eventsByType.values()) {
+                for (String message : messages) {
+                    try {
+                        textPolisher.polish(message, AiTextPolisher.Style.AMBIENT_EVENT);
+                        warmed++;
+                        // Small delay to avoid hitting Groq's 6000 TPM rate limit
+                        Thread.sleep(200);
+                    } catch (Exception e) {
+                        log.warn("Failed to warm ambient event message '{}': {}", 
+                                message.substring(0, Math.min(50, message.length())), e.getMessage());
+                    }
+                }
+            }
+        }
+        for (Map<String, List<String>> zoneDialogue : companionDialogue.values()) {
+            for (List<String> messages : zoneDialogue.values()) {
+                for (String message : messages) {
+                    try {
+                        textPolisher.polish(message, AiTextPolisher.Style.NPC_DIALOGUE);
+                        warmed++;
+                        Thread.sleep(200);
+                    } catch (Exception e) {
+                        log.warn("Failed to warm companion dialogue '{}': {}", 
+                                message.substring(0, Math.min(50, message.length())), e.getMessage());
+                    }
+                }
+            }
+        }
+        return warmed;
+    }
+
     private void loadZoneEvents(JsonNode root) {
         JsonNode zones = root.path("zones");
         if (zones.isMissingNode()) return;

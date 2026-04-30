@@ -24,7 +24,6 @@ import java.util.regex.Pattern;
 public class PlayerTextModerator {
 
     private static final Logger log = LoggerFactory.getLogger(PlayerTextModerator.class);
-    private static final ObjectMapper JSON = new ObjectMapper();
     private static final String SYSTEM_PROMPT =
             Messages.loadPrompt("prompts/player-text-moderation-system.txt");
 
@@ -43,25 +42,32 @@ public class PlayerTextModerator {
     );
 
     private final ChatClient chatClient;
+    private final ObjectMapper objectMapper;
     private final boolean enabled;
     private final ConcurrentMap<String, Review> cache = new ConcurrentHashMap<>();
+    /**
+     * Trips after 5 consecutive AI failures, stays open for 30s. While open,
+     * moderation falls back to local pattern checks instead of stalling on a doomed call.
+     */
+    private final AiCircuitBreaker breaker = new AiCircuitBreaker(5, java.time.Duration.ofSeconds(30));
 
     @Autowired
-    public PlayerTextModerator(ChatClient.Builder builder) {
-        this(builder.build(), true);
+    public PlayerTextModerator(ObjectMapper objectMapper, ChatClient.Builder builder) {
+        this(objectMapper, builder.build(), true);
     }
 
     PlayerTextModerator(ChatClient chatClient) {
-        this(chatClient, true);
+        this(new ObjectMapper(), chatClient, true);
     }
 
-    private PlayerTextModerator(ChatClient chatClient, boolean enabled) {
+    private PlayerTextModerator(ObjectMapper objectMapper, ChatClient chatClient, boolean enabled) {
+        this.objectMapper = objectMapper;
         this.chatClient = chatClient;
         this.enabled = enabled;
     }
 
     public static PlayerTextModerator noOp() {
-        return new PlayerTextModerator(null, false);
+        return new PlayerTextModerator(new ObjectMapper(), null, false);
     }
 
     public Review review(String text) {
@@ -84,6 +90,11 @@ public class PlayerTextModerator {
             return fallbackReview;
         }
 
+        if (!breaker.allowRequest()) {
+            log.debug("AI moderation circuit open; using fallback for '{}'", summarize(text));
+            return fallbackReview;
+        }
+
         try {
             String raw = chatClient.prompt()
                     .system(SYSTEM_PROMPT)
@@ -94,24 +105,26 @@ public class PlayerTextModerator {
             AiDecision decision = parseDecision(raw);
             Review review = validate(decision);
             if (review != null) {
+                breaker.recordSuccess();
                 return review;
             }
 
             log.debug("AI moderation returned unusable output for '{}'", summarize(text));
         } catch (Exception e) {
+            breaker.recordFailure();
             log.debug("AI moderation failed for '{}': {}", summarize(text), e.getMessage());
         }
 
         return fallbackReview;
     }
 
-    private static AiDecision parseDecision(String raw) {
+    private AiDecision parseDecision(String raw) {
         String cleaned = raw == null ? "" : CODE_FENCE.matcher(raw.trim()).replaceAll("").trim();
         if (cleaned.isEmpty()) {
             return null;
         }
         try {
-            return JSON.readValue(cleaned, AiDecision.class);
+            return objectMapper.readValue(cleaned, AiDecision.class);
         } catch (Exception ignored) {
             return null;
         }

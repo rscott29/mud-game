@@ -1,7 +1,7 @@
 package com.scott.tech.mud.mud_game.quest;
 
-import com.scott.tech.mud.mud_game.combat.CombatLoopScheduler;
 import com.scott.tech.mud.mud_game.combat.CombatState;
+import com.scott.tech.mud.mud_game.combat.event.StopCombatLoopEvent;
 import com.scott.tech.mud.mud_game.model.Direction;
 import com.scott.tech.mud.mud_game.model.Npc;
 import com.scott.tech.mud.mud_game.model.Player;
@@ -12,6 +12,7 @@ import com.scott.tech.mud.mud_game.session.GameSessionManager;
 import com.scott.tech.mud.mud_game.websocket.WorldBroadcaster;
 import com.scott.tech.mud.mud_game.world.WorldService;
 import org.junit.jupiter.api.Test;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.scheduling.TaskScheduler;
 
 import java.time.Clock;
@@ -47,7 +48,7 @@ class DefendObjectiveRuntimeServiceTest {
         GameSessionManager sessionManager = new GameSessionManager();
         WorldService worldService = mock(WorldService.class);
         CombatState combatState = new CombatState();
-        CombatLoopScheduler combatLoopScheduler = mock(CombatLoopScheduler.class);
+        ApplicationEventPublisher eventPublisher = mock(ApplicationEventPublisher.class);
         MutableClock clock = new MutableClock(Instant.parse("2026-04-06T12:00:00Z"));
 
         List<ScheduledCall> scheduledCalls = captureScheduledCalls(taskScheduler);
@@ -57,7 +58,7 @@ class DefendObjectiveRuntimeServiceTest {
                 sessionManager,
                 worldService,
                 combatState,
-                combatLoopScheduler,
+                eventPublisher,
                 clock
         );
 
@@ -95,7 +96,7 @@ class DefendObjectiveRuntimeServiceTest {
         GameSessionManager sessionManager = new GameSessionManager();
         WorldService worldService = mock(WorldService.class);
         CombatState combatState = new CombatState();
-        CombatLoopScheduler combatLoopScheduler = mock(CombatLoopScheduler.class);
+        ApplicationEventPublisher eventPublisher = mock(ApplicationEventPublisher.class);
         MutableClock clock = new MutableClock(Instant.parse("2026-04-06T12:00:00Z"));
 
         List<ScheduledCall> scheduledCalls = captureScheduledCalls(taskScheduler);
@@ -105,7 +106,7 @@ class DefendObjectiveRuntimeServiceTest {
                 sessionManager,
                 worldService,
                 combatState,
-                combatLoopScheduler,
+                eventPublisher,
                 clock
         );
 
@@ -136,7 +137,7 @@ class DefendObjectiveRuntimeServiceTest {
         GameSessionManager sessionManager = new GameSessionManager();
         WorldService worldService = mock(WorldService.class);
         CombatState combatState = new CombatState();
-        CombatLoopScheduler combatLoopScheduler = mock(CombatLoopScheduler.class);
+        ApplicationEventPublisher eventPublisher = mock(ApplicationEventPublisher.class);
         MutableClock clock = new MutableClock(Instant.parse("2026-04-06T12:00:00Z"));
 
         List<ScheduledCall> scheduledCalls = captureScheduledCalls(taskScheduler);
@@ -146,7 +147,7 @@ class DefendObjectiveRuntimeServiceTest {
                 sessionManager,
                 worldService,
                 combatState,
-                combatLoopScheduler,
+                eventPublisher,
                 clock
         );
 
@@ -170,7 +171,7 @@ class DefendObjectiveRuntimeServiceTest {
         verify(broadcaster).sendToSession(eq("session-1"), any());
         verify(broadcaster).broadcastToRoom(eq("room-1"), any(), eq("session-1"));
         verify(worldService).removeNpcInstance("wolf-1");
-        verify(combatLoopScheduler, never()).stopCombatLoop(anyString());
+        verify(eventPublisher, never()).publishEvent(any(StopCombatLoopEvent.class));
     }
 
     @Test
@@ -180,7 +181,7 @@ class DefendObjectiveRuntimeServiceTest {
         GameSessionManager sessionManager = new GameSessionManager();
         WorldService worldService = mock(WorldService.class);
         CombatState combatState = new CombatState();
-        CombatLoopScheduler combatLoopScheduler = mock(CombatLoopScheduler.class);
+        ApplicationEventPublisher eventPublisher = mock(ApplicationEventPublisher.class);
         MutableClock clock = new MutableClock(Instant.parse("2026-04-06T12:00:00Z"));
 
         List<ScheduledCall> scheduledCalls = captureScheduledCalls(taskScheduler);
@@ -190,7 +191,7 @@ class DefendObjectiveRuntimeServiceTest {
                 sessionManager,
                 worldService,
                 combatState,
-                combatLoopScheduler,
+                eventPublisher,
                 clock
         );
 
