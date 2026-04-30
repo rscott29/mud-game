@@ -333,6 +333,7 @@
   "command.social.no_target"            : "'{target}' is not in this room.",
 
   "error.session_not_active"            : "Session is not currently active.",
+  "error.command_rate_limited"          : "You're issuing commands too quickly. Catch your breath.",
   "error.session_not_found"             : "Session not found.",
   "error.unexpected_auth_state"         : "Unexpected auth state: {state}",
   "error.invalid_message_format"        : "Invalid message format. Expected JSON: {\"command\":\"look\",\"args\":[]} or {\"input\":\"look around\"}",

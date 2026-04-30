@@ -27,6 +27,9 @@ export interface TerminalStateChanges {
 
 @Injectable()
 export class TerminalMessageStore {
+  /** Hard cap on retained scrollback. Beyond this, oldest messages are dropped to keep the DOM bounded. */
+  private static readonly MAX_MESSAGES = 2000;
+
   private readonly formatter = inject(MessageFormatterService);
   private readonly commandCatalog = inject(CommandCatalogService);
 
@@ -68,12 +71,12 @@ export class TerminalMessageStore {
   }
 
   addDisplayMessage(message: FormattedMessage): void {
-    this.messages.update(list => [...list, { id: ++this.nextId, cssClass: message.cssClass, html: message.html }]);
+    this.messages.update(list => this.cap([...list, { id: ++this.nextId, cssClass: message.cssClass, html: message.html }]));
   }
 
   addHelpMessage(isGod: boolean): void {
     const formatted = this.formatter.formatHelpCard(isGod);
-    this.messages.update(list => [
+    this.messages.update(list => this.cap([
       ...list,
       {
         id: ++this.nextId,
@@ -81,7 +84,7 @@ export class TerminalMessageStore {
         html: formatted.html,
         helpIsGod: isGod,
       },
-    ]);
+    ]));
   }
 
   upsertRoomMessage(source: GameMessage): void {
@@ -98,12 +101,12 @@ export class TerminalMessageStore {
 
     this.messages.update(list => {
       if (!shouldMergeIntoActiveRoom) {
-        return [...list, this.createRoomMessage(roomId, source)];
+        return this.cap([...list, this.createRoomMessage(roomId, source)]);
       }
 
       const targetIndex = list.findIndex(message => message.id === this.activeRoomMessageId);
       if (targetIndex === -1) {
-        return [...list, this.createRoomMessage(roomId, source)];
+        return this.cap([...list, this.createRoomMessage(roomId, source)]);
       }
 
       const existing = list[targetIndex];
@@ -136,12 +139,12 @@ export class TerminalMessageStore {
     this.messages.update(list => {
       const targetIndex = list.findIndex(message => message.id === this.activeRoomMessageId);
       if (targetIndex === -1) {
-        return [...list, { id: ++this.nextId, cssClass: fallback.cssClass, html: fallback.html }];
+        return this.cap([...list, { id: ++this.nextId, cssClass: fallback.cssClass, html: fallback.html }]);
       }
 
       const existing = list[targetIndex];
       if (!existing.room) {
-        return [...list, { id: ++this.nextId, cssClass: fallback.cssClass, html: fallback.html }];
+        return this.cap([...list, { id: ++this.nextId, cssClass: fallback.cssClass, html: fallback.html }]);
       }
 
       const mergedSource: GameMessage = {
@@ -170,6 +173,24 @@ export class TerminalMessageStore {
     this.messages.set([]);
     this.activeRoomMessageId = null;
     this.activeRoomId = null;
+  }
+
+  /**
+   * Caps the scrollback buffer so the DOM stays bounded over long sessions.
+   * If the active room message is dropped by the trim, its tracker is cleared so we don't
+   * try to merge into a message that no longer exists.
+   */
+  private cap(list: DisplayMessage[]): DisplayMessage[] {
+    if (list.length <= TerminalMessageStore.MAX_MESSAGES) {
+      return list;
+    }
+    const trimmed = list.slice(list.length - TerminalMessageStore.MAX_MESSAGES);
+    if (this.activeRoomMessageId !== null
+        && !trimmed.some(message => message.id === this.activeRoomMessageId)) {
+      this.activeRoomMessageId = null;
+      this.activeRoomId = null;
+    }
+    return trimmed;
   }
 
   private refreshHelpMessages(): void {

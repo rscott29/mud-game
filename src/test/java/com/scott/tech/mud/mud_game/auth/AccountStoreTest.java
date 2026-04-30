@@ -24,8 +24,8 @@ class AccountStoreTest {
     @BeforeEach
     void setUp() {
         accountRepository = mock(AccountRepository.class);
-        accountStore = new AccountStore(accountRepository);
         encoder = new BCryptPasswordEncoder();
+        accountStore = new AccountStore(accountRepository, encoder);
     }
 
     @Test

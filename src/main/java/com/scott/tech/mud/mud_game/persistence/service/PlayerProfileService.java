@@ -38,13 +38,14 @@ import java.util.Optional;
 public class PlayerProfileService {
 
     private static final Logger log = LoggerFactory.getLogger(PlayerProfileService.class);
-    private static final ObjectMapper ACTIVE_QUESTS_MAPPER = new ObjectMapper();
     private static final TypeReference<List<PersistedActiveQuest>> ACTIVE_QUESTS_TYPE = new TypeReference<>() {};
 
     private final PlayerProfileRepository profileRepository;
+    private final ObjectMapper objectMapper;
 
-    public PlayerProfileService(PlayerProfileRepository profileRepository) {
+    public PlayerProfileService(PlayerProfileRepository profileRepository, ObjectMapper objectMapper) {
         this.profileRepository = profileRepository;
+        this.objectMapper = objectMapper;
     }
 
     /**
@@ -263,7 +264,7 @@ public class PlayerProfileService {
         }
         try {
             List<PersistedActiveQuest> activeQuests =
-                    ACTIVE_QUESTS_MAPPER.readValue(serializedActiveQuests, ACTIVE_QUESTS_TYPE);
+                    objectMapper.readValue(serializedActiveQuests, ACTIVE_QUESTS_TYPE);
             for (PersistedActiveQuest activeQuest : activeQuests) {
                 player.getQuestState().restoreActiveQuest(
                         activeQuest.questId(),
@@ -306,7 +307,7 @@ public class PlayerProfileService {
 
     private String writeActiveQuestJson(List<PersistedActiveQuest> activeQuests, String username) {
         try {
-            return ACTIVE_QUESTS_MAPPER.writeValueAsString(activeQuests);
+            return objectMapper.writeValueAsString(activeQuests);
         } catch (JsonProcessingException e) {
             throw new IllegalStateException("Failed to serialize active quests for '" + username + "'", e);
         }

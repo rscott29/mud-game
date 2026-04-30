@@ -1,6 +1,8 @@
 package com.scott.tech.mud.mud_game.model;
 
 import com.scott.tech.mud.mud_game.quest.PlayerQuestState;
+import org.springframework.lang.NonNull;
+import org.springframework.lang.Nullable;
 
 import java.util.Collections;
 import java.util.EnumMap;
@@ -51,17 +53,17 @@ public class Player {
         this.recallRoomId  = startRoomId;
     }
 
-    public String getId()                 { return id; }
-    public String getName()               { return name; }
-    public String getCurrentRoomId()      { return currentRoomId; }
+    public @NonNull String getId()                 { return id; }
+    public @NonNull String getName()               { return name; }
+    public @NonNull String getCurrentRoomId()      { return currentRoomId; }
     public int    getLevel()              { return level; }
-    public String getTitle()              { return title; }
-    public String getRace()               { return race; }
-    public String getCharacterClass()     { return characterClass; }
-    public String getPronounsSubject()    { return pronounsSubject; }
-    public String getPronounsObject()     { return pronounsObject; }
-    public String getPronounsPossessive() { return pronounsPossessive; }
-    public String getDescription()        { return description; }
+    public @NonNull String getTitle()              { return title; }
+    public @NonNull String getRace()               { return race; }
+    public @NonNull String getCharacterClass()     { return characterClass; }
+    public @NonNull String getPronounsSubject()    { return pronounsSubject; }
+    public @NonNull String getPronounsObject()     { return pronounsObject; }
+    public @NonNull String getPronounsPossessive() { return pronounsPossessive; }
+    public @Nullable String getDescription()       { return description; }
     public int getHealth()                { return health; }
     public int getMaxHealth()             { return maxHealth; }
     public int getMana()                  { return mana; }
@@ -77,12 +79,12 @@ public class Player {
     public boolean isAlive()              { return health > 0; }
     public int getWill()                  { return will; }
     public int getFragmentChanceBonusPercent() { return will * 3; }
-    public List<Item> getInventory()      { return inventory; }
-    public String getEquippedWeaponId()   { return equippedItemIds.get(EquipmentSlot.MAIN_WEAPON); }
-    public String getRecallRoomId()       { return recallRoomId; }
-    public ModerationPreferences getModerationPreferences() { return moderationPreferences; }
-    public String getModerationFilters()  { return moderationPreferences.serialize(); }
-    public PlayerQuestState getQuestState() { return questState; }
+    public @NonNull List<Item> getInventory()      { return inventory; }
+    public @Nullable String getEquippedWeaponId()  { return equippedItemIds.get(EquipmentSlot.MAIN_WEAPON); }
+    public @NonNull String getRecallRoomId()       { return recallRoomId; }
+    public @NonNull ModerationPreferences getModerationPreferences() { return moderationPreferences; }
+    public @NonNull String getModerationFilters()  { return moderationPreferences.serialize(); }
+    public @NonNull PlayerQuestState getQuestState() { return questState; }
 
     public void setName(String name)                     { this.name = name; }
     public void setCurrentRoomId(String currentRoomId)   { this.currentRoomId = currentRoomId; }

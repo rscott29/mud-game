@@ -1,5 +1,6 @@
 package com.scott.tech.mud.mud_game.persistence.service;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.scott.tech.mud.mud_game.model.Player;
 import com.scott.tech.mud.mud_game.persistence.cache.PlayerStateCache.CachedActiveQuest;
 import com.scott.tech.mud.mud_game.persistence.cache.PlayerStateCache.CachedPlayerState;
@@ -25,7 +26,7 @@ class PlayerProfileServiceTest {
     @BeforeEach
     void setUp() {
         profileRepository = mock(PlayerProfileRepository.class);
-        playerProfileService = new PlayerProfileService(profileRepository);
+        playerProfileService = new PlayerProfileService(profileRepository, new ObjectMapper());
         when(profileRepository.save(any(PlayerProfileEntity.class)))
                 .thenAnswer(invocation -> invocation.getArgument(0));
     }

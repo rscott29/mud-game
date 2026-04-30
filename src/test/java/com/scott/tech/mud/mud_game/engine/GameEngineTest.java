@@ -42,10 +42,25 @@ class GameEngineTest {
     }
 
     @Test
+    void process_whenRateLimited_returnsErrorWithoutDispatchingCommand() {
+        GameSession session = mock(GameSession.class);
+        when(session.getState()).thenReturn(SessionState.PLAYING);
+        when(session.tryConsumeCommandToken()).thenReturn(false);
+
+        CommandResult result = gameEngine.process(session, new CommandRequest());
+
+        assertThat(result.getResponses()).hasSize(1);
+        assertThat(result.getResponses().get(0).type()).isEqualTo(GameResponse.Type.ERROR);
+        verify(session, never()).recordPlayerAction();
+        verify(commandFactory, never()).create(org.mockito.ArgumentMatchers.any());
+    }
+
+    @Test
     void process_whenPlaying_createsAndExecutesCommand() {
         GameSession session = mock(GameSession.class);
         Player player = mock(Player.class);
         when(session.getState()).thenReturn(SessionState.PLAYING);
+        when(session.tryConsumeCommandToken()).thenReturn(true);
         when(session.getPlayer()).thenReturn(player);
         when(player.isDead()).thenReturn(false);
 
@@ -69,6 +84,7 @@ class GameEngineTest {
         GameSession session = mock(GameSession.class);
         Player player = mock(Player.class);
         when(session.getState()).thenReturn(SessionState.PLAYING);
+        when(session.tryConsumeCommandToken()).thenReturn(true);
         when(session.getPlayer()).thenReturn(player);
         when(player.isDead()).thenReturn(true);
 
@@ -88,6 +104,7 @@ class GameEngineTest {
         GameSession session = mock(GameSession.class);
         Player player = mock(Player.class);
         when(session.getState()).thenReturn(SessionState.PLAYING);
+        when(session.tryConsumeCommandToken()).thenReturn(true);
         when(session.getPlayer()).thenReturn(player);
         when(player.isDead()).thenReturn(true);
 

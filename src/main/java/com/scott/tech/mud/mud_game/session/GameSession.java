@@ -53,6 +53,12 @@ public class GameSession {
     private boolean suppressDisconnectCleanup;
     /** Timed consumable effects currently active on this session. */
     private final CopyOnWriteArrayList<ActiveConsumableEffect> activeConsumableEffects = new CopyOnWriteArrayList<>();
+    /**
+     * Per-session token bucket that smooths out command bursts.
+     * Capacity 20 with a 10-token/sec refill: comfortable for human play and macros,
+     * but blocks pathological flooding (e.g. broken clients) before it hits the engine.
+     */
+    private final TokenBucket commandBucket = new TokenBucket(20, 10.0);
 
     public GameSession(String sessionId, Player player, WorldService worldService) {
         this.sessionId    = sessionId;
@@ -112,6 +118,14 @@ public class GameSession {
 
     public boolean hasActiveConsumableEffects() {
         return !activeConsumableEffects.isEmpty();
+    }
+
+    /**
+     * Attempts to consume one command token. Returns false if the player is currently
+     * over the per-session command rate limit.
+     */
+    public boolean tryConsumeCommandToken() {
+        return commandBucket.tryConsume();
     }
 
     public void addActiveConsumableEffect(ActiveConsumableEffect effect) {

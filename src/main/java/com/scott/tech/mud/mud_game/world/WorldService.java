@@ -10,70 +10,78 @@ import com.scott.tech.mud.mud_game.persistence.repository.NpcPositionRepository;
 import jakarta.annotation.PostConstruct;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.stereotype.Service;
 
-import java.time.Instant;
+import java.util.List;
 import java.util.Map;
-import java.util.Locale;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ScheduledFuture;
 
+/**
+ * Facade for the loaded world. Delegates NPC concerns to focused collaborators
+ * ({@link NpcRegistry}, {@link NpcPositionTracker}, {@link NpcSceneManager}) while
+ * keeping the simple room/item/give-interaction maps in-place.
+ *
+ * <p>This class is the single concurrency authority for cross-collaborator atomic
+ * operations (spawn, remove, move, summon, scene apply/reset, description update).
+ * Methods that touch more than one collaborator are {@code synchronized}.</p>
+ */
 @Service
 public class WorldService {
 
     private static final Logger log = LoggerFactory.getLogger(WorldService.class);
 
     private final WorldLoader worldLoader;
-    private final NpcPositionRepository npcPositionRepository;
+    private final NpcRegistry npcRegistry = new NpcRegistry();
+    private final NpcPositionTracker positionTracker;
+    private final NpcSceneManager sceneManager;
 
     private Map<String, Room> rooms = Map.of();
-    private Map<String, Npc> npcRegistry = new ConcurrentHashMap<>();
     private Map<String, Item> itemRegistry = Map.of();
-    private Map<String, java.util.List<NpcGiveInteraction>> npcGiveInteractions = Map.of();
-    private final Map<String, String> npcRoomIndex = new ConcurrentHashMap<>();
-    private final Map<String, Npc> npcSceneOriginals = new ConcurrentHashMap<>();
-    private final Map<String, NpcSceneOverride> activeNpcScenes = new ConcurrentHashMap<>();
-    private final Map<String, ScheduledFuture<?>> npcSceneResetFutures = new ConcurrentHashMap<>();
+    private Map<String, List<NpcGiveInteraction>> npcGiveInteractions = Map.of();
     private String startRoomId;
     private String defaultRecallRoomId;
-    @Autowired(required = false)
-    private TaskScheduler taskScheduler;
+
+    @Autowired
+    public WorldService(WorldLoader worldLoader,
+                        NpcPositionRepository npcPositionRepository,
+                        ObjectProvider<TaskScheduler> taskSchedulerProvider) {
+        this.worldLoader     = worldLoader;
+        this.positionTracker = new NpcPositionTracker(npcPositionRepository);
+        this.sceneManager    = new NpcSceneManager(taskSchedulerProvider.getIfAvailable());
+    }
 
     public WorldService(WorldLoader worldLoader, NpcPositionRepository npcPositionRepository) {
-        this.worldLoader           = worldLoader;
-        this.npcPositionRepository = npcPositionRepository;
+        this.worldLoader     = worldLoader;
+        this.positionTracker = new NpcPositionTracker(npcPositionRepository);
+        this.sceneManager    = new NpcSceneManager(null);
     }
 
     @PostConstruct
     public void loadWorld() {
         try {
             WorldLoadResult loaded = worldLoader.load();
-            this.rooms = loaded.rooms();
-            this.npcRegistry = new ConcurrentHashMap<>(loaded.npcRegistry());
-            this.itemRegistry = loaded.itemRegistry();
+            this.rooms               = loaded.rooms();
+            this.itemRegistry        = loaded.itemRegistry();
             this.npcGiveInteractions = loaded.npcGiveInteractions();
-            this.startRoomId = loaded.startRoomId();
+            this.startRoomId         = loaded.startRoomId();
             this.defaultRecallRoomId = loaded.defaultRecallRoomId();
 
-            cancelNpcSceneResets();
-            npcSceneOriginals.clear();
-            activeNpcScenes.clear();
-            npcRoomIndex.clear();
-            npcRoomIndex.putAll(loaded.npcRoomIndex());
+            sceneManager.clearAll();
+            npcRegistry.initialize(loaded.npcRegistry());
+            positionTracker.initialize(loaded.npcRoomIndex());
 
-            // Overlay with persisted NPC positions from the database
-            int[] overlaid = {0};
-            npcPositionRepository.findAll().forEach(pos -> {
+            int overlaid = 0;
+            for (NpcPositionEntity pos : positionTracker.persistedPositions()) {
                 if (restorePersistedNpcPosition(pos)) {
-                    overlaid[0]++;
+                    overlaid++;
                 }
-            });
-            if (overlaid[0] > 0) {
-                log.info("Restored {} NPC position(s) from database", overlaid[0]);
+            }
+            if (overlaid > 0) {
+                log.info("Restored {} NPC position(s) from database", overlaid);
             }
         } catch (WorldLoadException e) {
             throw e;  // already the right type — let it fail startup cleanly
@@ -81,6 +89,8 @@ public class WorldService {
             throw new WorldLoadException("Failed to load world data", e);
         }
     }
+
+    // ---------------------------------------------------------------------- rooms / items
 
     public Room getRoom(String id) {
         return rooms.get(id);
@@ -98,9 +108,52 @@ public class WorldService {
         return defaultRecallRoomId;
     }
 
+    public Item getItemById(String itemId) {
+        return itemRegistry.get(itemId);
+    }
+
+    /** Removes the given item from every room that currently holds it. */
+    public void removeItemFromAllRooms(Item item) {
+        rooms.values().forEach(room -> room.removeItem(item));
+    }
+
+    public List<NpcGiveInteraction> getNpcGiveInteractions(String npcId) {
+        return npcGiveInteractions.getOrDefault(npcId, List.of());
+    }
+
+    // ---------------------------------------------------------------------- npc lookup
+
     public Npc getNpcById(String npcId) {
         return npcRegistry.get(npcId);
     }
+
+    public Optional<Npc> findNpcByLookup(String input) {
+        return npcRegistry.findByLookup(input);
+    }
+
+    public Optional<String> findNpcRoomIdByLookup(String input) {
+        return npcRegistry.findByLookup(input)
+                .map(Npc::getId)
+                .map(positionTracker::getRoomId);
+    }
+
+    public String getNpcRoomId(String npcId) {
+        return positionTracker.getRoomId(npcId);
+    }
+
+    public java.util.Collection<Npc> getWanderingNpcs() {
+        return npcRegistry.wandering();
+    }
+
+    public boolean isNpcTemplatePresent(String templateNpcId) {
+        return positionTracker.isTemplatePresent(templateNpcId);
+    }
+
+    public boolean isNpcWanderSuppressed(String npcId) {
+        return sceneManager.isWanderSuppressed(npcId);
+    }
+
+    // ---------------------------------------------------------------------- npc lifecycle
 
     public synchronized Optional<Npc> spawnNpcInstance(String templateNpcId, String roomId) {
         Npc template = npcRegistry.get(templateNpcId);
@@ -111,10 +164,9 @@ public class WorldService {
 
         String instanceId = templateNpcId + Npc.INSTANCE_ID_DELIMITER + UUID.randomUUID();
         Npc instance = template.withId(instanceId);
-        npcRegistry.put(instanceId, instance);
-        npcRoomIndex.put(instanceId, roomId);
+        npcRegistry.put(instance);
+        positionTracker.place(instanceId, roomId);
         room.addNpc(instance);
-        npcPositionRepository.save(new NpcPositionEntity(instanceId, roomId));
         return Optional.of(instance);
     }
 
@@ -123,9 +175,9 @@ public class WorldService {
             return;
         }
 
-        clearNpcSceneState(npcId);
+        sceneManager.clearSceneState(npcId);
         Npc npc = npcRegistry.remove(npcId);
-        String roomId = npcRoomIndex.remove(npcId);
+        String roomId = positionTracker.remove(npcId);
         if (npc == null || roomId == null) {
             return;
         }
@@ -134,48 +186,6 @@ public class WorldService {
         if (room != null) {
             room.removeNpc(npc);
         }
-        npcPositionRepository.deleteById(npcId);
-    }
-
-    public String getNpcRoomId(String npcId) {
-        return npcRoomIndex.get(npcId);
-    }
-
-    /**
-     * Finds an NPC by id, exact name, exact keyword, or loose name-token match.
-     */
-    public Optional<Npc> findNpcByLookup(String input) {
-        String normalized = normalize(input);
-        if (normalized.isEmpty()) {
-            return Optional.empty();
-        }
-
-        return npcRegistry.values().stream()
-                .filter(npc -> matchesLookup(npc, normalized))
-                .findFirst();
-    }
-
-    public Optional<String> findNpcRoomIdByLookup(String input) {
-        return findNpcByLookup(input)
-                .map(Npc::getId)
-                .map(npcRoomIndex::get);
-    }
-
-    public Item getItemById(String itemId) {
-        return itemRegistry.get(itemId);
-    }
-
-    public java.util.List<NpcGiveInteraction> getNpcGiveInteractions(String npcId) {
-        return npcGiveInteractions.getOrDefault(npcId, java.util.List.of());
-    }
-
-    public boolean isNpcTemplatePresent(String templateNpcId) {
-        if (templateNpcId == null || templateNpcId.isBlank()) {
-            return false;
-        }
-
-        return npcRoomIndex.keySet().stream()
-                .anyMatch(npcId -> npcId.equals(templateNpcId) || Npc.templateIdFor(npcId).equals(templateNpcId));
     }
 
     public synchronized Optional<Npc> summonNpcToRoom(String npcId, String roomId) {
@@ -188,18 +198,17 @@ public class WorldService {
             return Optional.empty();
         }
 
-        String existingNpcId = resolveExistingNpcId(npcId);
+        String existingNpcId = positionTracker.resolveExistingNpcId(npcId);
         if (existingNpcId != null) {
             Npc npc = npcRegistry.get(existingNpcId);
             if (npc == null) {
                 return Optional.empty();
             }
 
-            String currentRoomId = npcRoomIndex.get(existingNpcId);
+            String currentRoomId = positionTracker.getRoomId(existingNpcId);
             if (currentRoomId == null || currentRoomId.isBlank()) {
                 targetRoom.addNpc(npc);
-                npcRoomIndex.put(existingNpcId, roomId);
-                npcPositionRepository.save(new NpcPositionEntity(existingNpcId, roomId));
+                positionTracker.place(existingNpcId, roomId);
                 return Optional.of(npc);
             }
 
@@ -212,24 +221,8 @@ public class WorldService {
         return spawnNpcInstance(npcId, roomId);
     }
 
-    /** Removes the given item from every room that currently holds it. */
-    public void removeItemFromAllRooms(Item item) {
-        rooms.values().forEach(room -> room.removeItem(item));
-    }
-
-    public java.util.Collection<Npc> getWanderingNpcs() {
-        return npcRegistry.values().stream()
-                .filter(Npc::doesWander)
-                .toList();
-    }
-
-    public boolean isNpcWanderSuppressed(String npcId) {
-        NpcSceneOverride scene = activeNpcScenes.get(npcId);
-        return scene != null && scene.suppressWander();
-    }
-
     public synchronized void moveNpc(String npcId, String fromRoomId, String toRoomId) {
-        NpcSceneOverride activeScene = activeNpcScenes.get(npcId);
+        NpcSceneOverride activeScene = sceneManager.active(npcId);
         if (activeScene != null && activeScene.resetOnMove()) {
             resetNpcScene(npcId);
         }
@@ -242,9 +235,10 @@ public class WorldService {
         }
         fromRoom.removeNpc(npc);
         toRoom.addNpc(npc);
-        npcRoomIndex.put(npcId, toRoomId);
-        npcPositionRepository.save(new NpcPositionEntity(npcId, toRoomId));
+        positionTracker.place(npcId, toRoomId);
     }
+
+    // ---------------------------------------------------------------------- scenes
 
     public synchronized Optional<Npc> applyTemporaryNpcScene(NpcSceneOverride scene) {
         if (scene == null || scene.npcId() == null || scene.npcId().isBlank()) {
@@ -256,7 +250,7 @@ public class WorldService {
             return Optional.empty();
         }
 
-        npcSceneOriginals.putIfAbsent(scene.npcId(), currentNpc);
+        sceneManager.rememberOriginal(scene.npcId(), currentNpc);
         Npc updatedNpc = currentNpc.withPresentation(
                 scene.description() != null && !scene.description().isBlank()
                         ? scene.description()
@@ -266,16 +260,12 @@ public class WorldService {
         );
 
         replaceNpc(scene.npcId(), currentNpc, updatedNpc);
-        activeNpcScenes.put(scene.npcId(), scene);
-        scheduleNpcSceneReset(scene);
+        sceneManager.activate(scene, () -> resetNpcScene(scene.npcId()));
         return Optional.of(updatedNpc);
     }
 
     public synchronized boolean resetNpcScene(String npcId) {
-        Npc originalNpc = npcSceneOriginals.remove(npcId);
-        cancelNpcSceneReset(npcId);
-        activeNpcScenes.remove(npcId);
-
+        Npc originalNpc = sceneManager.deactivate(npcId);
         if (originalNpc == null) {
             return false;
         }
@@ -289,37 +279,62 @@ public class WorldService {
         return true;
     }
 
-    private String resolveExistingNpcId(String npcId) {
-        if (npcRoomIndex.containsKey(npcId)) {
-            return npcId;
+    /** Updates an NPC's description in the registry and any room it currently occupies. */
+    public synchronized void updateNpcDescription(String npcId, String newDescription) {
+        Npc oldNpc = npcRegistry.get(npcId);
+        if (oldNpc == null) {
+            log.warn("Cannot update description: NPC '{}' not found", npcId);
+            return;
         }
 
-        return npcRoomIndex.keySet().stream()
-                .filter(existingNpcId -> Npc.templateIdFor(existingNpcId).equals(npcId))
-                .findFirst()
-                .orElse(null);
+        if (sceneManager.hasOriginal(npcId)) {
+            sceneManager.mapOriginal(npcId, original -> original.withDescription(newDescription));
+        }
+
+        Npc updatedNpc = oldNpc.withDescription(newDescription);
+        replaceNpc(npcId, oldNpc, updatedNpc);
+
+        log.debug("Updated NPC '{}' description", npcId);
+    }
+
+    // ---------------------------------------------------------------------- internals
+
+    private void replaceNpc(String npcId, Npc oldNpc, Npc updatedNpc) {
+        npcRegistry.replace(npcId, oldNpc, updatedNpc);
+
+        String roomId = positionTracker.getRoomId(npcId);
+        if (roomId == null) {
+            return;
+        }
+
+        Room room = rooms.get(roomId);
+        if (room == null) {
+            return;
+        }
+
+        room.removeNpc(oldNpc);
+        room.addNpc(updatedNpc);
     }
 
     private boolean restorePersistedNpcPosition(NpcPositionEntity pos) {
-        if (pos == null || pos.getNpcId() == null || pos.getRoomId() == null || !rooms.containsKey(pos.getRoomId())) {
+        if (pos == null || pos.getNpcId() == null || pos.getRoomId() == null
+                || !rooms.containsKey(pos.getRoomId())) {
             return false;
         }
 
         String npcId = pos.getNpcId();
         String savedRoom = pos.getRoomId();
-        String currentRoom = npcRoomIndex.get(npcId);
+        String currentRoom = positionTracker.getRoomId(npcId);
         if (currentRoom != null) {
             if (currentRoom.equals(savedRoom)) {
                 return false;
             }
-
             Npc npc = npcRegistry.get(npcId);
             if (npc == null) {
                 return false;
             }
-
             moveNpcToRoom(npc, currentRoom, savedRoom);
-            npcRoomIndex.put(npcId, savedRoom);
+            positionTracker.placeInMemory(npcId, savedRoom);
             return true;
         }
 
@@ -335,8 +350,8 @@ public class WorldService {
         }
 
         Npc instance = template.withId(npcId);
-        npcRegistry.put(npcId, instance);
-        npcRoomIndex.put(npcId, savedRoom);
+        npcRegistry.put(instance);
+        positionTracker.placeInMemory(npcId, savedRoom);
         room.addNpc(instance);
         return true;
     }
@@ -350,105 +365,5 @@ public class WorldService {
         if (to != null) {
             to.addNpc(npc);
         }
-    }
-
-    /**
-     * Updates an NPC's description in the registry and any room it currently occupies.
-     */
-    public synchronized void updateNpcDescription(String npcId, String newDescription) {
-        Npc oldNpc = npcRegistry.get(npcId);
-        if (oldNpc == null) {
-            log.warn("Cannot update description: NPC '{}' not found", npcId);
-            return;
-        }
-
-        if (npcSceneOriginals.containsKey(npcId)) {
-            npcSceneOriginals.computeIfPresent(npcId, (id, originalNpc) -> originalNpc.withDescription(newDescription));
-        }
-
-        Npc updatedNpc = oldNpc.withDescription(newDescription);
-        replaceNpc(npcId, oldNpc, updatedNpc);
-
-        log.debug("Updated NPC '{}' description", npcId);
-    }
-
-    private void replaceNpc(String npcId, Npc oldNpc, Npc updatedNpc) {
-        npcRegistry.put(npcId, updatedNpc);
-
-        String roomId = npcRoomIndex.get(npcId);
-        if (roomId == null) {
-            return;
-        }
-
-        Room room = rooms.get(roomId);
-        if (room == null) {
-            return;
-        }
-
-        room.removeNpc(oldNpc);
-        room.addNpc(updatedNpc);
-    }
-
-    private void scheduleNpcSceneReset(NpcSceneOverride scene) {
-        cancelNpcSceneReset(scene.npcId());
-        if (scene.durationSeconds() <= 0 || taskScheduler == null) {
-            return;
-        }
-
-        try {
-            ScheduledFuture<?> future = taskScheduler.schedule(
-                    () -> resetNpcScene(scene.npcId()),
-                    Instant.now().plusSeconds(scene.durationSeconds())
-            );
-            if (future != null) {
-                npcSceneResetFutures.put(scene.npcId(), future);
-            }
-        } catch (Exception e) {
-            log.debug("Could not schedule temporary NPC scene reset for '{}': {}", scene.npcId(), e.getMessage());
-        }
-    }
-
-    private void cancelNpcSceneReset(String npcId) {
-        ScheduledFuture<?> future = npcSceneResetFutures.remove(npcId);
-        if (future != null) {
-            future.cancel(false);
-        }
-    }
-
-    private void cancelNpcSceneResets() {
-        npcSceneResetFutures.values().forEach(future -> future.cancel(false));
-        npcSceneResetFutures.clear();
-    }
-
-    private void clearNpcSceneState(String npcId) {
-        cancelNpcSceneReset(npcId);
-        npcSceneOriginals.remove(npcId);
-        activeNpcScenes.remove(npcId);
-    }
-
-    private boolean matchesLookup(Npc npc, String normalizedInput) {
-        if (normalize(npc.getId()).equals(normalizedInput)) {
-            return true;
-        }
-        if (normalize(npc.getName()).equals(normalizedInput)) {
-            return true;
-        }
-        if (npc.getKeywords().stream().map(this::normalize).anyMatch(normalizedInput::equals)) {
-            return true;
-        }
-
-        String normalizedName = normalize(npc.getName());
-        return java.util.Arrays.stream(normalizedInput.split("\\s+"))
-                .allMatch(normalizedName::contains);
-    }
-
-    private String normalize(String value) {
-        if (value == null) {
-            return "";
-        }
-        return value.toLowerCase(Locale.ROOT)
-                .replaceAll("[^a-z0-9\\s]", "")
-                .replaceAll("\\s+", " ")
-                .trim();
     }
 }

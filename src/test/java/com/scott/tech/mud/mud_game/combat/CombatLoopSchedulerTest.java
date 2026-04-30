@@ -30,150 +30,111 @@ class CombatLoopSchedulerTest {
 
     @Test
     void startCombatLoop_schedulesPlayerAndNpcTurnsForActiveEncounter() {
-        TaskScheduler taskScheduler = mock(TaskScheduler.class);
-        CombatService combatService = mock(CombatService.class);
-        CombatState combatState = new CombatState();
-        CombatTimingPolicy combatTimingPolicy = mock(CombatTimingPolicy.class);
-        PlayerDeathService playerDeathService = mock(PlayerDeathService.class);
-        WorldBroadcaster broadcaster = mock(WorldBroadcaster.class);
-        GameSessionManager sessionManager = new GameSessionManager();
-        LevelingService levelingService = mock(LevelingService.class);
-        WorldService worldService = mock(WorldService.class);
-
-        List<ScheduledCall> scheduledCalls = captureScheduledCalls(taskScheduler);
-
+        Fixture f = new Fixture();
         Npc npc = combatNpc("npc_wolf");
-        GameSession session = playingSession("session-1", "Axi", roomWithNpc("forest", npc), worldService);
-        sessionManager.register(session);
-        combatState.engage(session.getSessionId(), npc, "forest");
+        GameSession session = f.playingSession("session-1", "Axi", roomWithNpc("forest", npc));
+        f.sessionManager.register(session);
+        f.combatState.engage(session.getSessionId(), npc, "forest");
 
-        when(combatTimingPolicy.playerTurnDelay(session.getPlayer())).thenReturn(750L);
-        when(combatTimingPolicy.npcTurnDelay(npc)).thenReturn(900L);
+        when(f.combatTimingPolicy.playerTurnDelay(session.getPlayer())).thenReturn(750L);
+        when(f.combatTimingPolicy.npcTurnDelay(npc)).thenReturn(900L);
 
-        CombatLoopScheduler scheduler = new CombatLoopScheduler(
-                taskScheduler,
-                combatService,
-                combatState,
-                combatTimingPolicy,
-                playerDeathService,
-                broadcaster,
-                sessionManager,
-                levelingService,
-                worldService
-        );
+        f.scheduler().startCombatLoop(session.getSessionId());
 
-        scheduler.startCombatLoop(session.getSessionId());
-
-        assertThat(scheduledCalls).hasSize(2);
-        verify(combatTimingPolicy).playerTurnDelay(session.getPlayer());
-        verify(combatTimingPolicy).npcTurnDelay(npc);
+        assertThat(f.scheduledCalls).hasSize(2);
+        verify(f.combatTimingPolicy).playerTurnDelay(session.getPlayer());
+        verify(f.combatTimingPolicy).npcTurnDelay(npc);
     }
 
     @Test
     void stopCombatLoop_cancelsPlayerAndNpcTurnsWhenLastParticipantStops() {
-        TaskScheduler taskScheduler = mock(TaskScheduler.class);
-        CombatService combatService = mock(CombatService.class);
-        CombatState combatState = new CombatState();
-        CombatTimingPolicy combatTimingPolicy = mock(CombatTimingPolicy.class);
-        PlayerDeathService playerDeathService = mock(PlayerDeathService.class);
-        WorldBroadcaster broadcaster = mock(WorldBroadcaster.class);
-        GameSessionManager sessionManager = new GameSessionManager();
-        LevelingService levelingService = mock(LevelingService.class);
-        WorldService worldService = mock(WorldService.class);
-
-        List<ScheduledCall> scheduledCalls = captureScheduledCalls(taskScheduler);
-
+        Fixture f = new Fixture();
         Npc npc = combatNpc("npc_wolf");
-        GameSession session = playingSession("session-1", "Axi", roomWithNpc("forest", npc), worldService);
-        sessionManager.register(session);
-        combatState.engage(session.getSessionId(), npc, "forest");
+        GameSession session = f.playingSession("session-1", "Axi", roomWithNpc("forest", npc));
+        f.sessionManager.register(session);
+        f.combatState.engage(session.getSessionId(), npc, "forest");
 
-        when(combatTimingPolicy.playerTurnDelay(session.getPlayer())).thenReturn(750L);
-        when(combatTimingPolicy.npcTurnDelay(npc)).thenReturn(900L);
+        when(f.combatTimingPolicy.playerTurnDelay(session.getPlayer())).thenReturn(750L);
+        when(f.combatTimingPolicy.npcTurnDelay(npc)).thenReturn(900L);
 
-        CombatLoopScheduler scheduler = new CombatLoopScheduler(
-                taskScheduler,
-                combatService,
-                combatState,
-                combatTimingPolicy,
-                playerDeathService,
-                broadcaster,
-                sessionManager,
-                levelingService,
-                worldService
-        );
-
+        CombatLoopScheduler scheduler = f.scheduler();
         scheduler.startCombatLoop(session.getSessionId());
         scheduler.stopCombatLoop(session.getSessionId());
 
-        assertThat(scheduledCalls).hasSize(2);
-        verify(scheduledCalls.get(0).future()).cancel(false);
-        verify(scheduledCalls.get(1).future()).cancel(false);
+        assertThat(f.scheduledCalls).hasSize(2);
+        verify(f.scheduledCalls.get(0).future()).cancel(false);
+        verify(f.scheduledCalls.get(1).future()).cancel(false);
     }
 
     @Test
     void scheduledNpcTurn_withNoRemainingParticipantsEndsCombatWithoutAttacking() {
-        TaskScheduler taskScheduler = mock(TaskScheduler.class);
-        CombatService combatService = mock(CombatService.class);
-        CombatState combatState = new CombatState();
-        CombatTimingPolicy combatTimingPolicy = mock(CombatTimingPolicy.class);
-        PlayerDeathService playerDeathService = mock(PlayerDeathService.class);
-        WorldBroadcaster broadcaster = mock(WorldBroadcaster.class);
-        GameSessionManager sessionManager = new GameSessionManager();
-        LevelingService levelingService = mock(LevelingService.class);
-        WorldService worldService = mock(WorldService.class);
-
-        List<ScheduledCall> scheduledCalls = captureScheduledCalls(taskScheduler);
-
+        Fixture f = new Fixture();
         Npc npc = combatNpc("npc_wolf");
-        GameSession session = playingSession("session-1", "Axi", roomWithNpc("forest", npc), worldService);
-        sessionManager.register(session);
-        combatState.engage(session.getSessionId(), npc, "forest");
+        GameSession session = f.playingSession("session-1", "Axi", roomWithNpc("forest", npc));
+        f.sessionManager.register(session);
+        f.combatState.engage(session.getSessionId(), npc, "forest");
 
-        when(combatTimingPolicy.playerTurnDelay(session.getPlayer())).thenReturn(750L);
-        when(combatTimingPolicy.npcTurnDelay(npc)).thenReturn(900L);
+        when(f.combatTimingPolicy.playerTurnDelay(session.getPlayer())).thenReturn(750L);
+        when(f.combatTimingPolicy.npcTurnDelay(npc)).thenReturn(900L);
 
-        CombatLoopScheduler scheduler = new CombatLoopScheduler(
-                taskScheduler,
-                combatService,
-                combatState,
-                combatTimingPolicy,
-                playerDeathService,
-                broadcaster,
-                sessionManager,
-                levelingService,
-                worldService
-        );
-
+        CombatLoopScheduler scheduler = f.scheduler();
         scheduler.startCombatLoop(session.getSessionId());
-        sessionManager.remove(session.getSessionId());
+        f.sessionManager.remove(session.getSessionId());
 
-        scheduledCalls.get(1).task().run();
+        f.scheduledCalls.get(1).task().run();
 
-        assertThat(combatState.isInCombat(session.getSessionId())).isFalse();
-        verify(combatService, never()).executeNpcAttack(any(), any());
-        assertThat(scheduledCalls).hasSize(2);
+        assertThat(f.combatState.isInCombat(session.getSessionId())).isFalse();
+        verify(f.combatService, never()).executeNpcAttack(any(), any());
+        assertThat(f.scheduledCalls).hasSize(2);
     }
 
-    private static List<ScheduledCall> captureScheduledCalls(TaskScheduler taskScheduler) {
-        List<ScheduledCall> scheduledCalls = new ArrayList<>();
-        doAnswer(invocation -> {
-            Runnable task = invocation.getArgument(0);
-            Instant runAt = invocation.getArgument(1);
-            ScheduledFuture<?> future = mock(ScheduledFuture.class);
-            scheduledCalls.add(new ScheduledCall(task, runAt, future));
-            return future;
-        }).when(taskScheduler).schedule(any(Runnable.class), any(Instant.class));
-        return scheduledCalls;
-    }
+    /** Wires real combat collaborators around mocked infrastructure for the facade. */
+    private static final class Fixture {
+        final TaskScheduler taskScheduler = mock(TaskScheduler.class);
+        final CombatService combatService = mock(CombatService.class);
+        final CombatState combatState = new CombatState();
+        final CombatTimingPolicy combatTimingPolicy = mock(CombatTimingPolicy.class);
+        final PlayerDeathService playerDeathService = mock(PlayerDeathService.class);
+        final WorldBroadcaster broadcaster = mock(WorldBroadcaster.class);
+        final GameSessionManager sessionManager = new GameSessionManager();
+        final LevelingService levelingService = mock(LevelingService.class);
+        final WorldService worldService = mock(WorldService.class);
+        final List<ScheduledCall> scheduledCalls = new ArrayList<>();
 
-    private static GameSession playingSession(String sessionId, String playerName, Room room, WorldService worldService) {
-        when(worldService.getRoom(room.getId())).thenReturn(room);
+        Fixture() {
+            doAnswer(invocation -> {
+                Runnable task = invocation.getArgument(0);
+                Instant runAt = invocation.getArgument(1);
+                ScheduledFuture<?> future = mock(ScheduledFuture.class);
+                scheduledCalls.add(new ScheduledCall(task, runAt, future));
+                return future;
+            }).when(taskScheduler).schedule(any(Runnable.class), any(Instant.class));
+        }
 
-        Player player = new Player("player-" + sessionId, playerName, room.getId());
-        GameSession session = new GameSession(sessionId, player, worldService);
-        session.transition(SessionState.PLAYING);
-        return session;
+        CombatLoopScheduler scheduler() {
+            CombatTurnScheduler turnScheduler = new CombatTurnScheduler(taskScheduler, combatTimingPolicy);
+            CombatEncounterResolver resolver = new CombatEncounterResolver(combatState, sessionManager);
+            CombatNarrationService narration = new CombatNarrationService(broadcaster, levelingService, sessionManager);
+            CombatQuestRewardNotifier questRewardNotifier = new CombatQuestRewardNotifier(broadcaster, worldService, levelingService);
+            return new CombatLoopScheduler(
+                    combatService,
+                    combatState,
+                    playerDeathService,
+                    levelingService,
+                    turnScheduler,
+                    resolver,
+                    narration,
+                    questRewardNotifier
+            );
+        }
+
+        GameSession playingSession(String sessionId, String playerName, Room room) {
+            when(worldService.getRoom(room.getId())).thenReturn(room);
+            Player player = new Player("player-" + sessionId, playerName, room.getId());
+            GameSession session = new GameSession(sessionId, player, worldService);
+            session.transition(SessionState.PLAYING);
+            return session;
+        }
     }
 
     private static Room roomWithNpc(String roomId, Npc npc) {

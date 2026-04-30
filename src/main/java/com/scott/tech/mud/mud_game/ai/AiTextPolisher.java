@@ -34,6 +34,11 @@ public class AiTextPolisher {
     private final ChatClient chatClient;
     private final boolean enabled;
     private final ConcurrentMap<CacheKey, String> cache = new ConcurrentHashMap<>();
+    /**
+     * Trips after 5 consecutive AI failures, stays open for 30s. While open,
+     * polishing returns the original text immediately rather than waiting on a doomed call.
+     */
+    private final AiCircuitBreaker breaker = new AiCircuitBreaker(5, java.time.Duration.ofSeconds(30));
 
     @Autowired
     public AiTextPolisher(ChatClient.Builder builder) {
@@ -68,6 +73,11 @@ public class AiTextPolisher {
     }
 
     private String resolve(CacheKey key) {
+        if (!breaker.allowRequest()) {
+            log.debug("AI text polish circuit open; returning original text for style={} tone={}",
+                    key.style(), key.tone());
+            return key.text();
+        }
         try {
             String candidate = chatClient.prompt()
                     .system(SYSTEM_PROMPT)
@@ -77,12 +87,14 @@ public class AiTextPolisher {
 
             String normalizedCandidate = normalizeOutput(candidate);
             if (isUsable(normalizedCandidate, key.text())) {
+                breaker.recordSuccess();
                 return normalizedCandidate;
             }
 
             log.debug("AI text polish unusable for style={} tone={} text='{}'",
                     key.style(), key.tone(), key.text());
         } catch (Exception e) {
+            breaker.recordFailure();
             log.debug("AI text polish failed for style={} tone={} text='{}': {}",
                     key.style(), key.tone(), key.text(), e.getMessage());
         }

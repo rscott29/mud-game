@@ -127,7 +127,7 @@ export interface PlayerStatsDto {
   gold?: number;
   isGod: boolean;
   characterClass: string;
-  inCombat: boolean;
+  inCombat?: boolean;
 }
 
 export interface CombatStatsDto {
