@@ -1,6 +1,7 @@
 package com.scott.tech.mud.mud_game.command.registry;
 
 import com.scott.tech.mud.mud_game.command.help.HelpCommand;
+import com.scott.tech.mud.mud_game.command.hint.HintCommand;
 import com.scott.tech.mud.mud_game.command.logout.LogoutCommand;
 import com.scott.tech.mud.mud_game.command.me.MeCommand;
 import com.scott.tech.mud.mud_game.command.moderation.ModerationCommand;
@@ -36,6 +37,14 @@ final class SessionCommandDefinitions {
                 .usage("help")
                 .description("Show this message")
                 .creator(ctx -> new HelpCommand())
+                .build());
+
+        commands.add(CommandDefinition.builder(CommandRegistry.HINT)
+                .aliases("hint", "?next", "nudge")
+                .category(SESSION)
+                .usage("hint")
+                .description("Get a context-aware nudge: nearby quest-givers, your active objectives, and exits")
+                .creator(ctx -> new HintCommand(ctx.deps().questService()))
                 .build());
 
         commands.add(CommandDefinition.builder(CommandRegistry.SKILLS)

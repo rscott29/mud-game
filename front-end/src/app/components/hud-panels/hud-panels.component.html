@@ -1,0 +1,21 @@
+@if (!responsive.isCompact() && view.playerStats()) {
+  <aside class="hud-panels" aria-label="World panels">
+    <app-mini-map [snapshot]="view.mapSnapshot()" />
+
+    @if (view.questLog(); as log) {
+      <div class="hud-quests" aria-label="Quest tracker">
+        <div class="hud-quests__title">Quests</div>
+        @if (log.quests.length === 0) {
+          <div class="hud-quests__empty">No active quests. Look for NPCs with quests to accept.</div>
+        } @else {
+          @for (quest of log.quests; track quest.id) {
+            <div class="hud-quests__entry">
+              <div class="hud-quests__name">{{ quest.name }}</div>
+              <div class="hud-quests__objective">{{ quest.currentObjective }}</div>
+            </div>
+          }
+        }
+      </div>
+    }
+  </aside>
+}

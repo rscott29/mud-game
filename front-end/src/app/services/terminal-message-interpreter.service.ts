@@ -102,6 +102,9 @@ export class TerminalMessageInterpreterService {
       case GAME_MESSAGE_TYPES.STAT_UPDATE:
         return { kind: 'skip', stateChanges };
 
+      case GAME_MESSAGE_TYPES.QUEST_LOG:
+        return { kind: 'skip', stateChanges };
+
       case GAME_MESSAGE_TYPES.CLASS_PROGRESSION:
         return { kind: 'class_progression', stateChanges };
 

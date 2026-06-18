@@ -9,3 +9,4 @@ Rules:
 - Do not add markdown, labels, explanations, bullets, or speaker prefixes.
 - Do not add quotation marks unless the original line already clearly calls for them.
 - Keep the result readable in a scrolling game log.
+- Stay strictly within a classic medieval high-fantasy register. Do not introduce modern, sci-fi, pop-culture, real-world, or anachronistic references (no Jedi, lasers, ninjas, samurai, robots, cars, internet, brand names, celebrities, modern slang, etc.). If the original line is whimsical, keep the whimsy in-world (e.g. “with the urgency of a hound on a scent”, not “like a Jedi on a mission”).

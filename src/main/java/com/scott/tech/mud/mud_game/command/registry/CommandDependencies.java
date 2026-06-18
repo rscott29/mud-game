@@ -39,6 +39,7 @@ import com.scott.tech.mud.mud_game.quest.DefendObjectiveRuntimeService;
 import com.scott.tech.mud.mud_game.quest.ObjectiveEncounterRuntimeService;
 import com.scott.tech.mud.mud_game.quest.QuestService;
 import com.scott.tech.mud.mud_game.service.LevelingService;
+import com.scott.tech.mud.mud_game.service.MapSnapshotService;
 import com.scott.tech.mud.mud_game.service.WorldModerationPolicyService;
 import com.scott.tech.mud.mud_game.world.WorldService;
 import com.scott.tech.mud.mud_game.session.GameSessionManager;
@@ -93,6 +94,7 @@ public record CommandDependencies(
         UtterValidator utterValidator,
         UtterService utterService,
         StrikeValidator strikeValidator,
-        StrikeService strikeService
+        StrikeService strikeService,
+        MapSnapshotService mapSnapshotService
 ) {
 }

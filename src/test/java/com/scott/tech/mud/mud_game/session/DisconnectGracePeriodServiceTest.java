@@ -1,15 +1,14 @@
 package com.scott.tech.mud.mud_game.session;
 
 import org.junit.jupiter.api.Test;
+import org.springframework.scheduling.TaskScheduler;
 
-import java.util.concurrent.ScheduledExecutorService;
+import java.time.Instant;
 import java.util.concurrent.ScheduledFuture;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
@@ -20,12 +19,12 @@ class DisconnectGracePeriodServiceTest {
 
     @Test
     void scheduleDisconnectBroadcast_replacesExistingPendingTaskForSameUser() {
-        ScheduledExecutorService scheduler = mock(ScheduledExecutorService.class);
+        TaskScheduler scheduler = mock(TaskScheduler.class);
         ScheduledFuture<?> firstFuture = mock(ScheduledFuture.class);
         ScheduledFuture<?> secondFuture = mock(ScheduledFuture.class);
         when(firstFuture.isDone()).thenReturn(false);
         when(secondFuture.isDone()).thenReturn(false);
-        doReturn(firstFuture, secondFuture).when(scheduler).schedule(any(Runnable.class), anyLong(), any(TimeUnit.class));
+        doReturn(firstFuture, secondFuture).when(scheduler).schedule(any(Runnable.class), any(Instant.class));
 
         DisconnectGracePeriodService service = new DisconnectGracePeriodService(scheduler);
 
@@ -38,7 +37,7 @@ class DisconnectGracePeriodServiceTest {
 
     @Test
     void scheduledTaskRunsBroadcastAndClearsPendingDisconnect() {
-        ScheduledExecutorService scheduler = mock(ScheduledExecutorService.class);
+        TaskScheduler scheduler = mock(TaskScheduler.class);
         ScheduledFuture<?> future = mock(ScheduledFuture.class);
         when(future.isDone()).thenReturn(false);
 
@@ -46,7 +45,7 @@ class DisconnectGracePeriodServiceTest {
         doAnswer(invocation -> {
             scheduledTask[0] = invocation.getArgument(0);
             return future;
-        }).when(scheduler).schedule(any(Runnable.class), anyLong(), any(TimeUnit.class));
+        }).when(scheduler).schedule(any(Runnable.class), any(Instant.class));
 
         DisconnectGracePeriodService service = new DisconnectGracePeriodService(scheduler);
         AtomicInteger broadcasts = new AtomicInteger();
@@ -62,11 +61,11 @@ class DisconnectGracePeriodServiceTest {
     }
 
     @Test
-    void shutdown_cancelsPendingTasksAndStopsScheduler() {
-        ScheduledExecutorService scheduler = mock(ScheduledExecutorService.class);
+    void shutdown_cancelsPendingTasks() {
+        TaskScheduler scheduler = mock(TaskScheduler.class);
         ScheduledFuture<?> future = mock(ScheduledFuture.class);
         when(future.isDone()).thenReturn(false);
-        doReturn(future).when(scheduler).schedule(any(Runnable.class), anyLong(), any(TimeUnit.class));
+        doReturn(future).when(scheduler).schedule(any(Runnable.class), any(Instant.class));
 
         DisconnectGracePeriodService service = new DisconnectGracePeriodService(scheduler);
         service.scheduleDisconnectBroadcast("Alice", () -> {});
@@ -74,7 +73,6 @@ class DisconnectGracePeriodServiceTest {
         service.shutdown();
 
         verify(future).cancel(false);
-        verify(scheduler).shutdownNow();
         assertThat(service.hasPendingDisconnect("alice")).isFalse();
     }
 }

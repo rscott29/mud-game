@@ -28,7 +28,9 @@ public record GameResponse(
         List<WhoPlayerView> whoPlayers,
         PlayerStatsView playerStats,
         CombatStatsView combatStats,
-        CharacterCreationData characterCreation
+        CharacterCreationData characterCreation,
+        QuestLogView questLog,
+        MapSnapshotView mapSnapshot
 ) {
     public enum Type {
         WELCOME,
@@ -53,42 +55,51 @@ public record GameResponse(
         MODERATION_NOTICE,
         AMBIENT_EVENT,
         COMPANION_DIALOGUE,
-        NARRATIVE_ECHO
+        NARRATIVE_ECHO,
+        QUEST_LOG
     }
 
     // --- compact constructors for convenience defaults ---
     private GameResponse(Type type, String message, RoomView room) {
-        this(type, message, room, false, null, null, null, null, null, null, null);
+        this(type, message, room, false, null, null, null, null, null, null, null, null, null);
     }
 
     private GameResponse(Type type, String message, RoomView room, boolean mask) {
-        this(type, message, room, mask, null, null, null, null, null, null, null);
+        this(type, message, room, mask, null, null, null, null, null, null, null, null, null);
     }
 
     private GameResponse(Type type, String message, RoomView room, boolean mask, String from) {
-        this(type, message, room, mask, from, null, null, null, null, null, null);
+        this(type, message, room, mask, from, null, null, null, null, null, null, null, null);
     }
 
     // --- factory: returns a new instance with inventory attached ---
     public GameResponse withInventory(List<ItemView> items) {
-        return new GameResponse(type, message, room, mask, from, token, items, whoPlayers, playerStats, combatStats, characterCreation);
+        return new GameResponse(type, message, room, mask, from, token, items, whoPlayers, playerStats, combatStats, characterCreation, questLog, mapSnapshot);
     }
 
     public GameResponse withAppendedMessage(String appendedMessage) {
         String newMessage = message == null ? appendedMessage : message + appendedMessage;
-        return new GameResponse(type, newMessage, room, mask, from, token, inventory, whoPlayers, playerStats, combatStats, characterCreation);
+        return new GameResponse(type, newMessage, room, mask, from, token, inventory, whoPlayers, playerStats, combatStats, characterCreation, questLog, mapSnapshot);
     }
 
     public GameResponse withPlayerStats(Player player, ExperienceTableService xpTables) {
-        return new GameResponse(type, message, room, mask, from, token, inventory, whoPlayers, PlayerStatsView.from(player, xpTables, false), combatStats, characterCreation);
+        return new GameResponse(type, message, room, mask, from, token, inventory, whoPlayers, PlayerStatsView.from(player, xpTables, false), combatStats, characterCreation, questLog, mapSnapshot);
     }
 
     public GameResponse withPlayerStats(Player player, ExperienceTableService xpTables, boolean inCombat) {
-        return new GameResponse(type, message, room, mask, from, token, inventory, whoPlayers, PlayerStatsView.from(player, xpTables, inCombat), combatStats, characterCreation);
+        return new GameResponse(type, message, room, mask, from, token, inventory, whoPlayers, PlayerStatsView.from(player, xpTables, inCombat), combatStats, characterCreation, questLog, mapSnapshot);
     }
 
     public GameResponse withPlayerStats(Player player, ExperienceTableService xpTables, CombatEncounter encounter) {
-        return new GameResponse(type, message, room, mask, from, token, inventory, whoPlayers, PlayerStatsView.from(player, xpTables, encounter != null), combatStats, characterCreation);
+        return new GameResponse(type, message, room, mask, from, token, inventory, whoPlayers, PlayerStatsView.from(player, xpTables, encounter != null), combatStats, characterCreation, questLog, mapSnapshot);
+    }
+
+    public GameResponse withQuestLog(QuestLogView log) {
+        return new GameResponse(type, message, room, mask, from, token, inventory, whoPlayers, playerStats, combatStats, characterCreation, log, mapSnapshot);
+    }
+
+    public GameResponse withMapSnapshot(MapSnapshotView snapshot) {
+        return new GameResponse(type, message, room, mask, from, token, inventory, whoPlayers, playerStats, combatStats, characterCreation, questLog, snapshot);
     }
 
     // ----- factory methods -----
@@ -228,11 +239,15 @@ public record GameResponse(
     }
 
     public static GameResponse sessionToken(String token) {
-        return new GameResponse(Type.SESSION_TOKEN, null, null, false, null, token, null, null, null, null, null);
+        return new GameResponse(Type.SESSION_TOKEN, null, null, false, null, token, null, null, null, null, null, null, null);
     }
 
     public static GameResponse inventoryUpdate(List<ItemView> items) {
-        return new GameResponse(Type.INVENTORY_UPDATE, null, null, false, null, null, items, null, null, null, null);
+        return new GameResponse(Type.INVENTORY_UPDATE, null, null, false, null, null, items, null, null, null, null, null, null);
+    }
+
+    public static GameResponse questLog(QuestLogView log) {
+        return new GameResponse(Type.QUEST_LOG, null, null, false, null, null, null, null, null, null, null, log, null);
     }
 
     public static GameResponse playerOverview(Player player, ExperienceTableService xpTables) {
@@ -252,12 +267,12 @@ public record GameResponse(
     }
 
     public static GameResponse whoList(List<WhoPlayerView> players) {
-        return new GameResponse(Type.WHO_LIST, null, null, false, null, null, null, players, null, null, null);
+        return new GameResponse(Type.WHO_LIST, null, null, false, null, null, null, players, null, null, null, null, null);
     }
 
     public static GameResponse characterCreation(String step, List<String> races, List<String> classes, List<PronounOption> pronounOptions) {
         return new GameResponse(Type.CHARACTER_CREATION, null, null, false, null, null, null, null, null, null,
-                new CharacterCreationData(step, races, classes, pronounOptions));
+                new CharacterCreationData(step, races, classes, pronounOptions), null, null);
     }
 
     private static GameResponse roomResponse(Type type,
@@ -288,12 +303,14 @@ public record GameResponse(
                 null,
                 playerStats,
                 combatStats,
+                null,
+                null,
                 null
         );
     }
 
     private static GameResponse playerStatsUpdate(PlayerStatsView playerStats) {
-        return new GameResponse(Type.STAT_UPDATE, null, null, false, null, null, null, null, playerStats, null, null);
+        return new GameResponse(Type.STAT_UPDATE, null, null, false, null, null, null, null, playerStats, null, null, null, null);
     }
 
     private static List<ItemView> inventoryView(Player player) {
@@ -516,4 +533,32 @@ public record GameResponse(
     public record CharacterCreationData(String step, List<String> races, List<String> classes, List<PronounOption> pronounOptions) {}
 
     public record PronounOption(String label, String subject, String object, String possessive) {}
+
+    public record QuestEntryView(
+            String id,
+            String name,
+            String currentObjective,
+            int progress,
+            int recommendedLevel,
+            String challengeRating
+    ) {}
+
+    public record QuestLogView(List<QuestEntryView> quests) {
+        public static QuestLogView from(List<com.scott.tech.mud.mud_game.quest.QuestService.ActiveQuestInfo> infos) {
+            if (infos == null || infos.isEmpty()) {
+                return new QuestLogView(List.of());
+            }
+            List<QuestEntryView> entries = infos.stream()
+                    .map(info -> new QuestEntryView(
+                            info.id(),
+                            info.name(),
+                            info.currentObjective(),
+                            info.progress(),
+                            info.recommendedLevel(),
+                            info.challengeRating() == null ? null : info.challengeRating().name()
+                    ))
+                    .toList();
+            return new QuestLogView(entries);
+        }
+    }
 }

@@ -7,7 +7,10 @@ import {
   type ConnectionStatus,
   GAME_MESSAGE_TYPES,
   type GameMessage,
+  type MapSnapshotDto,
   type PlayerStatsDto,
+  type QuestLogDto,
+  type RoomDto,
   TERMINAL_MESSAGE_CLASSES,
 } from '../../models/game-message';
 import {
@@ -27,6 +30,9 @@ class MockGameSocketService {
   readonly systemMessages$ = new Subject<string>();
   readonly status = signal<ConnectionStatus>(CONNECTION_STATUSES.CONNECTED);
   readonly playerStats = signal<PlayerStatsDto | null>(null);
+  readonly questLog = signal<QuestLogDto | null>(null);
+  readonly currentRoom = signal<RoomDto | null>(null);
+  readonly mapSnapshot = signal<MapSnapshotDto | null>(null);
   readonly sent: string[] = [];
 
   connect(): void {}

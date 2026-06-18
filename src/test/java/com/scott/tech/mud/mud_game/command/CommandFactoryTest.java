@@ -194,7 +194,7 @@ class CommandFactoryTest {
                 playerProfileService, stateCache, partyService,
                 questService, defendObjectiveRuntimeService, objectiveEncounterRuntimeService,
             worldService, moveValidator, moveService, shopService, consumableEffectService,
-            utterValidator, utterService, strikeValidator, strikeService);
+            utterValidator, utterService, strikeValidator, strikeService, null);
     }
 
     @Test

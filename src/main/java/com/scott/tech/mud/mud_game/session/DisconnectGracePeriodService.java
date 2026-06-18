@@ -3,10 +3,14 @@ package com.scott.tech.mud.mud_game.session;
 import jakarta.annotation.PreDestroy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.scheduling.TaskScheduler;
 import org.springframework.stereotype.Service;
 
+import java.time.Duration;
+import java.time.Instant;
 import java.util.Map;
-import java.util.concurrent.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ScheduledFuture;
 
 /**
  * Manages a short grace period before broadcasting "player left" messages.
@@ -18,18 +22,14 @@ public class DisconnectGracePeriodService {
 
     private static final Logger log = LoggerFactory.getLogger(DisconnectGracePeriodService.class);
 
-    /** Grace period in seconds before broadcasting the disconnect. */
-    private static final int GRACE_PERIOD_SECONDS = 5;
+    /** Grace period before broadcasting the disconnect. */
+    private static final Duration GRACE_PERIOD = Duration.ofSeconds(5);
 
-    private final ScheduledExecutorService scheduler;
+    private final TaskScheduler taskScheduler;
     private final Map<String, ScheduledFuture<?>> pendingDisconnects = new ConcurrentHashMap<>();
 
-    public DisconnectGracePeriodService() {
-        this(Executors.newSingleThreadScheduledExecutor());
-    }
-
-    DisconnectGracePeriodService(ScheduledExecutorService scheduler) {
-        this.scheduler = scheduler;
+    public DisconnectGracePeriodService(TaskScheduler taskScheduler) {
+        this.taskScheduler = taskScheduler;
     }
 
     /**
@@ -42,18 +42,18 @@ public class DisconnectGracePeriodService {
      */
     public void scheduleDisconnectBroadcast(String username, Runnable broadcastTask) {
         String key = username.toLowerCase();
-        
+
         // Cancel any existing pending disconnect for this user
         cancelPendingDisconnect(key);
-        
-        ScheduledFuture<?> future = scheduler.schedule(() -> {
+
+        ScheduledFuture<?> future = taskScheduler.schedule(() -> {
             pendingDisconnects.remove(key);
             log.debug("Grace period expired for {}, broadcasting disconnect", username);
             broadcastTask.run();
-        }, GRACE_PERIOD_SECONDS, TimeUnit.SECONDS);
-        
+        }, Instant.now().plus(GRACE_PERIOD));
+
         pendingDisconnects.put(key, future);
-        log.debug("Scheduled disconnect broadcast for {} in {} seconds", username, GRACE_PERIOD_SECONDS);
+        log.debug("Scheduled disconnect broadcast for {} in {}", username, GRACE_PERIOD);
     }
 
     /**
@@ -91,6 +91,5 @@ public class DisconnectGracePeriodService {
             }
         });
         pendingDisconnects.clear();
-        scheduler.shutdownNow();
     }
 }

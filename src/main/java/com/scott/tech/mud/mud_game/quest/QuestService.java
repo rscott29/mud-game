@@ -7,6 +7,7 @@ import com.scott.tech.mud.mud_game.world.WorldService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
 import jakarta.annotation.PostConstruct;
@@ -39,16 +40,19 @@ public class QuestService {
     private final QuestPrerequisiteEvaluator prerequisiteEvaluator;
     private final QuestProgressDispatcher dispatcher;
     private final WorldService worldService;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Autowired
     public QuestService(QuestRegistry questRegistry,
                         WorldService worldService,
                         QuestPrerequisiteEvaluator prerequisiteEvaluator,
-                        QuestProgressDispatcher dispatcher) {
+                        QuestProgressDispatcher dispatcher,
+                        ApplicationEventPublisher eventPublisher) {
         this.questRegistry = questRegistry;
         this.worldService = worldService;
         this.prerequisiteEvaluator = prerequisiteEvaluator;
         this.dispatcher = dispatcher;
+        this.eventPublisher = eventPublisher;
     }
 
     /**
@@ -77,7 +81,8 @@ public class QuestService {
                         new QuestObjectiveCompleter(worldService, defendObjectiveRuntimeService),
                         worldService,
                         defendObjectiveRuntimeService
-                )
+                ),
+                event -> { /* no-op publisher for test wiring */ }
         );
     }
 
@@ -164,6 +169,8 @@ public class QuestService {
         QuestProgressDispatcher.StartedQuestSnapshot snapshot = dispatcher.prepareQuestStart(player, questId);
         ObjectiveStartFeedback feedback = snapshot.feedback();
 
+        publishQuestStateChange(player);
+
         return QuestStartResult.success(
                 quest.startDialogue(),
                 feedback.playerMessages(),
@@ -177,27 +184,44 @@ public class QuestService {
     // ---------------------------------------------------------------- objective progress events
 
     public Optional<QuestProgressResult> onTalkToNpc(Player player, Npc npc) {
-        return dispatcher.onTalkToNpc(player, npc);
+        return publishIfChanged(player, dispatcher.onTalkToNpc(player, npc));
     }
 
     public Optional<QuestProgressResult> onDeliverItem(Player player, Npc npc, Item item) {
-        return dispatcher.onDeliverItem(player, npc, item);
+        return publishIfChanged(player, dispatcher.onDeliverItem(player, npc, item));
     }
 
     public Optional<QuestProgressResult> onCollectItem(Player player, Item item) {
-        return dispatcher.onCollectItem(player, item);
+        return publishIfChanged(player, dispatcher.onCollectItem(player, item));
     }
 
     public Optional<QuestProgressResult> onDefeatNpc(Player player, Npc npc) {
-        return dispatcher.onDefeatNpc(player, npc);
+        return publishIfChanged(player, dispatcher.onDefeatNpc(player, npc));
     }
 
     public Optional<QuestProgressResult> onEnterRoom(Player player, String roomId) {
-        return dispatcher.onEnterRoom(player, roomId);
+        return publishIfChanged(player, dispatcher.onEnterRoom(player, roomId));
     }
 
     public QuestProgressResult onDialogueChoice(Player player, String questId, int choiceIndex) {
-        return dispatcher.onDialogueChoice(player, questId, choiceIndex);
+        QuestProgressResult result = dispatcher.onDialogueChoice(player, questId, choiceIndex);
+        if (result != null && result.type() != QuestProgressResult.ResultType.FAILURE) {
+            publishQuestStateChange(player);
+        }
+        return result;
+    }
+
+    private Optional<QuestProgressResult> publishIfChanged(Player player, Optional<QuestProgressResult> result) {
+        result.filter(r -> r.type() != QuestProgressResult.ResultType.FAILURE)
+                .ifPresent(r -> publishQuestStateChange(player));
+        return result;
+    }
+
+    private void publishQuestStateChange(Player player) {
+        if (eventPublisher == null || player == null) {
+            return;
+        }
+        eventPublisher.publishEvent(new QuestStateChangedEvent(player));
     }
 
     // ---------------------------------------------------------------- player quest info

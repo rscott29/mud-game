@@ -1,5 +1,7 @@
 package com.scott.tech.mud.mud_game.ai;
 
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
 import com.scott.tech.mud.mud_game.config.Messages;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -7,9 +9,8 @@ import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.Duration;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
 import java.util.regex.MatchResult;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -33,7 +34,13 @@ public class AiTextPolisher {
 
     private final ChatClient chatClient;
     private final boolean enabled;
-    private final ConcurrentMap<CacheKey, String> cache = new ConcurrentHashMap<>();
+    /**
+     * Bounded LRU cache; entries expire 1h after write to keep memory and staleness in check.
+     */
+    private final Cache<CacheKey, String> cache = Caffeine.newBuilder()
+            .maximumSize(1000)
+            .expireAfterWrite(Duration.ofHours(1))
+            .build();
     /**
      * Trips after 5 consecutive AI failures, stays open for 30s. While open,
      * polishing returns the original text immediately rather than waiting on a doomed call.
@@ -69,7 +76,7 @@ public class AiTextPolisher {
             return normalized;
         }
 
-        return cache.computeIfAbsent(new CacheKey(style, resolvedTone, normalized), this::resolve);
+        return cache.get(new CacheKey(style, resolvedTone, normalized), this::resolve);
     }
 
     private String resolve(CacheKey key) {

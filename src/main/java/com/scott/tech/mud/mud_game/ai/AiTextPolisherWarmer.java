@@ -65,8 +65,8 @@ public class AiTextPolisherWarmer {
             try {
                 polisher.polish(text, entry.style(), entry.tone());
                 moveWarmed++;
-                // Small delay to avoid hitting Groq's 6000 TPM rate limit
-                Thread.sleep(200);
+                // ~340 tokens per request; throttle to stay under Groq's 6000 TPM limit
+                Thread.sleep(4000);
             } catch (Exception e) {
                 moveFailed++;
                 log.warn("Failed to warm move template '{}': {}", entry.messageKey(), e.getMessage());

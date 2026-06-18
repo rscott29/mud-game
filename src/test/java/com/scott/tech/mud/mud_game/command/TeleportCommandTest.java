@@ -46,7 +46,7 @@ class TeleportCommandTest {
         when(sessionManager.findPlayingByName("Ranger")).thenReturn(Optional.of(targetSession));
         when(sessionManager.getSessionsInRoom("target_room")).thenReturn(List.of(targetSession));
 
-        TeleportCommand command = new TeleportCommand("Ranger", sessionManager, broadcaster);
+        TeleportCommand command = new TeleportCommand("Ranger", sessionManager, broadcaster, null);
         CommandResult result = command.execute(adminSession);
 
         assertThat(admin.getCurrentRoomId()).isEqualTo("target_room");
@@ -86,7 +86,7 @@ class TeleportCommandTest {
         when(sessionManager.findPlayingByName("Ranger")).thenReturn(Optional.of(targetSession));
         when(sessionManager.getSessionsInRoom("shared_room")).thenReturn(List.of(targetSession));
 
-        TeleportCommand command = new TeleportCommand("Ranger", sessionManager, broadcaster);
+        TeleportCommand command = new TeleportCommand("Ranger", sessionManager, broadcaster, null);
         CommandResult result = command.execute(adminSession);
 
         assertThat(result.getResponses()).hasSize(1);

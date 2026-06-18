@@ -230,7 +230,9 @@ public class UtterCommand implements GameCommand {
                 roomDisplay.whoPlayers() != null ? roomDisplay.whoPlayers() : primaryResponse.whoPlayers(),
                 primaryResponse.playerStats() != null ? primaryResponse.playerStats() : roomDisplay.playerStats(),
                 primaryResponse.combatStats() != null ? primaryResponse.combatStats() : roomDisplay.combatStats(),
-                primaryResponse.characterCreation() != null ? primaryResponse.characterCreation() : roomDisplay.characterCreation()
+                primaryResponse.characterCreation() != null ? primaryResponse.characterCreation() : roomDisplay.characterCreation(),
+                primaryResponse.questLog() != null ? primaryResponse.questLog() : roomDisplay.questLog(),
+                roomDisplay.mapSnapshot() != null ? roomDisplay.mapSnapshot() : primaryResponse.mapSnapshot()
         );
     }
 

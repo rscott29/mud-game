@@ -1,6 +1,7 @@
 import {
   ChangeDetectionStrategy,
   Component,
+  DestroyRef,
   computed,
   effect,
   inject,
@@ -8,6 +9,7 @@ import {
   input,
   output,
 } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 import { QuickCastService, ActiveSkillDto } from '../../services/quick-cast.service';
 
@@ -20,6 +22,7 @@ import { QuickCastService, ActiveSkillDto } from '../../services/quick-cast.serv
 })
 export class QuickCastComponent {
   private readonly quickCastService = inject(QuickCastService);
+  private readonly destroyRef = inject(DestroyRef);
 
   /** Character class to load spells for */
   readonly characterClass = input<string>('');
@@ -53,9 +56,11 @@ export class QuickCastComponent {
       }
       
       this.lastFetchKey = key;
-      this.quickCastService.getActiveSkillsForClass(charClass, lvl).subscribe(response => {
-        this.activeSkills.set(response?.skills ?? []);
-      });
+      this.quickCastService.getActiveSkillsForClass(charClass, lvl)
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe(response => {
+          this.activeSkills.set(response?.skills ?? []);
+        });
     });
   }
 

@@ -14,6 +14,7 @@ import com.scott.tech.mud.mud_game.quest.QuestPresentation;
 import com.scott.tech.mud.mud_game.quest.QuestService;
 import com.scott.tech.mud.mud_game.session.GameSession;
 import com.scott.tech.mud.mud_game.session.GameSessionManager;
+import com.scott.tech.mud.mud_game.world.GameClock;
 
 import java.util.List;
 import java.util.Set;
@@ -50,10 +51,43 @@ public class LookService {
                 .map(Item::getId)
                 .collect(Collectors.toSet());
 
+        String todBanner = timeOfDayBanner(room);
+        String message = todBanner != null
+                ? "<span class='time-of-day'>" + todBanner + "</span>"
+                : Messages.get("command.look.around");
+
         return CommandResult.withAction(
                 RoomAction.inCurrentRoom(Messages.fmt("action.look.room", "player", playerName)),
-                GameResponse.roomRefresh(room, Messages.get("command.look.around"), others, discovered, inventoryItemIds)
+                GameResponse.roomRefresh(room, message, others, discovered, inventoryItemIds)
         );
+    }
+
+    /**
+     * Returns a single-line atmospheric banner for the current in-game phase,
+     * or {@code null} for rooms where time-of-day doesn't make sense (pitch-
+     * dark rooms, caves, dungeons, crypts, etc.).
+     */
+    private String timeOfDayBanner(Room room) {
+        if (room.isDark()) {
+            return null;
+        }
+        String zone = room.getAmbientZone();
+        if (zone != null) {
+            String key = zone.trim().toLowerCase();
+            switch (key) {
+                case "cave":
+                case "cavern":
+                case "dungeon":
+                case "tomb":
+                case "crypt":
+                case "indoor":
+                case "interior":
+                    return null;
+                default:
+                    break;
+            }
+        }
+        return GameClock.currentFlavor();
     }
 
     private CommandResult exitsResult(GameSession session, Room room, String playerName) {
