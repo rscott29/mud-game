@@ -20,12 +20,24 @@ import { TerminalMessageStore } from '../../services/terminal-message-store.serv
 import { TerminalMessageInterpreterService } from '../../services/terminal-message-interpreter.service';
 import { TerminalClassProgressionService } from '../../services/terminal-class-progression.service';
 import { TerminalHudComponent } from '../terminal-hud/terminal-hud.component';
+import { HudSidebarComponent } from '../hud-sidebar/hud-sidebar.component';
+import { HudPanelsComponent } from '../hud-panels/hud-panels.component';
 import { QuickCastComponent } from '../quick-cast/quick-cast.component';
+import { ResponsiveService } from '../../services/responsive.service';
 
 @Component({
   selector: 'app-terminal',
   standalone: true,
-  imports: [FormsModule, SafeHtmlPipe, NgClass, CharacterCreationComponent, TerminalHudComponent, QuickCastComponent],
+  imports: [
+    FormsModule,
+    SafeHtmlPipe,
+    NgClass,
+    CharacterCreationComponent,
+    TerminalHudComponent,
+    HudSidebarComponent,
+    HudPanelsComponent,
+    QuickCastComponent,
+  ],
   templateUrl: './terminal.component.html',
   styleUrl: './terminal.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -36,6 +48,7 @@ import { QuickCastComponent } from '../quick-cast/quick-cast.component';
     TerminalInputService,
     TerminalPresenterService,
     TerminalFacade,
+    ResponsiveService,
   ],
 })
 export class TerminalComponent {

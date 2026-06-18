@@ -1,13 +1,17 @@
 import {
   ChangeDetectionStrategy,
   Component,
-  HostListener,
   inject,
   signal,
 } from '@angular/core';
 
+import { ResponsiveService } from '../../services/responsive.service';
 import { TerminalPresenterService } from '../../services/terminal-presenter.service';
 
+/**
+ * Mobile-only HUD accordion. The desktop layout uses {@link HudSidebarComponent}
+ * and {@link HudPanelsComponent} positioned in the three-column shell.
+ */
 @Component({
   selector: 'app-terminal-hud',
   standalone: true,
@@ -18,40 +22,10 @@ import { TerminalPresenterService } from '../../services/terminal-presenter.serv
 })
 export class TerminalHudComponent {
   readonly view = inject(TerminalPresenterService);
-  readonly isCompactHud = signal(false);
-  readonly hudExpanded = signal(true);
-
-  constructor() {
-    this.syncResponsiveHud();
-  }
-
-  @HostListener('window:resize')
-  onWindowResize(): void {
-    this.syncResponsiveHud();
-  }
+  readonly responsive = inject(ResponsiveService);
+  readonly hudExpanded = signal(false);
 
   toggleHudExpanded(): void {
-    if (!this.isCompactHud()) {
-      return;
-    }
-
     this.hudExpanded.update(value => !value);
-  }
-
-  private syncResponsiveHud(): void {
-    if (typeof window === 'undefined') {
-      this.isCompactHud.set(false);
-      this.hudExpanded.set(true);
-      return;
-    }
-
-    const compactHud = window.innerWidth <= 720;
-    const wasCompactHud = this.isCompactHud();
-
-    this.isCompactHud.set(compactHud);
-
-    if (compactHud !== wasCompactHud) {
-      this.hudExpanded.set(!compactHud);
-    }
   }
 }

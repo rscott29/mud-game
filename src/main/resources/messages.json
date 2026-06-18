@@ -21,6 +21,11 @@
   "auth.message.world_welcome"          : "Welcome to {world}, {player}! Type 'help' for a list of commands.",
   "auth.message.farewell"               : "Farewell, adventurer. Until next time.",
 
+  "onboarding.first_arrival.intro"      : "<em>You stand blinking in the open square, the smell of bread and dust and old stone settling around you. This is the start of your story — there is no wrong way to begin.</em>",
+  "onboarding.first_arrival.tips"       : "<em>Try <strong>look</strong> to read the room more carefully, <strong>go &lt;direction&gt;</strong> to explore (try <strong>go north</strong> or <strong>go south</strong>), and <strong>talk &lt;name&gt;</strong> to greet anyone you meet. Type <strong>hint</strong> at any time for a nudge in the right direction.</em>",
+  "onboarding.first_arrival.quest_givers" : "<em>People who look like they could use a hand here: {givers}. Try <strong>talk {firstName}</strong> to see what they need.</em>",
+  "onboarding.first_arrival.no_givers"  : "<em>No one in this square needs help right now — wander a little. Try <strong>go north</strong> toward the town hall, or <strong>go south</strong> to the market, and see who you meet.</em>",
+
   "auth.prompt.race_class"              : "Choose your race and class (e.g., 'Human Ashen Knight', 'Elf Whisperbinder'):\nRaces: Human, Elf, Dwarf, Halfling, Orc, Dragonborn, Tiefling\nClasses: Ashen Knight, Whisperbinder",
   "auth.error.race_class_blank"         : "Race and class cannot be blank.\nPlease choose your race and class:",
   "auth.error.race_class_format"        : "Please specify both race and class (e.g., 'Human Ashen Knight').",
@@ -49,6 +54,14 @@
   "command.rest.start"                  : "You settle in to rest. Movement will recover faster until you travel again or use <strong>rest</strong> to stand.",
   "command.rest.stop"                   : "You rise from your rest and ready yourself to move again.",
   "command.rest.in_combat"              : "You can't settle down to rest while you're fighting.",
+
+  "command.hint.header"                 : "<div class='quest-progress'><strong>What now?</strong></div>",
+  "command.hint.quest_givers"           : "<em>Folk here who could use a hand: {givers}. Try <strong>talk {firstName}</strong>.</em>",
+  "command.hint.no_quest_givers"        : "<em>No one here is offering work right now. Try a different room.</em>",
+  "command.hint.active_quest"           : "<em>Active: <strong>{quest}</strong> — {objective}</em>",
+  "command.hint.no_active_quests"       : "<em>You have no active quests. Talk to the townsfolk to find work.</em>",
+  "command.hint.exits"                  : "<em>From here you can go: <strong>{exits}</strong>.</em>",
+  "command.hint.no_exits"               : "<em>There are no obvious exits — try <strong>look</strong> for hidden ways.</em>",
   "command.move.blocked_by_encounter"   : "<div class='quest-progress danger'>⚠️ {enemies} block the way {direction}. Defeat them before you try to flee.</div>",
   "command.move.dark_damage"            : "<em>You stumble in the darkness and slam into a wall!</em> You take <strong>{damage}</strong> damage.",
   "command.move.follower_departure"     : "{npc} follows along, heading {direction}.",

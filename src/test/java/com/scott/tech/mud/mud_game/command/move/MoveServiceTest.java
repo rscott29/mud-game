@@ -736,7 +736,8 @@ class MoveServiceTest {
                                 worldService,
                                 partyService,
                                 textPolisher,
-                                playerDeathService
+                                playerDeathService,
+                                null
                 );
         }
 

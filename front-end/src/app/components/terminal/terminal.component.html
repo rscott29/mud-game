@@ -13,7 +13,13 @@
 
   <app-terminal-hud />
 
-  <div class="log-container">
+  <div class="terminal-middle" [class.terminal-middle--auth]="view.isAuthScreen()">
+    <app-hud-sidebar />
+
+    <div class="log-container">
+    @if (view.isAuthScreen() && view.hudEmptyMessage(); as msg) {
+      <div class="terminal-auth-banner">{{ msg }}</div>
+    }
     <div #logEl class="log" [class.log--auth]="view.isAuthScreen()" (click)="handleLogClick($event)">
       @for (msg of view.messages(); track msg.id) {
         <div class="msg" [ngClass]="msg.cssClass" [innerHTML]="msg.html | safeHtml"></div>
@@ -37,6 +43,9 @@
         (castSpell)="onCastSpell($event)"
       />
     }
+    </div>
+
+    <app-hud-panels />
   </div>
 
   <div class="input-bar" [class.hidden]="view.characterCreationData() !== null">

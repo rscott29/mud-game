@@ -68,6 +68,7 @@ public class LoginHandler {
     private final com.scott.tech.mud.mud_game.quest.QuestService questService;
     private final GlobalSettingsRegistry globalSettingsRegistry;
     private final SessionTerminationService sessionTerminationService;
+    private final com.scott.tech.mud.mud_game.service.MapSnapshotService mapSnapshotService;
     private final ConcurrentMap<String, Object> accountLocks = new ConcurrentHashMap<>();
 
     public LoginHandler(AccountStore accountStore,
@@ -86,7 +87,8 @@ public class LoginHandler {
                         com.scott.tech.mud.mud_game.quest.QuestService questService,
                         GlobalSettingsRegistry globalSettingsRegistry,
                         PartyService partyService,
-                        SessionTerminationService sessionTerminationService) {
+                        SessionTerminationService sessionTerminationService,
+                        com.scott.tech.mud.mud_game.service.MapSnapshotService mapSnapshotService) {
         this.accountStore = accountStore;
         this.sessionManager = sessionManager;
         this.worldBroadcaster = worldBroadcaster;
@@ -103,6 +105,7 @@ public class LoginHandler {
         this.questService = questService;
         this.globalSettingsRegistry = globalSettingsRegistry;
         this.sessionTerminationService = sessionTerminationService;
+        this.mapSnapshotService = mapSnapshotService;
     }
 
     // -- Entry point --
@@ -336,6 +339,7 @@ public class LoginHandler {
                 username,
                 session,
                 true,
+                true,
                 GameResponse.authPrompt(Messages.get("auth.message.character_created"), false)
         );
     }
@@ -471,6 +475,14 @@ public class LoginHandler {
                                      GameSession session,
                                      boolean broadcastArrival,
                                      GameResponse... leadingResponses) {
+        return enterWorld(username, session, broadcastArrival, false, leadingResponses);
+    }
+
+    private CommandResult enterWorld(String username,
+                                     GameSession session,
+                                     boolean broadcastArrival,
+                                     boolean isFirstArrival,
+                                     GameResponse... leadingResponses) {
         session.setPendingUsername(null);
         session.transition(SessionState.PLAYING);
         if (broadcastArrival) {
@@ -480,8 +492,52 @@ public class LoginHandler {
         ArrayList<GameResponse> responses = new ArrayList<>();
         responses.addAll(java.util.List.of(leadingResponses));
         responses.add(buildWelcomeResponse(session));
+        if (isFirstArrival) {
+            appendFirstArrivalOnboarding(session, responses);
+        }
         responses.add(GameResponse.sessionToken(reconnectTokenStore.issue(username)));
         return CommandResult.of(responses.toArray(GameResponse[]::new));
+    }
+
+    /**
+     * Appends a few atmospheric "what next" lines after the welcome banner for a
+     * player who is entering the world for the very first time (right after
+     * character creation). Mentions any quest-givers in the current room.
+     */
+    private void appendFirstArrivalOnboarding(GameSession session, ArrayList<GameResponse> responses) {
+        Player player = session.getPlayer();
+
+        responses.add(GameResponse.narrative(Messages.get("onboarding.first_arrival.intro")));
+        responses.add(GameResponse.narrative(Messages.get("onboarding.first_arrival.tips")));
+
+        var room = session.getCurrentRoom();
+        java.util.List<com.scott.tech.mud.mud_game.model.Npc> givers = (room == null)
+                ? java.util.List.of()
+                : room.getNpcs().stream()
+                        .filter(npc -> !questService.getAvailableQuestsForNpc(player, npc.getId()).isEmpty())
+                        .toList();
+
+        if (givers.isEmpty()) {
+            responses.add(GameResponse.narrative(Messages.get("onboarding.first_arrival.no_givers")));
+        } else {
+            String giverList = givers.stream()
+                    .map(com.scott.tech.mud.mud_game.model.Npc::getName)
+                    .collect(java.util.stream.Collectors.joining(", "));
+            String firstName = firstTalkKeyword(givers.get(0));
+            responses.add(GameResponse.narrative(Messages.fmt(
+                    "onboarding.first_arrival.quest_givers",
+                    "givers", giverList,
+                    "firstName", firstName)));
+        }
+    }
+
+    private static String firstTalkKeyword(com.scott.tech.mud.mud_game.model.Npc npc) {
+        java.util.List<String> kws = npc.getKeywords();
+        if (kws != null && !kws.isEmpty()) {
+            return kws.get(0);
+        }
+        String name = npc.getName();
+        return (name == null || name.isEmpty()) ? "them" : name.split("\\s+")[0].toLowerCase();
     }
 
     private Object accountLock(String username) {
@@ -505,7 +561,9 @@ public class LoginHandler {
                         session.getDiscoveredHiddenExits(player.getCurrentRoomId()),
                         inventoryIds)
                 .withInventory(inventoryViews)
-                .withPlayerStats(player, xpTables);
+                .withPlayerStats(player, xpTables)
+                .withQuestLog(GameResponse.QuestLogView.from(questService.getActiveQuestInfo(player)))
+                .withMapSnapshot(mapSnapshotService != null ? mapSnapshotService.snapshot(session.getCurrentRoom()) : null);
     }
 
     /** Broadcasts login arrival to everyone else in the room. */

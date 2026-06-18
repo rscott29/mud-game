@@ -30,7 +30,9 @@ public class QuestCommand implements GameCommand {
         List<ActiveQuestInfo> quests = questService.getActiveQuestInfo(player);
 
         if (quests.isEmpty()) {
-            return CommandResult.of(GameResponse.narrative(Messages.get("quest.list.none")));
+            return CommandResult.of(
+                    GameResponse.narrative(Messages.get("quest.list.none")),
+                    GameResponse.questLog(GameResponse.QuestLogView.from(quests)));
         }
 
         StringBuilder sb = new StringBuilder();
@@ -57,6 +59,8 @@ public class QuestCommand implements GameCommand {
             sb.append("</div>");
         }
 
-        return CommandResult.of(GameResponse.narrative(sb.toString()));
+        return CommandResult.of(
+                GameResponse.narrative(sb.toString()),
+                GameResponse.questLog(GameResponse.QuestLogView.from(quests)));
     }
 }

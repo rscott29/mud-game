@@ -21,6 +21,9 @@ export class TerminalPresenterService {
 
   readonly messages = this.store.messages;
   readonly playerStats = this.socketService.playerStats;
+  readonly questLog = this.socketService.questLog;
+  readonly currentRoom = this.socketService.currentRoom;
+  readonly mapSnapshot = this.socketService.mapSnapshot;
   readonly characterCreationData = this.store.characterCreationData;
   readonly commandSuggestions = this.input.commandCompletionSuggestions;
   readonly commandSuggestionIndex = this.input.activeCommandCompletionIndex;
@@ -153,6 +156,10 @@ export class TerminalPresenterService {
 
   increaseZoom(): void {
     this.zoomService.increaseZoom();
+  }
+
+  sendCommand(command: string): void {
+    this.input.sendCommand(command, true);
   }
 
   private formatClassName(value: string): string {

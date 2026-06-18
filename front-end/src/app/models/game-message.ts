@@ -40,12 +40,13 @@ export const GAME_MESSAGE_TYPES = {
   AMBIENT_EVENT: 'AMBIENT_EVENT',
   COMPANION_DIALOGUE: 'COMPANION_DIALOGUE',
   NARRATIVE_ECHO: 'NARRATIVE_ECHO',
+  QUEST_LOG: 'QUEST_LOG',
 } as const;
 
 export type KnownGameMessageType =
   typeof GAME_MESSAGE_TYPES[keyof typeof GAME_MESSAGE_TYPES];
 
-export type GameMessageType = KnownGameMessageType | (string & {});
+export type GameMessageType = KnownGameMessageType;
 
 export const TERMINAL_MESSAGE_CLASSES = {
   ...GAME_MESSAGE_TYPES,
@@ -56,7 +57,7 @@ export const TERMINAL_MESSAGE_CLASSES = {
 export type KnownTerminalMessageClass =
   typeof TERMINAL_MESSAGE_CLASSES[keyof typeof TERMINAL_MESSAGE_CLASSES];
 
-export type TerminalMessageClass = KnownTerminalMessageClass | (string & {});
+export type TerminalMessageClass = KnownTerminalMessageClass;
 
 export interface NpcDto {
   id?: string;
@@ -152,6 +153,41 @@ export interface CharacterCreationDto {
   pronounOptions?: PronounOptionDto[];
 }
 
+export interface QuestEntryDto {
+  id: string;
+  name: string;
+  currentObjective: string;
+  progress: number;
+  recommendedLevel: number;
+  challengeRating?: string | null;
+}
+
+export interface QuestLogDto {
+  quests: QuestEntryDto[];
+}
+
+export interface MapRoomNodeDto {
+  id: string;
+  name: string;
+  x: number;
+  y: number;
+  kind: 'normal' | 'shop' | 'recall' | 'dark' | (string & {});
+  hasUp?: boolean;
+  hasDown?: boolean;
+}
+
+export interface MapEdgeDto {
+  fromId: string;
+  toId: string;
+  dir: 'NORTH' | 'SOUTH' | 'EAST' | 'WEST' | 'UP' | 'DOWN' | (string & {});
+}
+
+export interface MapSnapshotDto {
+  currentRoomId: string;
+  rooms: MapRoomNodeDto[];
+  exits: MapEdgeDto[];
+}
+
 export interface GameMessage {
   type: GameMessageType;
   message?: string;
@@ -164,4 +200,6 @@ export interface GameMessage {
   playerStats?: PlayerStatsDto;
   combatStats?: CombatStatsDto;
   characterCreation?: CharacterCreationDto;
+  questLog?: QuestLogDto;
+  mapSnapshot?: MapSnapshotDto;
 }

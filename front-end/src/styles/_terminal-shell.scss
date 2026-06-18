@@ -39,10 +39,64 @@ app-terminal {
 
   .terminal-header,
   .terminal-hud,
+  .terminal-middle,
   .input-bar,
   .log {
     position: relative;
     z-index: 1;
+  }
+
+  .terminal-middle {
+    display: grid;
+    grid-template-columns: minmax(220px, 260px) minmax(0, 1fr) minmax(220px, 300px);
+    gap: 18px;
+    min-height: 0;
+    padding: 16px 22px;
+  }
+
+  .terminal-middle--auth {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  app-hud-sidebar,
+  app-hud-panels {
+    display: block;
+    min-width: 0;
+    min-height: 0;
+  }
+
+  .hud-sidebar,
+  .hud-panels {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    padding: 18px 20px;
+    border: 1px solid rgba(214, 177, 115, 0.12);
+    border-radius: 18px;
+    background: rgba(15, 15, 20, 0.88);
+    box-shadow:
+      0 18px 40px rgba(0, 0, 0, 0.18),
+      inset 0 1px 0 rgba(255, 255, 255, 0.02);
+    overflow-y: auto;
+    align-self: start;
+    max-height: 100%;
+  }
+
+  .terminal-middle--auth app-hud-sidebar,
+  .terminal-middle--auth app-hud-panels {
+    display: none;
+  }
+
+  @media (max-width: 720px) {
+    .terminal-middle {
+      grid-template-columns: minmax(0, 1fr);
+      padding: 12px 16px;
+      gap: 12px;
+    }
+    app-hud-sidebar,
+    app-hud-panels {
+      display: none;
+    }
   }
 
   .terminal-header {
@@ -130,19 +184,17 @@ app-terminal {
   }
 
   .terminal-hud {
-    display: grid;
-    grid-template-columns: minmax(0, 1.2fr) auto minmax(220px, 0.9fr) auto;
-    gap: 14px;
-    align-items: center;
-    padding: 14px 22px 16px;
-    border-bottom: 1px solid rgba(214, 177, 115, 0.11);
-    background: linear-gradient(180deg, rgba(17, 17, 21, 0.92), rgba(10, 10, 13, 0.84));
+    display: none;
   }
 
   .terminal-hud--compact {
     display: flex;
     flex-direction: column;
     align-items: stretch;
+    gap: 0;
+    padding: 14px 22px 16px;
+    border-bottom: 1px solid rgba(214, 177, 115, 0.11);
+    background: linear-gradient(180deg, rgba(17, 17, 21, 0.92), rgba(10, 10, 13, 0.84));
   }
 
   .terminal-hud--compact-open {
@@ -254,6 +306,15 @@ app-terminal {
     display: flex;
     flex-wrap: wrap;
     gap: 8px;
+  }
+
+  .hud-metrics--stacked {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .hud-metrics--stacked .hud-chip {
+    justify-content: space-between;
   }
 
   .hud-chip {
@@ -382,34 +443,31 @@ app-terminal {
     font-size: 0.9em;
   }
 
-  .terminal-hud--auth {
-    grid-template-columns: minmax(0, 1fr) auto;
-    gap: 18px;
-  }
-
-  .terminal-hud--auth .hud-empty {
+  .terminal-auth-banner {
     max-width: 46rem;
+    margin: 12px 22px 0;
+    padding: 14px 18px;
+    border: 1px solid rgba(214, 177, 115, 0.18);
+    border-radius: 14px;
+    background: rgba(17, 17, 21, 0.78);
     color: var(--terminal-text);
     font-size: 0.96em;
-    line-height: 1.6;
+    line-height: 1.5;
   }
 
   .hud-zoom {
     display: inline-flex;
     align-items: center;
     gap: 10px;
-    justify-self: end;
-    padding-left: 14px;
-    border-left: 1px solid rgba(214, 177, 115, 0.12);
+    justify-self: stretch;
+    justify-content: space-between;
   }
 
   .hud-zoom--mobile {
     justify-self: stretch;
     justify-content: space-between;
     padding-top: 10px;
-    padding-left: 0;
     border-top: 1px solid rgba(214, 177, 115, 0.11);
-    border-left: none;
   }
 
   .hud-zoom__btn {
@@ -435,6 +493,128 @@ app-terminal {
     color: var(--terminal-muted);
     text-align: center;
     font-size: 0.82em;
+  }
+
+  .hud-compass {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 12px;
+    border: 1px solid rgba(214, 177, 115, 0.10);
+    border-radius: 10px;
+    background: rgba(16, 16, 21, 0.6);
+  }
+
+  .hud-compass__title {
+    color: var(--terminal-muted);
+    font-size: 0.78em;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    align-self: flex-start;
+  }
+
+  .hud-compass__grid {
+    display: grid;
+    grid-template-columns: repeat(3, 32px);
+    grid-template-rows: repeat(3, 32px);
+    gap: 4px;
+    justify-content: center;
+  }
+
+  .hud-compass__corner,
+  .hud-compass__center {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: rgba(214, 177, 115, 0.18);
+    font-size: 0.9em;
+  }
+
+  .hud-compass__btn {
+    appearance: none;
+    border: 1px solid rgba(214, 177, 115, 0.18);
+    background: rgba(16, 16, 21, 0.85);
+    color: rgba(214, 177, 115, 0.32);
+    font-family: inherit;
+    font-size: 0.85em;
+    font-weight: 700;
+    border-radius: 4px;
+    cursor: not-allowed;
+    padding: 0;
+    line-height: 1;
+    width: 32px;
+    height: 32px;
+    transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+  }
+
+  .hud-compass__btn--active {
+    color: var(--terminal-text);
+    border-color: rgba(214, 177, 115, 0.6);
+    background: rgba(48, 36, 22, 0.7);
+    cursor: pointer;
+  }
+
+  .hud-compass__btn--active:hover,
+  .hud-compass__btn--active:focus-visible {
+    background: rgba(214, 177, 115, 0.25);
+    border-color: rgba(214, 177, 115, 0.85);
+    outline: none;
+  }
+
+  .hud-compass__btn:disabled {
+    pointer-events: none;
+  }
+
+  .hud-compass__vertical {
+    display: flex;
+    gap: 6px;
+  }
+
+  .hud-quests {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 10px 12px;
+    border: 1px solid rgba(214, 177, 115, 0.10);
+    border-radius: 10px;
+    background: rgba(16, 16, 21, 0.6);
+    font-size: 0.85em;
+  }
+
+  .hud-quests__title {
+    color: var(--terminal-muted);
+    font-size: 0.78em;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+
+  .hud-quests__empty {
+    color: var(--terminal-muted);
+    font-style: italic;
+    font-size: 0.85em;
+  }
+
+  .hud-quests__entry {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding: 4px 0;
+    border-top: 1px dashed rgba(214, 177, 115, 0.08);
+  }
+
+  .hud-quests__entry:first-of-type {
+    border-top: none;
+  }
+
+  .hud-quests__name {
+    color: var(--terminal-text);
+    font-weight: 600;
+  }
+
+  .hud-quests__objective {
+    color: var(--terminal-muted);
+    font-size: 0.88em;
   }
 
   // Quick Cast panel (combat spells)
@@ -570,7 +750,7 @@ app-terminal {
     min-height: 0;
     flex: 1;
     overflow-y: auto;
-    padding: 20px 22px 24px;
+    padding: 0 0 24px;
     display: flex;
     flex-direction: column;
     gap: 14px;

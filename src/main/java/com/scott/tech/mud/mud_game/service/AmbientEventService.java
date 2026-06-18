@@ -150,8 +150,8 @@ public class AmbientEventService {
                     try {
                         textPolisher.polish(message, AiTextPolisher.Style.AMBIENT_EVENT);
                         warmed++;
-                        // Small delay to avoid hitting Groq's 6000 TPM rate limit
-                        Thread.sleep(200);
+                        // ~340 tokens per request; throttle to stay under Groq's 6000 TPM limit
+                        Thread.sleep(4000);
                     } catch (Exception e) {
                         log.warn("Failed to warm ambient event message '{}': {}", 
                                 message.substring(0, Math.min(50, message.length())), e.getMessage());
@@ -165,7 +165,7 @@ public class AmbientEventService {
                     try {
                         textPolisher.polish(message, AiTextPolisher.Style.NPC_DIALOGUE);
                         warmed++;
-                        Thread.sleep(200);
+                        Thread.sleep(4000);
                     } catch (Exception e) {
                         log.warn("Failed to warm companion dialogue '{}': {}", 
                                 message.substring(0, Math.min(50, message.length())), e.getMessage());

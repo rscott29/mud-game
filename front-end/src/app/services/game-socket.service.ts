@@ -5,7 +5,10 @@ import {
   GAME_MESSAGE_TYPES,
   GameMessage,
   ConnectionStatus,
+  MapSnapshotDto,
   PlayerStatsDto,
+  QuestLogDto,
+  RoomDto,
 } from '../models/game-message';
 import { CommandCatalogService } from './command-catalog.service';
 
@@ -29,6 +32,9 @@ export class GameSocketService {
 
   readonly status = signal<ConnectionStatus>(CONNECTION_STATUSES.DISCONNECTED);
   readonly playerStats = signal<PlayerStatsDto | null>(null);
+  readonly questLog = signal<QuestLogDto | null>(null);
+  readonly currentRoom = signal<RoomDto | null>(null);
+  readonly mapSnapshot = signal<MapSnapshotDto | null>(null);
 
   constructor(private readonly zone: NgZone) {}
 
@@ -153,6 +159,15 @@ export class GameSocketService {
     if (message.playerStats != null) {
       this.playerStats.set(message.playerStats);
     }
+    if (message.questLog != null) {
+      this.questLog.set(message.questLog);
+    }
+    if (message.room != null) {
+      this.currentRoom.set(message.room);
+    }
+    if (message.mapSnapshot != null) {
+      this.mapSnapshot.set(message.mapSnapshot);
+    }
   }
 
   /**
@@ -164,6 +179,9 @@ export class GameSocketService {
         // Only reset UI state when we're back at the login screen (username prompt)
         if ((message.message ?? '').toLowerCase().includes('username')) {
           this.playerStats.set(null);
+          this.questLog.set(null);
+          this.currentRoom.set(null);
+          this.mapSnapshot.set(null);
           this.commandCatalog.refresh();
         }
         break;

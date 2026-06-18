@@ -68,6 +68,7 @@ class LoginHandlerTest {
     private PartyService partyService;
     private GameEngine gameEngine;
     private SessionTerminationService sessionTerminationService;
+    private com.scott.tech.mud.mud_game.service.MapSnapshotService mapSnapshotService;
     private LoginHandler loginHandler;
     private WorldService worldService;
     private Room startRoom;
@@ -93,6 +94,7 @@ class LoginHandlerTest {
         partyService = mock(PartyService.class);
         gameEngine = mock(GameEngine.class);
         worldService = mock(WorldService.class);
+        mapSnapshotService = mock(com.scott.tech.mud.mud_game.service.MapSnapshotService.class);
         sessionTerminationService = new SessionTerminationService(
             gameEngine,
             sessionManager,
@@ -126,7 +128,7 @@ class LoginHandlerTest {
         loginHandler = new LoginHandler(
                 accountStore, sessionManager, worldBroadcaster, reconnectTokenStore, playerProfileService,
                 inventoryService, discoveredExitService, authUiRegistry, characterCreationOptions, classStatsRegistry, xpTables, stateCache,
-            disconnectGracePeriod, questService, globalSettingsRegistry, partyService, sessionTerminationService);
+            disconnectGracePeriod, questService, globalSettingsRegistry, partyService, sessionTerminationService, mapSnapshotService);
     }
 
     @Test

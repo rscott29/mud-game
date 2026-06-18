@@ -15,6 +15,7 @@ import com.scott.tech.mud.mud_game.model.Room;
 import com.scott.tech.mud.mud_game.party.PartyService;
 import com.scott.tech.mud.mud_game.service.AmbientEventService;
 import com.scott.tech.mud.mud_game.service.LevelingService;
+import com.scott.tech.mud.mud_game.service.MapSnapshotService;
 import com.scott.tech.mud.mud_game.service.MovementCostService;
 import com.scott.tech.mud.mud_game.service.RoomFlavorScheduler;
 import com.scott.tech.mud.mud_game.session.GameSession;
@@ -44,6 +45,7 @@ public class MoveService {
         private final PartyService partyService;
     private final AiTextPolisher textPolisher;
     private final PlayerDeathService playerDeathService;
+    private final MapSnapshotService mapSnapshotService;
 
         public MoveService(WorldBroadcaster worldBroadcaster,
                                            GameSessionManager sessionManager,
@@ -55,7 +57,8 @@ public class MoveService {
                                            WorldService worldService,
                                            PartyService partyService,
                                            AiTextPolisher textPolisher,
-                                           PlayerDeathService playerDeathService) {
+                                           PlayerDeathService playerDeathService,
+                                           MapSnapshotService mapSnapshotService) {
                 this.worldBroadcaster = Objects.requireNonNull(worldBroadcaster, "worldBroadcaster");
                 this.sessionManager = Objects.requireNonNull(sessionManager, "sessionManager");
                 this.roomFlavorScheduler = Objects.requireNonNull(roomFlavorScheduler, "roomFlavorScheduler");
@@ -67,6 +70,7 @@ public class MoveService {
                 this.partyService = partyService;
                 this.textPolisher = textPolisher == null ? AiTextPolisher.noOp() : textPolisher;
                 this.playerDeathService = playerDeathService;
+                this.mapSnapshotService = mapSnapshotService;
     }
 
     public CommandResult buildResult(GameSession session,
@@ -160,6 +164,9 @@ public class MoveService {
         ExperienceTableService xpTables = levelingService.getXpTables();
         if (xpTables != null) {
             roomUpdate = roomUpdate.withPlayerStats(player, xpTables);
+        }
+        if (mapSnapshotService != null) {
+            roomUpdate = roomUpdate.withMapSnapshot(mapSnapshotService.snapshot(nextRoom));
         }
         responses.add(roomUpdate);
 

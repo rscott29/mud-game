@@ -208,7 +208,26 @@ public class NpcWanderScheduler {
                 : AiTextPolisher.Tone.DEFAULT;
         String polishedTemplate = textPolisher.polish(tmpl, AiTextPolisher.Style.ROOM_EVENT, tone);
         String fromStr = fromDir != null ? fromDir.name().toLowerCase() : "somewhere";
-        return NpcTextRenderer.renderWithArrival(polishedTemplate, npc, fromStr);
+        String rendered = NpcTextRenderer.renderWithArrival(polishedTemplate, npc, fromStr);
+        return normalizeArrivalGrammar(rendered, fromDir == null);
+    }
+
+    /**
+     * When the arrival direction is unknown, {@code {from}} is substituted with
+     * "somewhere". Strip any leading article ("from the somewhere" -> "from somewhere")
+     * and any trailing direction phrase like "from somewhere to the east" the LLM may have
+     * inserted, so the line reads naturally regardless of the original template.
+     */
+    private static String normalizeArrivalGrammar(String text, boolean directionUnknown) {
+        String result = text;
+        if (directionUnknown) {
+            result = result
+                    .replaceAll("(?i)\\bthe somewhere\\b", "somewhere");
+        }
+        return result
+                .replaceAll("\\s+([,.;:!?])", "$1")
+                .replaceAll("\\s{2,}", " ")
+                .trim();
     }
 
     private long randomDelay(Npc npc) {

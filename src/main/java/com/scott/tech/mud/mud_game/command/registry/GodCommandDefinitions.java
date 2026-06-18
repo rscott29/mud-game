@@ -47,7 +47,8 @@ final class GodCommandDefinitions {
                 .creator(ctx -> new TeleportCommand(
                         ctx.joinedArgs(),
                         ctx.deps().sessionManager(),
-                        ctx.deps().worldBroadcaster()
+                        ctx.deps().worldBroadcaster(),
+                        ctx.deps().mapSnapshotService()
                 ))
                 .build());
 

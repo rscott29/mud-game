@@ -1,0 +1,9 @@
+﻿npx : [1m[31mError: This command is not available when running the Angular 
+CLI outside a workspace.[39m[22m
+At line:1 char:24
++ cd mud-game\front-end; npx ng test --watch=false 2>&1 | Out-File fe_t ...
++                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: ([1m[31mError:...pace.[39m[22m 
+   :String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 

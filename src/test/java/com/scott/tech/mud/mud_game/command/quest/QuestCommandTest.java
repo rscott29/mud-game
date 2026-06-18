@@ -27,8 +27,10 @@ class QuestCommandTest {
 
         CommandResult result = new QuestCommand(questService).execute(session);
 
-        assertThat(result.getResponses()).hasSize(1);
+        assertThat(result.getResponses()).hasSize(2);
         assertThat(result.getResponses().getFirst().type()).isEqualTo(GameResponse.Type.NARRATIVE);
+        assertThat(result.getResponses().get(1).type()).isEqualTo(GameResponse.Type.QUEST_LOG);
+        assertThat(result.getResponses().get(1).questLog().quests()).isEmpty();
     }
 
     @Test
@@ -44,9 +46,11 @@ class QuestCommandTest {
 
         CommandResult result = new QuestCommand(questService).execute(session);
 
-        assertThat(result.getResponses()).hasSize(1);
+        assertThat(result.getResponses()).hasSize(2);
         assertThat(result.getResponses().getFirst().type()).isEqualTo(GameResponse.Type.NARRATIVE);
         assertThat(result.getResponses().getFirst().message()).contains("The Lost Relic");
+        assertThat(result.getResponses().get(1).type()).isEqualTo(GameResponse.Type.QUEST_LOG);
+        assertThat(result.getResponses().get(1).questLog().quests()).hasSize(1);
     }
 
     @Test
@@ -62,7 +66,8 @@ class QuestCommandTest {
 
         CommandResult result = new QuestCommand(questService).execute(session);
 
-        assertThat(result.getResponses()).hasSize(1);
+        assertThat(result.getResponses()).hasSize(2);
         assertThat(result.getResponses().getFirst().message()).contains("Progress: 3");
+        assertThat(result.getResponses().get(1).type()).isEqualTo(GameResponse.Type.QUEST_LOG);
     }
 }

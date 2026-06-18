@@ -1,6 +1,8 @@
 package com.scott.tech.mud.mud_game.ai;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
 import com.scott.tech.mud.mud_game.config.Messages;
 import com.scott.tech.mud.mud_game.model.ModerationCategory;
 import org.slf4j.Logger;
@@ -9,9 +11,8 @@ import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.Duration;
 import java.util.Locale;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
 import java.util.regex.Pattern;
 
 /**
@@ -44,7 +45,13 @@ public class PlayerTextModerator {
     private final ChatClient chatClient;
     private final ObjectMapper objectMapper;
     private final boolean enabled;
-    private final ConcurrentMap<String, Review> cache = new ConcurrentHashMap<>();
+    /**
+     * Bounded LRU cache; entries expire 1h after write to keep memory and staleness in check.
+     */
+    private final Cache<String, Review> cache = Caffeine.newBuilder()
+            .maximumSize(1000)
+            .expireAfterWrite(Duration.ofHours(1))
+            .build();
     /**
      * Trips after 5 consecutive AI failures, stays open for 30s. While open,
      * moderation falls back to local pattern checks instead of stalling on a doomed call.
@@ -81,7 +88,7 @@ public class PlayerTextModerator {
         }
 
         String cacheKey = normalized.toLowerCase(Locale.ROOT);
-        return cache.computeIfAbsent(cacheKey, key -> resolve(normalized));
+        return cache.get(cacheKey, key -> resolve(normalized));
     }
 
     private Review resolve(String text) {

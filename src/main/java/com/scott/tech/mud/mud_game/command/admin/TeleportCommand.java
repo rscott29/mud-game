@@ -7,6 +7,7 @@ import com.scott.tech.mud.mud_game.dto.GameResponse;
 import com.scott.tech.mud.mud_game.model.Item;
 import com.scott.tech.mud.mud_game.model.Npc;
 import com.scott.tech.mud.mud_game.model.Room;
+import com.scott.tech.mud.mud_game.service.MapSnapshotService;
 import com.scott.tech.mud.mud_game.session.GameSession;
 import com.scott.tech.mud.mud_game.session.GameSessionManager;
 import com.scott.tech.mud.mud_game.websocket.WorldBroadcaster;
@@ -25,11 +26,14 @@ public class TeleportCommand implements GameCommand {
     private final String rawArgs;
     private final GameSessionManager sessionManager;
     private final WorldBroadcaster worldBroadcaster;
+    private final MapSnapshotService mapSnapshotService;
 
-    public TeleportCommand(String rawArgs, GameSessionManager sessionManager, WorldBroadcaster worldBroadcaster) {
+    public TeleportCommand(String rawArgs, GameSessionManager sessionManager, WorldBroadcaster worldBroadcaster,
+                           MapSnapshotService mapSnapshotService) {
         this.rawArgs = rawArgs == null ? "" : rawArgs.trim();
         this.sessionManager = sessionManager;
         this.worldBroadcaster = worldBroadcaster;
+        this.mapSnapshotService = mapSnapshotService;
     }
 
     @Override
@@ -98,7 +102,8 @@ public class TeleportCommand implements GameCommand {
                     Messages.fmt("command.teleport.success", "room", destination.getName(), "target", targetLabel),
                         others,
                         session.getDiscoveredHiddenExits(destination.getId()),
-                        invIds));
+                        invIds)
+                .withMapSnapshot(mapSnapshotService != null ? mapSnapshotService.snapshot(destination) : null));
     }
 
     private TeleportTarget resolveTarget(GameSession session) {

@@ -53,7 +53,7 @@ class PlayerRespawnServiceTest {
         when(xpTables.getXpProgressInLevel(anyString(), anyInt(), anyInt())).thenReturn(0);
         when(xpTables.getXpToNextLevel(anyString(), anyInt())).thenReturn(100);
 
-        PlayerRespawnService service = new PlayerRespawnService(sessionManager, broadcaster, xpTables);
+        PlayerRespawnService service = new PlayerRespawnService(sessionManager, broadcaster, xpTables, null);
         GameResponse response = service.respawn(session);
 
         assertThat(player.getCurrentRoomId()).isEqualTo("town_square");
@@ -103,7 +103,7 @@ class PlayerRespawnServiceTest {
 
         ExperienceTableService xpTables = mock(ExperienceTableService.class);
 
-        PlayerRespawnService service = new PlayerRespawnService(sessionManager, broadcaster, xpTables);
+        PlayerRespawnService service = new PlayerRespawnService(sessionManager, broadcaster, xpTables, null);
         GameResponse response = service.recall(session);
 
         assertThat(player.getCurrentRoomId()).isEqualTo("town_square");

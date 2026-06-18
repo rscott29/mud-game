@@ -956,6 +956,17 @@
   font-size: 0.88em;
 }
 
+.time-of-day {
+  display: block;
+  margin: 2px 0;
+  padding-left: 10px;
+  border-left: 2px solid rgba(214, 177, 115, 0.35);
+  color: rgba(214, 177, 115, 0.62);
+  font-size: 0.85em;
+  font-style: italic;
+  letter-spacing: 0.02em;
+}
+
 .quest-warning {
   margin-bottom: 12px;
   padding: 11px 13px;

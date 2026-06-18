@@ -7,8 +7,8 @@ import com.scott.tech.mud.mud_game.model.SessionState;
 import com.scott.tech.mud.mud_game.quest.QuestService;
 import com.scott.tech.mud.mud_game.session.GameSession;
 import com.scott.tech.mud.mud_game.session.GameSessionManager;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
@@ -177,7 +177,9 @@ public class SessionDisplayResponseNormalizer {
                 response.whoPlayers(),
                 response.playerStats(),
                 response.combatStats(),
-                response.characterCreation()
+                response.characterCreation(),
+                response.questLog(),
+                response.mapSnapshot()
         );
     }
 
@@ -197,7 +199,9 @@ public class SessionDisplayResponseNormalizer {
                 next.whoPlayers() != null ? next.whoPlayers() : current.whoPlayers(),
                 next.playerStats() != null ? next.playerStats() : current.playerStats(),
                 next.combatStats() != null ? next.combatStats() : current.combatStats(),
-                next.characterCreation() != null ? next.characterCreation() : current.characterCreation()
+                next.characterCreation() != null ? next.characterCreation() : current.characterCreation(),
+                next.questLog() != null ? next.questLog() : current.questLog(),
+                next.mapSnapshot() != null ? next.mapSnapshot() : current.mapSnapshot()
         );
     }
 
@@ -213,7 +217,9 @@ public class SessionDisplayResponseNormalizer {
                 source.whoPlayers() != null ? source.whoPlayers() : target.whoPlayers(),
                 source.playerStats() != null ? source.playerStats() : target.playerStats(),
                 source.combatStats() != null ? source.combatStats() : target.combatStats(),
-                source.characterCreation() != null ? source.characterCreation() : target.characterCreation()
+                source.characterCreation() != null ? source.characterCreation() : target.characterCreation(),
+                source.questLog() != null ? source.questLog() : target.questLog(),
+                source.mapSnapshot() != null ? source.mapSnapshot() : target.mapSnapshot()
         );
     }
 

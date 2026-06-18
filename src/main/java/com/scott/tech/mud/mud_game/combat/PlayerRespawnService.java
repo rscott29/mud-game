@@ -5,6 +5,7 @@ import com.scott.tech.mud.mud_game.config.Messages;
 import com.scott.tech.mud.mud_game.dto.GameResponse;
 import com.scott.tech.mud.mud_game.model.Item;
 import com.scott.tech.mud.mud_game.model.Room;
+import com.scott.tech.mud.mud_game.service.MapSnapshotService;
 import com.scott.tech.mud.mud_game.session.GameSession;
 import com.scott.tech.mud.mud_game.session.GameSessionManager;
 import com.scott.tech.mud.mud_game.websocket.WorldBroadcaster;
@@ -19,12 +20,14 @@ public class PlayerRespawnService {
     private final GameSessionManager sessionManager;
     private final WorldBroadcaster worldBroadcaster;
     private final ExperienceTableService xpTables;
+    private final MapSnapshotService mapSnapshotService;
 
     public PlayerRespawnService(GameSessionManager sessionManager, WorldBroadcaster worldBroadcaster,
-                                ExperienceTableService xpTables) {
+                                ExperienceTableService xpTables, MapSnapshotService mapSnapshotService) {
         this.sessionManager = sessionManager;
         this.worldBroadcaster = worldBroadcaster;
         this.xpTables = xpTables;
+        this.mapSnapshotService = mapSnapshotService;
     }
 
     public GameResponse respawn(GameSession session) {
@@ -68,7 +71,8 @@ public class PlayerRespawnService {
                         session.getDiscoveredHiddenExits(destination.getId()),
                         inventoryItemIds
                 )
-                .withPlayerStats(session.getPlayer(), xpTables);
+                .withPlayerStats(session.getPlayer(), xpTables)
+                .withMapSnapshot(mapSnapshotService != null ? mapSnapshotService.snapshot(destination) : null);
     }
 
     public GameResponse recall(GameSession session) {
@@ -112,7 +116,7 @@ public class PlayerRespawnService {
                 others,
                 session.getDiscoveredHiddenExits(destination.getId()),
                 inventoryItemIds
-        );
+        ).withMapSnapshot(mapSnapshotService != null ? mapSnapshotService.snapshot(destination) : null);
     }
 
     public Room previewDestination(GameSession session) {

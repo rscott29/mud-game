@@ -18,6 +18,7 @@ public final class CommandRegistry {
     // Canonical command names (internal identifiers, no slashes)
     public static final String LOOK = "look";
     public static final String HELP = "help";
+    public static final String HINT = "hint";
     public static final String GO = "go";
     public static final String TALK = "talk";
     public static final String LOGOUT = "logout";
