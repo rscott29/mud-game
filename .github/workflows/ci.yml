@@ -33,3 +33,6 @@ jobs:
           name: jacoco-report
           path: target/site/jacoco/
           retention-days: 14
+
+      - run: npx nx fix-ci
+        if: always()
