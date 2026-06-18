@@ -12,10 +12,10 @@
     }
   },
   "namedInputs": {
-    "sharedGlobals": [],
+    "sharedGlobals": ["{workspaceRoot}/.github/workflows/ci.yml"],
     "default": ["{projectRoot}/**/*", "sharedGlobals"],
     "production": ["default"]
   },
-  "nxCloudId": "6a33cd5de2417639fe896728",
+  "nxCloudId": "6a33d65e845e63bc3a830f98",
   "analytics": false
 }
