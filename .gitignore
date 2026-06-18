@@ -44,3 +44,9 @@ front-end/node_modules/
 front-end/.angular/
 front-end/node/
 front-end/dist/
+
+.nx/installation
+.nx/cache
+.nx/workspace-data
+.nx/self-healing
+.nx/migrate-runs
